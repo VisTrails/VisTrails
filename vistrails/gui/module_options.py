@@ -42,6 +42,7 @@ QModuleOptions
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
@@ -56,6 +57,10 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
     QModuleIteration is a dialog for editing module looping options.
 
     """
+
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal(int)
+
     def __init__(self, parent=None):
         """ 
         QModuleIteration(parent)
@@ -180,7 +185,7 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
 
         self.layout().addStretch(1)
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -190,10 +195,8 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)        
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
         self.layout().setStretch(3, 0)
         self.update_module()
         self.pairwiseButton.toggled.connect(self.stateChanged)
@@ -226,8 +229,8 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL("stateChanged"))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
             
     def resetTriggered(self, checked = False):
         self.update_module(self.module)

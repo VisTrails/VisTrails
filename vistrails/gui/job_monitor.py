@@ -84,28 +84,20 @@ class QJobTree(QtGui.QTreeWidget):
         menu = QtGui.QMenu(self)
         if item and isinstance(item, QJobItem):
             act = QtGui.QAction("&Check", self)
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   lambda :self.parent().check_jobs(item))
+            act.triggered.connect(lambda :self.parent().check_jobs(item))
             menu.addAction(act)
 
             act = QtGui.QAction("&Delete", self)
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   lambda :self.parent().delete_item(item))
+            act.triggered.connect(lambda :self.parent().delete_item(item))
             menu.addAction(act)
 
             act = QtGui.QAction("View Standard &Output", self)
             act.setStatusTip("View Standard Output in new window")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   item.stdout)
+            act.triggered.connect(item.stdout)
             menu.addAction(act)
 
             act = QtGui.QAction("View Standard &Error", self)
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   item.stderr)
+            act.triggered.connect(item.stderr)
             menu.addAction(act)
 
             menu.exec_(event.globalPos())
@@ -113,22 +105,16 @@ class QJobTree(QtGui.QTreeWidget):
         if item and isinstance(item, QWorkflowItem):
 
             act = QtGui.QAction("&Check", self)
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   lambda :self.parent().check_jobs(item))
+            act.triggered.connect(lambda :self.parent().check_jobs(item))
             menu.addAction(act)
 
             if not item.paused and not item.workflowFinished:
                 act = QtGui.QAction("&Pause", self)
-                QtCore.QObject.connect(act,
-                                       QtCore.SIGNAL("triggered()"),
-                                       item.pause)
+                act.triggered.connect(item.pause)
                 menu.addAction(act)
 
             act = QtGui.QAction("Delete", self)
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   lambda :self.parent().delete_item(item))
+            act.triggered.connect(lambda :self.parent().delete_item(item))
 
             menu.addAction(act)
             menu.exec_(event.globalPos())
@@ -169,8 +155,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.autorun = QtGui.QCheckBox("Automatic re-execution")
         self.autorun.setToolTip("Automatically re-execute workflow when jobs "
                                 "complete")
-        self.connect(self.autorun, QtCore.SIGNAL('toggled(bool)'),
-                     self.autorunToggled)
+        self.autorun.toggled.connect(self.autorunToggled)
         self.autorun.setChecked(conf.jobAutorun)
         buttonsLayout.addWidget(self.autorun)
 
@@ -734,14 +719,12 @@ class LogMonitor(QtGui.QDialog):
         close = QtGui.QPushButton('Close', self)
         close.setFixedWidth(100)
         buttonLayout.addWidget(close)
-        self.connect(close, QtCore.SIGNAL('clicked()'),
-                     self, QtCore.SLOT('close()'))
+        close.clicked.connect(self.close)
 
         update = QtGui.QPushButton('Update', self)
         update.setFixedWidth(100)
         buttonLayout.addWidget(update)
-        self.connect(update, QtCore.SIGNAL('clicked()'),
-                     self.update_text)
+        update.clicked.connect(self.update_text)
 
         layout.addLayout(buttonLayout)
 

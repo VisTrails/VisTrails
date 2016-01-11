@@ -41,7 +41,6 @@ from __future__ import division
 import os
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.core.system import systemType, set_vistrails_data_directory
@@ -71,8 +70,7 @@ class QToolWindow(QtGui.QDockWidget):
         self.pinStatus = False
         self.monitorWindowTitle(widget)
         
-        self.connect(self, QtCore.SIGNAL("topLevelChanged(bool)"),
-                     self.setDefaultPinStatus)
+        self.topLevelChanged.connect(self.setDefaultPinStatus)
              
     def createToolBar(self):
         self.toolbar = QtGui.QToolBar(self.mwindow)
@@ -305,7 +303,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         self.setWindowTitle('Search Tree')
         
         vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
@@ -315,15 +313,9 @@ class QSearchTreeWindow(QtGui.QWidget):
         self.treeWidget = self.createTreeWidget()
         vLayout.addWidget(self.treeWidget)
         
-        self.connect(self.searchBox,
-                     QtCore.SIGNAL('executeIncrementalSearch(QString)'),
-                     self.treeWidget.searchItemName)
-        self.connect(self.searchBox,
-                     QtCore.SIGNAL('executeSearch(QString)'),
-                     self.treeWidget.searchItemName)
-        self.connect(self.searchBox,
-                     QtCore.SIGNAL('resetSearch()'),
-                     self.clearTreeWidget)
+        self.searchBox.executeIncrementalSearch.connect(self.treeWidget.searchItemName)
+        self.searchBox.executeSearch.connect(self.treeWidget.searchItemName)
+        self.searchBox.resetSearch.connect(self.clearTreeWidget)
                      
     def clearTreeWidget(self):
         """ clearTreeWidget():
@@ -416,7 +408,7 @@ class QStringEdit(QtGui.QFrame):
         """
         QtGui.QFrame.__init__(self, parent)        
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
@@ -433,8 +425,7 @@ class QStringEdit(QtGui.QFrame):
                                       QtGui.QSizePolicy.Expanding)
         self.fileButton.setFocusPolicy(QtCore.Qt.NoFocus)
         self.fileButton.setAutoFillBackground(True)
-        self.connect(self.fileButton, QtCore.SIGNAL('clicked()'),
-                     self.insertFileNameDialog)
+        self.fileButton.clicked.connect(self.insertFileNameDialog)
         hLayout.addWidget(self.fileButton)
 
     def setText(self, text):
@@ -486,6 +477,8 @@ class QStringEdit(QtGui.QFrame):
 ###############################################################################
 
 class QSearchEditBox(QtGui.QComboBox):
+    executeSearch = QtCore.pyqtSignal(str)
+    resetText = QtCore.pyqtSignal()
     def __init__(self, incremental=True, parent=None):
         QtGui.QComboBox.__init__(self, parent)
         self.setEditable(True)
@@ -507,11 +500,10 @@ class QSearchEditBox(QtGui.QComboBox):
         if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
             if self.currentText():
                 if not self.is_incremental:
-                    self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
-                              self.currentText())
+                    self.executeSearch.emit(self.currentText())
                 self.insertItem(0, self.currentText())
             else:
-                self.emit(QtCore.SIGNAL('resetText()'))
+                self.resetText.emit()
             return
         QtGui.QComboBox.keyPressEvent(self, e)
         
@@ -523,6 +515,12 @@ class QSearchBox(QtGui.QWidget):
     a search icon.
 
     """
+
+    resetSearch = QtCore.pyqtSignal()
+    refineMode = QtCore.pyqtSignal(bool)
+    executeSearch = QtCore.pyqtSignal(str)
+    executeIncrementalSearch = QtCore.pyqtSignal(str)
+
     def __init__(self, refine=True, incremental=True, parent=None):
         """ QSearchBox(parent: QWidget) -> QSearchBox
         Intialize all GUI components
@@ -532,7 +530,7 @@ class QSearchBox(QtGui.QWidget):
         self.setWindowTitle('Search')
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(2)
         self.setLayout(hLayout)
 
@@ -560,10 +558,8 @@ class QSearchBox(QtGui.QWidget):
             self.searchButton.setPopupMode(QtGui.QToolButton.InstantPopup)
             self.searchButton.setMenu(self.searchMenu)
             hLayout.addWidget(self.searchButton)
-            self.connect(self.searchAction, QtCore.SIGNAL('triggered()'),
-                         self.searchMode)
-            self.connect(self.refineAction, QtCore.SIGNAL('triggered()'),
-                         self.refineMode)
+            self.searchAction.triggered.connect(self.searchMode)
+            self.refineAction.triggered.connect(self.refineMode)
         else:
             self.searchLabel = QtGui.QLabel(self)
             pix = CurrentTheme.QUERY_VIEW_ICON.pixmap(QtCore.QSize(16,16))
@@ -583,22 +579,14 @@ class QSearchBox(QtGui.QWidget):
         hLayout.addWidget(self.resetButton)
         self.manualResetEnabled = False
 
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
-                     self.resetSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('activated(int)'),
-                     self.executeSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('resetText'),
-                     self.resetSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.executeTextSearch)
+        self.resetButton.clicked.connect(self._resetSearch)
+        self.searchEdit.activated.connect(self._executeSearch)
+        self.searchEdit.resetText.connect(self._resetSearch)
+        self.searchEdit.executeSearch.connect(self.executeTextSearch)
         if incremental:
-            self.connect(self.searchEdit, 
-                         QtCore.SIGNAL('editTextChanged(QString)'),
-                         self.executeIncrementalSearch)
+            self.searchEdit.editTextChanged.connect(self._executeIncrementalSearch)
         else:
-            self.connect(self.searchEdit,
-                         QtCore.SIGNAL('editTextChanged(QString)'),
-                         self.resetToggle)
+            self.searchEdit.editTextChanged.connect(self.resetToggle)
 
     def resetSearch(self):
         """
@@ -609,7 +597,7 @@ class QSearchBox(QtGui.QWidget):
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
         self.manualResetEnabled = False
-        self.emit(QtCore.SIGNAL('resetSearch()'))
+        self.resetSearch.emit()
 
     def clearSearch(self):
         """ clearSearch() -> None
@@ -627,14 +615,14 @@ class QSearchBox(QtGui.QWidget):
         searchMode() -> None
 
         """
-        self.emit(QtCore.SIGNAL('refineMode(bool)'), False) 
+        self.refineMode.emit(False)
     
     def refineMode(self):
         """
         refineMode() -> None
 
         """
-        self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
+        self.refineMode.emit(True)
 
     def resetToggle(self, text):
         self.resetButton.setEnabled((unicode(text) != '') or
@@ -648,11 +636,10 @@ class QSearchBox(QtGui.QWidget):
         """
         self.resetButton.setEnabled((unicode(text)!='') or
                                     self.manualResetEnabled)
-        self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
+        self.executeIncrementalSearch.emit(text)
 
     def executeTextSearch(self, text):
-        self.emit(QtCore.SIGNAL('executeSearch(QString)'),
-                  text)
+        self.executeSearch.emit(text)
 
     def executeSearch(self, index):
         """
@@ -662,13 +649,12 @@ class QSearchBox(QtGui.QWidget):
         """
         count = self.searchEdit.count() 
         if index == count-1: 
-            for i in xrange(count-1): 
+            for i in range(count-1): 
                 self.searchEdit.removeItem(0) 
-            self.resetSearch() 
+            self.resetSearch()
         else: 
             self.resetButton.setEnabled(True) 
-            self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
-                      self.searchEdit.currentText())
+            self.executeSearch.emit(self.searchEdit.currentText())
 
     def getCurrentText(self):
         return unicode(self.searchEdit.currentText())
@@ -685,7 +671,7 @@ class QMouseTabBar(QtGui.QTabBar):
     receives a mouse event. For now only doubleclick events are
     emitted."""
     #signals
-    tabDoubleClicked = pyqtSignal(int,QtCore.QPoint)
+    tabDoubleClicked = QtCore.pyqtSignal(int,QtCore.QPoint)
     
     def __init__(self, parent=None):
         QtGui.QTabBar.__init__(self, parent)
@@ -715,7 +701,7 @@ class QPathChooserToolButton(QtGui.QToolButton):
     emits pathChanged when the path is changed
 
     """
-    pathChanged = pyqtSignal()
+    pathChanged = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, lineEdit=None, toolTip=None,
                  defaultPath=None):
@@ -735,9 +721,7 @@ class QPathChooserToolButton(QtGui.QToolButton):
         self.setToolTip(toolTip)
         self.setAutoRaise(True)
         self.lineEdit = lineEdit
-        self.connect(self,
-                     QtCore.SIGNAL('clicked()'),
-                     self.runDialog)
+        self.clicked.connect(self.runDialog)
 
     def setPath(self, path):
         """

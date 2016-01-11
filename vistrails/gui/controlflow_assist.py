@@ -83,7 +83,7 @@ class QControlFlowAssistDialog(QtGui.QDialog):
 
         # Add ok/cancel buttons
         buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.okButton = QtGui.QPushButton('&OK', self)
         self.okButton.setAutoDefault(False)
         self.okButton.setFixedWidth(100)
@@ -94,8 +94,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         self.cancelButton.setFixedWidth(100)
         buttonLayout.addWidget(self.cancelButton)
         layout.addLayout(buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okClicked)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
+        self.okButton.clicked.connect(self.okClicked)
+        self.cancelButton.clicked.connect(self.close)
 
     def enablePackage(self):
         """ enablePackge() -> None

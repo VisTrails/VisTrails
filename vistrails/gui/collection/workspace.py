@@ -58,14 +58,13 @@ class QCollectionWidget(QtGui.QTreeWidget):
     a core.collection.Collection object
     a subclass should provide a view of the collection
     """
+    workspaceListUpdated = QtCore.pyqtSignal()
     def __init__(self, collection, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.collection = collection
         self.collection.add_listener(self)
         self.setExpandsOnDoubleClick(False)
-        self.connect(self,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
-                     self.item_selected)
+        self.itemDoubleClicked.connect(self.item_selected)
         self.setIconSize(QtCore.QSize(16,16))
 
     def setup_widget(self, workspace=None):
@@ -135,58 +134,42 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 p = p.parent()
             act = QtGui.QAction("&Update", self)
             act.setStatusTip("Update this object")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   p.refresh_object)
+            act.triggered.connect(p.refresh_object)
             menu.addAction(act)
             act = QtGui.QAction("&Remove", self)
             act.setStatusTip("Remove from this list")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   p.remove_object)
+            act.triggered.connect(p.remove_object)
             menu.addAction(act)
             act = QtGui.QAction("", self)
             act.setSeparator(True)
             menu.addAction(act)
         act = QtGui.QAction("Check &All", self)
         act.setStatusTip("Removes deleted files")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.check_objects)
+        act.triggered.connect(self.check_objects)
         menu.addAction(act)
         act = QtGui.QAction("Remove All", self)
         act.setStatusTip("Removes all files")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.remove_all)
+        act.triggered.connect(self.remove_all)
         menu.addAction(act)
         act = QtGui.QAction("Add &File", self)
         act.setStatusTip("Add specified vistrail file")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_file)
+        act.triggered.connect(self.add_file)
         menu.addAction(act)
         act = QtGui.QAction("Add from &Directory", self)
         act.setStatusTip("Add all vistrail files in a directory")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_dir)
+        act.triggered.connect(self.add_dir)
         menu.addAction(act)
         act = QtGui.QAction("", self)
         act.setSeparator(True)
         menu.addAction(act)
         act = QtGui.QAction("Add a new Workspace", self)
         act.setStatusTip("Create a new workspace")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_workspace)
+        act.triggered.connect(self.add_workspace)
         menu.addAction(act)
         if self.collection.currentWorkspace != 'Default':
             act = QtGui.QAction("Delete Workspace", self)
             act.setStatusTip("Remove current workspace")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   self.delete_workspace)
+            act.triggered.connect(self.delete_workspace)
             menu.addAction(act)
         menu.exec_(event.globalPos())
 
@@ -256,14 +239,14 @@ class QCollectionWidget(QtGui.QTreeWidget):
             if workspace not in self.collection.workspaces:
                 self.collection.add_workspace(workspace)
                 self.collection.commit()
-            self.emit(QtCore.SIGNAL("workspaceListUpdated()"))
+            self.workspaceListUpdated.emit()
                 
     def delete_workspace(self):
         if self.collection.currentWorkspace != 'Default':
             self.collection.delete_workspace(self.collection.currentWorkspace)
             self.collection.currentWorkspace = 'Default'
             self.collection.commit()
-            self.emit(QtCore.SIGNAL("workspaceListUpdated()"))
+            self.workspaceListUpdated.emit()
 
 class QWorkspaceWidget(QCollectionWidget):
     """ This class implements QCollectionWidget as a side bar browser widget
@@ -497,7 +480,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         # make it possible to ignore updates during updating of workspace list
         self.updatingWorkspaceList = False
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
         self.collection = Collection.getInstance()
@@ -636,6 +619,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.open_list.remove_vt_window(vistrail_window)
 
 class QVistrailEntityItem(QBrowserWidgetItem):
+    detachVistrail = QtCore.pyqtSignal(QtCore.QObject)
     def __init__(self, entity, window=None):
         QBrowserWidgetItem.__init__(self, entity)
         if window:
@@ -651,8 +635,7 @@ class QVistrailEntityItem(QBrowserWidgetItem):
     def open_in_new_window(self):
         if hasattr(self, "window"):
             self.treeWidget().setSelected(self.window)
-            self.treeWidget().parent().emit(QtCore.SIGNAL("detachVistrail"),
-                                   self.window)
+            self.treeWidget().parent().detachVistrail.emit(self.window)
 
     def open_workflow(self):
         self.treeWidget().item_selected(self, 0)
@@ -691,6 +674,7 @@ class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
                                 self.parent().parent().window.tabs.currentIndex())
 
 class QVistrailList(QtGui.QTreeWidget):
+    vistrailChanged = QtCore.pyqtSignal(QtCore.QObject)
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.searchMode = False
@@ -725,15 +709,11 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-        self.connect(self,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
-                     self.item_selected)
+        self.itemDoubleClicked.connect(self.item_selected)
         
         self.setIconSize(QtCore.QSize(16,16))
 
-        self.connect(self,
-                     QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
-                     self.onItemPressed)
+        self.itemPressed.connect(self.onItemPressed)
         self.updateHideExecutions()
         self.connect_current_changed()
 
@@ -756,23 +736,13 @@ class QVistrailList(QtGui.QTreeWidget):
     def connect_current_changed(self):
         # using currentItemChanged makes sure a drag selects the dragged-from
         # vistrail
-        self.connect(self, 
-                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
-                                   "QTreeWidgetItem*)"),
-                     self.item_changed)
+        self.currentItemChanged.connect(self.item_changed)
         # using item_clicked makes sure even selected items can be clicked
-        self.connect(self, 
-                     QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
-                     self.item_changed)
+        self.itemClicked.connect(self.item_changed)
 
     def disconnect_current_changed(self):
-        self.disconnect(self, 
-                        QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
-                                      "QTreeWidgetItem*)"),
-                        self.item_changed)
-        self.disconnect(self, 
-                        QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
-                        self.item_changed)
+        self.currentItemChanged.connect(self.item_changed)
+        self.itemClicked.connect(self.item_changed)
     
     def show_search_results(self):
         self.searchResultsItem = QtGui.QTreeWidgetItem(['Search Results'])
@@ -1235,7 +1205,7 @@ class QVistrailList(QtGui.QTreeWidget):
             entity_was_none = True
 
         # remove item from recent list
-        for i in xrange(self.closedFilesItem.childCount()):
+        for i in range(self.closedFilesItem.childCount()):
             recent = self.closedFilesItem.child(i)
             if entity and recent and recent.entity and \
                 recent.entity.url == entity.url:
@@ -1372,8 +1342,7 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail = vistrail.parent()
 
         self.setSelected(vistrail.window)
-        self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
-                           vistrail.window)
+        self.parent().vistrailChanged.emit(vistrail.window)
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:

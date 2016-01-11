@@ -36,9 +36,9 @@
 from __future__ import division
 from __future__ import print_function
 
+
 import os
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal
 
 from vistrails.core import debug
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
@@ -53,7 +53,7 @@ from vistrails.packages.spreadsheet.spreadsheet_controller import \
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
     #signals
-    appWasClosed = pyqtSignal(QtGui.QMainWindow)
+    appWasClosed = QtCore.pyqtSignal(QtGui.QMainWindow)
 
     def __init__(self, parent=None, vistrail_view=None, dumpcells=False,
                  controller=None, version=-1):
@@ -69,7 +69,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         # Central widget
         centralWidget = QtGui.QWidget()
         self.mainLayout = QtGui.QVBoxLayout()
-        self.mainLayout.setMargin(0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(5)
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
@@ -142,7 +142,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                                    QtGui.QSizePolicy.Preferred)
         buttonLayout = QtGui.QGridLayout()
         buttonWidget.setLayout(buttonLayout)
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update",
                                               self.centralWidget())
         self.cb_auto_update.setChecked(False)
@@ -187,7 +187,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonLayout.setColumnStretch(0, 1)
         if self.sequenceOption:
             sequenceLayout = QtGui.QHBoxLayout()
-            sequenceLayout.setMargin(5)
+            sequenceLayout.setContentsMargins(5, 5, 5, 5)
             sequenceLayout.addWidget(self.cb_loop_int)
             sequenceLayout.addWidget(self.cb_loop_sequence)
             buttonLayout.addLayout(sequenceLayout, 0, 0, QtCore.Qt.AlignRight)

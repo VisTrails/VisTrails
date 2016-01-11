@@ -48,7 +48,9 @@ QVersionMashups
 from __future__ import division
 
 import re
+
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
@@ -66,7 +68,7 @@ class ColorChooserButton(QtGui.QPushButton):
         QtGui.QToolButton.__init__(self, parent)
         self.setColor(None)
 
-        self.connect(self, QtCore.SIGNAL('clicked()'), self.changeColor)
+        self.clicked.connect(self.changeColor)
 
     def setColor(self, color, silent=True):
         self.color = color
@@ -110,12 +112,12 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.setWindowTitle('Workflow Info')
 
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(2)
+        vLayout.setContentsMargins(2, 2, 2, 2)
         vLayout.setSpacing(2)
         self.setLayout(vLayout)
 
         gLayout = QtGui.QGridLayout()
-        gLayout.setMargin(2)
+        gLayout.setContentsMargins(2, 2, 2, 2)
         gLayout.setSpacing(5)
         gLayout.setColumnMinimumWidth(1,5)
         gLayout.setRowMinimumHeight(0,20)
@@ -128,7 +130,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
         editLayout = QtGui.QHBoxLayout()
-        editLayout.setMargin(2)
+        editLayout.setContentsMargins(2, 2, 2, 2)
         editLayout.setSpacing(2)
         self.tagEdit = QtGui.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
@@ -185,12 +187,9 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionMashups = QVersionMashups()
         vLayout.addWidget(self.versionMashups)
                 
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged.connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
 
         self.controller = None
         self.versionNumber = -1
@@ -483,9 +482,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes_dialog = QNotesDialog(self)
         self.notes_dialog.hide()
 
-        QtCore.QObject.connect(self.notes_button,
-                               QtCore.SIGNAL("pressed()"),
-                               self.openNotes)
+        self.notes_button.pressed(self.openNotes)
 
     def updateGeometry(self):
         """ updateGeometry() -> None
@@ -592,6 +589,7 @@ class QExpandButton(QtGui.QLabel):
     """
     A transparent button type with a + draw in 
     """
+    pressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         """
         QExpandButton(parent: QWidget) -> QExpandButton
@@ -620,7 +618,7 @@ class QExpandButton(QtGui.QLabel):
     
     def mouseReleaseEvent(self, e):
         self.drawButton(0)
-        self.emit(QtCore.SIGNAL('pressed()'))
+        self.pressed.emit()
 
     def drawButton(self, down):
         """ drawButton(down: bool) -> None
@@ -666,7 +664,7 @@ class QNotesDialog(QtGui.QDialog):
         self.notes.update_on_focus_out = False
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.notes)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.apply_button = QtGui.QPushButton('Apply', self)
         self.apply_button.setDefault(False)
@@ -686,17 +684,10 @@ class QNotesDialog(QtGui.QDialog):
         self.setLayout(layout)
         self.controller = None
 
-        QtCore.QObject.connect(self.apply_button,
-                               QtCore.SIGNAL("released()"),
-                               self.apply_pressed)
+        self.apply_button.released.connect(self.apply_pressed)
+        self.ok_button.released.connect(self.ok_pressed)
+        self.cancel_button.released.connect(self.cancel_pressed)
 
-        QtCore.QObject.connect(self.ok_button,
-                               QtCore.SIGNAL("released()"),
-                               self.ok_pressed)
-
-        QtCore.QObject.connect(self.cancel_button,
-                               QtCore.SIGNAL("released()"),
-                               self.cancel_pressed)
     def apply_pressed(self):
         """ apply_pressed() -> None
 
@@ -761,7 +752,7 @@ class QVersionThumbs(QtGui.QWidget):
         self.scrollArea.setWidget(self.thumbs)
         self.scrollArea.setWidgetResizable(True)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.addWidget(label)
         layout.addWidget(self.scrollArea)
         self.setLayout(layout)
@@ -831,7 +822,7 @@ class QVersionMashups(QtGui.QWidget):
 #        glayout.addWidget(helplabel)
 #        self.group.setLayout(glayout)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(5)
         #layout.addStretch()
         layout.addWidget(self.mashupsButton)

@@ -50,7 +50,6 @@ from __future__ import division
 
 import copy
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -64,7 +63,7 @@ class QAliasInspector(QtGui.QScrollArea):
     QAliasInspector is a widget to display the details of an alias.
     """
     #signals
-    aliasChanged = pyqtSignal(Alias)
+    aliasChanged = QtCore.pyqtSignal(QtCore.QObject)
     
     def __init__(self, alias_list, parent=None):
         QtGui.QScrollArea.__init__(self,parent)
@@ -82,8 +81,8 @@ class QAliasInspector(QtGui.QScrollArea):
 ################################################################################       
 class QAliasDetailsWidget(QtGui.QWidget):
     #signals
-    aliasChanged = pyqtSignal(Alias)
-    
+    aliasChanged = QtCore.pyqtSignal(QtCore.QObject)
+
     def __init__(self, table, parent=None):
         QtGui.QWidget.__init__(self,parent)
         self.alias = None
@@ -140,19 +139,19 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.dw_stepsize_edit = QtGui.QLineEdit()
         
         l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_minval_label)
         l.addWidget(self.dw_minval_edit)
         self.dw_slider_layout.addLayout(l)
         l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_maxval_label)
         l.addWidget(self.dw_maxval_edit)
         self.dw_slider_layout.addLayout(l)
         l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_stepsize_label)
         l.addWidget(self.dw_stepsize_edit)
@@ -222,38 +221,38 @@ class QAliasDetailsWidget(QtGui.QWidget):
     def valuesListChanged(self):
         self.aliasChanged.emit(self.alias)
         
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def minvalChanged(self):
         if self.alias:
             old_minval = self.alias.component.minVal
-            new_minval = unicode(self.dw_minval_edit.text())
+            new_minval = str(self.dw_minval_edit.text())
             if old_minval == new_minval:
                 return
             self.alias.component.minVal = new_minval
             self.aliasChanged.emit(self.alias)
     
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def maxvalChanged(self):
         if self.alias:
             old_maxval = self.alias.component.maxVal
-            new_maxval = unicode(self.dw_maxval_edit.text())
+            new_maxval = str(self.dw_maxval_edit.text())
             if old_maxval == new_maxval:
                 return
             self.alias.component.maxVal = new_maxval
             self.aliasChanged.emit(self.alias)
         
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def stepsizeChanged(self):
         if self.alias:
             old_stepsize = self.alias.component.stepSize
-            new_stepsize = unicode(self.dw_stepsize_edit.text())
+            new_stepsize = str(self.dw_stepsize_edit.text())
             if old_stepsize == new_stepsize:
                 return
             self.alias.component.stepSize = new_stepsize
             self.aliasChanged.emit(self.alias)
         
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def seqToggled(self):
         if self.alias:
             old_seq = self.alias.component.seq
@@ -263,7 +262,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.component.seq = new_seq
             self.aliasChanged.emit(self.alias)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def nameChanged(self):
         old_alias = self.alias.name
         new_alias = unicode(self.name_edit.text())
@@ -289,7 +288,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.alias.name = new_alias
             self.aliasChanged.emit(self.alias)
          
-    @pyqtSlot(int)   
+    @QtCore.pyqtSlot(int)
     def orderChanged(self, neworder):
         if self.alias.component.pos == neworder:
             return
@@ -297,7 +296,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.alias.component.pos = neworder
         self.table.moveItemToNewPos(oldorder, neworder)
         
-    @pyqtSlot(int)
+    @QtCore.pyqtSlot(int)
     def toggle_dw_combobox(self, index):
         if index == 0:
             self.show_dw_contents(False)
@@ -376,9 +375,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
                 
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
-                self.disconnect(self.dv_widget,
-                                QtCore.SIGNAL("contentsChanged"),
-                                self.widgetContentsChanged)
+                self.disconnect()
                 self.dv_widget.deleteLater()
             
             self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
@@ -389,9 +386,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
-                self.disconnect(self.vl_editor,
-                                QtCore.SIGNAL("valuesChanged"),
-                                self.valuesListChanged)
+                self.disconnect()
                 self.vl_editor.deleteLater()
                 self.vl_editor = None
            
@@ -408,17 +403,13 @@ class QAliasDetailsWidget(QtGui.QWidget):
             
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
-                self.disconnect(self.dv_widget,
-                                QtCore.SIGNAL("contentsChanged"),
-                                self.widgetContentsChanged)
+                self.disconnect()
                 self.dv_widget.deleteLater()
                 self.dv_widget = None
                 
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
-                self.disconnect(self.vl_editor,
-                                QtCore.SIGNAL("valuesChanged"),
-                                self.valuesListChanged)
+                self.disconnect()
                 self.vl_editor.deleteLater()
                 self.vl_editor = None
                 
@@ -455,6 +446,7 @@ class QValuesListEditor(QtGui.QWidget):
     enter a list of values
     
     """
+    valuesChanged = QtCore.pyqtSignal()
     def __init__(self, alias, controller, parent=None):
         """ QValuesListEditor(alias_item: AliasTableItem, parent: QWidget)
                                      -> QValuesListEditor
@@ -467,7 +459,7 @@ class QValuesListEditor(QtGui.QWidget):
         self.controller = controller
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
         
@@ -555,7 +547,7 @@ class QValuesListEditor(QtGui.QWidget):
                           for v in values]
             self.listValues.setText('[%s]' % ', '.join(values2))
             self.listValues.home(False)
-            self.emit(QtCore.SIGNAL("valuesChanged"))
+            self.valuesChanged.emit()
         dialog.deleteLater()
 
 ##############################################################################
@@ -575,7 +567,7 @@ class QListEditDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self._alias = alias
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.controller = controller
         self.setLayout(vLayout)
@@ -712,6 +704,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
     
     """
 
+    commitData = QtCore.pyqtSignal(QtGui.QWidget)
     def __init__(self, alias_item, controller, parent=None):
         """ QListEditItemDelegate(parent: QWidget) -> QListEditItemDelegate
         Store the uncommit editor for commit later
@@ -757,6 +750,6 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
     def finishEditing(self):
         #print "finishEditing"
         if self.editor:
-            self.emit(QtCore.SIGNAL('commitData(QWidget*)'), self.editor)
+            self.commitData.emit(self.editor)
 
 ##############################################################################

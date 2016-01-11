@@ -44,6 +44,7 @@ class BaseView(object):
 
     """
 
+    windowTitleChanged = QtCore.pyqtSignal(QtGui.QWidget)
     def __init__(self):
         self.controller = None
         self.title = None
@@ -113,7 +114,7 @@ class BaseView(object):
     
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.WindowTitleChange:
-            self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
+            self.windowTitleChanged.emit(self)
         QtGui.QWidget.changeEvent(self, event)
 
     def viewSelected(self):

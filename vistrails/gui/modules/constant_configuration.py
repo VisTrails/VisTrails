@@ -44,9 +44,13 @@ constants.
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.utils import expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
+
+import copy
+import os
 
 ############################################################################
 
@@ -178,7 +182,8 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         self.is_valid = True
         self.document().setDocumentMargin(1)
         ConstantWidgetBase.__init__(self, param)
-        self.document().contentsChanged.connect(self.ensureCursorVisible)
+        d = self.document()
+        d.contentsChanged.connect(self.ensureCursorVisible)
 
     def setContents(self, value, silent=False):
         self.setPlainText(expression.evaluate_expressions(value))
@@ -313,7 +318,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
             # Color background yellow and add tooltip
             self.setStyleSheet("border:2px dashed %s;" %
                                CurrentTheme.PARAM_INVALID_COLOR.name())
-            self.setToolTip("Invalid value: %s" % unicode(e))
+            self.setToolTip("Invalid value: %s" % str(e))
         else:
             self.setStyleSheet("")
             self.setToolTip("")
@@ -431,7 +436,7 @@ class MultiLineStringWidget(QtGui.QTextEdit, ConstantWidgetBase):
         self.setPlainText(expression.evaluate_expressions(contents))
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        contents = expression.evaluate_expressions(str(self.toPlainText()))
         self.setPlainText(contents)
         return contents
 
@@ -467,7 +472,7 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         layout = QtGui.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = self.create_browse_button()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_button)
@@ -575,6 +580,7 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetBase):
 # code uses it, really should be removed at some point
 class ColorChooserButton(QtGui.QPushButton):
     contentsChanged = QtCore.pyqtSignal(tuple)
+    color_selected = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtGui.QPushButton.__init__(self, parent)
         # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
@@ -595,7 +601,7 @@ class ColorChooserButton(QtGui.QPushButton):
                            (qcolor.red(), qcolor.green(), qcolor.blue()))
         self.update()
         if not silent:
-            self.emit(QtCore.SIGNAL("color_selected"))
+            self.color_selected.emit()
 
     def sizeHint(self):
         return QtCore.QSize(24,24)

@@ -36,7 +36,7 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+
 import vistrails.core.system
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.mashups.mashups_manager import MashupsManager
@@ -71,7 +71,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.manager = MashupsManager.getInstance()
         
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(3)
         self.workflowLabel = QtGui.QLabel("Workflow: ")
         layout.addWidget(self.workflowLabel)
@@ -83,7 +83,7 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         self.mashupInspector = QMashupProp(parent=self)
         inspector_group = QtGui.QGroupBox("Mashup properties")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(1)
+        g_layout.setContentsMargins(1, 1, 1, 1)
         g_layout.setSpacing(3)
         g_layout.addWidget(self.mashupInspector)
         inspector_group.setLayout(g_layout)
@@ -129,11 +129,11 @@ class QMashupProp(QtGui.QWidget):
         self.controller = controller
         self.versionNumber = -1
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
         gLayout = QtGui.QGridLayout()
-        gLayout.setMargin(0)
+        gLayout.setContentsMargins(0, 0, 0, 0)
         gLayout.setSpacing(5)
         gLayout.setColumnMinimumWidth(1,5)
         gLayout.setRowMinimumHeight(0,24)
@@ -152,7 +152,7 @@ class QMashupProp(QtGui.QWidget):
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
         editLayout = QtGui.QHBoxLayout()
-        editLayout.setMargin(0)
+        editLayout.setContentsMargins(0, 0, 0, 0)
         editLayout.setSpacing(2)
         self.tagEdit = QtGui.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
@@ -186,14 +186,10 @@ class QMashupProp(QtGui.QWidget):
         
         vLayout.addStretch()
         
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
-        self.connect(self.btnExport, QtCore.SIGNAL("clicked()"),
-                     self.exportMashupGUI)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged.connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
+        self.btnExport.clicked.connect(self.exportMashupGUI)
         
     def updateController(self, mshpController):
         self.controller = mshpController
@@ -299,7 +295,7 @@ class QMashupsListPanel(QtGui.QWidget):
         self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         layout.addWidget(self.mashupsList)
         self.setLayout(layout)
@@ -334,7 +330,7 @@ class QMashupsListPanel(QtGui.QWidget):
                         
         self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
     
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def changeSelection(self):
         items = self.mashupsList.selectedItems()
         if len(items) == 1:
@@ -394,8 +390,8 @@ class QMashupExportDialog(QtGui.QDialog):
         self.setLayout(dlgLayout)
         
         self.btnPressed = -1
-        self.connect(btnOk, QtCore.SIGNAL("clicked()"), self.btnOkPressed) 
-        self.connect(btnCancel, QtCore.SIGNAL("clicked()"), self.btnCancelPressed)
+        btnOk.clicked.connect(self.btnOkPressed)
+        btnCancel.clicked.connect(self.btnCancelPressed)
         
     def btnOkPressed(self):
         if self.rbFullTree.isChecked():
@@ -408,4 +404,3 @@ class QMashupExportDialog(QtGui.QDialog):
         
     def btnCancelPressed(self):
         self.btnPressed = -1
-        self.reject()

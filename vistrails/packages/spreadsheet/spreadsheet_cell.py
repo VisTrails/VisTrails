@@ -45,7 +45,9 @@ from __future__ import absolute_import
 
 import datetime
 import os
+
 from PyQt4 import QtCore, QtGui
+
 import tempfile
 
 from vistrails.core import debug
@@ -87,9 +89,7 @@ class QCellWidget(QtGui.QWidget):
                                   hasattr(self, 'saveToPNG'))
         self._output_module = None
         self._output_configuration = None
-        self.connect(self._playerTimer,
-                     QtCore.SIGNAL('timeout()'),
-                     self.playNextFrame)
+        self._playerTimer.timeout.connect(self.playNextFrame)
         if configuration.fixedCellSize:
             self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
             self.setFixedSize(200, 180)
@@ -300,6 +300,7 @@ class QCellToolBar(QtGui.QToolBar):
     for interacting with CellHelpers
 
     """
+    needUpdateStatus = QtCore.pyqtSignal(tuple)
     def __init__(self, sheet):
         """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar
         Initialize the cell toolbar by calling the user-defined
@@ -336,8 +337,7 @@ class QCellToolBar(QtGui.QToolBar):
                     self)
             self.saveActionVar.setStatusTip("Export this cell only")
 
-            self.connect(self.saveActionVar, QtCore.SIGNAL('triggered(bool)'),
-                         self.exportCell)
+            self.saveActionVar.triggered.connect(self.exportCell)
         self.appendAction(self.saveActionVar)
 
     def exportCell(self, checked=False):
@@ -382,8 +382,7 @@ class QCellToolBar(QtGui.QToolBar):
                     self)
             self.executeActionVar.setStatusTip("Re-execute this cell")
 
-            self.connect(self.executeActionVar, QtCore.SIGNAL('triggered(bool)'),
-                         self.executeCell)
+            self.executeActionVar.triggered.connect(self.executeCell)
         self.appendAction(self.executeActionVar)
 
     def executeCell(self, checked=False):
@@ -433,8 +432,7 @@ class QCellToolBar(QtGui.QToolBar):
         """
         cellWidget = self.sheet.getCell(self.row, self.col)
         for action in self.actions():
-            action.emit(QtCore.SIGNAL('needUpdateStatus'),
-                        (self.sheet, self.row, self.col, cellWidget))
+            action.needUpdateStatus.emit((self.sheet, self.row, self.col, cellWidget))
 
     def connectAction(self, action, widget):
         """ connectAction(action: QAction, widget: QWidget) -> None
@@ -442,14 +440,11 @@ class QCellToolBar(QtGui.QToolBar):
 
         """
         if hasattr(widget, 'updateStatus'):
-            self.connect(action, QtCore.SIGNAL('needUpdateStatus'),
-                         widget.updateStatus)
+            action.needUpdateStatus.connect(widget.updateStatus)
         if hasattr(widget, 'triggeredSlot'):
-            self.connect(action, QtCore.SIGNAL('triggered()'),
-                         widget.triggeredSlot)
+            action.triggered.connect(widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
-            self.connect(action, QtCore.SIGNAL('toggled(bool)'),
-                         widget.toggledSlot)
+            action.toggled.connect(widget.toggledSlot)
 
     def appendAction(self, action):
         """ appendAction(action: QAction) -> QAction
@@ -772,7 +767,7 @@ class QCellContainer(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.containedWidget = None
         self.setWidget(widget)
@@ -835,7 +830,7 @@ class QCellPresenter(QtGui.QLabel):
 
         layout = QtGui.QGridLayout(self)
         layout.setSpacing(2)
-        layout.setMargin(self.margin())
+        layout.setContentsMargins(*self.getContentsMargins())
         layout.setRowStretch(1, 1)
         self.setLayout(layout)
 
@@ -960,7 +955,7 @@ class QPipelineInfo(QtGui.QFrame):
 
         topLayout = QtGui.QVBoxLayout(self)
         topLayout.setSpacing(0)
-        topLayout.setMargin(0)
+        topLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(topLayout)
 
         hLine = QtGui.QFrame()
@@ -970,12 +965,12 @@ class QPipelineInfo(QtGui.QFrame):
 
         layout = QtGui.QGridLayout()
         layout.setSpacing(2)
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         topLayout.addLayout(layout)
 
         self.edits = []
         texts = ['Vistrail', 'Index', 'Created by']
-        for i in xrange(len(texts)):
+        for i in range(len(texts)):
             label = QInfoLabel(texts[i])
             layout.addWidget(label, i, 0, 1, 1)
             edit = QInfoLineEdit()
@@ -1024,7 +1019,7 @@ class QCellManipulator(QtGui.QFrame):
 
         layout = QtGui.QVBoxLayout(self)
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         layout.addStretch()
@@ -1071,8 +1066,7 @@ class QCellManipulator(QtGui.QFrame):
         self.updateButton.setStatusTip(self.updateButton.toolTip())
         self.updateButton.setText('Create Version')
         self.updateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.connect(self.updateButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.updateVersion)
+        self.updateButton.clicked.connect(self.updateVersion)
         self.buttons.append(self.updateButton)
 
         self.locateButton = QtGui.QToolButton()
@@ -1084,8 +1078,7 @@ class QCellManipulator(QtGui.QFrame):
         self.locateButton.setStatusTip(self.locateButton.toolTip())
         self.locateButton.setText('Locate Version')
         self.locateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.connect(self.locateButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.locateVersion)
+        self.locateButton.clicked.connect(self.locateVersion)
         self.buttons.append(self.locateButton)
 
 

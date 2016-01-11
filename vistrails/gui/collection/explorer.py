@@ -63,7 +63,7 @@ class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.layout.addWidget(self.splitter)
         self.connectionList = QDBConnectionList(self)
         dbGrid = QtGui.QGridLayout(self)
-        dbGrid.setMargin(0)
+        dbGrid.setContentsMargins(0, 0, 0, 0)
         dbGrid.setSpacing(0)
         dbGrid.addWidget(self.connectionList, 2, 1, QtCore.Qt.AlignLeft)
         self.addAct = QtGui.QAction("Add Database", self)
@@ -78,7 +78,7 @@ class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.removeButton.setAutoRaise(True)
         self.removeButton.setEnabled(False)
         panelButtonsLayout = QtGui.QHBoxLayout()
-        panelButtonsLayout.setMargin(0)
+        panelButtonsLayout.setContentsMargins(0, 0, 0, 0)
         panelButtonsLayout.setSpacing(0)
         panelButtonsLayout.addWidget(self.addButton)
         panelButtonsLayout.addWidget(self.removeButton)
@@ -86,18 +86,10 @@ class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         dbWidget = QDBWidget(parent, self.connectionList)
         dbWidget.setLayout(dbGrid)
         self.splitter.addWidget(dbWidget)
-        self.connect(self.addAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.showConnConfig)
-        self.connect(self.removeAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.connectionList.removeConnection)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateEditButtons)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.checkConnection)
+        self.addAct.triggered.connect(self.showConnConfig)
+        self.removeAct.triggered.connect(self.connectionList.removeConnection)
+        self.connectionList.itemSelectionChanged.connect(self.updateEditButtons)
+        self.connectionList.itemSelectionChanged.connect(self.checkConnection)
         self.tabView = QtGui.QTabWidget()
         self.tabView.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(self.tabView)
@@ -287,7 +279,7 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         self.itemView = QtGui.QTreeWidget(self.parent())
         self.addWidget(self.itemView)
         statusGrid = QtGui.QGridLayout()
-        statusGrid.setMargin(0)
+        statusGrid.setContentsMargins(0, 0, 0, 0)
         statusGrid.setSpacing(0)
         statusWidget = QtGui.QWidget()
         statusWidget.setLayout(statusGrid)
@@ -311,45 +303,37 @@ class ExecutionSearchWidget(QtGui.QSplitter):
 
         self.statusText = QtGui.QLabel('No query specified')
         statusLayout.addWidget(self.statusText)
-        self.connect(self.searchButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.newQuery)
-        self.connect(self.prevButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoPrevious)
-        self.connect(self.nextButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoNext)
-        self.connect(self.itemView,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *,int)'),
-                     self.showItem)
+        self.searchButton.clicked.connect(self.newQuery)
+        self.prevButton.clicked.connect(self.gotoPrevious)
+        self.nextButton.clicked.connect(self.gotoNext)
+        self.itemView.itemDoubleClicked.connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0
         self.vistrail = None
         if self.vistrailEditCheckBox.isChecked():
-            self.vistrail = unicode(self.vistrailEdit.text()).strip()
+            self.vistrail = self.vistrailEdit.text().strip()
         self.version = None
         if self.versionEditCheckBox.isChecked():
-            self.version = unicode(self.versionEdit.text()).strip()
+            self.version = self.versionEdit.text().strip()
         self.fromTime = None
         if self.fromTimeEditCheckBox.isChecked():
-            self.fromTime = unicode(
-                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.fromTime = \
+                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.toTime = None
         if self.toTimeEditCheckBox.isChecked():
-            self.toTime = unicode(
-                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.toTime = \
+                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.user = None
         if self.userEditCheckBox.isChecked():
-            self.user = unicode(self.userEdit.text()).strip()
+            self.user = self.userEdit.text().strip()
         self.completed = None
         if self.completedEditCheckBox.isChecked():
-            self.completed = unicode(self.completedEdit.currentText()).strip()
+            self.completed = self.completedEdit.currentText().strip()
         self.modules = []
         if self.moduleEditCheckBox.isChecked():
             # create list of [moduleType, completed] pairs
-            modules = unicode(self.moduleEdit.text()).strip()
+            modules = self.moduleEdit.text().strip()
             for k in [i.strip() for i in modules.split(',')]:
                 v = k.split(':')
                 if len(v)>1:
@@ -423,11 +407,11 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         for wf_exec in wf_exec_list:
             item = QExecutionItem(wf_exec)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setResizeMode(4, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(1, QtGui.QHeaderView.Interactive)
-        self.itemView.header().setResizeMode(0, QtGui.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(4, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(3, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(1, QtGui.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(0, QtGui.QHeaderView.Interactive)
         self.itemView.header().resizeSections(QtGui.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:
@@ -561,7 +545,7 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         self.itemView = QtGui.QTreeWidget(self.parent())
         self.addWidget(self.itemView)
         statusGrid = QtGui.QGridLayout()
-        statusGrid.setMargin(0)
+        statusGrid.setContentsMargins(0, 0, 0, 0)
         statusGrid.setSpacing(0)
         statusWidget = QtGui.QWidget()
         statusWidget.setLayout(statusGrid)
@@ -585,42 +569,34 @@ class WorkflowSearchWidget(QtGui.QSplitter):
 
         self.statusText = QtGui.QLabel('No query specified')
         statusLayout.addWidget(self.statusText)
-        self.connect(self.searchButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.newQuery)
-        self.connect(self.prevButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoPrevious)
-        self.connect(self.nextButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoNext)
-        self.connect(self.itemView,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *,int)'),
-                     self.showItem)
+        self.searchButton.clicked.connect(self.newQuery)
+        self.prevButton.clicked.connect(self.gotoPrevious)
+        self.nextButton.clicked.connect(self.gotoNext)
+        self.itemView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0
         self.vistrail = None
         if self.vistrailEditCheckBox.isChecked():
-            self.vistrail = unicode(self.vistrailEdit.text()).strip()
+            self.vistrail = self.vistrailEdit.text().strip()
         self.version = None
         if self.versionEditCheckBox.isChecked():
-            self.version = unicode(self.versionEdit.text()).strip()
+            self.version = self.versionEdit.text().strip()
         self.fromTime = None
         if self.fromTimeEditCheckBox.isChecked():
-            self.fromTime = unicode(
-                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.fromTime = \
+                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.toTime = None
         if self.toTimeEditCheckBox.isChecked():
-            self.toTime = unicode(
-                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.toTime = \
+                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.user = None
         if self.userEditCheckBox.isChecked():
-            self.user = unicode(self.userEdit.text()).strip()
+            self.user = self.userEdit.text().strip()
         self.modules = []
         if self.moduleEditCheckBox.isChecked():
             # create list of [moduleType, connected to previous] pairs
-            groups = unicode(self.moduleEdit.text()).strip()
+            groups = self.moduleEdit.text().strip()
             groups = [i.strip() for i in groups.split(',')]
             for group in [i.split('->') for i in groups]:
                 if len(group):
@@ -699,10 +675,10 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         for workflow in workflow_list:
             item = QWorkflowItem(workflow)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(1, QtGui.QHeaderView.Interactive)
-        self.itemView.header().setResizeMode(0, QtGui.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(3, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(1, QtGui.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(0, QtGui.QHeaderView.Interactive)
         self.itemView.header().resizeSections(QtGui.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:

@@ -138,7 +138,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
 
         self.setText(1, execution.ts_start.strftime(
                     '%H:%M %d/%m').replace(' 0', ' ').replace('/0', '/'))
-        self.setData(1, QtCore.Qt.UserRole, unicode(execution.ts_start))
+        self.setData(1, QtCore.Qt.UserRole, str(execution.ts_start))
         #self.setText(2, '%s' % execution.ts_end) end is hidden
         pixmap = QtGui.QPixmap(10,10)
         pixmap.fill(brush.color())
@@ -224,7 +224,7 @@ class QLegendWidget(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.gridLayout = QtGui.QGridLayout(self)
-        self.gridLayout.setMargin(10)
+        self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -264,18 +264,12 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.detailsWidget = QtGui.QTextEdit()
         layout.addWidget(self.detailsWidget)
         self.setLayout(layout)
-        self.connect(self.executionList, 
-                     QtCore.SIGNAL("itemSelectionChanged()"),
-                     self.set_execution)
-        self.connect(self.backButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.goBack)
+        self.executionList.itemSelectionChanged.connect(self.set_execution)
+        self.backButton.clicked.connect(self.goBack)
 #        self.connect(self.executionList, QtCore.SIGNAL(
 #         "itemClicked(QTreeWidgetItem *, int)"),
 #         self.singleClick)
-        self.connect(self.executionList, QtCore.SIGNAL(
-         "itemDoubleClicked(QTreeWidgetItem *, int)"),
-         self.doubleClick)
+        self.executionList.itemDoubleClicked.connect(self.doubleClick)
         self.addButtonsToToolbar()
 
     def addButtonsToToolbar(self):
@@ -430,8 +424,7 @@ class QLogView(QPipelineView):
         self.parentItem = None
         self.isUpdating = False
         # Hook shape selecting functions
-        self.connect(self.scene(), QtCore.SIGNAL("moduleSelected"),
-                     self.moduleSelected)
+        self.scene().moduleSelected.connect(self.moduleSelected)
 
     def set_default_layout(self):
         self.set_palette_layout({QtCore.Qt.RightDockWidgetArea: QLogDetails})
@@ -576,7 +569,7 @@ class QLogView(QPipelineView):
             else:
                 item.execution = None
         connectionItems = []
-        for c in self.pipeline.connections.values():
+        for c in list(self.pipeline.connections.values()):
             connectionItems.append(scene.addConnection(c))
 
         # Color Code connections

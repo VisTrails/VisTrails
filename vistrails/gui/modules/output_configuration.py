@@ -124,7 +124,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -186,7 +186,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             self.setTitle("unknown")
 
         group_layout = QtGui.QGridLayout()
-        group_layout.setMargin(5)
+        group_layout.setContentsMargins(5, 5, 5, 5)
         group_layout.setSpacing(5)
         group_layout.setColumnStretch(1,1)
 
@@ -320,7 +320,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
 
         sub_layout = QtGui.QHBoxLayout()
-        sub_layout.setMargin(0)
+        sub_layout.setContentsMargins(0, 0, 0, 0)
         sub_layout.setSpacing(5)
         line_edit = QtGui.QLineEdit()
         if config_val is None:
@@ -381,7 +381,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             if inv_remap is not None:
                 val = inv_remap[val]
             self.field_changed(config_key, field, val, config_val)
-        combo.currentIndexChanged[unicode].connect(call_field_changed)
+        combo.currentIndexChanged.connect(call_field_changed)
         return combo
 
     def set_combo_value(self, combo, config_val, field):

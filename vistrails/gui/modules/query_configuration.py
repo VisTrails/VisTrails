@@ -44,6 +44,7 @@ from .constant_configuration import StandardConstantWidget, ColorWidget
 
 class QueryWidgetMixin(object):
 
+    contentsChanged = QtCore.pyqtSignal(object, object)
     def __init__(self, contents=None, query_method=None):
         self._last_contents = contents
         self._last_query_method = query_method
@@ -62,7 +63,7 @@ class QueryWidgetMixin(object):
                 self.parent().updateMethod()
             self._last_contents = new_contents
             self._last_query_method = new_query_method
-            self.emit(QtCore.SIGNAL('contentsChanged'), (self,new_contents))
+            self.contentsChanged.emit((self,new_contents))
 
 class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
     def __init__(self, contents_klass, query_methods, param, parent=None):
@@ -99,14 +100,13 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
         self.contents_widget = contents_klass(param)
         self.contents_widget.setContents(contents)
 
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.op_button)
         layout.addWidget(self.contents_widget)
         self.setLayout(layout)
 
-        self.connect(self.op_button, QtCore.SIGNAL('triggered(QAction*)'),
-                     self.update_action)
+        self.op_button.triggered.connect(self.update_action)
 
     def contents(self):
         return self.contents_widget.contents()

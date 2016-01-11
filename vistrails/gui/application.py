@@ -62,7 +62,6 @@ import vistrails.core.requirements
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import test_db_connection
-from vistrails.gui import qt
 import vistrails.gui.theme
 
 
@@ -126,7 +125,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.shared_memory = None
         self.local_server = None
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
-        qt.allowQObjects()
 
     def run_single_instance(self, args):
         # code for single instance of the application

@@ -49,6 +49,7 @@ import string
 import subprocess
 import sys
 import threading
+
 from PyQt4 import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
@@ -138,60 +139,51 @@ class QCLToolsWizard(QtGui.QWidget):
         self.newFileAction = QtGui.QAction(
             self.get_icon('document-new'), 'New', self)
         self.newFileAction.setToolTip('Start on a new Wrapper')
-        self.connect(self.newFileAction, QtCore.SIGNAL('triggered()'),
-                     self.newFile)
+        self.newFileAction.triggered.connect(self.newFile)
         self.toolBar.addAction(self.newFileAction)
         self.openFileAction = QtGui.QAction(
             self.get_icon('document-open'), 'Open', self)
         self.openFileAction.setToolTip('Open an existing wrapper')
-        self.connect(self.openFileAction, QtCore.SIGNAL('triggered()'),
-                     self.openFile)
+        self.openFileAction.triggered.connect(self.openFile)
         self.toolBar.addAction(self.openFileAction)
         self.saveFileAction = QtGui.QAction(
             self.get_icon('document-save'), 'Save', self)
         self.saveFileAction.setToolTip('Save wrapper')
-        self.connect(self.saveFileAction, QtCore.SIGNAL('triggered()'),
-                     self.save)
+        self.saveFileAction.triggered.connect(self.save)
         self.toolBar.addAction(self.saveFileAction)
         self.saveFileAsAction = QtGui.QAction(
             self.get_icon('document-save-as'), 'Save As', self)
         self.saveFileAsAction.setToolTip('Save wrapper as a new file')
-        self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
-                     self.saveAs)
+        self.saveFileAsAction.triggered.connect(self.saveAs)
         self.toolBar.addAction(self.saveFileAsAction)
 
         if self.reload_scripts:
             self.reloadAction = QtGui.QAction(
                 self.get_icon('view-refresh'), 'Refresh', self)
             self.reloadAction.setToolTip('Save and Reload CLTools Modules in VisTrails')
-            self.connect(self.reloadAction, QtCore.SIGNAL('triggered()'),
-                         self.refresh)
+            self.reloadAction.triggered.connect(self.refresh)
             self.toolBar.addAction(self.reloadAction)
         
         self.toolBar.addSeparator()
         self.addAction = QtGui.QAction(
             self.get_icon('list-add'), 'Add', self)
         self.addAction.setToolTip('Add a new argument')
-        self.connect(self.addAction, QtCore.SIGNAL('triggered()'),
-                     self.addArgument)
+        self.addAction.triggered.connect(self.addArgument)
         self.toolBar.addAction(self.addAction)
         self.removeAction = QtGui.QAction(
             self.get_icon('list-remove'), 'Remove', self)
         self.removeAction.setToolTip('Remove the selected argument')
-        self.connect(self.removeAction, QtCore.SIGNAL('triggered()'),
-                     self.removeArgument)
+        self.removeAction.triggered.connect(self.removeArgument)
         self.toolBar.addAction(self.removeAction)
         self.upAction = QtGui.QAction(
             self.get_icon('go-up'), 'Move up', self)
         self.upAction.setToolTip('Move argument up one position')
-        self.connect(self.upAction, QtCore.SIGNAL('triggered()'),
-                     self.moveUp)
+        self.upAction.triggered.connect(self.moveUp)
         self.toolBar.addAction(self.upAction)
         self.downAction = QtGui.QAction(
             self.get_icon('go-down'), 'Move down', self)
         self.downAction.setToolTip('Move argument down one position')
-        self.connect(self.downAction, QtCore.SIGNAL('triggered()'),
-                     self.moveDown)
+        self.downAction.triggered.connect(self.moveDown)
         self.toolBar.addAction(self.downAction)
         
         self.toolBar.addSeparator()
@@ -230,8 +222,7 @@ class QCLToolsWizard(QtGui.QWidget):
 
         self.previewPorts = QtGui.QAction('preview', self)
         self.previewPorts.setToolTip('Check which ports will be available for this module')
-        self.connect(self.previewPorts, QtCore.SIGNAL('triggered()'),
-                     self.preview_ports)
+        self.previewPorts.triggered.connect(self.preview_ports)
         self.toolBar.addAction(self.previewPorts)
 
         
@@ -277,37 +268,31 @@ class QCLToolsWizard(QtGui.QWidget):
         self.importLayout.addWidget(QtGui.QLabel("Man page:"))
         self.viewManButton = QtGui.QPushButton("view")
         self.viewManButton.setToolTip('View the man page for the current command')
-        self.connect(self.viewManButton, QtCore.SIGNAL('clicked()'),
-                     self.viewManPage)
+        self.viewManButton.clicked.connect(self.viewManPage)
         self.importLayout.addWidget(self.viewManButton)
         self.importManButton = QtGui.QPushButton("import")
         self.importManButton.setToolTip('Import arguments from the man page for the current command')
-        self.connect(self.importManButton, QtCore.SIGNAL('clicked()'),
-                     self.generateFromManPage)
+        self.importManButton.clicked.connect(self.generateFromManPage)
         self.importLayout.addWidget(self.importManButton)
 
         self.importLayout.addWidget(QtGui.QLabel("help page (-h):"))
         self.viewHelpButton = QtGui.QPushButton("view")
         self.viewHelpButton.setToolTip('View the help (-h) page for the current command')
-        self.connect(self.viewHelpButton, QtCore.SIGNAL('clicked()'),
-                     self.viewHelpPage)
+        self.viewHelpButton.clicked.connect(self.viewHelpPage)
         self.importLayout.addWidget(self.viewHelpButton)
         self.importHelpButton = QtGui.QPushButton("import")
         self.importHelpButton.setToolTip('Import arguments from the help (-h) page for the current command')
-        self.connect(self.importHelpButton, QtCore.SIGNAL('clicked()'),
-                     self.generateFromHelpPage)
+        self.importHelpButton.clicked.connect(self.generateFromHelpPage)
         self.importLayout.addWidget(self.importHelpButton)
 
         self.importLayout.addWidget(QtGui.QLabel("help page (--help):"))
         self.viewHelpButton2 = QtGui.QPushButton("view")
         self.viewHelpButton2.setToolTip('View the help (--help) page for the current command')
-        self.connect(self.viewHelpButton2, QtCore.SIGNAL('clicked()'),
-                     self.viewHelpPage2)
+        self.viewHelpButton2.clicked.connect(self.viewHelpPage2)
         self.importLayout.addWidget(self.viewHelpButton2)
         self.importHelpButton2 = QtGui.QPushButton("import")
         self.importHelpButton2.setToolTip('Import arguments from the help (--help) page for the current command')
-        self.connect(self.importHelpButton2, QtCore.SIGNAL('clicked()'),
-                     self.generateFromHelpPage2)
+        self.importHelpButton2.clicked.connect(self.generateFromHelpPage2)
         self.importLayout.addWidget(self.importHelpButton2)
         self.vbox.addLayout(self.importLayout)
 
@@ -330,12 +315,9 @@ class QCLToolsWizard(QtGui.QWidget):
         self.layout().addWidget(self.stderrGroup)
         self.stderrGroup.setVisible(False)
 
-        self.connect(self.showStdin, QtCore.SIGNAL('toggled(bool)'),
-                     self.stdinGroup.setVisible)
-        self.connect(self.showStdout, QtCore.SIGNAL('toggled(bool)'),
-                     self.stdoutGroup.setVisible)
-        self.connect(self.showStderr, QtCore.SIGNAL('toggled(bool)'),
-                     self.stderrGroup.setVisible)
+        self.showStdin.toggled.connect(self.stdinGroup.setVisible)
+        self.showStdout.toggled.connect(self.stdoutGroup.setVisible)
+        self.showStderr.toggled.connect(self.stderrGroup.setVisible)
         
         self.argList = QtGui.QListWidget()
         self.layout().addWidget(self.argList)
@@ -713,9 +695,7 @@ class QCLToolsWizard(QtGui.QWidget):
         args = self.parse(text)
         title = "Import arguments from man page for '%s'" % command
         self.manpageImport = QManpageImport(title, args, self)
-        self.connect(self.manpageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.manpageImport.importArgs.connect(self.importArgs)
         self.manpageImport.show()
 
     def generateFromHelpPage(self):
@@ -731,9 +711,7 @@ class QCLToolsWizard(QtGui.QWidget):
 
         title = "Import arguments from help page (-h) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.connect(self.helppageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.helppageImport.importArgs.connect(self.importArgs)
         self.helppageImport.show()
 
     def generateFromHelpPage2(self):
@@ -749,9 +727,7 @@ class QCLToolsWizard(QtGui.QWidget):
 
         title = "Import arguments from help page (--help) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.connect(self.helppageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.helppageImport.importArgs.connect(self.importArgs)
         self.helppageImport.show()
 
     def viewManPage(self):
@@ -968,10 +944,8 @@ class QArgWidget(QtGui.QWidget):
         layout2.addWidget(self.desc)
         
         if self.argtype not in self.stdTypes:
-            self.connect(self.klassList, QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.klassChanged)
-            self.connect(self.typeList, QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.typeChanged)
+            self.klassList.currentIndexChanged.connect(self.klassChanged)
+            self.typeList.currentIndexChanged.connect(self.typeChanged)
 
     def getValues(self):
         """ get the values from the widgets and store them """
@@ -1093,6 +1067,9 @@ class QManpageDialog(QtGui.QDialog):
         self.resize(800,600)
 
 class QManpageImport(QtGui.QDialog):
+
+    importArgs = QtCore.pyqtSignal(list)
+
     def __init__(self, title, args, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
@@ -1123,23 +1100,19 @@ class QManpageImport(QtGui.QDialog):
         self.layout().addLayout(layout2)
         self.closeButton = QtGui.QPushButton('Close')
         self.closeButton.setToolTip('Close this window')
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                     self.close)
+        self.closeButton.clicked.connect(self.close)
         layout2.addWidget(self.closeButton)
         self.selectAllButton = QtGui.QPushButton('Select All')
         self.selectAllButton.setToolTip('Select All arguments')
-        self.connect(self.selectAllButton, QtCore.SIGNAL('clicked()'),
-                     self.selectAll)
+        self.selectAllButton.clicked.connect(self.selectAll)
         layout2.addWidget(self.selectAllButton)
         self.selectNoneButton = QtGui.QPushButton('Select None')
         self.selectNoneButton.setToolTip('Unselect All arguments')
-        self.connect(self.selectNoneButton, QtCore.SIGNAL('clicked()'),
-                     self.selectNone)
+        self.selectNoneButton.clicked.connect(self.selectNone)
         layout2.addWidget(self.selectNoneButton)
         self.addSelectedButton = QtGui.QPushButton('Import Selected')
         self.addSelectedButton.setToolTip('Import all selected arguments')
-        self.connect(self.addSelectedButton, QtCore.SIGNAL('clicked()'),
-                     self.addSelected)
+        self.addSelectedButton.clicked.connect(self.addSelected)
         layout2.addWidget(self.addSelectedButton)
         self.resize(800,600)
 
@@ -1168,7 +1141,7 @@ class QManpageImport(QtGui.QDialog):
             w.layout().itemAt(1).widget().hide()
             self.argLayout.removeItem(w)
 
-        self.emit(QtCore.SIGNAL('importArgs(PyQt_PyObject)'), args)
+        self.importArgs.emit(args)
 
 class QCLToolsWizardWindow(QtGui.QMainWindow):
 

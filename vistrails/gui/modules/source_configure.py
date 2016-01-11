@@ -36,16 +36,13 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from vistrails.core import system, debug
+
+from vistrails.core import debug
 from vistrails.core.utils import PortAlreadyExists
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.utils import quote, unquote
-from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from vistrails.gui.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
 from vistrails.gui.theme import CurrentTheme
-
+from vistrails.core.utils import quote, unquote
 
 class SourceEditor(QtGui.QTextEdit):
 
@@ -55,9 +52,7 @@ class SourceEditor(QtGui.QTextEdit):
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)
-        self.connect(self,
-                     QtCore.SIGNAL('currentCharFormatChanged(QTextCharFormat)'),
-                     self.formatChanged)
+        self.currentCharFormatChanged.connect(self.formatChanged)
 
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
 
@@ -99,7 +94,7 @@ class SourceWidget(PortTableConfigurationWidget):
                                                  True)
             self.layout().addWidget(self.outputPortTable)
         if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            self.performPortConnection('connect')
         if has_inputs:
             self.inputPortTable.fixGeometry()
         if has_outputs:
@@ -143,13 +138,9 @@ class SourceWidget(PortTableConfigurationWidget):
         self.cursorLabel = QtGui.QLabel()
         self.layout().addWidget(self.cursorLabel)
         if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
-            self.connect(self.codeEditor,
-                         QtCore.SIGNAL('cursorPositionChanged()'),
-                         self.updateCursorLabel)
+            self.codeEditor.cursorPositionChanged.connect(self.updateCursorLabel)
         else:
-            self.connect(self.codeEditor,
-                         QtCore.SIGNAL('cursorPositionChanged(int, int)'),
-                         self.updateCursorLabel)
+            self.codeEditor.cursorPositionChanged.connect(self.updateCursorLabel)
         self.updateCursorLabel()
 
     def updateCursorLabel(self, x=0, y=0):
@@ -164,25 +155,24 @@ class SourceWidget(PortTableConfigurationWidget):
         return QtCore.QSize(512, 512)
 
     def performPortConnection(self, operation):
-        operation(self.inputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-        operation(self.outputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
+        getattr(self.inputPortTable.horizontalHeader().sectionResized,
+                operation)(self.portTableResize)
+        getattr(self.outputPortTable.horizontalHeader().sectionResized,
+                operation)(self.portTableResize)
 
     def portTableResize(self, logicalIndex, oldSize, newSize):
-        self.performPortConnection(self.disconnect)
+        self.performPortConnection('disconnect')
         if self.inputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.inputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
-        self.performPortConnection(self.connect)
+        self.performPortConnection('connect')
 
     def activate(self):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
 
 class SourceViewerWidget(SourceWidget):
+    widgetClosed = QtCore.pyqtSignal()
     def __init__(self, module, controller, editor_class=None,
                  has_inputs=True, has_outputs=True, parent=None,
                  encode=True, portName='source'):
@@ -220,7 +210,7 @@ class SourceViewerWidget(SourceWidget):
                                  self.module.output_port_specs, True)
             self.layout().addWidget(self.outputPortTable)
         if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            self.performPortConnection('connect')
 
         if has_inputs:
             self.fixTableGeometry(self.inputPortTable)
@@ -257,19 +247,17 @@ class SourceViewerWidget(SourceWidget):
     def createCloseButton(self):
         hboxlayout = QtGui.QHBoxLayout()
         self.closeButton = QtGui.QPushButton("Close")
-        self.connect(self.closeButton, QtCore.SIGNAL("clicked()"),
-                     self.closeWidget)
+        self.closeButton.clicked.connect(self.closeWidget)
         hboxlayout.addStretch()
         hboxlayout.addWidget(self.closeButton)
         hboxlayout.addStretch()
         self.layout().addLayout(hboxlayout)
 
     def closeWidget(self):
-        self.emit(QtCore.SIGNAL("widgetClosed"))
+        self.widgetClosed.emit()
         self.close()
 
 class SourceConfigurationWidget(SourceWidget):
-
     def __init__(self, module, controller, editor_class=None,
                  has_inputs=True, has_outputs=True, parent=None,
                  encode=True, portName='source'):
@@ -280,13 +268,10 @@ class SourceConfigurationWidget(SourceWidget):
         self.createButtons()
         #connect signals
         if has_inputs:
-            self.connect(self.inputPortTable, QtCore.SIGNAL("contentsChanged"),
-                         self.updateState)
+            self.inputPortTable.contentsChanged.connect(self.updateState)
         if has_outputs:
-            self.connect(self.outputPortTable, QtCore.SIGNAL("contentsChanged"),
-                         self.updateState)
-        self.connect(self.codeEditor, QtCore.SIGNAL("textChanged()"),
-                     self.updateState)
+            self.outputPortTable.contentsChanged.connect(self.updateState)
+        self.codeEditor.textChanged.connect(self.updateState)
         self.adjustSize()
         self.setMouseTracking(True)
         self.mouseOver = False
@@ -303,7 +288,7 @@ class SourceConfigurationWidget(SourceWidget):
 
         """
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.detachButton = QtGui.QPushButton("Show read-only window")
         self.buttonLayout.addWidget(self.detachButton)
         self.buttonLayout.addStretch()
@@ -317,12 +302,9 @@ class SourceConfigurationWidget(SourceWidget):
         self.buttonLayout.addSpacing(10)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.detachButton, QtCore.SIGNAL("clicked()"),
-                     self.detachReadOnlyWindow)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.detachButton.clicked.connect(self.detachReadOnlyWindow)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def detachReadOnlyWindow(self):
         from vistrails.gui.vistrails_window import _app
@@ -334,8 +316,7 @@ class SourceConfigurationWidget(SourceWidget):
         window = QtGui.QMainWindow()
         window.setCentralWidget(widget)
         window.setWindowTitle(widget.windowTitle())
-        self.connect(widget, QtCore.SIGNAL("widgetClosed"),
-                    window.close)
+        widget.widgetClosed.connect(window.close)
         widget.setVisible(True)
         _app.palette_window.windows.append(window)
         window.show()
@@ -404,11 +385,11 @@ class SourceConfigurationWidget(SourceWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL("stateChanged"))
+        self.stateChanged.emit()
 
     def updateState(self):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL("stateChanged"))
+            self.stateChanged.emit()

@@ -36,6 +36,7 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 import os
 
 from vistrails.core.db.locator import FileLocator, DBLocator, UntitledLocator
@@ -76,9 +77,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         # source_selector.setIconSize(QtCore.QSize(12,12))
         source_selector.setToolTip("Open a file chooser")
         # source_selector.setAutoRaise(True)
-        self.connect(source_selector,
-                     QtCore.SIGNAL('clicked()'),
-                     self.selectSource)
+        source_selector.clicked.connect(self.selectSource)
 
         source_group = QtGui.QGroupBox("LaTeX Source")
         s_layout = QtGui.QHBoxLayout()
@@ -96,15 +95,9 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         add_figure = QDockPushButton("Add Figure")
         delete_figure = QDockPushButton("Delete Figure")
         
-        self.connect(add_figure,
-                     QtCore.SIGNAL("clicked()"),
-                     self.addFigure)
-        self.connect(delete_figure,
-                     QtCore.SIGNAL("clicked()"),
-                     self.deleteFigure)
-        self.connect(self.figure_list,
-                     QtCore.SIGNAL("itemSelectionChanged()"),
-                     self.figureSelected)
+        add_figure.clicked.connect(self.addFigure)
+        delete_figure.clicked.connect(self.deleteFigure)
+        self.figure_list.itemSelectionChanged.connect(self.figureSelected)
         
         figure_group = QtGui.QGroupBox("Figures")
         figure_layout = QtGui.QGridLayout()
@@ -131,8 +124,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         self.figure_smart = QtGui.QCheckBox("Smart Tag")
         current_button = QDockPushButton("Use Current")
         
-        self.connect(current_button, QtCore.SIGNAL("clicked()"),
-                     self.useCurrent)
+        current_button.clicked.connect(self.useCurrent)
 
         graphicx_label = QtGui.QLabel("Arguments for includegraphics:")
         self.graphicx_edit = QtGui.QLineEdit()
@@ -189,8 +181,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         save_button = QDockPushButton("Save...")
         save_button.setAutoDefault(True)
 
-        self.connect(save_button, QtCore.SIGNAL("clicked()"),
-                     self.saveLatex)
+        save_button.clicked.connect(self.saveLatex)
         
         main_layout = QtGui.QVBoxLayout()
         main_layout.addWidget(source_group)
@@ -534,21 +525,15 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.changeEmbedType("Wiki")
         
         #connect signals
-        self.connect(self.cbtype,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeEmbedType)
+        self.cbtype.activated.connect(self.changeEmbedType)
         
         # self.connect(self.copylabel,
         #              QtCore.SIGNAL("linkActivated(const QString &)"),
         #              self.linkActivated)
 
-        self.connect(self.copyButton,
-                     QtCore.SIGNAL("clicked()"),
-                     self.copyClicked)
+        self.copyButton.clicked.connect(self.copyClicked)
         
-        self.connect(self.cbcontent,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeOption)
+        self.cbcontent.activated.connect(self.changeOption)
         
         optlist = [self.cbcontent,
                    self.chbPdf,
@@ -560,22 +545,15 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
                    self.chbExecute,
                    self.chbSpreadsheet]
         for cb in optlist:
-            self.connect(cb, QtCore.SIGNAL("toggled(bool)"),
-                         self.changeOption)
+            if hasattr(cb, 'toggled'):
+                cb.toggled.connect(self.changeOption)
         #special cases
-        self.connect(self.chbWorkflow, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeIncludeWorkflow)
-        self.connect(self.chbSpreadsheet, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeShowSpreadsheet)
-        self.connect(self.chbExecute, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeExecute)
-        self.connect(self.cbcontent,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeContent)
-        self.connect(self.chbSmartTag, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeSmartTag)
-        self.connect(self.chbCache, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeCache)
+        self.chbWorkflow.toggled.connect(self.changeIncludeWorkflow)
+        self.chbSpreadsheet.toggled.connect(self.changeShowSpreadsheet)
+        self.chbExecute.toggled.connect(self.changeExecute)
+        self.cbcontent.activated.connect(self.changeContent)
+        self.chbSmartTag.toggled.connect(self.changeSmartTag)
+        self.chbCache.toggled.connect(self.changeCache)
         
     def set_controller(self, controller):
         self.controller = controller

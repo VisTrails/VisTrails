@@ -48,6 +48,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os.path
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.inspector import PipelineInspector
@@ -67,6 +68,7 @@ class SizeSpinBox(QtGui.QSpinBox):
     'editingFinished()' signal when the user interact with mouse
 
     """
+    editingFinished = QtCore.pyqtSignal()
     def __init__(self, initValue=0, parent=None):
         """ SizeSpinBox(initValue: int, parent: QWidget) -> SizeSpinBox
         Initialize with a default width of 50 and a value of 0
@@ -84,7 +86,7 @@ class SizeSpinBox(QtGui.QSpinBox):
 
         """
         QtGui.QSpinBox.mouseReleaseEvent(self, event)
-        self.emit(QtCore.SIGNAL("editingFinished()"))
+        self.editingFinished.emit()
 
 
 class StandardWidgetToolBar(QtGui.QToolBar):
@@ -106,10 +108,8 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
-        self.connect(self.addAction(QtGui.QIcon(":/images/equal-sizes.png"),
-                                    "Reset sizes",),
-                     QtCore.SIGNAL('triggered()'),
-                     self.resetCellSizes)
+        self.addAction(QtGui.QIcon(":/images/equal-sizes.png"),
+                                    "Reset sizes",).triggered.connect(self.resetCellSizes)
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
         self.addSeparator()
         self.layout().setSpacing(2)
@@ -125,9 +125,7 @@ class StandardWidgetToolBar(QtGui.QToolBar):
             self.rowSpinBox.setToolTip('The number of rows')
             self.rowSpinBox.setStatusTip('Change the number of rows '
                                          'of the current sheet')
-            self.connect(self.rowSpinBox,
-                         QtCore.SIGNAL('editingFinished()'),
-                         self.sheetTab.rowSpinBoxChanged)
+            self.rowSpinBox.editingFinished.connect(self.sheetTab.rowSpinBoxChanged)
         return self.rowSpinBox
 
     def colCountSpinBox(self):
@@ -140,9 +138,7 @@ class StandardWidgetToolBar(QtGui.QToolBar):
             self.colSpinBox.setToolTip('The number of columns')
             self.colSpinBox.setStatusTip('Change the number of columns '
                                          'of the current sheet')
-            self.connect(self.colSpinBox,
-                         QtCore.SIGNAL('editingFinished()'),
-                         self.sheetTab.colSpinBoxChanged)
+            self.colSpinBox.editingFinished.connect(self.sheetTab.colSpinBoxChanged)
         return self.colSpinBox
 
     def resetCellSizes(self):
@@ -609,7 +605,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.toolBar = StandardWidgetToolBar(self)
         self.vLayout = QtGui.QVBoxLayout()
         self.vLayout.setSpacing(0)
-        self.vLayout.setMargin(0)
+        self.vLayout.setContentsMargins(0, 0, 0, 0)
         self.vLayout.addWidget(self.toolBar, 0)
         self.vLayout.addWidget(self.sheet, 1)
         self.setLayout(self.vLayout)
@@ -835,6 +831,9 @@ class StandardWidgetTabBar(QtGui.QTabBar):
     to change tab name
 
     """
+    tabTextChanged = QtCore.pyqtSignal(int,str)
+    tabMoveRequest = QtCore.pyqtSignal(int,int)
+    tabSplitRequest = QtCore.pyqtSignal(int,int)
     def __init__(self, parent=None):
         """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
@@ -848,8 +847,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         self.editingIndex = -1
         self.editor = None
         self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.connect(self, QtCore.SIGNAL('currentChanged(int)'),
-                     self.updateTabText)
+        self.currentChanged.connect(self.updateTabText)
         self.startDragPos = None
         self.dragging = False
         self.targetTab = -1
@@ -882,8 +880,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         self.editor.setGeometry(rect)
         self.editor.setAlignment(QtCore.Qt.AlignHCenter)
         self.editor.selectAll()
-        self.connect(self.editor, QtCore.SIGNAL('editingFinished()'),
-                     self.updateTabText)
+        self.editor.editingFinished.connect(self.updateTabText)
         self.editor.show()
         self.editor.setFocus(QtCore.Qt.MouseFocusReason)
 
@@ -894,8 +891,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         """
         if self.editingIndex>=0 and self.editor:
             self.setTabText(self.editingIndex, self.editor.text())
-            self.emit(QtCore.SIGNAL('tabTextChanged(int,QString)'),
-                      self.editingIndex,self.editor.text())
+            self.tabTextChanged.emit(self.editingIndex, self.editor.text())
             self.editor.deleteLater()
             self.editingIndex = -1
             self.editor = None
@@ -981,13 +977,9 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         QtGui.QTabBar.mouseReleaseEvent(self, e)
         if self.dragging:
             if self.targetTab!=-1 and self.targetTab!=self.currentIndex():
-                self.emit(QtCore.SIGNAL('tabMoveRequest(int,int)'),
-                          self.currentIndex(),
-                          self.targetTab)
+                self.tabMoveRequest.emit(self.currentIndex(), self.targetTab)
             elif self.targetTab==-1:
-                self.emit(QtCore.SIGNAL('tabSplitRequest(int,QPoint)'),
-                          self.currentIndex(),
-                          e.globalPos())
+                self.tabSplitRequest.emit(self.currentIndex(), e.globalPos())
             self.dragging = False
             self.targetTab = -1
             self.highlightTab(-1)

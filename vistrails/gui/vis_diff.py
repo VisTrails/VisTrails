@@ -38,6 +38,7 @@ operation """
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.utils.color import ColorByName
@@ -146,7 +147,7 @@ class QParamInspector(QtGui.QWidget):
         self.setWindowTitle('Parameter Inspector - None')
         self.firstTime = True        
         self.boxLayout = QtGui.QVBoxLayout()
-        self.boxLayout.setMargin(0)
+        self.boxLayout.setContentsMargins(0, 0, 0, 0)
         self.boxLayout.setSpacing(0)
         self.tabWidget = QtGui.QTabWidget()
         self.tabWidget.setTabPosition(QtGui.QTabWidget.North)
@@ -217,7 +218,7 @@ class QLegendWindow(QtGui.QWidget):
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
         self.gridLayout = QtGui.QGridLayout(self)
-        self.gridLayout.setMargin(10)
+        self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -285,12 +286,12 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         self.set_title("Diff Properties")
  
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.legend = QLegendWindow()
         legend_group = QtGui.QGroupBox("Legend")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.legend)
         legend_group.setLayout(g_layout)
@@ -300,7 +301,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         self.params = QParamTable()
         params_group = QtGui.QGroupBox("Parameter Changes")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.params)
         params_group.setLayout(g_layout)
@@ -310,7 +311,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         self.cparams = QParamTable()
         params_group = QtGui.QGroupBox("Control Parameter Changes")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.cparams)
         params_group.setLayout(g_layout)
@@ -320,7 +321,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         self.annotations = QParamTable()
         params_group = QtGui.QGroupBox("Annotation Changes")
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.annotations)
         params_group.setLayout(g_layout)
@@ -889,8 +890,7 @@ class QVisualDiff(QtGui.QMainWindow):
         self.createDiffPipeline()
 
         # Hook shape selecting functions
-        self.connect(self.pipelineView.scene(), QtCore.SIGNAL("moduleSelected"),
-                     self.moduleSelected)
+        self.pipelineView.scene().moduleSelected.connect(self.moduleSelected)
 
     def createToolBar(self):
         """ createToolBar() -> None        
@@ -907,23 +907,20 @@ class QVisualDiff(QtGui.QMainWindow):
             CurrentTheme.VISUAL_DIFF_SHOW_PARAM_ICON,
             'Show Parameter Inspector window')
         self.showInspectorAction.setCheckable(True)
-        self.connect(self.showInspectorAction, QtCore.SIGNAL("toggled(bool)"),
-                     self.toggleShowInspector)
+        self.showInspectorAction.toggled.connect(self.toggleShowInspector)
         
         # Add the Show Legend window action
         self.showLegendsAction = self.toolBar.addAction(
             CurrentTheme.VISUAL_DIFF_SHOW_LEGEND_ICON,
             'Show Legends')
         self.showLegendsAction.setCheckable(True)
-        self.connect(self.showLegendsAction, QtCore.SIGNAL("toggled(bool)"),
-                     self.toggleShowLegend)
+        self.showLegendsAction.toggled.connect(self.toggleShowLegend)
 
         # Add the create analogy action
         self.createAnalogyAction = self.toolBar.addAction(
             CurrentTheme.VISUAL_DIFF_CREATE_ANALOGY_ICON,
             'Create analogy')
-        self.connect(self.createAnalogyAction, QtCore.SIGNAL("triggered()"),
-                     self.createAnalogy)
+        self.createAnalogyAction.triggered.connect(self.createAnalogy)
 
     def createAnalogy(self):
         default = 'from %s to %s' % (self.v1_name, self.v2_name)

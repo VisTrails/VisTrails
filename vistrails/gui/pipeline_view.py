@@ -49,6 +49,7 @@ QPipelineView
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import GraphContainsCycles
@@ -286,7 +287,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             return remove_action
 
         for (action, callback) in self.removeVarActions:
-            action.disconnect(action, QtCore.SIGNAL("triggered()"), callback)
+            action.triggered.disconnect(callback)
         self.removeVarActions = []
         if len(self.vistrail_vars) > 1:
             removeAllVarsAct = \
@@ -560,8 +561,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
     of QGraphicsModuleItem
     
     """
-    def __init__(self, parent=None, scene=None):
-        """ QGraphicsConfigureItem(parent: QGraphicsItem, scene: QGraphicsScene)
+    def __init__(self, parent=None):
+        """ QGraphicsConfigureItem(parent: QGraphicsItem)
                               -> QGraphicsConfigureItem
         Create the shape, initialize its pen and brush accordingly
         
@@ -1030,6 +1031,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     ('output port' end of the connection)
     
     """
+    moduleSelected = QtCore.pyqtSignal(int,list)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsModuleItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsModuleItem
@@ -1977,8 +1979,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             selectedId = -1
             if len(selectedItems)==1:
                 selectedId = selectedItems[0].id
-            self.scene().emit(QtCore.SIGNAL('moduleSelected'),
-                              selectedId, selectedItems)
+            self.scene().moduleSelected.emit(selectedId, selectedItems)
             self._needs_state_updated = True
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
@@ -2040,6 +2041,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     
     """
 
+    moduleSelected = QtCore.pyqtSignal(int,list)
     def __init__(self, parent=None):
         """ QPipelineScene(parent: QWidget) -> QPipelineScene
         Initialize the graphics scene with no shapes
@@ -2874,8 +2876,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.update()
                 self.noUpdate = False
                 # Notify that no module is selected
-                self.emit(QtCore.SIGNAL('moduleSelected'),
-                          -1, selectedItems)
+                self.moduleSelected.emit(-1, selectedItems)
                 # Current pipeline changed, so we need to change the
                 # _old_*_ids. However, remove_module takes care of
                 # module ids, and the for loop above takes care of

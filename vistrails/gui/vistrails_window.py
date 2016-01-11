@@ -38,6 +38,7 @@ view and a version tree for each opened Vistrail """
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from xml.sax.saxutils import escape
 import copy
 
@@ -76,6 +77,7 @@ import vistrails.db.services.vistrail
 from vistrails.db import VistrailsDBException
 
 class QBaseViewWindow(QtGui.QMainWindow):
+    viewWasClosed = QtCore.pyqtSignal(QtGui.QWidget)
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QtGui.QMainWindow.__init__(self, parent, f)
        
@@ -92,7 +94,7 @@ class QBaseViewWindow(QtGui.QMainWindow):
         self.init_toolbar()
         
     def closeEvent(self, event):
-        self.emit(QtCore.SIGNAL("viewWasClosed"), self.view)
+        self.viewWasClosed.emit(self.view)
         event.accept()
     
     def init_toolbar(self):
@@ -144,12 +146,9 @@ class QBaseViewWindow(QtGui.QMainWindow):
                 if callback is not None:
                     if 'checkable' in options and \
                             options['checkable'] is True:
-                        self.connect(qaction, 
-                                     QtCore.SIGNAL("toggled(bool)"),
-                                     callback)
+                        qaction.toggled.connect(callback)
                     else:
-                        self.connect(qaction, QtCore.SIGNAL("triggered()"),
-                                     callback)
+                        qaction.triggered.connect(callback)
 
     def init_action_list(self):
         self._actions = [("file", "&File",
@@ -357,6 +356,7 @@ class QBaseViewWindow(QtGui.QMainWindow):
         #print 'done processing list'
         
 class QVistrailViewWindow(QBaseViewWindow):
+    window_closed = QtCore.pyqtSignal(QtGui.QWidget)
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QBaseViewWindow.__init__(self, view, parent, f)
         
@@ -375,7 +375,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         if not self.close_vistrail():
             event.ignore()
         else:
-            self.emit(QtCore.SIGNAL("window_closed"), self.view)
+            self.window_closed.emit(self.view)
             event.accept()
         
     def get_current_controller(self):
@@ -881,12 +881,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._previous_view = None
         self._is_quitting = False
         self._first_view = True
-        self.connect(QtGui.QApplication.clipboard(),
-                     QtCore.SIGNAL('dataChanged()'),
-                     self.clipboard_changed)
-        self.connect(QtGui.QApplication.instance(),
-                     QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
-                     self.applicationFocusChanged)
+        QtGui.QApplication.clipboard().dataChanged.connect(self.clipboard_changed)
+        QtGui.QApplication.instance().focusChanged.connect(self.applicationFocusChanged)
 
         self.preferencesDialog = QPreferencesDialog(self)
 
@@ -1158,12 +1154,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         if self.palette_window:
             self.palette_window.hide()
                         
-        self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"),
-                     self.change_view)
-        self.connect(QWorkspaceWindow.instance(), 
-                     QtCore.SIGNAL("detachVistrail"),
-                     self.detach_view)
+        QWorkspaceWindow.instance().vistrailChanged.connect(self.change_view)
+        QWorkspaceWindow.instance().detachVistrail.connect(self.detach_view)
 
     def dock_palettes(self, window=None):
         if not window:
@@ -1376,8 +1368,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             self.stack.removeWidget(view)
             window = QVistrailViewWindow(view, parent=None)
             self.windows[view] = window
-            self.connect(window, QtCore.SIGNAL("window_closed"),
-                         self.window_closed)
+            window.window_closed.connect(self.window_closed)
             window.qactions['history'].setChecked(True)
             window.show()
             # this is needed to make dropping modules work
@@ -1393,8 +1384,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         if view not in self.windows:
             return
         window = view.window()
-        self.disconnect(window, QtCore.SIGNAL("window_closed"),
-                        self.window_closed)
+        window.window_closed.connect(self.window_closed)
         self.stack.addWidget(view)
         del self.windows[view]
         # disable save_vistrail call
@@ -2082,12 +2072,13 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         class About(QtGui.QLabel):
+            clicked = QtCore.pyqtSignal()
             def mousePressEvent(self, e):
-                self.emit(QtCore.SIGNAL("clicked()"))
+                self.clicked.emit()
 
         dlg = QtGui.QDialog(self, QtCore.Qt.FramelessWindowHint)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         bgimage = About(dlg)
         bgimage.setPixmap(CurrentTheme.DISCLAIMER_IMAGE)
@@ -2097,14 +2088,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             vistrails.core.system.short_about_string()
         version = About(text, dlg)
         version.setGeometry(11,20,450,30)
-        self.connect(bgimage,
-                     QtCore.SIGNAL('clicked()'),
-                     dlg,
-                     QtCore.SLOT('accept()'))
-        self.connect(version,
-                     QtCore.SIGNAL('clicked()'),
-                     dlg,
-                     QtCore.SLOT('accept()'))
+        bgimage.clicked.connect(dlg.accept)
+        version.clicked.connect(dlg.accept)
         dlg.setSizeGripEnabled(False)
         dlg.exec_()
 
@@ -2233,8 +2218,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             openRecentMenu.clear()
             for i, locator in enumerate(self.recentVistrailLocators.locators):
                 action = QtGui.QAction(self)
-                self.connect(action, QtCore.SIGNAL("triggered()"),
-                             self.open_recent_vistrail)
+                action.triggered.connect(self.open_recent_vistrail)
                 action.locator = locator
                 action.setText("&%d %s" % (i+1, locator.name))
                 openRecentMenu.addAction(action)
@@ -2323,24 +2307,22 @@ class QVistrailsWindow(QVistrailViewWindow):
         #check if we have enough actions
         def update_menu(mergeMenu):
             mergeMenu.clear()
-            for i in xrange(self.stack.count()):
+            for i in range(self.stack.count()):
                 view = self.stack.widget(i)
                 # skip merge with self and not saved views
                 if view == self.current_view or not view.controller.vistrail.locator:
                     continue
                 action = QtGui.QAction(self)
-                self.connect(action, QtCore.SIGNAL("triggered()"),
-                             self.merge_vistrail)
+                action.triggered.connect(self.merge_vistrail)
                 action.controller = view.controller
                 action.setText("%s" % view.controller.vistrail.locator.name)
                 mergeMenu.addAction(action)
-            for view, w in self.windows.iteritems():
+            for view, w in self.windows.items():
                 # skip merge with self and not saved views
                 if view == self.current_view or not view.controller.vistrail.locator:
                     continue
                 action = QtGui.QAction(self)
-                self.connect(action, QtCore.SIGNAL("triggered()"),
-                             self.merge_vistrail)
+                action.triggered.connect(self.merge_vistrail)
                 action.controller = view.controller
                 action.setText("%s" % view.controller.vistrail.locator.name)
                 mergeMenu.addAction(action)

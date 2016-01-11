@@ -46,6 +46,7 @@ QConnectionDBSetupWindow
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
@@ -108,7 +109,7 @@ class QOpenDBWindow(QtGui.QDialog):
         self.removeButton.setEnabled(False)
         
         panelButtonsLayout = QtGui.QHBoxLayout()
-        panelButtonsLayout.setMargin(0)
+        panelButtonsLayout.setContentsMargins(0, 0, 0, 0)
         panelButtonsLayout.setSpacing(0)
         panelButtonsLayout.addWidget(self.addButton)
         panelButtonsLayout.addWidget(self.removeButton)
@@ -166,36 +167,16 @@ Would you like to create one?"
         Map signals between GUI components        
         
         """
-        self.connect(self.cancelButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.reject)
-        self.connect(self.openButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.accept)
-        self.connect(self.addAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.showConnConfig)
-        self.connect(self.removeAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.connectionList.removeConnection)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateDBObjectsList)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateButtons)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL("reloadConnections"),
-                     self.updateDBObjectsList)
-        self.connect(self.objectList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateButtons)
-        self.connect(self.saveasEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.objectList,
-                     QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem *)'),
-                     self.accept)
+        self.cancelButton.clicked.connect(self.reject)
+        self.openButton.clicked.connect(self.accept)
+        self.addAct.triggered.connect(self.showConnConfig)
+        self.removeAct.triggered.connect(self.connectionList.removeConnection)
+        self.connectionList.itemSelectionChanged.connect(self.updateDBObjectsList)
+        self.connectionList.itemSelectionChanged.connect(self.updateButtons)
+        self.connectionList.reloadConnections.connect(self.updateDBObjectsList)
+        self.objectList.itemSelectionChanged.connect(self.updateButtons)
+        self.saveasEdt.textChanged.connect(self.updateButtons)
+        self.objectList.itemDoubleClicked.connect(self.accept)
 
     def updateDBObjectsList(self):
         """ updateDBObjectsList() -> None
@@ -361,6 +342,7 @@ class QDBConnectionList(QtGui.QListWidget):
     QDBConnection list is a widget to show the available databases
 
     """
+    reloadConnections = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtGui.QListWidget.__init__(self,parent)
         self.__list = ExtConnectionList.getInstance(default_connections_file())
@@ -369,9 +351,7 @@ class QDBConnectionList(QtGui.QListWidget):
         self.loadConnections()
         self.editAct = QtGui.QAction("Edit", self)
         self.editAct.setStatusTip("Edit the selected connection")
-        self.connect(self.editAct,
-                     QtCore.SIGNAL("triggered()"),
-                     self.editConnection)
+        self.editAct.triggered.connect(self.editConnection)
         
     def getCurrentItemId(self):
         """getCurrentItemId() -> int
@@ -422,7 +402,7 @@ class QDBConnectionList(QtGui.QListWidget):
                                           int(id),
                                           unicode(c.name))
             self.addItem(cItem)
-        self.emit(QtCore.SIGNAL("reloadConnections"))
+        self.reloadConnections.emit()
         
     def loadConnections(self):
         """loadConnections() -> None
@@ -523,7 +503,7 @@ class QDBConnectionList(QtGui.QListWidget):
             if i.id == id:
                 self.setCurrentItem(i)
                 break
-        self.emit(QtCore.SIGNAL("reloadConnections"), id)
+        self.reloadConnections.emit(id)
 
     def getCurrentConnConfig(self):
         """getCurrentConnConfig() -> dict
@@ -711,33 +691,15 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
         Map signals between GUI components        
         
         """
-        self.connect(self.cancelButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.reject)
-        self.connect(self.createButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.accept)
-        self.connect(self.testButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.testConnection)
-        self.connect(self.nameEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.hostEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.userEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.passwdEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.databaseEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.portEdt,
-                     QtCore.SIGNAL('valueChanged(int)'),
-                     self.updateButtons)
+        self.cancelButton.clicked.connect(self.reject)
+        self.createButton.clicked.connect(self.accept)
+        self.testButton.clicked.connect(self.testConnection)
+        self.nameEdt.textChanged.connect(self.updateButtons)
+        self.hostEdt.textChanged.connect(self.updateButtons)
+        self.userEdt.textChanged.connect(self.updateButtons)
+        self.passwdEdt.textChanged.connect(self.updateButtons)
+        self.databaseEdt.textChanged.connect(self.updateButtons)
+        self.portEdt.valueChanged.connect(self.updateButtons)
 
     def testConnection(self):
         """testConnection() -> None """

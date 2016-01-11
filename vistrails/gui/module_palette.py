@@ -46,6 +46,7 @@ from __future__ import absolute_import
 import os
 import traceback
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
@@ -258,9 +259,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
         self.setRootIsDecorated(False)
         self.delegate = QModuleTreeWidgetItemDelegate(self, self)
         self.setItemDelegate(self.delegate)
-        self.connect(self,
-                     QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
-                     self.onItemPressed)
+        self.itemPressed.connect(self.onItemPressed)
 
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
@@ -301,9 +300,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
                         for text, callback in menu_items:
                             act = QtGui.QAction(text, self)
                             act.setStatusTip(text)
-                            QtCore.QObject.connect(act,
-                                                   QtCore.SIGNAL("triggered()"),
-                                                   callback)
+                            act.triggered.connect(callback)
                             menu.addAction(act)
                         menu.exec_(event.globalPos())
                     return
@@ -375,7 +372,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
 
             buttonOption.rect = option.rect
             buttonOption.palette = option.palette
-            buttonOption.features = QtGui.QStyleOptionButton.None
+            buttonOption.features = getattr(QtGui.QStyleOptionButton, 'None')
 
             style = self.treeView.style()
 
@@ -484,22 +481,16 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         menu = QtGui.QMenu(widget)
         act = QtGui.QAction("View Documentation", widget)
         act.setStatusTip("View module documentation")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.view_documentation)
+        act.triggered.connect(self.view_documentation)
         menu.addAction(act)
         if self.descriptor.package == 'local.abstractions':
             act = QtGui.QAction("Edit Subworkflow", widget)
             act.setStatusTip("Edit this Subworkflow")
-            QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.edit_subworkflow)
+            act.triggered.connect(self.edit_subworkflow)
             menu.addAction(act)
             act = QtGui.QAction("Remove Subworkflow", widget)
             act.setStatusTip("Delete this Subworkflow")
-            QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.remove_subworkflow)
+            act.triggered.connect(self.remove_subworkflow)
             menu.addAction(act)
         menu.exec_(event.globalPos())
 

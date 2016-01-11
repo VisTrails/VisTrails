@@ -58,6 +58,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
            import gui.debug
            gui.debug.watch_signal(my_signal)
      """
+    messagesView = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         ui = logging.StreamHandler(debugStream(self.write))
@@ -87,7 +88,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
                     'background-color: %s' % (
                     CurrentTheme.DEBUG_COLORS[name].name(),
                     CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name()))
-            self.connect(box, QtCore.SIGNAL('toggled(bool)'), self.refresh)
+            box.toggled.connect(self.refresh)
             filters.addWidget(box)
             self.levels[name] = box
 
@@ -95,9 +96,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
 
         # message list
         self.list = QtGui.QListWidget()
-        self.connect(self.list,
-                     QtCore.SIGNAL('currentItemChanged(QListWidgetItem *, QListWidgetItem *)'),
-                     self.showMessage)
+        self.list.currentItemChanged.connect(self.showMessage)
         layout.addWidget(self.list)
 
         # message details field
@@ -118,15 +117,13 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         copy.setToolTip('Copy selected message to clipboard')
         copy.setFixedWidth(125)
         rightbuttons.addWidget(copy, 0, 0)
-        self.connect(copy, QtCore.SIGNAL('clicked()'),
-                     self.copyMessage)
+        copy.clicked.connect(self.copyMessage)
 
         copyAll = QDockPushButton('Copy &All', self)
         copyAll.setToolTip('Copy all messages to clipboard (Can be a lot)')
         copyAll.setFixedWidth(125)
         rightbuttons.addWidget(copyAll, 0, 1)
-        self.connect(copyAll, QtCore.SIGNAL('clicked()'),
-                     self.copyAll)
+        copyAll.clicked.connect(self.copyAll)
         self.msg_box = None
         self.itemQueue = []
         self.resize(700, 400)
@@ -180,7 +177,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         call to a signal so that every time signal is emitted, it gets
         registered on the log.
         """
-        self.connect(obj, sig, self.__debugSignal)
+        obj.sig.connect(self.__debugSignal)
 
     def __debugSignal(self, *args):
         """ Receives debug signal """
@@ -220,12 +217,8 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
             msg_box.setEscapeButton(QtGui.QMessageBox.Ok)
             msg_box.addButton('&Show Messages', msg_box.RejectRole)
             self.manyButton = None
-            self.connect(msg_box,
-                         QtCore.SIGNAL('buttonClicked(QAbstractButton *)'),
-                         self.messageButtonClicked)
-            self.connect(msg_box,
-                         QtCore.SIGNAL('rejected()'),
-                         self.rejectMessage)
+            msg_box.buttonClicked.connect(self.messageButtonClicked)
+            msg_box.rejected.connect(self.rejectMessage)
             self.updateMessageBox(item)
         else:
             self.itemQueue.append(item)
@@ -306,12 +299,12 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
     def closeEvent(self, e):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
-        self.emit(QtCore.SIGNAL("messagesView(bool)"), False)
+        self.messagesView.emit(False)
 
     def showEvent(self, e):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
-        self.emit(QtCore.SIGNAL("messagesView(bool)"), True)
+        self.messagesView.emit(True)
 
     def reject(self):
         """ Captures Escape key and closes window correctly """

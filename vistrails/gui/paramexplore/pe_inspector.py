@@ -49,14 +49,14 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.set_title("Explore Inspector")
 
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(3)
 
         self.controller = None
         self.pe_properties = QParamExpProperties()
         p_prop_group = QtGui.QGroupBox(self.pe_properties.windowTitle())
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.pe_properties)
         p_prop_group.setLayout(g_layout)
@@ -64,7 +64,7 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.virtual_cell = QVirtualCellWindow()
         v_cell_group = QtGui.QGroupBox(self.virtual_cell.windowTitle())
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.virtual_cell)
         v_cell_group.setLayout(g_layout)
@@ -126,7 +126,7 @@ class QParamExpProperties(QtGui.QWidget):
         self.forwardAction = None
         vLayout = QtGui.QVBoxLayout()
         self.setLayout(vLayout)
-        vLayout.setMargin(3)
+        vLayout.setContentsMargins(3, 3, 3, 3)
         vLayout.setSpacing(3)
         gLayout = QtGui.QGridLayout()
         gLayout.setColumnMinimumWidth(1,5)
@@ -135,7 +135,7 @@ class QParamExpProperties(QtGui.QWidget):
         gLayout.setRowMinimumHeight(2,24)
         gLayout.setRowMinimumHeight(3,24)        
         vLayout.addLayout(gLayout)
-        gLayout.setMargin(3)
+        gLayout.setContentsMargins(3, 3, 3, 3)
         gLayout.setSpacing(3)
         
         #vtVersionLabel = QtGui.QLabel('Workflow:', self)
@@ -175,12 +175,9 @@ class QParamExpProperties(QtGui.QWidget):
         self.dateEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
         
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged.connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
         
     def updateController(self, controller):
         self.controller = controller
@@ -248,7 +245,7 @@ class QParamExpProperties(QtGui.QWidget):
         
         """
         if self.pe:
-            currentText = unicode(self.tagEdit.text())
+            currentText = str(self.tagEdit.text())
             if self.pe.name != currentText and \
                not self.controller.vistrail.has_named_paramexp(currentText):
                 #print "will update current tag", currentText

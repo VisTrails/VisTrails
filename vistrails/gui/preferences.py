@@ -36,6 +36,7 @@
 from __future__ import division
 
 from PyQt4 import QtGui, QtCore
+
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.modules.module_registry import get_module_registry
@@ -78,13 +79,9 @@ class QPackageConfigurationDialog(QtGui.QDialog):
         self._button_box = QtGui.QDialogButtonBox(btns,
                                                   QtCore.Qt.Horizontal,
                                                   self)
-        self.connect(self._button_box,
-                     QtCore.SIGNAL('clicked(QAbstractButton *)'),
-                     self.button_clicked)
+        self._button_box.clicked.connect(self.button_clicked)
 
-        self.connect(self._configuration_widget._tree.treeWidget,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
+        self._configuration_widget._tree.treeWidget.configuration_changed.connect(self.configuration_changed)
                      
         layout.addWidget(self._button_box)
 
@@ -610,7 +607,7 @@ class QPreferencesDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle('VisTrails Preferences')
         layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 

@@ -36,7 +36,7 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot
+
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
@@ -62,7 +62,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.button_to_tab_idx = Bidict()
         widget = QtGui.QWidget(self)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.tabBar = QtGui.QTabBar(self)
         self.tabBar.setDocumentMode(True)
@@ -139,9 +139,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                     self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
                     self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
                     if self.mshpController.vtController is not None:
-                        self.disconnect(self.mshpController.vtController,
-                                        QtCore.SIGNAL('vistrailChanged()'),
-                                        self.mshpControllerVistrailChanged)
+                        self.mshpController.vtController.vistrailChanged.disconnect(
+                            self.mshpControllerVistrailChanged)
                 except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
@@ -202,7 +201,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         previewApp.appWasClosed.connect(self.previewTabWasClosed)
         
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         #layout.addWidget(self.refreshButton, QtCore.Qt.AlignLeft)
         layout.addWidget(previewApp)
@@ -221,7 +220,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.button_to_tab_idx[closeButton] = tab_idx
         self.tabBar.setCurrentIndex(tab_idx)
         
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def closePreviewTab(self):
         closeButton = self.sender()
         tab_idx = self.button_to_tab_idx[closeButton]
@@ -264,7 +263,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                     self.stack.removeWidget(self.stack.widget(idx))
             tab_idx -= 1
         
-    @pyqtSlot(int)    
+    @QtCore.pyqtSlot(int)
     def switchTab(self, index):
         try:
             self.stack.setCurrentIndex(self.tab_to_stack_idx[index])

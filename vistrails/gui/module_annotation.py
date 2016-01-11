@@ -43,6 +43,7 @@ QModuleAnnotationTable
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import debug
 
 ################################################################################
@@ -75,13 +76,13 @@ class QModuleAnnotation(QtGui.QDialog):
         self.scrollArea.setWidget(self.annotationTable)
         self.scrollArea.setWidgetResizable(True)
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.closeButton = QtGui.QPushButton('Close', self)
         self.closeButton.setFixedWidth(100)
         self.buttonLayout.addWidget(self.closeButton)
         self.closeButton.setShortcut('Esc')
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), self.close)
+        self.closeButton.clicked.connect(self.close)
 
         
 class QModuleAnnotationTable(QtGui.QTableWidget):

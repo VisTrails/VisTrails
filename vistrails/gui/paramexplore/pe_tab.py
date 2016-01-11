@@ -40,6 +40,7 @@ QParameterExplorationTab
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
@@ -62,6 +63,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
     related to parameter exploration
     
     """
+    exploreChange = QtCore.pyqtSignal(bool)
     explorationId = 0
     
     def __init__(self, parent=None):
@@ -78,9 +80,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
 
         self.peWidget = QParameterExplorationWidget()
         self.setCentralWidget(self.peWidget)
-        self.connect(self.peWidget.table,
-                     QtCore.SIGNAL('exploreChange(bool)'),
-                     self.exploreChange)
+        self.peWidget.table.exploreChange.connect(self.exploreChange)
 
         self.paramView = QParameterView(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
@@ -338,4 +338,4 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         echo the signal
         
         """
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), notEmpty)
+        self.exploreChange.emit(notEmpty)

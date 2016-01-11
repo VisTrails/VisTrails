@@ -55,14 +55,12 @@ class VistrailsViewerWindow(StoreViewerWindow):
         buttons = super(VistrailsViewerWindow, self)._create_buttons()
 
         open_vt_button = QtGui.QPushButton("Go to Vistrail")
-        self.connect(open_vt_button, QtCore.SIGNAL('clicked()'),
-                     self._open_vt)
+        open_vt_button.clicked.connect(self._open_vt)
         buttons.append(('vt', open_vt_button))
 
         only_vt_checkbox = QtGui.QCheckBox("Only VisTrails Persisted files")
         only_vt_checkbox.setChecked(self._vt_only)
-        self.connect(only_vt_checkbox, QtCore.SIGNAL('stateChanged(int)'),
-                     self._set_vt_only)
+        only_vt_checkbox.stateChanged.connect(self._set_vt_only)
         buttons.append(('alwayson', only_vt_checkbox))
 
         return buttons

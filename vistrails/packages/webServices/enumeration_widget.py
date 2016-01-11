@@ -76,7 +76,7 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
         else:
             self.setCurrentIndex(0)
             param.strValue = self.enumerationlist[self.currentIndex()]
-        self.connect(self, QtCore.SIGNAL('activated(int)'), self.change_state)
+        self.activated.connect(self.change_state)
 
     def contents(self):
         return self.enumerationlist[self.currentIndex()]

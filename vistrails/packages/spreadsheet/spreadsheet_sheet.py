@@ -78,8 +78,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter |
                                      QtCore.Qt.AlignVCenter)
 
-        self.connect(self, QtCore.SIGNAL('sectionResized(int, int, int)'),
-                     self.section_resized)
+        self.sectionResized.connect(self.section_resized)
         self._target_size = None
 
     section_sizes = None
@@ -264,34 +263,20 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setHorizontalHeader(StandardWidgetHeaderView(QtCore.Qt.Horizontal,
                                                           self))
         self.horizontalHeader().setSelectionModel(self.selectionModel())
-        self.connect(self.horizontalHeader(),
-                     QtCore.SIGNAL('sectionCountChanged(int, int)'),
-                     self.updateColumnLabels)
-        self.connect(self.horizontalHeader(),
-                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
-                     self.columnMoved)
-        self.connect(self.horizontalHeader(),
-                     QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceColumnMultiSelect)
+        self.horizontalHeader().sectionCountChanged.connect(self.updateColumnLabels)
+        self.horizontalHeader().sectionMoved.connect(self.columnMoved)
+        self.horizontalHeader().sectionPressed.connect(self.forceColumnMultiSelect)
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
-        self.connect(self.verticalHeader(),
-                     QtCore.SIGNAL('sectionCountChanged(int, int)'),
-                     self.updateRowLabels)
-        self.connect(self.verticalHeader(),
-                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
-                     self.rowMoved)
-        self.connect(self.verticalHeader(),
-                     QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceRowMultiSelect)
+        self.verticalHeader().sectionCountChanged.connect(self.updateRowLabels)
+        self.verticalHeader().sectionMoved.connect(self.rowMoved)
+        self.verticalHeader().sectionPressed.connect(self.forceRowMultiSelect)
 
         # A hack to force the select all button in single click mode
         cornerButton = self.findChild(QtGui.QAbstractButton)
         if cornerButton:
-            self.connect(cornerButton,
-                         QtCore.SIGNAL('clicked()'),
-                         self.forceSheetSelect)
+            cornerButton.clicked.connect(self.forceSheetSelect)
 
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
@@ -299,9 +284,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
-        self.connect(self,
-                     QtCore.SIGNAL('cellActivated(int, int, bool)'),
-                     self.selectCell)
+        self.cellActivated.connect(self.selectCell)
         self.activeCell = (-1,-1)
 
     def forceColumnMultiSelect(self, logicalIndex):

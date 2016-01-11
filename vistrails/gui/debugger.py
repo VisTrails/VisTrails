@@ -52,12 +52,13 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     """
     This class provides a dockable interface to the debugger tree.
     """
+    debuggerHidden = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
         self.app = vistrails.gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.inspector)
         self.setLayout(layout)
@@ -115,7 +116,7 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     def closeEvent(self, e):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
-        self.emit(QtCore.SIGNAL("debuggerHidden()"))
+        self.debuggerHidden.emit()
                         
 ###############################################################################
 #  QObjectInspector

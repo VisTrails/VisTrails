@@ -46,6 +46,7 @@ QHoverVariableLabel
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -211,8 +212,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         inputForm = QVariableInputWidget(uuid, name, descriptor, value, self)
-        self.connect(inputForm, QtCore.SIGNAL('deleted(QWidget*)'), 
-                     self.delete_form)
+        inputForm.deleted.connect(self.delete_form)
         self.layout().addWidget(inputForm)
         inputForm.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
@@ -226,8 +226,7 @@ class QVerticalWidget(QPromptWidget):
         """
         self.setEnabled(False)
         for v in self._variable_widgets:
-            self.disconnect(v, QtCore.SIGNAL('deleted(QWidget*)'), 
-                         self.delete_form)
+            v.deleted.disconnect(self.delete_form)
             self.layout().removeWidget(v)
             v.setParent(None)
             v.deleteLater()
@@ -235,8 +234,7 @@ class QVerticalWidget(QPromptWidget):
         self.setEnabled(True)
 
     def delete_form(self, input_form):
-        self.disconnect(input_form, QtCore.SIGNAL('deleted(QWidget*)'), 
-                     self.delete_form)
+        input_form.deleted.disconnect(self.delete_form)
         var_name = input_form.var_name
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
@@ -253,6 +251,7 @@ class QVerticalWidget(QPromptWidget):
 
 
 class QVariableInputWidget(QtGui.QDockWidget):
+    deleted = QtCore.pyqtSignal(QtGui.QWidget)
     def __init__(self, uuid, name, descriptor, value='', parent=None):
         QtGui.QDockWidget.__init__(self, parent)
         self.var_uuid = uuid
@@ -274,7 +273,7 @@ class QVariableInputWidget(QtGui.QDockWidget):
         title_layout.addWidget(self.closeButton)
         title_widget.setLayout(title_layout)
         self.setTitleBarWidget(title_widget)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'), self.close)
+        self.closeButton.clicked.connect(self.close)
         
     def renameVariable(self, var_name):
         # First delete old var entry
@@ -297,7 +296,7 @@ class QVariableInputWidget(QtGui.QDockWidget):
         if choice == NO_BUTTON:
             event.ignore()
             return
-        self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
+        self.deleted.emit(self)
 
     def keyPressEvent(self, e):
         if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:

@@ -43,6 +43,7 @@ which is also a QWidget.
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.modules.module_registry import get_module_registry, \
@@ -55,6 +56,7 @@ from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 ############################################################################
 
 class PortTable(QtGui.QTableWidget):
+    contentsChanged = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self,1,3,parent)
         horiz = self.horizontalHeader()
@@ -67,11 +69,8 @@ class PortTable(QtGui.QTableWidget):
         self.delegate = PortTableItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.connect(self.model(),
-                     QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
-                     self.handleDataChanged)
-        self.connect(self.delegate, QtCore.SIGNAL("modelDataChanged"),
-                     self, QtCore.SIGNAL("contentsChanged"))
+        self.model().dataChanged.connect(self.handleDataChanged)
+        self.delegate.modelDataChanged.connect(self.contentsChanged)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setMouseTracking(True)
         #self.mouseOver = False
@@ -97,12 +96,10 @@ class PortTable(QtGui.QTableWidget):
                 changedGeometry = True
             if changedGeometry:
                 self.fixGeometry()
-            self.emit(QtCore.SIGNAL("contentsChanged"))
+            self.contentsChanged.emit()
 
     def initializePorts(self, port_specs, reverse_order=False):
-        self.disconnect(self.model(),
-                        QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
-                        self.handleDataChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
         if reverse_order:
             port_specs_iter = reversed(port_specs)
         else:
@@ -125,14 +122,12 @@ class PortTable(QtGui.QTableWidget):
                           p.name,
                           QtCore.Qt.DisplayRole)
             self.setRowCount(self.rowCount()+1)
-        self.connect(self.model(),
-                     QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
-                     self.handleDataChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
             
     def getPorts(self):
         ports = []
         model = self.model()
-        for i in xrange(self.rowCount()):
+        for i in range(self.rowCount()):
             name = model.data(model.index(i, 0), QtCore.Qt.DisplayRole)
             sigstring = model.data(model.index(i, 1), QtCore.Qt.UserRole)
             depth = model.data(model.index(i, 2), QtCore.Qt.DisplayRole) or 0
@@ -177,6 +172,7 @@ class CompletingComboBox(QtGui.QComboBox):
 
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
+    modelDataChanged = QtCore.pyqtSignal()
     def createEditor(self, parent, option, index):
         registry = get_module_registry()
         if index.column()==2: #Depth type
@@ -230,7 +226,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                           QtCore.Qt.DisplayRole)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
-        self.emit(QtCore.SIGNAL("modelDataChanged"))
+        self.modelDataChanged.emit()
 
 ############################################################################
 
@@ -293,7 +289,7 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -303,10 +299,8 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)        
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -324,8 +318,8 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL("stateChanged"))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
             
     def resetTriggered(self, checked = False):
         self.state_changed = False
@@ -398,7 +392,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
 
         # Add an empty vertical layout
         centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
         
@@ -424,8 +418,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.createButtons()
         
         #Connect signals
-        self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
-                     self.updateState)
+        self.portTable.contentsChanged.connect(self.updateState)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setMouseTracking(True)
         #self.mouseOver = False
@@ -468,7 +461,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL("stateChanged"))
+        self.stateChanged.emit()
 
     def updateState(self):
         if not self.hasFocus():
@@ -477,7 +470,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL("stateChanged"))
+            self.stateChanged.emit()
             
 #    def focusOutEvent(self, event):
         #if not self.mouseOver:
@@ -507,7 +500,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
 
         # Add an empty vertical layout
         centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
         
@@ -533,8 +526,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         self.createButtons()
         
         #Connect signals
-        self.connect(self.portTable, QtCore.SIGNAL("contentsChanged"),
-                     self.updateState)
+        self.portTable.contentsChanged.connect(self.updateState)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setMouseTracking(True)
         #self.mouseOver = False
@@ -570,7 +562,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL("stateChanged"))
+            self.stateChanged.emit()
             
 #    def focusOutEvent(self, event):
 #        #if not self.mouseOver:
@@ -591,4 +583,4 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL("stateChanged"))
+        self.stateChanged.emit()

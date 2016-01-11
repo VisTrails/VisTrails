@@ -42,7 +42,6 @@ QAliasParameterView
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
@@ -65,7 +64,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         label.setFont(font)
         param_group = QtGui.QGroupBox(self.parameter_panel.windowTitle())
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(2)
         g_layout.addWidget(label)
         g_layout.addWidget(self.parameter_panel)
@@ -76,7 +75,7 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pipeline_view.setReadOnlyMode(True)
         p_view_group = QtGui.QGroupBox(self.pipeline_view.windowTitle())
         g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.pipeline_view)
         p_view_group.setLayout(g_layout)
@@ -147,7 +146,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
     
     """
     #signals
-    aliasChanged = pyqtSignal(InstanceObject)
+    aliasChanged = QtCore.pyqtSignal(InstanceObject)
     
     def __init__(self, parent=None):
         """ QAliasParameterTreeWidget(parent: QWidget) -> QParameterTreeWidget
@@ -161,6 +160,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
         self.setItemDelegate(self.delegate)
         self.aliasNames = []
         self.itemDoubleClicked.connect(self.changeAlias)
+
     def updateFromPipeline(self, pipeline):
         """ updateFromPipeline(pipeline: Pipeline) -> None
         Read the list of aliases and parameters from the pipeline
@@ -241,7 +241,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                 if moduleItem:
                     moduleItem.setExpanded(True)
                     
-    @pyqtSlot(QtGui.QTreeWidgetItem, int)    
+    @QtCore.pyqtSlot(QtGui.QTreeWidgetItem, int)
     def changeAlias(self, item, column ):
         """ itemClicked(item:  , column: int) -> None        
         If mouse click on the item, show up a dialog to change/add

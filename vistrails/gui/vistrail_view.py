@@ -83,7 +83,7 @@ class QVistrailView(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.is_executing = False
         self.is_abstraction = False
@@ -537,8 +537,7 @@ class QVistrailView(QtGui.QWidget):
                     view.set_tab_idx(view.tab_idx-1)
     
     def remove_view_by_index(self, index):
-        self.disconnect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
+        self.tabs.currentChanged.disconnect(self.tab_changed)
         close_current = False
         if index == self.tabs.currentIndex():
             close_current = True
@@ -548,8 +547,7 @@ class QVistrailView(QtGui.QWidget):
         del self.tab_to_view[index]
         if stack_idx >= 0:
             view = self.stack.widget(stack_idx)
-            self.disconnect(view, QtCore.SIGNAL("windowTitleChanged"),
-                     self.view_title_changed)
+            self.view.windowTitleChanged.disconnect(self.view_title_changed)
             self.stack.removeWidget(view)
         self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:

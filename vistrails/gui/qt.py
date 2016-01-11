@@ -49,7 +49,9 @@ from __future__ import division
 from __future__ import print_function
 
 import inspect
+
 from PyQt4 import QtGui, QtCore
+
 import types
 
 ################################################################################
@@ -183,9 +185,9 @@ class SignalSet(object):
         
 ################################################################################
 
-_oldConnect = QtCore.QObject.connect
-_oldDisconnect = QtCore.QObject.disconnect
-_oldEmit = QtCore.QObject.emit
+#_oldConnect = QtCore.QObject.connect
+#_oldDisconnect = QtCore.QObject.disconnect
+#_oldEmit = QtCore.QObject.emit
 
 def _wrapConnect(callableObject):
     """Returns a wrapped call to the old version of QtCore.QObject.connect"""

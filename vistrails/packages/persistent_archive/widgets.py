@@ -72,12 +72,9 @@ class Metadata(QtGui.QWidget):
                                     QtGui.QSizePolicy.Fixed)
         layout.addWidget(remove_button)
 
-        self.connect(remove_button, QtCore.SIGNAL('clicked()'),
-                     self.remove)
-        self.connect(self.key, QtCore.SIGNAL('textEdited(const QString &)'),
-                     self.changed)
-        self.connect(self.value, QtCore.SIGNAL('textEdited(const QString &)'),
-                     self.changed)
+        remove_button.clicked.connect(self.remove)
+        self.key.textEdited.connect(self.changed)
+        self.value.textEdited.connect(self.changed)
 
 
 class StringMetadata(Metadata):
@@ -121,7 +118,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         self.setWindowTitle("Metadata editor")
 
         central_layout = QtGui.QVBoxLayout()
-        central_layout.setMargin(0)
+        central_layout.setContentsMargins(0, 0, 0, 0)
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
 
@@ -141,12 +138,10 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         add_buttons = QtGui.QHBoxLayout()
         central_layout.addLayout(add_buttons)
         add_string = QtGui.QPushButton("Add a string")
-        self.connect(add_string, QtCore.SIGNAL('clicked()'),
-                     self.add_string)
+        add_string.clicked.connect(self.add_string)
         add_buttons.addWidget(add_string, 2)
         add_int = QtGui.QPushButton("Add an integer")
-        self.connect(add_int, QtCore.SIGNAL('clicked()'),
-                     self.add_int)
+        add_int.clicked.connect(self.add_int)
         add_buttons.addWidget(add_int, 1)
 
         self.createButtons()
@@ -155,10 +150,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
 
     def add_item(self, item):
         self._list_layout.addWidget(item)
-        self.connect(item, QtCore.SIGNAL('remove()'),
-                     lambda: item.deleteLater())
-        self.connect(item, QtCore.SIGNAL('changed()'),
-                     self.updateState)
+        item.remove.connect(lambda: item.deleteLater())
+        item.changed.connect(self.updateState)
 
     def add_string(self):
         self.add_item(StringMetadata(
@@ -176,7 +169,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
 
         """
         buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -186,10 +179,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -200,8 +191,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -262,14 +253,14 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()
 
 
 class MetadataConstantWidget(ConstantWidgetBase, QtGui.QWidget):
@@ -279,17 +270,14 @@ class MetadataConstantWidget(ConstantWidgetBase, QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self._key = QtGui.QLineEdit()
-        self.connect(self._key, QtCore.SIGNAL("returnPressed()"),
-                     self.update_parent)
+        self._key.returnPressed.connect(self.update_parent)
 
         self._type = QtGui.QComboBox()
         self._type.addItems(['int', 'str'])
-        self.connect(self._type, QtCore.SIGNAL("currentIndexChanged()"),
-                     self.update_parent)
+        self._type.currentIndexChanged.connect(self.update_parent)
 
-        self._value = QtGui.QLineEdit()
-        self.connect(self._value, QtCore.SIGNAL("returnPressed()"),
-                     self.update_parent)
+        self._value = QtFui.QLineEdit()
+        self._value.returnPressed.connect(self.update_parent)
 
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self._key)

@@ -47,8 +47,6 @@ from __future__ import division
 
 import copy
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot, pyqtSignal
-
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.mashup.alias import Alias
@@ -63,10 +61,10 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
     
     """
     #signals
-    highlightModule = pyqtSignal(int)
-    aliasesChanged = pyqtSignal()
-    aliasChanged = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal(unicode)
+    highlightModule = QtCore.pyqtSignal(int)
+    aliasesChanged = QtCore.pyqtSignal()
+    aliasChanged = QtCore.pyqtSignal(Alias)
+    aliasRemoved = QtCore.pyqtSignal(str)
     
     def __init__(self, controller=None, parent=None):
         """ QAliasListPanel(controller: MashupController,
@@ -126,7 +124,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
             else:
                 self.aliases.clear()
                 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def updateInspector(self):
         if len(self.aliases.selectedItems()) == 1:
             item = self.aliases.selectedItems()[0]
@@ -134,7 +132,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
         else:
             self.inspector.updateContents()
        
-    @pyqtSlot(Alias) 
+    @QtCore.pyqtSlot(Alias)
     def updateAlias(self, alias):
         #make sure the module is highlighted in the pipeline view 
         # or method_drop box is empty
@@ -163,9 +161,9 @@ class QAliasList(QtGui.QTreeWidget):
 
     """
     #signals
-    aliasUpdated = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal(unicode)
-    highlightModule = pyqtSignal(int)
+    aliasUpdated = QtCore.pyqtSignal(Alias)
+    aliasRemoved = QtCore.pyqtSignal(str)
+    highlightModule = QtCore.pyqtSignal(int)
     
     def __init__(self, controller, panel, parent=None):
         """ QAliasList(parent: QWidget) -> QAliasTable
@@ -187,7 +185,7 @@ class QAliasList(QtGui.QTreeWidget):
                      self.currentAliasChanged)
         self.previousSelected = -1
     
-    @pyqtSlot() 
+    @QtCore.pyqtSlot()
     def setPreviousSelected(self):
         if len(self.selectedItems()) == 1:
             item = self.selectedItems()[0]
@@ -310,7 +308,7 @@ class QAliasList(QtGui.QTreeWidget):
         if (event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             self.removeCurrentAlias()
                 
-    @pyqtSlot(bool)
+    @QtCore.pyqtSlot(bool)
     def removeCurrentAlias(self, checked=False):
         item = self.currentItem()
         if not item:

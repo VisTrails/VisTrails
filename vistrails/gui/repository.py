@@ -40,6 +40,7 @@ Includes login and upload tabs
 from __future__ import division
 
 from PyQt4 import QtGui, QtCore
+
 from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
@@ -87,7 +88,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
         ######################################################################
         # Detail Table
         bottom_layout = QtGui.QVBoxLayout(bottom)
-        bottom_layout.setMargin(2)
+        bottom_layout.setContentsMargins(2, 2, 2, 2)
         bottom_layout.setSpacing(2)
 
         # Show what workflows are unrunnble on the repository
@@ -108,9 +109,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
         top_layout.addWidget(self._vistrail_status_label)
 
         self.serverCombo = QtGui.QComboBox()
-        self.connect(self.serverCombo,
-                     QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.check_dependencies)
+        self.serverCombo.currentIndexChanged.connect(self.check_dependencies)
         top_layout.addWidget(self.serverCombo)
 
         """
@@ -149,14 +148,10 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         self._push_button = QtGui.QPushButton("&Push")
         self._push_button.setEnabled(False)
-        self.connect(self._push_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.push_vistrail_to_repository)
+        self._push_button.clicked.connect(self.push_vistrail_to_repository)
         self._branch_button = QtGui.QPushButton("&Branch")
         self._branch_button.hide()
-        self.connect(self._branch_button,
-                     QtCore.SIGNAL("clicked()"),
-                     (lambda branching=True : self.push_vistrail_to_repository(branching)))
+        self._branch_button.clicked.connect((lambda branching=True : self.push_vistrail_to_repository(branching)))
         button_box = QtGui.QDialogButtonBox()
         button_box.addButton(self._push_button,
                              QtGui.QDialogButtonBox.ActionRole)
@@ -592,13 +587,9 @@ class QRepositoryLoginPopup(QtGui.QDialog):
         self._login_button = QtGui.QPushButton("&Login", self)
         self._cancel_button = QtGui.QPushButton("&Cancel", self)
 
-        self.connect(self._login_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.clicked_on_login)
+        self._login_button.clicked.connect(self.clicked_on_login)
 
-        self.connect(self._cancel_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.clicked_on_cancel)
+        self._cancel_button.clicked.connect(self.clicked_on_cancel)
 
         button_box = QtGui.QDialogButtonBox()
         button_box.addButton(self._login_button,
@@ -704,7 +695,7 @@ class QRepositoryDialog(QtGui.QDialog):
         self.setWindowTitle('Push vistrail to Web Repository')
 
         l = QtGui.QVBoxLayout(self)
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
 
         widget = QtGui.QWidget(self)
@@ -724,13 +715,9 @@ class QRepositoryDialog(QtGui.QDialog):
                                                   QtCore.Qt.Horizontal,
                                                   self)
         
-        self.connect(self._button_box,
-                     QtCore.SIGNAL('clicked(QAbstractButton *)'),
-                     self.close_dialog)
+        self._button_box.clicked.connect(self.close_dialog)
 
-        self.connect(self._logout_button,
-                     QtCore.SIGNAL('clicked()'),
-                     self.clicked_on_logout)
+        self._logout_button.clicked.connect(self.clicked_on_logout)
 
         l.addWidget(self._button_box)
         l.addWidget(self._status_bar)

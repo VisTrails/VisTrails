@@ -65,14 +65,12 @@ class QPipelineEditor(QtGui.QWidget):
         hbox.addWidget(self.filenameLabel)
         self.browseButton = QtGui.QPushButton('Browse...')
         hbox.addWidget(self.browseButton)
-        self.connect(self.browseButton, QtCore.SIGNAL('clicked()'),
-                     self.selectFile)
+        self.browseButton.clicked.connect(self.selectFile)
 
         vbox.addWidget(QtGui.QLabel('Pipelines'))
         self.pipelineList = QtGui.QListWidget()
         vbox.addWidget(self.pipelineList)
-        self.connect(self.pipelineList, QtCore.SIGNAL('currentRowChanged(int)'),
-                     self.currentPipelineChanged)
+        self.pipelineList.currentRowChanged.connect(self.currentPipelineChanged)
         
         vbox.addWidget(QtGui.QLabel('Aliases'))
         self.aliasTable = QtGui.QTableWidget(0, 2)
@@ -83,8 +81,7 @@ class QPipelineEditor(QtGui.QWidget):
         vbox.addLayout(hbox)
         self.executeButton = QtGui.QPushButton('Execute')
         hbox.addWidget(self.executeButton)
-        self.connect(self.executeButton, QtCore.SIGNAL('clicked()'),
-                     self.execute)
+        self.executeButton.clicked.connect(self.execute)
         
     def selectFile(self):
         """ selectFile() -> None

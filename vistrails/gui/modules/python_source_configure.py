@@ -39,6 +39,7 @@ from vistrails.core.bundles.pyimport import py_import
 import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from PyQt4 import QtCore, QtGui
+
 from vistrails.gui.theme import CurrentTheme
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
@@ -220,9 +221,7 @@ class OldPythonEditor(QtGui.QTextEdit):
         self.formatChanged(None)
         self.setCursorWidth(8)
         self.highlighter = PythonHighlighter(self.document())
-        self.connect(self,
-                     QtCore.SIGNAL('currentCharFormatChanged(QTextCharFormat)'),
-                     self.formatChanged)
+        self.currentCharFormatChanged.connect(self.formatChanged)
 
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)

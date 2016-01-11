@@ -44,6 +44,7 @@ from ast import literal_eval
 import copy
 import gc
 import os.path
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
@@ -66,6 +67,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
+    needChangeTitle = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         """ StandardWidgetTabController(parent: QWidget)
                                         -> StandardWidgetTabController
@@ -81,15 +83,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.tabWidgets = []
         self.floatingTabWidgets = []
         self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabMoveRequest(int,int)'),
-                     self.moveTab)
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabSplitRequest(int,QPoint)'),
-                     self.splitTab)
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabTextChanged(int,QString)'),
-                     self.changeTabText)
+        self.tabBar().tabMoveRequest.connect(self.moveTab)
+        self.tabBar().tabSplitRequest.connect(self.splitTab)
+        self.tabBar().tabTextChanged.connect(self.changeTabText)
         self.addAction(self.showNextTabAction())
         self.addAction(self.showPrevTabAction())
         self.executedPipelines = [[],{},{}]
@@ -101,8 +97,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
         self.closeButton.setAutoRaise(True)
         self.setCornerWidget(self.closeButton)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                     self.deleteSheetAction().trigger)
+        self.closeButton.clicked.connect(self.deleteSheetAction().trigger)
 
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
@@ -141,9 +136,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.newSheetActionVar.setToolTip('Create a new sheet')
             self.newSheetActionVar.setStatusTip('Create and show a new sheet')
             self.newSheetActionVar.setShortcut(QtGui.QKeySequence('Ctrl+N'))
-            self.connect(self.newSheetActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.newSheetActionTriggered)
+            self.newSheetActionVar.triggered.connect(self.newSheetActionTriggered)
         return self.newSheetActionVar
 
     def deleteSheetAction(self):
@@ -160,9 +153,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                    'if there are more than one')
             key = QtGui.QKeySequence('Ctrl+Backspace')
             self.deleteSheetActionVar.setShortcut(key)
-            self.connect(self.deleteSheetActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.deleteSheetActionTriggered)
+            self.deleteSheetActionVar.triggered.connect(self.deleteSheetActionTriggered)
         return self.deleteSheetActionVar
 
     def showNextTabAction(self):
@@ -178,9 +169,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                    'is available')
             self.showNextTabActionShortcut = QtGui.QShortcut(self)
             self.showNextTabActionVar.setShortcut('Ctrl+PgDown')
-            self.connect(self.showNextTabActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.showNextTab)
+            self.showNextTabActionVar.triggered.connect(self.showNextTab)
         return self.showNextTabActionVar
 
     def showPrevTabAction(self):
@@ -195,9 +184,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.showPrevTabActionVar.setStatusTip('Show the previous sheet if '
                                                    'it is available')
             self.showPrevTabActionVar.setShortcut('Ctrl+PgUp')
-            self.connect(self.showPrevTabActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.showPrevTab)
+            self.showPrevTabActionVar.triggered.connect(self.showPrevTab)
         return self.showPrevTabActionVar
 
     def saveAction(self):
@@ -210,9 +197,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                '&Save', self)
             self.saveActionVar.setStatusTip('Save the current spreadsheet')
             self.saveActionVar.setShortcut('Ctrl+S')
-            self.connect(self.saveActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.saveSpreadsheet)
+            self.saveActionVar.triggered.connect(self.saveSpreadsheet)
         return self.saveActionVar
 
     def saveAsAction(self):
@@ -225,9 +210,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.saveAsActionVar = QtGui.QAction(icon, 'Save &As...', self)
             self.saveAsActionVar.setStatusTip('Save the current spreadsheet '
                                               'at a new location')
-            self.connect(self.saveAsActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.saveSpreadsheetAs)
+            self.saveAsActionVar.triggered.connect(self.saveSpreadsheetAs)
         return self.saveAsActionVar
 
     def openAction(self):
@@ -240,9 +223,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                '&Open...', self)
             self.openActionVar.setStatusTip('Open a saved spreadsheet')
             self.openActionVar.setShortcut('Ctrl+O')
-            self.connect(self.openActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.openSpreadsheetAs)
+            self.openActionVar.triggered.connect(self.openSpreadsheetAs)
         return self.openActionVar
 
     def exportSheetToImageAction(self):
@@ -260,16 +241,10 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             multiAction = exportMenu.addAction('Separately')
             self.exportSheetToImageVar.setMenu(exportMenu)
 
-            self.connect(self.exportSheetToImageVar,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.exportSheetToSingleImageActionTriggered)
+            self.exportSheetToImageVar.triggered.connect(self.exportSheetToSingleImageActionTriggered)
 
-            self.connect(singleAction,
-                         QtCore.SIGNAL('triggered()'),
-                         self.exportSheetToSingleImageActionTriggered)
-            self.connect(multiAction,
-                         QtCore.SIGNAL('triggered()'),
-                         self.exportSheetToSeparateImagesActionTriggered)
+            singleAction.triggered.connect(self.exportSheetToSingleImageActionTriggered)
+            multiAction.triggered.connect(self.exportSheetToSeparateImagesActionTriggered)
         return self.exportSheetToImageVar
 
     def exportSheetToSingleImageActionTriggered(self, action=None):
@@ -565,8 +540,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             displayName = self.spreadsheetFileName
         else:
             displayName = 'Untitled'
-        self.emit(QtCore.SIGNAL('needChangeTitle'),
-                  '%s - VisTrails Spreadsheet' % displayName)
+        self.needChangeTitle.emit('%s - VisTrails Spreadsheet' % displayName)
 
     def pipelineId(self, pipelineInfo):
         return (pipelineInfo['controller'], pipelineInfo['version'])

@@ -40,6 +40,7 @@ QParameterView
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
@@ -82,7 +83,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         
         self.controller = None
         vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
 
@@ -101,8 +102,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         vLayout.setStretch(1,1)
         vLayout.setStretch(2,0)
 
-        self.connect(self.toggleUnsetParameters, QtCore.SIGNAL("toggled(bool)"),
-                     self.parameterWidget.treeWidget.toggleUnsetParameters)
+        self.toggleUnsetParameters.toggled.connect(self.parameterWidget.treeWidget.toggleUnsetParameters)
         self.set_controller(controller)
 
     def set_controller(self, controller):

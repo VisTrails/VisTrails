@@ -38,6 +38,7 @@ Parameter Exploration Tab """
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
@@ -248,7 +249,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         self.setFrameShape(QtGui.QFrame.StyledPanel)
         self.setWindowTitle('Spreadsheet Virtual Cell')
         vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(2)
+        vLayout.setContentsMargins(2, 2, 2, 2)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
@@ -260,7 +261,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         vLayout.addWidget(label)
 
         hLayout = QtGui.QVBoxLayout()
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         vLayout.addLayout(hLayout)
         self.config = QVirtualCellConfiguration()
@@ -370,9 +371,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
             item = self.layout().takeAt(0)
             if item is None:
                 break
-            self.disconnect(item.widget(),
-                            QtCore.SIGNAL('finishedDragAndDrop'),
-                            self.compressCells)
+            item.widget().finishedDragAndDrop.connect(self.compressCells)
             item.widget().deleteLater()
             del item
         self.cells = []
@@ -391,8 +390,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
             label = QVirtualCellLabel(*cells[i])
             row.append(label)
             self.layout().addWidget(label, 0, i, 1, 1, QtCore.Qt.AlignCenter)
-            self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
-                         self.compressCells)
+            label.finishedDragAndDrop.connect(self.compressCells)
         self.cells.append(row)
 
         for r in xrange(self.numCell-1):
@@ -402,8 +400,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
                 row.append(label)
                 self.layout().addWidget(label, r+1, c, 1, 1,
                                         QtCore.Qt.AlignCenter)
-                self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
-                             self.compressCells)
+                label.finishedDragAndDrop.connect(self.compressCells)
             self.cells.append(row)
 
     def compressCells(self):
@@ -510,6 +507,7 @@ class QVirtualCellLabel(QtGui.QLabel):
     has rounded shape with a caption text
     
     """
+    finishedDragAndDrop = QtCore.pyqtSignal()
     def __init__(self, label=None, id=-1, parent=None):
         """ QVirtualCellLabel(text: QString, id: int,
                               parent: QWidget)
@@ -596,7 +594,7 @@ class QVirtualCellLabel(QtGui.QLabel):
             drag.start(QtCore.Qt.MoveAction)
             if mimeData.cellData!=('', -1):
                 self.setCellData(*mimeData.cellData)
-            self.emit(QtCore.SIGNAL('finishedDragAndDrop'))
+            self.finishedDragAndDrop.emit()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None

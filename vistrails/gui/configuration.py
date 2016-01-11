@@ -161,6 +161,8 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
 
 class QConfigurationTreeWidget(QSearchTreeWidget):
 
+    configuration_changed = QtCore.pyqtSignal(QConfigurationTreeWidgetItem,
+                                              str)
     def __init__(self, parent, persistent_config, temp_config):
         QSearchTreeWidget.__init__(self, parent)
         self.setMatchedFlags(QtCore.Qt.ItemIsEditable)
@@ -181,8 +183,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         # disconnect() and clear() are here because create_tree might
         # also be called when an entirely new configuration object is set.
 
-        self.disconnect(self, QtCore.SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
-                        self.change_configuration)
+        self.itemChanged.connect(self.change_configuration)
         self.clear()
         self._configuration = persistent_config
         self._temp_configuration = temp_config
@@ -191,9 +192,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
 
         self.expandAll()
         self.resizeColumnToContents(0)
-        self.connect(self,
-                     QtCore.SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
-                     self.change_configuration)
+        self.itemChanged.connect(self.change_configuration)
 
     def change_configuration(self, item, col):
         if item.flags() & QtCore.Qt.ItemIsEditable:
@@ -208,8 +207,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
                     from vistrails.gui.vistrails_window import _app
                     _app.setDBDefault(dbState)
 
-            self.emit(QtCore.SIGNAL('configuration_changed'),
-                      item, new_value)
+            self.configuration_changed.emit(item, new_value)
         
 class QConfigurationTreeWindow(QSearchTreeWindow):
 
@@ -322,7 +320,7 @@ class QConfigurationLineEditButton(QtGui.QWidget, QConfigurationWidgetItem):
         QConfigurationWidgetItem.__init__(self, key, field, callback_f)
 
         layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
         self.line_edit = QtGui.QLineEdit()
@@ -383,7 +381,7 @@ class QConfigurationLabelButton(QtGui.QWidget, QConfigurationWidgetItem):
         QConfigurationWidgetItem.__init__(self, key, field, callback_f)
 
         layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
         if label is not None:
@@ -438,14 +436,14 @@ class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
             values = options["allowed_values"]
             if "remap" in options:
                 remap = options["remap"]
-                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
+                inv_remap = dict((v, k) for (k, v) in remap.items())
                 entries = [remap[v] for v in values]
             else:
                 entries = values
             for entry in entries:
                 self.addItem(entry)
 
-        self.currentIndexChanged[int].connect(self.value_changed)
+        self.currentIndexChanged.connect(self.value_changed)
 
     def set_value(self, value, signal=True):
         options = self.get_widget_options()
@@ -461,13 +459,13 @@ class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
         else:
             self.setCurrentIndex(-1)
         if not signal:
-            self.currentIndexChanged[int].connect(self.value_changed)
+            self.currentIndexChanged.connect(self.value_changed)
 
 class QConfigurationPane(QtGui.QWidget):
     def __init__(self, parent, persistent_config, temp_config, cat_fields):
-        QtGui.QWidget.__init__(self, parent)
+        Qtgui.QWidget.__init__(self, parent)
         layout = QtGui.QFormLayout()
-        layout.setMargin(10)
+        layout.setContentsMargins(1, 0, 1, 0, 1, 0, 1, 0)
         layout.setSpacing(4)
         self.setLayout(layout)
         self._configuration = persistent_config
@@ -480,7 +478,7 @@ class QConfigurationPane(QtGui.QWidget):
             self.process_fields(layout, fields, category)
             spacer_widget = QtGui.QWidget()
             spacer_layout = QtGui.QVBoxLayout()
-            spacer_layout.setMargin(0)
+            spacer_layout.setContentsMargins(0, 0, 0, 0)
             spacer_layout.addSpacing(15)
             spacer_widget.setLayout(spacer_layout)
             layout.addRow("", spacer_widget)
@@ -515,7 +513,7 @@ class QConfigurationPane(QtGui.QWidget):
                   prefix="", indent=0):
         label_widget = QtGui.QWidget()
         label_layout = QtGui.QHBoxLayout()
-        label_layout.setMargin(0)
+        label_layout.setContentsMargins(0, 0, 0, 0)
         label_layout.setSpacing(5)
         label_widget.setLayout(label_layout)
 
@@ -634,6 +632,8 @@ class QConfigurationPane(QtGui.QWidget):
 # TODO: Make sure this functionality (Move and Clear Cache) is preserved
 
 class QThumbnailConfiguration(QtGui.QWidget):
+    configuration_changed = QtCore.pyqtSignal(QConfigurationTreeWidgetItem,
+                                              str)
     def thumbs_cache_directory_changed(self):
         """ thumbs_cache_changed(v: int) -> None
         
@@ -643,8 +643,7 @@ class QThumbnailConfiguration(QtGui.QWidget):
         if os.path.exists(value):
             self._configuration.thumbs.cacheDirectory = value
             self._temp_configuration.thumbs.cacheDirectory = value
-            self.emit(QtCore.SIGNAL('configuration_changed'),
-                      None, value)
+            self.configuration_changed.emit(None, value)
             self._cache.move_cache_directory(old_folder,value)
         else:
             show_warning('VisTrails', 'The directory specified does not exist.')

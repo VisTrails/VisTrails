@@ -33,20 +33,17 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         self.setWindowTitle("Directory configuration")
 
         central_layout = QtGui.QVBoxLayout()
-        central_layout.setMargin(0)
+        central_layout.setContentsMargins(0, 0, 0, 0)
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
 
         self._list = QtGui.QListWidget()
         self._list.setSortingEnabled(True)
-        self.connect(self._list,
-                     QtCore.SIGNAL('itemChanged(QListWidgetItem*)'),
-                     lambda i: self.updateState())
+        self._list.itemChanged.connect(lambda i: self.updateState())
         central_layout.addWidget(self._list)
 
         add_button = QtGui.QPushButton("Add a file")
-        self.connect(add_button, QtCore.SIGNAL('clicked()'),
-                     self.add_file)
+        add_button.clicked.connect(self.add_file)
         central_layout.addWidget(add_button)
 
         self.createButtons()
@@ -65,7 +62,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
         """
         buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -75,10 +72,8 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -89,8 +84,8 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -150,11 +145,11 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()

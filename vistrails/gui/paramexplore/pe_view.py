@@ -50,9 +50,7 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         BaseView.__init__(self)
 
         self.set_title("Explore")
-        self.connect(self.table,
-                     QtCore.SIGNAL('exploreChange(bool)'),
-                     self.exploreChange)
+        self.table.exploreChange.connect(self.exploreChange)
 
     def set_controller(self, controller):
         if self.controller == controller:

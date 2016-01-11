@@ -136,9 +136,7 @@ class OldTextEditor(QtGui.QTextEdit):
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)
-        self.connect(self,
-                     QtCore.SIGNAL('currentCharFormatChanged(QTextCharFormat)'),
-                     self.formatChanged)
+        self.currentCharFormatChanged.connect(self.formatChanged)
 
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)

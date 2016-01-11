@@ -38,6 +38,7 @@ from __future__ import division
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
+
 from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
@@ -136,8 +137,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         palette = self.get_palette()
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
-        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (unicode(self.table.label.getCounts()), unicode(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
-        for i in xrange(self.table.layout().count()):
+        xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
+        for i in range(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 firstParam = True
@@ -155,7 +156,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                    'HSV Interpolation']:
                         xml += ' min="%s" max="%s"' % (interpolator.fromEdit.get_value(), interpolator.toEdit.get_value())
                     elif intType == 'List':
-                        xml += ' values="%s"' % escape(unicode(interpolator._str_values), escape_dict)
+                        xml += ' values="%s"' % escape(str(interpolator._str_values), escape_dict)
                     elif intType == 'User-defined Function':
                         xml += ' code="%s"' % escape(interpolator.function, escape_dict)
                     xml += '/>'
@@ -175,7 +176,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         palette = self.get_palette()
         id_scope = self.controller.id_scope
         functions = []
-        for i in xrange(self.table.layout().count()):
+        for i in range(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 function = None
@@ -391,6 +392,7 @@ class QParameterExplorationTable(QPromptWidget):
     string and boolean)
     
     """
+    exploreChange = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):
         """ QParameterExplorationTable(parent: QWidget)
                                        -> QParameterExplorationTable
@@ -407,16 +409,14 @@ class QParameterExplorationTable(QPromptWidget):
         
         vLayout = QtGui.QVBoxLayout(self)
         vLayout.setSpacing(0)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(vLayout)
 
         self.label = QDimensionLabel()
 
         for labelIcon in self.label.labelIcons:
-            self.connect(labelIcon.countWidget,
-                         QtCore.SIGNAL('editingFinished()'),
-                         self.updateWidgets)
+            labelIcon.countWidget.editingFinished.connect(self.updateWidgets)
         vLayout.addWidget(self.label)
 
         for i in xrange(2):
@@ -464,7 +464,7 @@ class QParameterExplorationTable(QPromptWidget):
         self.layout().addWidget(newEditor)
         newEditor.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        self.exploreChange.emit(self.layout().count() > 3)
         return newEditor
 
     def removeParameter(self, ps):
@@ -486,7 +486,7 @@ class QParameterExplorationTable(QPromptWidget):
                         widget.setEnabled(True)
                         break
         self.showPrompt(self.layout().count()<=3)
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        self.exploreChange.emit(self.layout().count() > 3)
 
     def updateWidgets(self):
         """ updateWidgets() -> None
@@ -522,7 +522,7 @@ class QParameterExplorationTable(QPromptWidget):
                 pEditor.deleteLater()
         self.label.resetCounts()
         self.showPrompt()
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        self.exploreChange.emit(self.layout().count() > 3)
 
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline: Pipeline) -> None
@@ -626,7 +626,7 @@ class QDimensionLabel(QtGui.QWidget):
                            QtGui.QSizePolicy.Maximum)
 
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)        
 
@@ -683,6 +683,7 @@ class QDimensionSpinBox(QtGui.QSpinBox):
     'editingFinished()' signal when the user interact with mouse
     
     """    
+    editingFinished = QtCore.pyqtSignal()
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
         Emit 'editingFinished()' signal when the user release a mouse button
@@ -690,7 +691,7 @@ class QDimensionSpinBox(QtGui.QSpinBox):
         """
         QtGui.QSpinBox.mouseReleaseEvent(self, event)
         # super(QDimensionSpinBox, self).mouseReleaseEvent(event)
-        self.emit(QtCore.SIGNAL("editingFinished()"))
+        self.editingFinished.emit()
 
 class QDimensionLabelIcon(QtGui.QWidget):
     """
@@ -706,7 +707,7 @@ class QDimensionLabelIcon(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 
@@ -796,13 +797,12 @@ class QParameterSetEditor(QtGui.QWidget):
             size = 1
         
         vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
 
         label = QParameterSetLabel(name)
-        self.connect(label.removeButton, QtCore.SIGNAL('clicked()'),
-                     self.removeSelf)
+        label.removeButton.clicked.connect(self.removeSelf)
         vLayout.addWidget(label)
         
         self.paramWidgets = []
@@ -842,7 +842,7 @@ class QParameterSetLabel(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)        
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
@@ -881,7 +881,7 @@ class QParameterWidget(QtGui.QWidget):
         self.prevWidget = 0
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
@@ -898,9 +898,7 @@ class QParameterWidget(QtGui.QWidget):
         hLayout.addWidget(self.editor)
 
         self.selector = QDimensionSelector()
-        self.connect(self.selector.radioButtons[4],
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.disableParameter)
+        self.selector.radioButtons[4].toggled.connect(self.disableParameter)
         hLayout.addWidget(self.selector)
 
     def getDimension(self):
@@ -959,7 +957,7 @@ class QDimensionSelector(QtGui.QWidget):
                            QtGui.QSizePolicy.Maximum)
         
         hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 

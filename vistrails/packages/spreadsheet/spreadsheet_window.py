@@ -41,7 +41,9 @@ from __future__ import division
 
 import ctypes
 import os.path
+
 from PyQt4 import QtCore, QtGui
+
 import tempfile
 
 from vistrails.core.modules import module_utils
@@ -62,6 +64,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     mode
 
     """
+
+    cellActivated = QtCore.pyqtSignal(int,int,bool)
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
                               -> SpreadsheetWindow
@@ -88,9 +93,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
         self.setupMenu()
 
-        self.connect(self.tabController,
-                     QtCore.SIGNAL('needChangeTitle'),
-                     self.setWindowTitle)
+        self.tabController.needChangeTitle.connect(self.setWindowTitle)
         self.file_pool = module_utils.FilePool()
         self.echoMode = False
         self.echoCellEvents = []
@@ -99,9 +102,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             self.quitAction = QtGui.QAction('&Quit VisTrails', self)
             self.addAction(self.quitAction)
             self.quitAction.setShortcut('Ctrl+Q')
-            self.connect(self.quitAction,
-                         QtCore.SIGNAL('triggered()'),
-                         self.quitActionTriggered)
+            self.quitAction.triggered.connect(self.quitActionTriggered)
 
         # if the spreadsheet has one row and 2 columns
         # this will cause the spreadsheet to have each cell
@@ -149,9 +150,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.menuBar().addAction(self.windowMenu.menuAction())
         self.windowMenu.addAction(self.showBuilderWindowAction())
 
-        self.connect(self.modeActionGroup,
-                     QtCore.SIGNAL('triggered(QAction*)'),
-                     self.modeChanged)
+        self.modeActionGroup.triggered.connect(self.modeChanged)
 
     def fitToWindowAction(self):
         """ fitToWindowAction() -> QAction
@@ -165,9 +164,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             self.fitAction.setCheckable(True)
             checked = self.tabController.currentWidget().sheet.fitToWindow
             self.fitAction.setChecked(checked)
-            self.connect(self.fitAction,
-                         QtCore.SIGNAL('toggled(bool)'),
-                         self.fitActionToggled)
+            self.fitAction.toggled.connect(self.fitActionToggled)
         return self.fitAction
 
     def fitActionToggled(self, checked):
@@ -189,17 +186,14 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             self.fullScreenActionVar.setChecked(False)
             self.fullScreenActionVar.setStatusTip('Show sheets without any '
                                                   'menubar or statusbar')
-            self.connect(self.fullScreenActionVar,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.fullScreenActivated)
+            self.fullScreenActionVar.triggered.connect(self.fullScreenActivated)
             self.fullScreenAlternativeShortcuts = [QtGui.QShortcut('F11', self),
                                                    QtGui.QShortcut('Alt+Return',
                                                                    self),
                                                    QtGui.QShortcut('Alt+Enter',
                                                                    self)]
             for sc in self.fullScreenAlternativeShortcuts:
-                self.connect(sc, QtCore.SIGNAL('activated()'),
-                             self.fullScreenActionVar.trigger)
+                sc.activated.connect(self.fullScreenActionVar.trigger)
         return self.fullScreenActionVar
 
     def fullScreenActivated(self, full=None):
@@ -275,9 +269,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             else:
                 self.showBuilderWindowActionVar.setEnabled(False)
 
-            self.connect(self.showBuilderWindowActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.showBuilderWindowActionTriggered)
+            self.showBuilderWindowActionVar.triggered.connect(self.showBuilderWindowActionTriggered)
 
         return self.showBuilderWindowActionVar
 
@@ -416,9 +408,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 p = p.parent()
             if p and isinstance(p, StandardWidgetSheet) and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
-                p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
-                       p.rowAt(pos.y()), p.columnAt(pos.x()),
-                       e.modifiers()==QtCore.Qt.ControlModifier)
+                p.cellActivated.emit(p.rowAt(pos.y()), p.columnAt(pos.x()), e.modifiers()==QtCore.Qt.ControlModifier)
         return False
         #return QtGui.QMainWindow.eventFilter(self,q,e)
 
@@ -598,10 +588,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             buttonLayout.addWidget(buttons[1])
             buttonLayout.addStretch()
             currentTab.layout().addLayout(buttonLayout)
-            self.connect(buttons[0], QtCore.SIGNAL('clicked()'),
-                         self.acceptReview)
-            self.connect(buttons[1], QtCore.SIGNAL('clicked()'),
-                         self.discardReview)
+            buttons[0].clicked.connect(self.acceptReview)
+            buttons[1].clicked.connect(self.discardReview)
 
     def discardReview(self):
         """ Just quit the program """

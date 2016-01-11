@@ -35,19 +35,19 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt4 import QtCore
 
 from vistrails.core.mashup.controller import MashupController as BaseController
 from vistrails.core.mashup.alias import Alias
 from vistrails.gui.utils import show_warning
 
-class MashupController(BaseController, QObject):
+class MashupController(BaseController, QtCore.QObject):
     #signals
-    stateChanged = pyqtSignal()
-    versionChanged = pyqtSignal(int)
+    stateChanged = QtCore.pyqtSignal()
+    versionChanged = QtCore.pyqtSignal(int)
     
     def __init__(self, originalController, vt_controller, vt_version, mshptrail=None):
-        QObject.__init__(self)
+        QtCore.QObject.__init__(self)
         BaseController.__init__(self, originalController, vt_controller, vt_version, mshptrail)
         self.name = ''
         self.currentMashupView = None
@@ -71,11 +71,11 @@ class MashupController(BaseController, QObject):
         else:
             return True
         
-    @pyqtSlot(unicode)
+    @QtCore.pyqtSlot(str)
     def removeAlias(self, name):
         BaseController.removeAlias(self, name)
     
-    @pyqtSlot(Alias)
+    @QtCore.pyqtSlot(Alias)
     def updateAlias(self, alias):
         BaseController.updateAlias(self, alias)
         
@@ -87,4 +87,3 @@ class MashupController(BaseController, QObject):
         from vistrails.gui.vistrails_window import _app
         result = BaseController.execute(self, params)
         _app.notify('execution_updated')
-        return result

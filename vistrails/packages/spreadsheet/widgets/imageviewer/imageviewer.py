@@ -40,7 +40,9 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os
+
 from PyQt4 import QtCore, QtGui
+
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
@@ -224,8 +226,8 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         self.setValue(100)
         self.setTracking(True)
         self.setStatusTip("Zoom in the image")
-        self.connect(self, QtCore.SIGNAL("valueChanged(int)"), self.updateZoom)
-        self.connect(self, QtCore.SIGNAL("needUpdateStatus"), self.updateStatus)
+        self.valueChanged.connect(self.updateZoom)
+        self.needUpdateStatus.connect(self.updateStatus)
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Expanding)
         
@@ -292,7 +294,7 @@ class ImageViewerRotateAction(QtGui.QAction):
                                "&Rotate CW...",
                                parent)
         self.setStatusTip("Rotate 90 degrees CW")
-        self.rotationMatrix = QtGui.QMatrix(0,1,-1,0,0,0)
+        self.rotationMatrix = QtGui.QTransform(0,1,-1,0,0,0)
         
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -322,7 +324,7 @@ class ImageViewerFlipAction(QtGui.QAction):
                                "&Flip Horizontal...",
                                parent)
         self.setStatusTip("Flip the image horizontally")
-        self.flipMatrix = QtGui.QMatrix(-1,0,0,1,0,0)
+        self.flipMatrix = QtGui.QTransform(-1,0,0,1,0,0)
         
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -353,9 +355,7 @@ class ImageViewerToolBar(QCellToolBar):
         self.appendAction(ImageViewerFlipAction(self))
         self.slider = ImageViewerZoomSlider(self)
         label = ImageViewerZoomLabel(self)
-        self.connect(self.slider,
-                     QtCore.SIGNAL("valueChanged(int)"),
-                     label.updateValue)
+        self.slider.valueChanged.connect(label.updateValue)
         self.appendWidget(self.slider)
         self.appendWidget(label)
         self.addAnimationButtons()

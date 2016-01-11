@@ -36,6 +36,7 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+
 from itertools import izip
 import os
 import string
@@ -190,7 +191,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         h_layout = QtGui.QHBoxLayout()
         h_layout.insertSpacing(0, 10)
-        h_layout.setMargin(2)
+        h_layout.setContentsMargins(2, 2, 2, 2)
         h_layout.setSpacing(2)
 
         v_layout = QtGui.QVBoxLayout()
@@ -206,8 +207,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
                 self.group_box.parent().parent().parent().delete_method(
                     self, self.port_spec.name, None)
                 
-        QtCore.QObject.connect(delete_button, QtCore.SIGNAL("clicked()"), 
-                               delete_method)
+        delete_button.clicked.connect(delete_method)
         v_layout.addWidget(delete_button)
         
         add_button = QtGui.QToolButton()
@@ -216,8 +216,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         def add_method():
             self.group_box.parent().parent().parent().add_method(
                 self.port_spec.name)
-        QtCore.QObject.connect(add_button, QtCore.SIGNAL("clicked()"), 
-                               add_method)
+        add_button.clicked.connect(add_method)
         v_layout.addWidget(add_button)
         h_layout.addLayout(v_layout)
         
@@ -225,7 +224,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         self.my_labels = []
         self.group_box = QtGui.QGroupBox()
         layout = QtGui.QGridLayout()
-        layout.setMargin(5)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
         layout.setColumnStretch(1,1)
         self.group_box.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -394,9 +393,7 @@ class PortItem(QtGui.QTreeWidgetItem):
             return
         act = QtGui.QAction("View Documentation", widget)
         act.setStatusTip("View method documentation")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.view_documentation)
+        act.triggered.connect(self.view_documentation)
         menu = QtGui.QMenu(widget)
         menu.addAction(act)
         menu.exec_(event.globalPos())
@@ -432,8 +429,7 @@ class PortsList(QtGui.QTreeWidget):
         self.setRootIsDecorated(False)
         self.setIndentation(0)
         self.setHeaderHidden(True)
-        self.connect(self, QtCore.SIGNAL("itemClicked(QTreeWidgetItem*, int)"),
-                     self.item_clicked)
+        self.itemClicked.connect(self.item_clicked)
         self.module = None
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry
@@ -720,7 +716,7 @@ class QPortsPane(QtGui.QWidget, QToolWindowInterface):
     def build_widget(self):
         self.tree_widget = PortsList(self.port_type)
         layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.tree_widget)
         self.setLayout(layout)
         self.setWindowTitle('%s Ports' % self.port_type.capitalize())

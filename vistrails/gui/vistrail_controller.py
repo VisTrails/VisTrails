@@ -145,6 +145,13 @@ class VistrailController(QtCore.QObject, BaseController):
 
     """
 
+    invalidateSingleNodeInVersionTree = QtCore.pyqtSignal(int,int)
+    vistrailChanged = QtCore.pyqtSignal()
+    new_action = QtCore.pyqtSignal(QtGui.QAction)
+    notesChanged = QtCore.pyqtSignal()
+    versionWasChanged = QtCore.pyqtSignal(int)
+    searchChanged = QtCore.pyqtSignal()
+    stateChanged = QtCore.pyqtSignal()
     def __init__(self, vistrail=None, locator=None, abstractions=None,
                  thumbnails=None, mashups=None, pipeline_view=None, 
                  id_scope=None, set_log_on_vt=True, auto_save=True, name=''):
@@ -228,20 +235,18 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def set_pipeline_view(self, pipeline_view):
         if self.current_pipeline_view is not None:
-            self.disconnect(self, QtCore.SIGNAL('versionWasChanged'),
-                            self.current_pipeline_view.version_changed)
+            self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
         self.current_pipeline_view = pipeline_view
-        self.connect(self, QtCore.SIGNAL('versionWasChanged'),
-                     self.current_pipeline_view.version_changed)
+        self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
     
     def setup_timer(self):
         self.timer = QtCore.QTimer(self)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+        self.timer.timeout.connect(self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
         
     def stop_timer(self):
         if self.timer:
-            self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+            self.timer.timeout.connect(self.write_temporary)
             self.timer.stop()
 
     def reset_redo_stack(self):
@@ -287,8 +292,7 @@ class VistrailController(QtCore.QObject, BaseController):
         a single unnamed node and links need to be updated. Much faster."""
         self.reset_version_view = False
         try:
-            self.emit(QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                      old_version, new_version)
+            self.invalidateSingleNodeInVersionTree.emit(old_version, new_version)
         finally:
             self.reset_version_view = True
 
@@ -299,7 +303,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = reset_version_view
         #FIXME: in the future, rename the signal
         try:
-            self.emit(QtCore.SIGNAL('vistrailChanged()'))
+            self.vistrailChanged.emit()
         finally:
             self.reset_version_view = True
 
@@ -389,7 +393,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         if action is not None:
             BaseController.add_new_action(self, action, description)
-            self.emit(QtCore.SIGNAL("new_action"), action)
+            self.new_action.emit(action)
             self.recompute_terse_graph()
 
     ##########################################################################
@@ -414,7 +418,7 @@ class VistrailController(QtCore.QObject, BaseController):
         # Add notes
         if self.vistrail.set_notes(self.current_base_version, unicode(notes)):
             self.set_changed(True)
-            self.emit(QtCore.SIGNAL('notesChanged()'))
+            self.notesChanged.emit()
 
     ##########################################################################
     # Workflow Execution
@@ -644,7 +648,7 @@ class VistrailController(QtCore.QObject, BaseController):
         #         new_version not in self._current_terse_graph.vertices:
         #     self.recompute_terse_graph()
 
-        self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
+        self.versionWasChanged.emit(self.current_version)
 
     def set_search(self, search, text=''):
         """ set_search(search: SearchStmt, text: str) -> None
@@ -665,7 +669,7 @@ class VistrailController(QtCore.QObject, BaseController):
             else:
                 self.invalidate_version_tree(False)
             
-            self.emit(QtCore.SIGNAL('searchChanged'))
+            self.searchChanged.emit()
 
     def set_refine(self, refine):
         """ set_refine(refine: bool) -> None
@@ -1146,7 +1150,7 @@ class VistrailController(QtCore.QObject, BaseController):
         BaseController.set_changed(self, changed)
         if changed:
             # FIXME: emit different signal in the future
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()
 
     def set_file_name(self, file_name):
         """ set_file_name(file_name: str) -> None
@@ -1156,7 +1160,7 @@ class VistrailController(QtCore.QObject, BaseController):
         old_name = self.file_name
         BaseController.set_file_name(self, file_name)
         if old_name != file_name:
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()
 
     def write_vistrail(self, locator, version=None, export=False):
         need_invalidate = BaseController.write_vistrail(self, locator,

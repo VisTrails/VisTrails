@@ -50,6 +50,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
     the 'head' input ports should be sufficient.
 
     """
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal(int)
     def __init__(self, module, controller, parent=None):
         """ ListConfigurationWidget(module: Module,
                                      controller: VistrailController,
@@ -73,7 +75,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
 
         # Add an empty vertical layout
         centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
 
@@ -81,8 +83,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         config_layout = QtGui.QFormLayout()
         self.number = QtGui.QSpinBox()
         self.number.setValue(self.countAdditionalPorts())
-        self.connect(self.number, QtCore.SIGNAL('valueChanged(int)'),
-                     lambda r: self.updateState())
+        self.number.valueChanged.connect(lambda r: self.updateState())
         config_layout.addRow("Number of additional connections:", self.number)
         centralLayout.addLayout(config_layout)
 
@@ -97,7 +98,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
 
         """
         self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
         self.saveButton = QtGui.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
@@ -107,10 +108,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -121,8 +120,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -158,7 +157,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         if not self.hasFocus():
@@ -167,4 +166,4 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()

@@ -224,6 +224,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
     zoom/span with right/mid click
     
     """
+    resetQuery = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         """ QInteractiveGraphicsView(parent: QWidget)
                                      -> QInteractiveGraphicsView
@@ -524,7 +525,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         Update the view matrix with the current scale
         
         """
-        matrix = QtGui.QMatrix()
+        matrix = QtGui.QTransform()
         power = float(self.currentScale - self.scaleMax/2 - self.scaleOffset
                       )/self.scaleRatio
         scale = pow(2.0, power)
@@ -572,9 +573,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if enabled:
             if not self.resetButton:
                 self.resetButton = QResetQueryButton(self)
-                self.connect(self.resetButton,
-                             QtCore.SIGNAL('resetQuery()'),
-                             self.resetQuery)
+                self.resetButton.resetQuery.connect(self.resetQuery)
             self.resetButton.show()
             self.resetButton.updateGeometry()
         else:
@@ -587,7 +586,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         pass the signal along
         
         """
-        self.emit(QtCore.SIGNAL('resetQuery()'))
+        self.resetQuery.emit()
 
     def resizeEvent(self, event):
         """ resizeEvent(event: QResizeEvent) -> None
@@ -831,6 +830,7 @@ class QResetQueryButton(QtGui.QLabel):
     """
     
     """
+    resetQuery = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtGui.QLabel.__init__(self, parent)
 
@@ -849,7 +849,7 @@ class QResetQueryButton(QtGui.QLabel):
     
     def mouseReleaseEvent(self, e):
         self.setFrameShadow(QtGui.QFrame.Raised)
-        self.emit(QtCore.SIGNAL('resetQuery()'))
+        self.resetQuery.emit()
 
     def updateGeometry(self):
         parentGeometry = self.parent().geometry()

@@ -49,6 +49,7 @@ from __future__ import division
 from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.system import systemType
@@ -305,7 +306,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
     def setEditableLater(self):
         self.timer = QtCore.QTimer(self)
         self.timer.setSingleShot(True)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.setEditable)
+        self.timer.timeout.connect(self.setEditable)
         self.timer.start(QtGui.QApplication.doubleClickInterval() + 5)
 
     def setGhosted(self, ghosted):
@@ -401,6 +402,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     label
     
     """
+    diffRequested = QtCore.pyqtSignal(int,int)
+    versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsVersionItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsVersionItem
@@ -434,9 +437,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # Need a timer to start a drag to avoid stalls on QGraphicsView
         self.dragTimer = QtCore.QTimer()
         self.dragTimer.setSingleShot(True)
-        self.dragTimer.connect(self.dragTimer,
-                               QtCore.SIGNAL('timeout()'),
-                               self.startDrag)
+        self.dragTimer.timeout.connect(self.startDrag)
 
         self.dragPos = QtCore.QPoint()
 
@@ -687,8 +688,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if (hasattr(data, 'versionId') and hasattr(data, 'controller') and
             data.controller==self.scene().controller):
             event.accept()
-            self.scene().emit(QtCore.SIGNAL('diffRequested(int,int)'),
-                              data.versionId, self.id)
+            self.scene().diffRequested.emit(data.versionId, self.id)
             # visDiff = QVisualDiff(self.scene().controller.vistrail,
             #                       data.versionId,
             #                       self.id,
@@ -721,9 +721,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             item.setSelected(False)
         self.setSelected(True)
         self.scene().emit_selection = True
-        self.scene().emit(
-            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-            self.id, True, False, True, True)
+        self.scene().versionSelected.emit(self.id, True, False, True, True)
             
     def construct_from_root(self):
         self.scene().emit_selection = False
@@ -731,9 +729,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             item.setSelected(False)
         self.setSelected(True)
         self.scene().emit_selection = True
-        self.scene().emit(
-            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-            self.id, True, True, True, True)
+        self.scene().versionSelected.emit(self.id, True, True, True, True)
 
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
@@ -744,12 +740,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         menu = QtGui.QMenu()
         raw_action = QtGui.QAction("Display raw pipeline", self.scene())
         from_root_action = QtGui.QAction("Construct from root", self.scene())
-        QtCore.QObject.connect(raw_action,
-                               QtCore.SIGNAL("triggered()"),
-                               self.show_raw_pipeline)
-        QtCore.QObject.connect(from_root_action,
-                               QtCore.SIGNAL("triggered()"),
-                               self.construct_from_root)
+        raw_action.triggered.connect(self.show_raw_pipeline)
+        from_root_action.triggered.connect(self.construct_from_root)
         menu.addAction(raw_action)
         menu.addAction(from_root_action)
         if len(controller.analogy) > 0:
@@ -757,9 +749,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             for title in sorted(controller.analogy.keys()):
                 act = QtGui.QAction(title, self.scene())
                 analogies.addAction(act)
-                QtCore.QObject.connect(act,
-                                       QtCore.SIGNAL("triggered()"),
-                                       self.perform_analogy)
+                act.triggered.connect(self.perform_analogy)
             menu.addMenu(analogies)
         menu.exec_(event.screenPos())
 
@@ -776,6 +766,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     
     """
 
+    versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
+    twoVersionsSelected = QtCore.pyqtSignal(int,int)
     def __init__(self, parent=None):
         """ QVersionTree(parent: QWidget) -> QVersionTree
         Initialize the graphics scene with no shapes
@@ -790,8 +782,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.fullGraph = None
         self.emit_selection = True
         self.select_by_click = True
-        self.connect(self, QtCore.SIGNAL("selectionChanged()"),
-                     self.selectionChanged)
+        self.selectionChanged.connect(self.selectionChanged)
 
     def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: str, description: str,
@@ -1067,26 +1058,20 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         selected_items = self.selectedItems()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                      selected_items[0].id, self.select_by_click, 
-                      True, False, False)
+            self.versionSelected.emit(selected_items[0].id, self.select_by_click, True, False, False)
         else:
             # emit versionSelected -1
             for item in selected_items:
                 if item.text.isEditable:
                     item.text.setEditable(False)
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                      -1, self.select_by_click, True, False, False)
+            self.versionSelected.emit(-1, self.select_by_click, True, False, False)
 
         if len(selected_items) == 2:
-            self.emit(
-                QtCore.SIGNAL('twoVersionsSelected(int, int)'),
-                selected_items[0].id, selected_items[1].id)
+            self.twoVersionsSelected.emit(selected_items[0].id, selected_items[1].id)
 
     def double_click(self, version_id):
         self.mouseGrabberItem().ungrabMouse()
-        self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                  version_id, self.select_by_click, True, False, True)
+        self.versionSelected.emit(version_id, self.select_by_click, True, False, True)
 
 class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     """
@@ -1180,6 +1165,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         Overrides parent class to disable text items if you click on background
 
         """
+        vistrailChanged = QtCore.pyqtSignal()
         if self.canSelectRectangle:
             br = self.selectionBox.sceneBoundingRect()
         else:
@@ -1201,26 +1187,14 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('vistrailChanged()'),
-                                self.vistrailChanged)
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                                self.single_node_changed)
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('notesChanged()'),
-                                self.notesChanged)
+                oldController.vistrailChanged.connect(self.vistrailChanged)
+                oldController.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
+                oldController.notesChanged.connect(self.notesChanged)
             self.controller = controller
             self.scene().controller = controller
-            self.connect(controller,
-                         QtCore.SIGNAL('vistrailChanged()'),
-                         self.vistrailChanged)
-            self.connect(controller,
-                         QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                         self.single_node_changed)
-            self.connect(controller,
-                         QtCore.SIGNAL("notesChanged()"),
-                         self.notesChanged)
+            controller.vistrailChanged.connect(self.vistrailChanged)
+            controller.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
+            controller.notesChanged.connect(self.notesChanged)
             if controller:
                 self.versionProp.updateController(controller)
                 self.scene().setupScene(controller)
@@ -1243,7 +1217,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         if self.controller:
             # self.versionProp.updateVersion(self.controller.current_version)
             self.versionProp.updateVersion(self.controller.current_version)
-        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+        self.vistrailChanged.emit()
 
     def single_node_changed(self, old_version, new_version):
         """ single_node_changed(old_version, new_version)
@@ -1259,7 +1233,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         if self.controller:
             # self.versionProp.updateVersion(self.controller.current_version)
             self.versionProp.updateVersion(self.controller.current_version)
-        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+        self.vistrailChanged.emit()
 
     def notesChanged(self):
         """ notesChanged() -> None

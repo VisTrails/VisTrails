@@ -41,6 +41,7 @@ import os
 import tempfile
 import uuid
 from PyQt4 import QtCore, QtGui
+
 from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.core.db.action
 from vistrails.core.vistrail.controller import VistrailController as BaseVistrailController
@@ -260,7 +261,7 @@ class MashupsManager(object):
                 self.setMashupsList(mashup_trail)
                 
                 hlayout = QtGui.QHBoxLayout()
-                hlayout.setMargin(5)
+                hlayout.setContentsMargins(5, 5, 5, 5)
                 hlayout.setSpacing(5)
                 hlayout.addWidget(self.mashupsList)
                 hlayout.addStretch()
@@ -283,10 +284,8 @@ class MashupsManager(object):
                 dlgLayout.addWidget(gb)
                 dlgLayout.addLayout(btnLayout)
                 self.setLayout(dlgLayout)
-                self.connect(self.btnCopy, QtCore.SIGNAL("toggled(bool)"),
-                             self.mashupsList.setEnabled)
-                self.connect(btnOk, QtCore.SIGNAL("clicked()"), 
-                             self.btnOkPressed)      
+                self.btnCopy.toggled.connect(self.mashupsList.setEnabled)
+                btnOk.clicked.connect(self.btnOkPressed)
                 
             def btnOkPressed(self):
                 if self.btnNew.isChecked():
