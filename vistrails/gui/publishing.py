@@ -204,7 +204,7 @@ class QLatexAssistant(QtWidgets.QWidget, QVistrailsPaletteInterface):
 
     def selectSource(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self,
-            [0]                                      'Load LaTeX File...',
+                                                  'Load LaTeX File...',
                                                   self.source_edit.text(),
                                                   'LaTeX files (*.tex)')
         if fname:
@@ -525,7 +525,7 @@ class QVersionEmbed(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.changeEmbedType("Wiki")
         
         #connect signals
-        self.cbtype.activated['QString'].connect(self.changeEmbedType)
+        self.cbtype.activated.connect(self.changeEmbedType)
         
         # self.connect(self.copylabel,
         #              QtCore.SIGNAL("linkActivated(const QString &)"),
@@ -533,7 +533,7 @@ class QVersionEmbed(QtWidgets.QWidget, QVistrailsPaletteInterface):
 
         self.copyButton.clicked.connect(self.copyClicked)
         
-        self.cbcontent.activated['QString'].connect(self.changeOption)
+        self.cbcontent.activated.connect(self.changeOption)
         
         optlist = [self.cbcontent,
                    self.chbPdf,
@@ -545,14 +545,15 @@ class QVersionEmbed(QtWidgets.QWidget, QVistrailsPaletteInterface):
                    self.chbExecute,
                    self.chbSpreadsheet]
         for cb in optlist:
-            cb.toggled[bool].connect(self.changeOption)
+            if hasattr(cb, 'toggled'):
+                cb.toggled.connect(self.changeOption)
         #special cases
-        self.chbWorkflow.toggled[bool].connect(self.changeIncludeWorkflow)
-        self.chbSpreadsheet.toggled[bool].connect(self.changeShowSpreadsheet)
-        self.chbExecute.toggled[bool].connect(self.changeExecute)
-        self.cbcontent.activated['QString'].connect(self.changeContent)
-        self.chbSmartTag.toggled[bool].connect(self.changeSmartTag)
-        self.chbCache.toggled[bool].connect(self.changeCache)
+        self.chbWorkflow.toggled.connect(self.changeIncludeWorkflow)
+        self.chbSpreadsheet.toggled.connect(self.changeShowSpreadsheet)
+        self.chbExecute.toggled.connect(self.changeExecute)
+        self.cbcontent.activated.connect(self.changeContent)
+        self.chbSmartTag.toggled.connect(self.changeSmartTag)
+        self.chbCache.toggled.connect(self.changeCache)
         
     def set_controller(self, controller):
         self.controller = controller

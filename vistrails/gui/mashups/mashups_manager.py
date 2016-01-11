@@ -284,7 +284,7 @@ class MashupsManager(object):
                 dlgLayout.addWidget(gb)
                 dlgLayout.addLayout(btnLayout)
                 self.setLayout(dlgLayout)
-                self.btnCopy.toggled[bool].connect(self.mashupsList.setEnabled)
+                self.btnCopy.toggled.connect(self.mashupsList.setEnabled)
                 btnOk.clicked.connect(self.btnOkPressed)
                 
             def btnOkPressed(self):

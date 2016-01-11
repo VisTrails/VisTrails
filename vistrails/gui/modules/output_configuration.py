@@ -382,7 +382,7 @@ class OutputModeConfigurationWidget(QtWidgets.QGroupBox):
             if inv_remap is not None:
                 val = inv_remap[val]
             self.field_changed(config_key, field, val, config_val)
-        combo.currentIndexChanged[str].connect(call_field_changed)
+        combo.currentIndexChanged.connect(call_field_changed)
         return combo
 
     def set_combo_value(self, combo, config_val, field):

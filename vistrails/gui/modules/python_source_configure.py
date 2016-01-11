@@ -221,7 +221,7 @@ class OldPythonEditor(QtWidgets.QTextEdit):
         self.formatChanged(None)
         self.setCursorWidth(8)
         self.highlighter = PythonHighlighter(self.document())
-        self.currentCharFormatChanged[QTextCharFormat].connect(self.formatChanged)
+        self.currentCharFormatChanged.connect(self.formatChanged)
 
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)

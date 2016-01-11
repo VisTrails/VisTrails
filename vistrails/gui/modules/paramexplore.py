@@ -101,7 +101,7 @@ class QParameterEditor(QtWidgets.QWidget):
         hLayout.addWidget(self.stackedEditors)
 
         self.selector = QParameterEditorSelector(param_info, self._exploration_widgets)
-        self.selector.actionGroup.triggered[QAction].connect(self.changeInterpolator)
+        self.selector.actionGroup.triggered.connect(self.changeInterpolator)
         hLayout.addWidget(self.selector)
         self.selector.initAction()
 
@@ -314,7 +314,7 @@ class QListInterpolationEditor(QtWidgets.QWidget):
         self.listValues.home(False)
         hLayout.addWidget(self.listValues)
 
-        self.listValues.textEdited['QString'].connect(self.values_were_edited)
+        self.listValues.textEdited.connect(self.values_were_edited)
 
         inputButton = QtWidgets.QToolButton()
         inputButton.setText('...')
@@ -436,7 +436,7 @@ class QListEditDialog(QtWidgets.QDialog):
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         for v in strValues:
             self.addRow(v)
-        self.table.verticalHeader().sectionMoved[int, int, int].connect(self.rowMoved)
+        self.table.verticalHeader().sectionMoved.connect(self.rowMoved)
         vLayout.addWidget(self.table)
 
         hLayout = QtWidgets.QHBoxLayout()        
@@ -537,7 +537,7 @@ class QListEditItemDelegate(QtWidgets.QItemDelegate):
     
     """
 
-    commitData = pyqtSignal(QVariant)
+    commitData = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, parent=None):
         """ QListEditItemDelegate(parent: QWidget) -> QListEditItemDelegate
         Store the uncommit editor for commit later

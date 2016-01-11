@@ -51,7 +51,6 @@ import inspect
 from PyQt5 import QtCore, QtWidgets
 
 import types
-print(1/0)
 ################################################################################
 
 class qt_super(object):
@@ -183,9 +182,9 @@ class SignalSet(object):
         
 ################################################################################
 
-_oldConnect = QtCore.QObject.connect
-_oldDisconnect = QtCore.QObject.disconnect
-_oldEmit = QtCore.QObject.emit
+#_oldConnect = QtCore.QObject.connect
+#_oldDisconnect = QtCore.QObject.disconnect
+#_oldEmit = QtCore.QObject.emit
 
 def _wrapConnect(callableObject):
     """Returns a wrapped call to the old version of QtCore.QObject.connect"""

@@ -46,7 +46,7 @@ from .constant_configuration import StandardConstantWidget, ColorWidget
 
 class QueryWidgetMixin(object):
 
-    contentsChanged = pyqtSignal(QVariant)
+    contentsChanged = QtCore.pyqtSignal(object, object)
     def __init__(self, contents=None, query_method=None):
         self._last_contents = contents
         self._last_query_method = query_method
@@ -108,7 +108,7 @@ class BaseQueryWidget(QtWidgets.QWidget, QueryWidgetMixin):
         layout.addWidget(self.contents_widget)
         self.setLayout(layout)
 
-        self.op_button.triggered[QAction].connect(self.update_action)
+        self.op_button.triggered.connect(self.update_action)
 
     def contents(self):
         return self.contents_widget.contents()

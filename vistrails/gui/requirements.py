@@ -53,8 +53,8 @@ def qt_available():
     try:
         require_python_module('sip')
         setNewPyQtAPI()
-        require_python_module('PyQt4.QtGui')
-        require_python_module('PyQt4.QtOpenGL')
+        require_python_module('PyQt5.QtGui')
+        require_python_module('PyQt5.QtOpenGL')
     except MissingRequirement:
         return False
     else:
@@ -72,10 +72,10 @@ def require_pyqt4_api2():
     if not qt_available():
         from vistrails.gui.bundles.installbundle import install
         r = install({
-            'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-            'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-            'linux-fedora': ['PyQt4'],
-            'pip': ['PyQt<5.0']})
+            'linux-debian': ['python-qt5', 'python-qt5-gl', 'python-qt5-sql'],
+            'linux-ubuntu': ['python-qt5', 'python-qt5-gl', 'python-qt5-sql'],
+            'linux-fedora': ['PyQt5'],
+            'pip': ['PyQt>=5.0']})
         if not r:
-            raise MissingRequirement('PyQt4')
+            raise MissingRequirement('PyQt5')
         setNewPyQtAPI()

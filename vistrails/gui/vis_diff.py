@@ -218,7 +218,7 @@ class QLegendWindow(QtWidgets.QWidget):
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
         self.gridLayout = QtWidgets.QGridLayout(self)
-        self.gridLayout.setContentsMargins(1, 0, 1, 0, 1, 0, 1, 0)
+        self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -907,14 +907,14 @@ class QVisualDiff(QtWidgets.QMainWindow):
             CurrentTheme.VISUAL_DIFF_SHOW_PARAM_ICON,
             'Show Parameter Inspector window')
         self.showInspectorAction.setCheckable(True)
-        self.showInspectorAction.toggled[bool].connect(self.toggleShowInspector)
+        self.showInspectorAction.toggled.connect(self.toggleShowInspector)
         
         # Add the Show Legend window action
         self.showLegendsAction = self.toolBar.addAction(
             CurrentTheme.VISUAL_DIFF_SHOW_LEGEND_ICON,
             'Show Legends')
         self.showLegendsAction.setCheckable(True)
-        self.showLegendsAction.toggled[bool].connect(self.toggleShowLegend)
+        self.showLegendsAction.toggled.connect(self.toggleShowLegend)
 
         # Add the create analogy action
         self.createAnalogyAction = self.toolBar.addAction(

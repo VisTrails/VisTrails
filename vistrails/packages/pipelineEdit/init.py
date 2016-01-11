@@ -71,7 +71,7 @@ class QPipelineEditor(QtWidgets.QWidget):
         vbox.addWidget(QtWidgets.QLabel('Pipelines'))
         self.pipelineList = QtWidgets.QListWidget()
         vbox.addWidget(self.pipelineList)
-        self.pipelineList.currentRowChanged[int].connect(self.currentPipelineChanged)
+        self.pipelineList.currentRowChanged.connect(self.currentPipelineChanged)
         
         vbox.addWidget(QtWidgets.QLabel('Aliases'))
         self.aliasTable = QtWidgets.QTableWidget(0, 2)

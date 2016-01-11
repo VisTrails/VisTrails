@@ -1018,7 +1018,7 @@ class QVistrailView(QtWidgets.QWidget):
         self.controller.write_registry(locator)
 
     def save_version_graph(self):
-        filename = QtWidgets.QFileDialog.[0]getSaveFileName(
+        filename = QtWidgets.QFileDialog.getSaveFileName(
             self.window(),
             "Save DOT...",
             vistrails_file_directory(),

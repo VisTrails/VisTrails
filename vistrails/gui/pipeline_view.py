@@ -1033,7 +1033,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtWidgets.QGraphicsItem):
     ('output port' end of the connection)
     
     """
-    moduleSelected = pyqtSignal(QVariant,QVariant)
+    moduleSelected = QtCore.pyqtSignal(int,list)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsModuleItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsModuleItem
@@ -2043,7 +2043,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     
     """
 
-    moduleSelected = pyqtSignal(QVariant,QVariant)
+    moduleSelected = QtCore.pyqtSignal(int,list)
     def __init__(self, parent=None):
         """ QPipelineScene(parent: QWidget) -> QPipelineScene
         Initialize the graphics scene with no shapes

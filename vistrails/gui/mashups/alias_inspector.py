@@ -51,7 +51,6 @@ QListEditItemDelegate
 import copy
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -65,7 +64,7 @@ class QAliasInspector(QtWidgets.QScrollArea):
     QAliasInspector is a widget to display the details of an alias.
     """
     #signals
-    aliasChanged = pyqtSignal(Alias)
+    aliasChanged = QtCore.pyqtSignal(Alias)
     
     def __init__(self, alias_list, parent=None):
         QtWidgets.QScrollArea.__init__(self,parent)
@@ -83,7 +82,7 @@ class QAliasInspector(QtWidgets.QScrollArea):
 ################################################################################       
 class QAliasDetailsWidget(QtWidgets.QWidget):
     #signals
-    aliasChanged = pyqtSignal(Alias)
+    aliasChanged = QtCore.pyqtSignal(Alias)
     
     def __init__(self, table, parent=None):
         QtWidgets.QWidget.__init__(self,parent)
@@ -223,7 +222,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
     def valuesListChanged(self):
         self.aliasChanged.emit(self.alias)
         
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def minvalChanged(self):
         if self.alias:
             old_minval = self.alias.component.minVal
@@ -233,7 +232,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
             self.alias.component.minVal = new_minval
             self.aliasChanged.emit(self.alias)
     
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def maxvalChanged(self):
         if self.alias:
             old_maxval = self.alias.component.maxVal
@@ -243,7 +242,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
             self.alias.component.maxVal = new_maxval
             self.aliasChanged.emit(self.alias)
         
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def stepsizeChanged(self):
         if self.alias:
             old_stepsize = self.alias.component.stepSize
@@ -254,7 +253,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
             self.aliasChanged.emit(self.alias)
         
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def seqToggled(self):
         if self.alias:
             old_seq = self.alias.component.seq
@@ -264,7 +263,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
             self.alias.component.seq = new_seq
             self.aliasChanged.emit(self.alias)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def nameChanged(self):
         old_alias = self.alias.name
         new_alias = str(self.name_edit.text())
@@ -290,7 +289,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
             self.alias.name = new_alias
             self.aliasChanged.emit(self.alias)
          
-    @pyqtSlot(int)   
+    @QtCore.pyqtSlot(int)
     def orderChanged(self, neworder):
         if self.alias.component.pos == neworder:
             return
@@ -298,7 +297,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
         self.alias.component.pos = neworder
         self.table.moveItemToNewPos(oldorder, neworder)
         
-    @pyqtSlot(int)
+    @QtCore.pyqtSlot(int)
     def toggle_dw_combobox(self, index):
         if index == 0:
             self.show_dw_contents(False)
@@ -448,7 +447,7 @@ class QValuesListEditor(QtWidgets.QWidget):
     enter a list of values
     
     """
-    valuesChanged = pyqtSignal()
+    valuesChanged = QtCore.pyqtSignal()
     def __init__(self, alias, controller, parent=None):
         """ QValuesListEditor(alias_item: AliasTableItem, parent: QWidget)
                                      -> QValuesListEditor
@@ -706,7 +705,7 @@ class QListEditItemDelegate(QtWidgets.QItemDelegate):
     
     """
 
-    commitData = pyqtSignal(QVariant)
+    commitData = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, alias_item, controller, parent=None):
         """ QListEditItemDelegate(parent: QWidget) -> QListEditItemDelegate
         Store the uncommit editor for commit later

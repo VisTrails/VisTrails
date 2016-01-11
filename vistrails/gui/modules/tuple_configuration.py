@@ -56,7 +56,7 @@ from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 ############################################################################
 
 class PortTable(QtWidgets.QTableWidget):
-    contentsChanged = pyqtSignal()
+    contentsChanged = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtWidgets.QTableWidget.__init__(self,1,3,parent)
         horiz = self.horizontalHeader()
@@ -69,8 +69,8 @@ class PortTable(QtWidgets.QTableWidget):
         self.delegate = PortTableItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.setFrameStyle(QtWidgets.QFrame.NoFrame)
-        self.model().dataChanged[QModelIndex, QModelIndex].connect(self.handleDataChanged)
-        self.delegate.modelDataChanged.connect(self, contentsChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
+        self.delegate.modelDataChanged.connect(self.contentsChanged)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setMouseTracking(True)
         #self.mouseOver = False
@@ -99,7 +99,7 @@ class PortTable(QtWidgets.QTableWidget):
             self.contentsChanged.emit()
 
     def initializePorts(self, port_specs, reverse_order=False):
-        self.model().dataChanged[QModelIndex, QModelIndex].connect(self.handleDataChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
         if reverse_order:
             port_specs_iter = reversed(port_specs)
         else:
@@ -122,7 +122,7 @@ class PortTable(QtWidgets.QTableWidget):
                           p.name,
                           QtCore.Qt.DisplayRole)
             self.setRowCount(self.rowCount()+1)
-        self.model().dataChanged[QModelIndex, QModelIndex].connect(self.handleDataChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
             
     def getPorts(self):
         ports = []
@@ -172,7 +172,7 @@ class CompletingComboBox(QtWidgets.QComboBox):
 
 class PortTableItemDelegate(QtWidgets.QItemDelegate):
 
-    modelDataChanged = pyqtSignal()
+    modelDataChanged = QtCore.pyqtSignal()
     def createEditor(self, parent, option, index):
         registry = get_module_registry()
         if index.column()==2: #Depth type
@@ -262,8 +262,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     widget.
     
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         """ PortTableConfigurationWidget(module: Module,
                                          controller: VistrailController,
@@ -301,8 +299,8 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -371,7 +369,6 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         return (deleted_ports, added_ports)
     
 class TupleConfigurationWidget(PortTableConfigurationWidget):
-    stateChanged = pyqtSignal()
     def __init__(self, module, controller, parent=None):
         """ TupleConfigurationWidget(module: Module,
                                      controller: VistrailController,
@@ -481,7 +478,6 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
 #        QtGui.QWidget.focusOutEvent(self, event)
                 
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
-    stateChanged = pyqtSignal()
     def __init__(self, module, controller, parent=None):
         """ UntupleConfigurationWidget(module: Module,
                                      controller: VistrailController,

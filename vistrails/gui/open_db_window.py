@@ -175,8 +175,8 @@ Would you like to create one?"
         self.connectionList.itemSelectionChanged.connect(self.updateButtons)
         self.connectionList.reloadConnections.connect(self.updateDBObjectsList)
         self.objectList.itemSelectionChanged.connect(self.updateButtons)
-        self.saveasEdt.textChanged['QString'].connect(self.updateButtons)
-        self.objectList.itemDoubleClicked[QListWidgetItem].connect(self.accept)
+        self.saveasEdt.textChanged.connect(self.updateButtons)
+        self.objectList.itemDoubleClicked.connect(self.accept)
 
     def updateDBObjectsList(self):
         """ updateDBObjectsList() -> None
@@ -342,7 +342,7 @@ class QDBConnectionList(QtWidgets.QListWidget):
     QDBConnection list is a widget to show the available databases
 
     """
-    reloadConnections = pyqtSignal()
+    reloadConnections = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtWidgets.QListWidget.__init__(self,parent)
         self.__list = ExtConnectionList.getInstance(default_connections_file())
@@ -694,12 +694,12 @@ class QConnectionDBSetupWindow(QtWidgets.QDialog):
         self.cancelButton.clicked.connect(self.reject)
         self.createButton.clicked.connect(self.accept)
         self.testButton.clicked.connect(self.testConnection)
-        self.nameEdt.textChanged['QString'].connect(self.updateButtons)
-        self.hostEdt.textChanged['QString'].connect(self.updateButtons)
-        self.userEdt.textChanged['QString'].connect(self.updateButtons)
-        self.passwdEdt.textChanged['QString'].connect(self.updateButtons)
-        self.databaseEdt.textChanged['QString'].connect(self.updateButtons)
-        self.portEdt.valueChanged[int].connect(self.updateButtons)
+        self.nameEdt.textChanged.connect(self.updateButtons)
+        self.hostEdt.textChanged.connect(self.updateButtons)
+        self.userEdt.textChanged.connect(self.updateButtons)
+        self.passwdEdt.textChanged.connect(self.updateButtons)
+        self.databaseEdt.textChanged.connect(self.updateButtons)
+        self.portEdt.valueChanged.connect(self.updateButtons)
 
     def testConnection(self):
         """testConnection() -> None """

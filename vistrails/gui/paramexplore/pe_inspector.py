@@ -177,7 +177,7 @@ class QParamExpProperties(QtWidgets.QWidget):
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
         
         self.tagEdit.editingFinished.connect(self.tagFinished)
-        self.tagEdit.textChanged['QString'].connect(self.tagChanged)
+        self.tagEdit.textChanged.connect(self.tagChanged)
         self.tagReset.clicked.connect(self.tagCleared)
         
     def updateController(self, controller):

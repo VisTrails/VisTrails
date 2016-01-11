@@ -44,6 +44,9 @@ from vistrails.gui.common_widgets import QPromptWidget
 
 class StandardModuleConfigurationWidget(QtWidgets.QWidget):
 
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal(bool)
+
     def __init__(self, module, controller, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.module = module
@@ -98,8 +101,6 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     """ This is the Default ModuleConfigurationWidget that shows a list of
         ports to be enabled or disabled """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module, controller, 
                                                    parent)
@@ -130,8 +131,8 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.buttonLayout.addWidget(self.resetButton)
         
         self.layout().addLayout(self.buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
         self.adjustSize()
@@ -192,7 +193,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             port = self.inputPorts[i]
             checkBox = self.checkBoxFromPort(port, True)
             checkBox.setFocusPolicy(QtCore.Qt.StrongFocus)
-            checkBox.stateChanged[int].connect(self.updateState)
+            checkBox.stateChanged.connect(self.updateState)
             self.inputDict[port.name] = checkBox
             self.listContainer.layout().addWidget(checkBox, i+1, 0)
         
@@ -200,7 +201,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             port = self.outputPorts[i]
             checkBox = self.checkBoxFromPort(port)
             checkBox.setFocusPolicy(QtCore.Qt.StrongFocus)
-            checkBox.stateChanged[int].connect(self.updateState)
+            checkBox.stateChanged.connect(self.updateState)
             self.outputDict[port.name] = checkBox
             self.listContainer.layout().addWidget(checkBox, i+1, 1)
         

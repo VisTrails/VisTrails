@@ -258,7 +258,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
         self.setRootIsDecorated(False)
         self.delegate = QModuleTreeWidgetItemDelegate(self, self)
         self.setItemDelegate(self.delegate)
-        self.itemPressed[QTreeWidgetItem, int].connect(self.onItemPressed)
+        self.itemPressed.connect(self.onItemPressed)
 
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
@@ -371,7 +371,7 @@ class QModuleTreeWidgetItemDelegate(QtWidgets.QItemDelegate):
 
             buttonOption.rect = option.rect
             buttonOption.palette = option.palette
-            buttonOption.features = QtWidgets.QStyleOptionButton.None
+            buttonOption.features = getattr(QtWidgets.QStyleOptionButton, 'None')
 
             style = self.treeView.style()
 

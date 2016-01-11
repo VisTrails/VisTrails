@@ -48,8 +48,6 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
     Configuration widget creating the ports corresponding to the format.
 
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         """ StringFormatConfigurationWidget(
                 module: Module,

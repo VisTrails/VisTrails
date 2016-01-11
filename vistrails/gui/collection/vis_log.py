@@ -225,7 +225,7 @@ class QLegendWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.gridLayout = QtWidgets.QGridLayout(self)
-        self.gridLayout.setContentsMargins(1, 0, 1, 0, 1, 0, 1, 0)
+        self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -270,8 +270,7 @@ class QLogDetails(QtWidgets.QWidget, QVistrailsPaletteInterface):
 #        self.connect(self.executionList, QtCore.SIGNAL(
 #         "itemClicked(QTreeWidgetItem *, int)"),
 #         self.singleClick)
-        self.executionList.
-         "itemDoubleClicked[QTreeWidgetItem, int].connect(self.doubleClick)
+        self.executionList.itemDoubleClicked.connect(self.doubleClick)
         self.addButtonsToToolbar()
 
     def addButtonsToToolbar(self):

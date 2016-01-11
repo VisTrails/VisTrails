@@ -76,7 +76,7 @@ import vistrails.db.services.vistrail
 from vistrails.db import VistrailsDBException
 
 class QBaseViewWindow(QtWidgets.QMainWindow):
-    viewWasClosed = pyqtSignal(QVariant)
+    viewWasClosed = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QtWidgets.QMainWindow.__init__(self, parent, f)
        
@@ -145,7 +145,7 @@ class QBaseViewWindow(QtWidgets.QMainWindow):
                 if callback is not None:
                     if 'checkable' in options and \
                             options['checkable'] is True:
-                        qaction.toggled[bool].connect(callback)
+                        qaction.toggled.connect(callback)
                     else:
                         qaction.triggered.connect(callback)
 
@@ -355,7 +355,7 @@ class QBaseViewWindow(QtWidgets.QMainWindow):
         #print 'done processing list'
         
 class QVistrailViewWindow(QBaseViewWindow):
-    window_closed = pyqtSignal(QVariant)
+    window_closed = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
         QBaseViewWindow.__init__(self, view, parent, f)
         
@@ -881,7 +881,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._is_quitting = False
         self._first_view = True
         QtWidgets.QApplication.clipboard().dataChanged.connect(self.clipboard_changed)
-        QtWidgets.QApplication.instance().focusChanged[QWidget, QWidget].connect(self.applicationFocusChanged)
+        QtWidgets.QApplication.instance().focusChanged.connect(self.applicationFocusChanged)
 
         self.preferencesDialog = QPreferencesDialog(self)
 
@@ -1153,7 +1153,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         if self.palette_window:
             self.palette_window.hide()
                         
-        QWorkspaceWindow.instance().vistrailChanged[PyQt_PyObject].connect(self.change_view)
+        QWorkspaceWindow.instance().vistrailChanged.connect(self.change_view)
         QWorkspaceWindow.instance().detachVistrail.connect(self.detach_view)
 
     def dock_palettes(self, window=None):
@@ -2071,7 +2071,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         class About(QtWidgets.QLabel):
-            clicked = pyqtSignal()
+            clicked = QtCore.pyqtSignal()
             def mousePressEvent(self, e):
                 self.clicked.emit()
 
@@ -2087,8 +2087,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             vistrails.core.system.short_about_string()
         version = About(text, dlg)
         version.setGeometry(11,20,450,30)
-        bgimage.clicked.connect(dlg, accept)
-        version.clicked.connect(dlg, accept)
+        bgimage.clicked.connect(dlg.accept)
+        version.clicked.connect(dlg.accept)
         dlg.setSizeGripEnabled(False)
         dlg.exec_()
 

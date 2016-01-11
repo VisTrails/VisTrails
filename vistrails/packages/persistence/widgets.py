@@ -63,8 +63,8 @@ class PersistentRefModelSingleton(object):
 
 class PersistentRefModel(QtCore.QAbstractItemModel):
 
-    layoutAboutToBeChanged = pyqtSignal()
-    layoutChanged = pyqtSignal()
+    layoutAboutToBeChanged = QtCore.pyqtSignal()
+    layoutChanged = QtCore.pyqtSignal()
     _instance = None
 
     # 2013-09-03 18:57:53.133000
@@ -410,8 +410,8 @@ class PersistentRefView(QtWidgets.QTreeView):
         return info_list
 
 class PersistentRefDialog(QtWidgets.QDialog):
-    executeSearch = pyqtSignal(QVariant)
-    resetSearch = pyqtSignal()
+    executeSearch = QtCore.pyqtSignal(str)
+    resetSearch = QtCore.pyqtSignal()
     def __init__(self, param, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
         # two tabs, one for starting from managed, one for local file
@@ -449,7 +449,7 @@ class PersistentRefDialog(QtWidgets.QDialog):
         print('keyPressEvent:', search.searchEdit.keyPressEvent)
         search.searchEdit.keyPressEvent = keyPressEvent
         print('keyPressEvent:', search.searchEdit.keyPressEvent)
-        search.executeSearch['QString'].connect(self.search_string)
+        search.executeSearch.connect(self.search_string)
         search.resetSearch.connect(self.reset_search)
         managed_layout.addWidget(search)
         self.table = PersistentRefView(db_file, self)
@@ -523,7 +523,7 @@ class PersistentRefDialog(QtWidgets.QDialog):
 
     def choose_file(self):
         chosen_file = \
-            QtWidgets.QFileDialog.getOpe[0]nFileName(self,
+            QtWidgets.QFileDialog.getOpenFileName(self,
                                               'Use File...',
                                               self.current_file,
                                               'All files (*.*)')
@@ -567,7 +567,7 @@ class PersistentRefDialog(QtWidgets.QDialog):
     # keep local copy -- need to allow where to store
 
 class PathChooserLayout(QtWidgets.QHBoxLayout):
-    pathnameChanged = pyqtSignal()
+    pathnameChanged = QtCore.pyqtSignal()
     def __init__(self, is_dir=False, par_widget=None, parent=None):
         # QtGui.QWidget.__init__(self, parent)
         QtWidgets.QHBoxLayout.__init__(self, parent)
@@ -595,7 +595,7 @@ class PathChooserLayout(QtWidgets.QHBoxLayout):
                                                        self.pathname_edit.text())
         else:
             chosen_path = \
-                QtWidgets.QFileDialog.ge[0]tOpenFileName(self.par_widget,
+                QtWidgets.QFileDialog.getOpenFileName(self.par_widget,
                                                   'Use File...',
                                                   self.pathname_edit.text(),
                                                   'All files (*.*)')
@@ -622,7 +622,7 @@ class PersistentRefViewSearch(QtWidgets.QGroupBox):
         layout = QtWidgets.QVBoxLayout()
         self.search_ref = QSearchBox(False, False)
 
-        self.search_ref.executeSearch['QString'].connect(self.search_string)
+        self.search_ref.executeSearch.connect(self.search_string)
         self.search_ref.resetSearch.connect(self.reset_search)
 
         layout.addWidget(self.search_ref)
@@ -640,7 +640,7 @@ class PersistentRefViewSearch(QtWidgets.QGroupBox):
     
 
 class PersistentPathConfiguration(StandardModuleConfigurationWidget):
-    doneConfigure = pyqtSignal(QVariant)
+    doneConfigure = QtCore.pyqtSignal(int)
     def __init__(self, module, controller, parent=None, 
                  is_input=None, path_type=None):
         StandardModuleConfigurationWidget.__init__(self, module, controller, 
@@ -671,13 +671,13 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             self.managed_change = \
                 QtWidgets.QRadioButton("Always Create New Reference")
             layout.addWidget(self.managed_change)
-            self.managed_change.toggled[bool].connect(self.managed_toggle)
+            self.managed_change.toggled.connect(self.managed_toggle)
 
         else:
             self.managed_change = None
 
         self.managed_new = QtWidgets.QRadioButton("Create New Reference")
-        self.managed_new.toggled[bool].connect(self.new_toggle)
+        self.managed_new.toggled.connect(self.new_toggle)
         layout.addWidget(self.managed_new)
         self.new_group = QtWidgets.QGroupBox()
         new_layout = QtWidgets.QGridLayout()
@@ -686,22 +686,22 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             new_layout.addWidget(QtWidgets.QLabel("Path:"), 0, 0)
             self.new_file = self.get_chooser_layout()
             if hasattr(self.new_file, 'pathname_edit'):
-                self.new_file.pathname_edit.textChanged['QString'].connect(self.stateChange)
+                self.new_file.pathname_edit.textChanged.connect(self.stateChange)
             new_layout.addLayout(self.new_file, 0, 1)
             self.new_file.pathnameChanged.connect(self.new_file_changed)
         new_layout.addWidget(QtWidgets.QLabel("Name:"), 1, 0)
         self.name_edit = QtWidgets.QLineEdit()
-        self.name_edit.textChanged['QString'].connect(self.stateChange)
+        self.name_edit.textChanged.connect(self.stateChange)
         new_layout.addWidget(self.name_edit, 1, 1)
         new_layout.addWidget(QtWidgets.QLabel("Tags:"), 2, 0)
         self.tags_edit = QtWidgets.QLineEdit()
-        self.tags_edit.textChanged['QString'].connect(self.stateChange)
+        self.tags_edit.textChanged.connect(self.stateChange)
         new_layout.addWidget(self.tags_edit, 2, 1)
         self.new_group.setLayout(new_layout)
         layout.addWidget(self.new_group)
 
         self.managed_existing = QtWidgets.QRadioButton("Use Existing Reference")
-        self.managed_existing.toggled[bool].connect(self.existing_toggle)
+        self.managed_existing.toggled.connect(self.existing_toggle)
         layout.addWidget(self.managed_existing)
 
         # self.existing_group = QtGui.QGroupBox()
@@ -721,23 +721,23 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         # self.existing_group.setLayout(existing_layout)
         self.existing_group = PersistentRefViewSearch(path_type)
         self.ref_widget = self.existing_group.ref_widget
-        self.ref_widget.clicked[QModelIndex].connect(self.ref_changed)
+        self.ref_widget.clicked.connect(self.ref_changed)
         layout.addWidget(self.existing_group)
 
         self.keep_local = QtWidgets.QCheckBox("Keep Local Version")
         layout.addWidget(self.keep_local)
-        self.keep_local.toggled[bool].connect(self.local_toggle)
+        self.keep_local.toggled.connect(self.local_toggle)
         self.local_group = QtWidgets.QGroupBox()
         local_layout = QtWidgets.QGridLayout()
         self.local_path = self.get_chooser_layout()
         if hasattr(self.local_path, 'pathname_edit'):
-            self.local_path.pathname_edit.textChanged['QString'].connect(self.stateChange)
+            self.local_path.pathname_edit.textChanged.connect(self.stateChange)
         local_layout.addLayout(self.local_path,0,0,1,2)
 
         self.r_priority_local = QtWidgets.QCheckBox("Read From Local Path")
         local_layout.addWidget(self.r_priority_local,1,0)
         self.write_managed_checkbox = QtWidgets.QCheckBox("Write To Local Path")
-        self.write_managed_checkbox.toggled[bool].connect(self.stateChange)
+        self.write_managed_checkbox.toggled.connect(self.stateChange)
         local_layout.addWidget(self.write_managed_checkbox,1,1)
         self.local_group.setLayout(local_layout)
         layout.addWidget(self.local_group)
@@ -754,7 +754,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         button_layout.setAlignment(QtCore.Qt.AlignRight)
         self.saveButton = QtWidgets.QPushButton("Save")
         self.saveButton.setFixedWidth(100)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
         button_layout.addWidget(self.saveButton)
         self.resetButton = QtWidgets.QPushButton("Reset")
         self.resetButton.setFixedWidth(100)
@@ -1069,7 +1069,7 @@ class PersistentConfiguration(QtWidgets.QDialog):
             # save single file/dir
             info = info_list[0]
             name = info[2]
-            chosen_path =[0] QtWidgets.QFileDialog.getSaveFileName(
+            chosen_path = QtWidgets.QFileDialog.getSaveFileName(
                     self,
                     'Save...',
                     name)

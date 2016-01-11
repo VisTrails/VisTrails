@@ -67,7 +67,7 @@ class SizeSpinBox(QtWidgets.QSpinBox):
     'editingFinished()' signal when the user interact with mouse
 
     """
-    editingFinished = pyqtSignal()
+    editingFinished = QtCore.pyqtSignal()
     def __init__(self, initValue=0, parent=None):
         """ SizeSpinBox(initValue: int, parent: QWidget) -> SizeSpinBox
         Initialize with a default width of 50 and a value of 0
@@ -830,9 +830,9 @@ class StandardWidgetTabBar(QtWidgets.QTabBar):
     to change tab name
 
     """
-    tabTextChanged = pyqtSignal(QVariant,QVariant)
-    tabMoveRequest = pyqtSignal(QVariant,QVariant)
-    tabSplitRequest = pyqtSignal(QVariant,QVariant)
+    tabTextChanged = QtCore.pyqtSignal(int,str)
+    tabMoveRequest = QtCore.pyqtSignal(int,int)
+    tabSplitRequest = QtCore.pyqtSignal(int,int)
     def __init__(self, parent=None):
         """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
         Initialize like the original QTabWidget TabBar
@@ -846,7 +846,7 @@ class StandardWidgetTabBar(QtWidgets.QTabBar):
         self.editingIndex = -1
         self.editor = None
         self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.currentChanged[int].connect(self.updateTabText)
+        self.currentChanged.connect(self.updateTabText)
         self.startDragPos = None
         self.dragging = False
         self.targetTab = -1

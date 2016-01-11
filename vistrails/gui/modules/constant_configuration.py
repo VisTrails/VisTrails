@@ -580,7 +580,7 @@ class BooleanWidget(QtWidgets.QCheckBox, ConstantWidgetBase):
 # code uses it, really should be removed at some point
 class ColorChooserButton(QtWidgets.QPushButton):
     contentsChanged = QtCore.pyqtSignal(tuple)
-    color_selected = pyqtSignal()
+    color_selected = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtWidgets.QPushButton.__init__(self, parent)
         # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)

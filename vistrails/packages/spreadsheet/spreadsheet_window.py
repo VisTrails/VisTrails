@@ -63,7 +63,9 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
     mode
 
     """
-    cellActivated = pyqtSignal(QVariant,QVariant,QVariant)
+
+    cellActivated = QtCore.pyqtSignal(int,int,bool)
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
                               -> SpreadsheetWindow
@@ -147,7 +149,7 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
         self.menuBar().addAction(self.windowMenu.menuAction())
         self.windowMenu.addAction(self.showBuilderWindowAction())
 
-        self.modeActionGroup.triggered[QAction].connect(self.modeChanged)
+        self.modeActionGroup.triggered.connect(self.modeChanged)
 
     def fitToWindowAction(self):
         """ fitToWindowAction() -> QAction
@@ -161,7 +163,7 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
             self.fitAction.setCheckable(True)
             checked = self.tabController.currentWidget().sheet.fitToWindow
             self.fitAction.setChecked(checked)
-            self.fitAction.toggled[bool].connect(self.fitActionToggled)
+            self.fitAction.toggled.connect(self.fitActionToggled)
         return self.fitAction
 
     def fitActionToggled(self, checked):
@@ -183,7 +185,7 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
             self.fullScreenActionVar.setChecked(False)
             self.fullScreenActionVar.setStatusTip('Show sheets without any '
                                                   'menubar or statusbar')
-            self.fullScreenActionVar.triggered[bool].connect(self.fullScreenActivated)
+            self.fullScreenActionVar.triggered.connect(self.fullScreenActivated)
             self.fullScreenAlternativeShortcuts = [QtWidgets.QShortcut('F11', self),
                                                    QtWidgets.QShortcut('Alt+Return',
                                                                    self),

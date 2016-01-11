@@ -71,7 +71,7 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
 
     def set_action(self, action):
         self.action = action
-        self.toolWindow().visibilityChanged[bool].connect(self.visibility_changed)
+        self.toolWindow().visibilityChanged.connect(self.visibility_changed)
 
     def get_action(self):
         return self.action

@@ -298,7 +298,7 @@ class QCellToolBar(QtWidgets.QToolBar):
     for interacting with CellHelpers
 
     """
-    needUpdateStatus = pyqtSignal(QVariant)
+    needUpdateStatus = QtCore.pyqtSignal(tuple)
     def __init__(self, sheet):
         """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar
         Initialize the cell toolbar by calling the user-defined
@@ -335,7 +335,7 @@ class QCellToolBar(QtWidgets.QToolBar):
                     self)
             self.saveActionVar.setStatusTip("Export this cell only")
 
-            self.saveActionVar.triggered[bool].connect(self.exportCell)
+            self.saveActionVar.triggered.connect(self.exportCell)
         self.appendAction(self.saveActionVar)
 
     def exportCell(self, checked=False):
@@ -366,7 +366,7 @@ class QCellToolBar(QtWidgets.QToolBar):
                         self, "Export cell",
                         "This cell type doesn't provide any export option")
                 return
-            filename = QtWidgets.QFileDialog.getSa[0]veFileName(
+            filename = QtWidgets.QFileDialog.getSaveFileName(
                 self, "Select a File to Export the Cell",
                 ".", ';;'.join(cell.save_formats))
             if filename:
@@ -380,7 +380,7 @@ class QCellToolBar(QtWidgets.QToolBar):
                     self)
             self.executeActionVar.setStatusTip("Re-execute this cell")
 
-            self.executeActionVar.triggered[bool].connect(self.executeCell)
+            self.executeActionVar.triggered.connect(self.executeCell)
         self.appendAction(self.executeActionVar)
 
     def executeCell(self, checked=False):
@@ -442,7 +442,7 @@ class QCellToolBar(QtWidgets.QToolBar):
         if hasattr(widget, 'triggeredSlot'):
             action.triggered.connect(widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
-            action.toggled[bool].connect(widget.toggledSlot)
+            action.toggled.connect(widget.toggledSlot)
 
     def appendAction(self, action):
         """ appendAction(action: QAction) -> QAction
@@ -828,7 +828,7 @@ class QCellPresenter(QtWidgets.QLabel):
 
         layout = QtWidgets.QGridLayout(self)
         layout.setSpacing(2)
-        layout.setContentsMargins(s, e, l, f, ., m, a, r, g, i, n, (, s, e, l, f, ., m, a, r, g, i, n, (, s, e, l, f, ., m, a, r, g, i, n, (, s, e, l, f, ., m, a, r, g, i, n, ()
+        layout.setContentsMargins(*self.getContentsMargins())
         layout.setRowStretch(1, 1)
         self.setLayout(layout)
 
@@ -1064,7 +1064,7 @@ class QCellManipulator(QtWidgets.QFrame):
         self.updateButton.setStatusTip(self.updateButton.toolTip())
         self.updateButton.setText('Create Version')
         self.updateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.updateButton.clicked[bool].connect(self.updateVersion)
+        self.updateButton.clicked.connect(self.updateVersion)
         self.buttons.append(self.updateButton)
 
         self.locateButton = QtWidgets.QToolButton()
@@ -1076,7 +1076,7 @@ class QCellManipulator(QtWidgets.QFrame):
         self.locateButton.setStatusTip(self.locateButton.toolTip())
         self.locateButton.setText('Locate Version')
         self.locateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.locateButton.clicked[bool].connect(self.locateVersion)
+        self.locateButton.clicked.connect(self.locateVersion)
         self.buttons.append(self.locateButton)
 
 

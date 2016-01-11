@@ -74,8 +74,8 @@ class QJobTree(QtWidgets.QTreeWidget):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.setContentsMargins(0, 0, 0, 0)
         self.setColumnCount(2)
-        self.header().setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        self.header().setResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        self.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.header().close()
         self.setExpandsOnDoubleClick(False)
         self.controller = None
@@ -156,8 +156,7 @@ class QJobView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.autorun = QtWidgets.QCheckBox("Automatic re-execution")
         self.autorun.setToolTip("Automatically re-execute workflow when jobs "
                                 "complete")
-        self.connect(self.autorun, QtCore.SIGNAL('toggled(bool)'),
-                     self.autorunToggled)
+        self.autorun.toggled.connect(self.autorunToggled)
         self.autorun.setChecked(conf.jobAutorun)
         buttonsLayout.addWidget(self.autorun)
 
@@ -721,14 +720,12 @@ class LogMonitor(QtWidgets.QDialog):
         close = QtWidgets.QPushButton('Close', self)
         close.setFixedWidth(100)
         buttonLayout.addWidget(close)
-        self.connect(close, QtCore.SIGNAL('clicked()'),
-                     self, QtCore.SLOT('close()'))
+        close.clicked.connect(self.close)
 
         update = QtWidgets.QPushButton('Update', self)
         update.setFixedWidth(100)
         buttonLayout.addWidget(update)
-        self.connect(update, QtCore.SIGNAL('clicked()'),
-                     self.update_text)
+        update.clicked.connect(self.update_text)
 
         layout.addLayout(buttonLayout)
 

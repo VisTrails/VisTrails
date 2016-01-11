@@ -403,8 +403,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtWidgets.QGraphicsEllipseIte
     label
     
     """
-    diffRequested = pyqtSignal(QVariant,QVariant)
-    versionSelected = pyqtSignal(QVariant,QVariant,QVariant,QVariant,QVariant)
+    diffRequested = QtCore.pyqtSignal(int,int)
+    versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsVersionItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsVersionItem
@@ -768,8 +768,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     
     """
 
-    versionSelected = pyqtSignal(QVariant,QVariant,QVariant,QVariant,QVariant)
-    twoVersionsSelected = pyqtSignal(QVariant,QVariant)
+    versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
+    twoVersionsSelected = QtCore.pyqtSignal(int,int)
     def __init__(self, parent=None):
         """ QVersionTree(parent: QWidget) -> QVersionTree
         Initialize the graphics scene with no shapes
@@ -1167,7 +1167,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         Overrides parent class to disable text items if you click on background
 
         """
-        vistrailChanged = pyqtSignal()
+        vistrailChanged = QtCore.pyqtSignal()
         if self.canSelectRectangle:
             br = self.selectionBox.sceneBoundingRect()
         else:

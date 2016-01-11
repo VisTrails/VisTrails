@@ -429,7 +429,7 @@ class PortsList(QtWidgets.QTreeWidget):
         self.setRootIsDecorated(False)
         self.setIndentation(0)
         self.setHeaderHidden(True)
-        self.itemClicked[QTreeWidgetItem, int].connect(self.item_clicked)
+        self.itemClicked.connect(self.item_clicked)
         self.module = None
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry

@@ -307,7 +307,7 @@ class ExecutionSearchWidget(QtWidgets.QSplitter):
         self.searchButton.clicked.connect(self.newQuery)
         self.prevButton.clicked.connect(self.gotoPrevious)
         self.nextButton.clicked.connect(self.gotoNext)
-        self.itemView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.showItem)
+        self.itemView.itemDoubleClicked.connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0
@@ -408,11 +408,11 @@ class ExecutionSearchWidget(QtWidgets.QSplitter):
         for wf_exec in wf_exec_list:
             item = QExecutionItem(wf_exec)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(1, QtWidgets.QHeaderView.Interactive)
-        self.itemView.header().setResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
         self.itemView.header().resizeSections(QtWidgets.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:
@@ -573,7 +573,7 @@ class WorkflowSearchWidget(QtWidgets.QSplitter):
         self.searchButton.clicked.connect(self.newQuery)
         self.prevButton.clicked.connect(self.gotoPrevious)
         self.nextButton.clicked.connect(self.gotoNext)
-        self.itemView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.showItem)
+        self.itemView.itemDoubleClicked.connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0
@@ -676,10 +676,10 @@ class WorkflowSearchWidget(QtWidgets.QSplitter):
         for workflow in workflow_list:
             item = QWorkflowItem(workflow)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(1, QtWidgets.QHeaderView.Interactive)
-        self.itemView.header().setResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
         self.itemView.header().resizeSections(QtWidgets.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:

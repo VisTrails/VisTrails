@@ -51,8 +51,6 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
     the 'head' input ports should be sufficient.
 
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         """ ListConfigurationWidget(module: Module,
                                      controller: VistrailController,
@@ -84,7 +82,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         config_layout = QtWidgets.QFormLayout()
         self.number = QtWidgets.QSpinBox()
         self.number.setValue(self.countAdditionalPorts())
-        self.number.valueChanged[int].connect(lambda r: self.updateState())
+        self.number.valueChanged.connect(lambda r: self.updateState())
         config_layout.addRow("Number of additional connections:", self.number)
         centralLayout.addLayout(config_layout)
 
@@ -109,8 +107,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None

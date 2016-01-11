@@ -37,7 +37,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 import vistrails.core.system
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.mashups.mashups_manager import MashupsManager
@@ -52,7 +51,7 @@ class QMashupsInspector(QtWidgets.QFrame, QVistrailsPaletteInterface):
     
     """
     #signals
-    mashupChanged = pyqtSignal()
+    mashupChanged = QtCore.pyqtSignal()
     def __init__(self, controller=None, parent=None):
         """ QMashupsInspector(controller: MashupController,
                             parent: QWidget) -> QMashupsInspector
@@ -187,14 +186,10 @@ class QMashupProp(QtWidgets.QWidget):
         
         vLayout.addStretch()
         
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
-        self.connect(self.btnExport, QtCore.SIGNAL("clicked()"),
-                     self.exportMashupGUI)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged.connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
+        self.btnExport.clicked.connect(self.exportMashupGUI)
         
     def updateController(self, mshpController):
         self.controller = mshpController
@@ -274,7 +269,7 @@ class QMashupProp(QtWidgets.QWidget):
             dialog = QMashupExportDialog(self)
             if dialog.exec_() == QtWidgets.QDialog.Accepted:
                 result = dialog.btnPressed
-                fileName = QtWidgets.QFileDialog.getSaveF[0]ileName(
+                fileName = QtWidgets.QFileDialog.getSaveFileName(
                            self,
                            "Export Mashup...",
                            vistrails.core.system.vistrails_file_directory(),
@@ -335,7 +330,7 @@ class QMashupsListPanel(QtWidgets.QWidget):
                         
         self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
     
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def changeSelection(self):
         items = self.mashupsList.selectedItems()
         if len(items) == 1:
@@ -395,8 +390,8 @@ class QMashupExportDialog(QtWidgets.QDialog):
         self.setLayout(dlgLayout)
         
         self.btnPressed = -1
-        self.connect(btnOk, QtCore.SIGNAL("clicked()"), self.btnOkPressed) 
-        self.connect(btnCancel, QtCore.SIGNAL("clicked()"), self.btnCancelPressed)
+        btnOk.clicked.connect(self.btnOkPressed)
+        btnCancel.clicked.connect(self.btnCancelPressed)
         
     def btnOkPressed(self):
         if self.rbFullTree.isChecked():

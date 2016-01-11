@@ -507,7 +507,7 @@ class QVirtualCellLabel(QtWidgets.QLabel):
     has rounded shape with a caption text
     
     """
-    finishedDragAndDrop = pyqtSignal()
+    finishedDragAndDrop = QtCore.pyqtSignal()
     def __init__(self, label=None, id=-1, parent=None):
         """ QVirtualCellLabel(text: QString, id: int,
                               parent: QWidget)
@@ -557,7 +557,7 @@ class QVirtualCellLabel(QtWidgets.QLabel):
             else:
                 painter.setPen(QtCore.Qt.black)
                 painter.setBrush(QtCore.Qt.lightGray)
-        painter.drawRoundRect(QtCore.QRectF(0.5, 0.5, image.width()-1,
+        painter.drawRoundedRect(QtCore.QRectF(0.5, 0.5, image.width()-1,
                                             image.height()-1), 25, 25)
 
         painter.setFont(font)

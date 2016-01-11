@@ -38,8 +38,6 @@
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from PyQt5.QtCore import pyqtSignal
-
 from vistrails.core import debug
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.gui.mashups.mashups_widgets import QAliasNumericStepperWidget, \
@@ -53,7 +51,7 @@ from vistrails.packages.spreadsheet.spreadsheet_controller import \
 
 class QMashupAppMainWindow(QtWidgets.QMainWindow):
     #signals
-    appWasClosed = pyqtSignal(QtWidgets.QMainWindow)
+    appWasClosed = QtCore.pyqtSignal(QtWidgets.QMainWindow)
 
     def __init__(self, parent=None, vistrail_view=None, dumpcells=False,
                  controller=None, version=-1):

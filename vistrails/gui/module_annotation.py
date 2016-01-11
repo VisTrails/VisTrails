@@ -82,7 +82,7 @@ class QModuleAnnotation(QtWidgets.QDialog):
         self.buttonLayout.addWidget(self.closeButton)
         self.closeButton.setShortcut('Esc')
         self.layout().addLayout(self.buttonLayout)
-        self.closeButton.clicked[bool].connect(self.close)
+        self.closeButton.clicked.connect(self.close)
 
         
 class QModuleAnnotationTable(QtWidgets.QTableWidget):

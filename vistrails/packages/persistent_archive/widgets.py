@@ -78,8 +78,8 @@ class Metadata(QtWidgets.QWidget):
         layout.addWidget(remove_button)
 
         remove_button.clicked.connect(self.remove)
-        self.key.textEdited['QString'].connect(self.changed)
-        self.value.textEdited['QString'].connect(self.changed)
+        self.key.textEdited.connect(self.changed)
+        self.value.textEdited.connect(self.changed)
 
 
 class StringMetadata(Metadata):
@@ -115,8 +115,6 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
     It is a visual editor for the strings functions set on the 'metadata' port,
     which have the form EqualString('mkey', 'mvalue') or EqualInt('mkey', 2).
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
@@ -186,8 +184,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None

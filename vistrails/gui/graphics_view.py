@@ -225,7 +225,7 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
     zoom/span with right/mid click
     
     """
-    resetQuery = pyqtSignal()
+    resetQuery = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         """ QInteractiveGraphicsView(parent: QWidget)
                                      -> QInteractiveGraphicsView
@@ -639,7 +639,7 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
 
     def save_pdf(self, filename=None):
         if filename is None:
-            fileName = QtWidgets.QFi[0]leDialog.getSaveFileName(self.window(),
+            fileName = QtWidgets.QFileDialog.getSaveFileName(self.window(),
                 "Save PDF...",
                 vistrails.core.system.vistrails_file_directory(),
                 "PDF files (*.pdf)")
@@ -831,7 +831,7 @@ class QResetQueryButton(QtWidgets.QLabel):
     """
     
     """
-    resetQuery = pyqtSignal()
+    resetQuery = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtWidgets.QLabel.__init__(self, parent)
 

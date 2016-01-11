@@ -67,7 +67,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
     will handle most of the spreadsheet actions
 
     """
-    needChangeTitle = pyqtSignal(QVariant)
+    needChangeTitle = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         """ StandardWidgetTabController(parent: QWidget)
                                         -> StandardWidgetTabController
@@ -83,9 +83,9 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
         self.tabWidgets = []
         self.floatingTabWidgets = []
         self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
-        self.tabBar().tabMoveRequest[int, int].connect(self.moveTab)
-        self.tabBar().tabSplitRequest[int, QPoint].connect(self.splitTab)
-        self.tabBar().tabTextChanged[int, 'QString'].connect(self.changeTabText)
+        self.tabBar().tabMoveRequest.connect(self.moveTab)
+        self.tabBar().tabSplitRequest.connect(self.splitTab)
+        self.tabBar().tabTextChanged.connect(self.changeTabText)
         self.addAction(self.showNextTabAction())
         self.addAction(self.showPrevTabAction())
         self.executedPipelines = [[],{},{}]
@@ -241,7 +241,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
             multiAction = exportMenu.addAction('Separately')
             self.exportSheetToImageVar.setMenu(exportMenu)
 
-            self.exportSheetToImageVar.triggered[bool].connect(self.exportSheetToSingleImageActionTriggered)
+            self.exportSheetToImageVar.triggered.connect(self.exportSheetToSingleImageActionTriggered)
 
             singleAction.triggered.connect(self.exportSheetToSingleImageActionTriggered)
             multiAction.triggered.connect(self.exportSheetToSeparateImagesActionTriggered)
@@ -251,7 +251,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
         """ exportSheetToSingleImageActionTriggered() -> None
         Exports the sheet as a big image
         """
-        filename = QtWidgets.QFileDialog.getSa[0]veFileName(
+        filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Select a File to Export the Sheet",
             ".", "Images (*.png *.xpm *.jpg)")
         if filename:
@@ -673,7 +673,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
 
         """
         fileName = QtWidgets.QFileDialog.getSaveFileName(self,
-[0]                                                     'Choose a spreadsheet '
+                                                     'Choose a spreadsheet '
                                                      'name',
                                                      '',
                                                      'VisTrails Spreadsheet '
@@ -777,7 +777,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
         Open a saved spreadsheet and set its filename in the dialog box
 
         """
-        fileName = QtWidgets.QFileDialog.getOpenFileNa[0]me(self,
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                                                      'Choose a spreadsheet',
                                                      '',
                                                      'VisTrails Spreadsheet '

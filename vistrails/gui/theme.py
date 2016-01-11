@@ -47,7 +47,6 @@ from vistrails.core.theme import DefaultCoreTheme
 import vistrails.core.system
 
 import unittest
-import vistrails.gui.qt
 
 ################################################################################
 

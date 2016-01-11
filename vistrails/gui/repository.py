@@ -109,7 +109,7 @@ class QRepositoryPushWidget(QtWidgets.QWidget):
         top_layout.addWidget(self._vistrail_status_label)
 
         self.serverCombo = QtWidgets.QComboBox()
-        self.serverCombo.currentIndexChanged[int].connect(self.check_dependencies)
+        self.serverCombo.currentIndexChanged.connect(self.check_dependencies)
         top_layout.addWidget(self.serverCombo)
 
         """
@@ -715,7 +715,7 @@ class QRepositoryDialog(QtWidgets.QDialog):
                                                   QtCore.Qt.Horizontal,
                                                   self)
         
-        self._button_box.clicked[QAbstractButton].connect(self.close_dialog)
+        self._button_box.clicked.connect(self.close_dialog)
 
         self._logout_button.clicked.connect(self.clicked_on_logout)
 

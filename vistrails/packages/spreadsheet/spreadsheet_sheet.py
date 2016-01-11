@@ -79,7 +79,7 @@ class StandardWidgetHeaderView(QtWidgets.QHeaderView):
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter |
                                      QtCore.Qt.AlignVCenter)
 
-        self.sectionResized[int, int, int].connect(self.section_resized)
+        self.sectionResized.connect(self.section_resized)
         self._target_size = None
 
     section_sizes = None
@@ -264,15 +264,15 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         self.setHorizontalHeader(StandardWidgetHeaderView(QtCore.Qt.Horizontal,
                                                           self))
         self.horizontalHeader().setSelectionModel(self.selectionModel())
-        self.horizontalHeader().sectionCountChanged[int, int].connect(self.updateColumnLabels)
-        self.horizontalHeader().sectionMoved[int, int, int].connect(self.columnMoved)
-        self.horizontalHeader().sectionPressed[int].connect(self.forceColumnMultiSelect)
+        self.horizontalHeader().sectionCountChanged.connect(self.updateColumnLabels)
+        self.horizontalHeader().sectionMoved.connect(self.columnMoved)
+        self.horizontalHeader().sectionPressed.connect(self.forceColumnMultiSelect)
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
-        self.verticalHeader().sectionCountChanged[int, int].connect(self.updateRowLabels)
-        self.verticalHeader().sectionMoved[int, int, int].connect(self.rowMoved)
-        self.verticalHeader().sectionPressed[int].connect(self.forceRowMultiSelect)
+        self.verticalHeader().sectionCountChanged.connect(self.updateRowLabels)
+        self.verticalHeader().sectionMoved.connect(self.rowMoved)
+        self.verticalHeader().sectionPressed.connect(self.forceRowMultiSelect)
 
         # A hack to force the select all button in single click mode
         cornerButton = self.findChild(QtWidgets.QAbstractButton)
@@ -285,7 +285,7 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
-        self.cellActivated[int, int, bool].connect(self.selectCell)
+        self.cellActivated.connect(self.selectCell)
         self.activeCell = (-1,-1)
 
     def forceColumnMultiSelect(self, logicalIndex):

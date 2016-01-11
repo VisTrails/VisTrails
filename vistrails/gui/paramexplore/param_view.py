@@ -102,7 +102,7 @@ class QParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         vLayout.setStretch(1,1)
         vLayout.setStretch(2,0)
 
-        self.toggleUnsetParameters.toggled[bool].connect(self.parameterWidget.treeWidget.toggleUnsetParameters)
+        self.toggleUnsetParameters.toggled.connect(self.parameterWidget.treeWidget.toggleUnsetParameters)
         self.set_controller(controller)
 
     def set_controller(self, controller):

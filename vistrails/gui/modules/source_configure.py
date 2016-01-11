@@ -55,7 +55,7 @@ class SourceEditor(QtWidgets.QTextEdit):
         self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)
-        self.currentCharFormatChanged[QTextCharFormat].connect(self.formatChanged)
+        self.currentCharFormatChanged.connect(self.formatChanged)
 
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
 
@@ -143,7 +143,7 @@ class SourceWidget(PortTableConfigurationWidget):
         if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.cursorPositionChanged.connect(self.updateCursorLabel)
         else:
-            self.codeEditor.cursorPositionChanged[int, int].connect(self.updateCursorLabel)
+            self.codeEditor.cursorPositionChanged.connect(self.updateCursorLabel)
         self.updateCursorLabel()
 
     def updateCursorLabel(self, x=0, y=0):
@@ -177,7 +177,7 @@ class SourceWidget(PortTableConfigurationWidget):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
 
 class SourceViewerWidget(SourceWidget):
-    widgetClosed = pyqtSignal()
+    widgetClosed = QtCore.pyqtSignal()
     def __init__(self, module, controller, editor_class=None,
                  has_inputs=True, has_outputs=True, parent=None,
                  encode=True, portName='source'):
@@ -263,8 +263,6 @@ class SourceViewerWidget(SourceWidget):
         self.close()
 
 class SourceConfigurationWidget(SourceWidget):
-
-    stateChanged = pyqtSignal()
     def __init__(self, module, controller, editor_class=None,
                  has_inputs=True, has_outputs=True, parent=None,
                  encode=True, portName='source'):
@@ -310,8 +308,8 @@ class SourceConfigurationWidget(SourceWidget):
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
         self.detachButton.clicked.connect(self.detachReadOnlyWindow)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def detachReadOnlyWindow(self):
         from vistrails.gui.vistrails_window import _app

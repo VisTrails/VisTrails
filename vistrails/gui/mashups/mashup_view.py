@@ -37,7 +37,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from PyQt5.QtCore import pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
@@ -220,7 +219,7 @@ class QMashupView(QtWidgets.QMainWindow, BaseView):
         self.button_to_tab_idx[closeButton] = tab_idx
         self.tabBar.setCurrentIndex(tab_idx)
         
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def closePreviewTab(self):
         closeButton = self.sender()
         tab_idx = self.button_to_tab_idx[closeButton]
@@ -263,7 +262,7 @@ class QMashupView(QtWidgets.QMainWindow, BaseView):
                     self.stack.removeWidget(self.stack.widget(idx))
             tab_idx -= 1
         
-    @pyqtSlot(int)    
+    @QtCore.pyqtSlot(int)
     def switchTab(self, index):
         try:
             self.stack.setCurrentIndex(self.tab_to_stack_idx[index])

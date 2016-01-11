@@ -42,7 +42,6 @@ import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.core.system import systemType, set_vistrails_data_directory
@@ -72,7 +71,7 @@ class QToolWindow(QtWidgets.QDockWidget):
         self.pinStatus = False
         self.monitorWindowTitle(widget)
         
-        self.topLevelChanged[bool].connect(self.setDefaultPinStatus)
+        self.topLevelChanged.connect(self.setDefaultPinStatus)
              
     def createToolBar(self):
         self.toolbar = QtWidgets.QToolBar(self.mwindow)
@@ -315,8 +314,8 @@ class QSearchTreeWindow(QtWidgets.QWidget):
         self.treeWidget = self.createTreeWidget()
         vLayout.addWidget(self.treeWidget)
         
-        self.searchBox.executeIncrementalSearch['QString'].connect(self.treeWidget.searchItemName)
-        self.searchBox.executeSearch['QString'].connect(self.treeWidget.searchItemName)
+        self.searchBox.executeIncrementalSearch.connect(self.treeWidget.searchItemName)
+        self.searchBox.executeSearch.connect(self.treeWidget.searchItemName)
         self.searchBox.resetSearch.connect(self.clearTreeWidget)
                      
     def clearTreeWidget(self):
@@ -479,8 +478,8 @@ class QStringEdit(QtWidgets.QFrame):
 ###############################################################################
 
 class QSearchEditBox(QtWidgets.QComboBox):
-    executeSearch = pyqtSignal(QVariant)
-    resetText = pyqtSignal()
+    executeSearch = QtCore.pyqtSignal(str)
+    resetText = QtCore.pyqtSignal()
     def __init__(self, incremental=True, parent=None):
         QtWidgets.QComboBox.__init__(self, parent)
         self.setEditable(True)
@@ -517,10 +516,12 @@ class QSearchBox(QtWidgets.QWidget):
     a search icon.
 
     """
-    resetSearch = pyqtSignal()
-    refineMode = pyqtSignal(QVariant)
-    executeIncrementalSearch = pyqtSignal(QVariant)
-    executeSearch = pyqtSignal(QVariant)
+
+    resetSearch = QtCore.pyqtSignal()
+    refineMode = QtCore.pyqtSignal(bool)
+    executeSearch = QtCore.pyqtSignal(str)
+    executeIncrementalSearch = QtCore.pyqtSignal(str)
+
     def __init__(self, refine=True, incremental=True, parent=None):
         """ QSearchBox(parent: QWidget) -> QSearchBox
         Intialize all GUI components
@@ -559,7 +560,7 @@ class QSearchBox(QtWidgets.QWidget):
             self.searchButton.setMenu(self.searchMenu)
             hLayout.addWidget(self.searchButton)
             self.searchAction.triggered.connect(self.searchMode)
-            self.refineAction.triggered.connect(self.refineMode)
+            self.refineAction.triggered.connect(self._refineMode)
         else:
             self.searchLabel = QtWidgets.QLabel(self)
             pix = CurrentTheme.QUERY_VIEW_ICON.pixmap(QtCore.QSize(16,16))
@@ -579,18 +580,18 @@ class QSearchBox(QtWidgets.QWidget):
         hLayout.addWidget(self.resetButton)
         self.manualResetEnabled = False
 
-        self.resetButton.clicked.connect(self.resetSearch)
-        self.searchEdit.activated[int].connect(self.executeSearch)
-        self.searchEdit.resetText.connect(self.resetSearch)
-        self.searchEdit.executeSearch['QString'].connect(self.executeTextSearch)
+        self.resetButton.clicked.connect(self._resetSearch)
+        self.searchEdit.activated.connect(self._executeSearch)
+        self.searchEdit.resetText.connect(self._resetSearch)
+        self.searchEdit.executeSearch.connect(self.executeTextSearch)
         if incremental:
-            self.searchEdit.editTextChanged['QString'].connect(self.executeIncrementalSearch)
+            self.searchEdit.editTextChanged.connect(self._executeIncrementalSearch)
         else:
-            self.searchEdit.editTextChanged['QString'].connect(self.resetToggle)
+            self.searchEdit.editTextChanged.connect(self.resetToggle)
 
-    def resetSearch(self):
+    def _resetSearch(self):
         """
-        resetSearch() -> None
+        _resetSearch() -> None
         Emit a signal to clear the search.
 
         """
@@ -617,9 +618,9 @@ class QSearchBox(QtWidgets.QWidget):
         """
         self.refineMode.emit(False)
     
-    def refineMode(self):
+    def _refineMode(self):
         """
-        refineMode() -> None
+        _refineMode() -> None
 
         """
         self.refineMode.emit(True)
@@ -628,9 +629,9 @@ class QSearchBox(QtWidgets.QWidget):
         self.resetButton.setEnabled((str(text) != '') or 
                                     self.manualResetEnabled)
 
-    def executeIncrementalSearch(self, text):
+    def _executeIncrementalSearch(self, text):
         """
-        executeIncrementalSearch(text: QString) -> None
+        _executeIncrementalSearch(text: QString) -> None
         The text is changing, so update the search.
 
         """
@@ -641,9 +642,9 @@ class QSearchBox(QtWidgets.QWidget):
     def executeTextSearch(self, text):
         self.executeSearch.emit(text)
 
-    def executeSearch(self, index):
+    def _executeSearch(self, index):
         """
-        executeSearch(index: int) -> None
+        _executeSearch(index: int) -> None
         The text is finished changing or a different item was selected.
 
         """
@@ -651,7 +652,7 @@ class QSearchBox(QtWidgets.QWidget):
         if index == count-1: 
             for i in range(count-1): 
                 self.searchEdit.removeItem(0) 
-            self.resetSearch() 
+            self._resetSearch()
         else: 
             self.resetButton.setEnabled(True) 
             self.executeSearch.emit(self.searchEdit.currentText())
@@ -671,7 +672,7 @@ class QMouseTabBar(QtWidgets.QTabBar):
     receives a mouse event. For now only doubleclick events are
     emitted."""
     #signals
-    tabDoubleClicked = pyqtSignal(int,QtCore.QPoint)
+    tabDoubleClicked = QtCore.pyqtSignal(int,QtCore.QPoint)
     
     def __init__(self, parent=None):
         QtWidgets.QTabBar.__init__(self, parent)
@@ -701,7 +702,7 @@ class QPathChooserToolButton(QtWidgets.QToolButton):
     emits pathChanged when the path is changed
 
     """
-    pathChanged = pyqtSignal()
+    pathChanged = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, lineEdit=None, toolTip=None,
                  defaultPath=None):
@@ -795,7 +796,7 @@ class QOutputPathChooserToolButton(QPathChooserToolButton):
     
     def openChooser(self):
         path = QtWidgets.QFileDialog.getSaveFileName(self,
-        [0]                                         'Select Output Location...',
+                                                 'Select Output Location...',
                                                  self.getDefaultText(),
                                                  'All files (*.*)')
         return self.setDataDirectory(path)

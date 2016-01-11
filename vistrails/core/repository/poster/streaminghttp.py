@@ -90,7 +90,7 @@ from http.client import NotConnected
 __all__ = ['StreamingHTTPConnection', 'StreamingHTTPRedirectHandler',
         'StreamingHTTPHandler', 'register_openers']
 
-if hasattr(httplib, 'HTTPS'):
+if hasattr(http.client, 'HTTPS'):
     __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
 
 class _StreamingHTTPMixin(object):
@@ -212,7 +212,7 @@ class StreamingHTTPHandler(urllib.request.HTTPHandler):
                             "No Content-Length specified for iterable body")
         return urllib.request.HTTPHandler.do_request_(self, req)
 
-if hasattr(httplib, 'HTTPS'):
+if hasattr(http.client, 'HTTPS'):
     class StreamingHTTPSConnection(_StreamingHTTPMixin,
             http.client.HTTPSConnection):
         """Subclass of `httplib.HTTSConnection` that overrides the `send()`

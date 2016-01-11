@@ -26,8 +26,6 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
     Allows to edit a list of filenames.
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
@@ -42,7 +40,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
         self._list = QtWidgets.QListWidget()
         self._list.setSortingEnabled(True)
-        self._list.itemChanged[QListWidgetItem].connect(lambda i: self.updateState())
+        self._list.itemChanged.connect(lambda i: self.updateState())
         central_layout.addWidget(self._list)
 
         add_button = QtWidgets.QPushButton("Add a file")
@@ -75,8 +73,8 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None

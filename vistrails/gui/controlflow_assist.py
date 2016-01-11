@@ -94,8 +94,8 @@ class QControlFlowAssistDialog(QtWidgets.QDialog):
         self.cancelButton.setFixedWidth(100)
         buttonLayout.addWidget(self.cancelButton)
         layout.addLayout(buttonLayout)
-        self.okButton.clicked[bool].connect(self.okClicked)
-        self.cancelButton.clicked[bool].connect(self.close)
+        self.okButton.clicked.connect(self.okClicked)
+        self.cancelButton.clicked.connect(self.close)
 
     def enablePackage(self):
         """ enablePackge() -> None

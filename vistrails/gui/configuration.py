@@ -162,7 +162,8 @@ class QConfigurationTreeWidgetItemDelegate(QtWidgets.QItemDelegate):
 
 class QConfigurationTreeWidget(QSearchTreeWidget):
 
-    configuration_changed = pyqtSignal(QVariant,QVariant)
+    configuration_changed = QtCore.pyqtSignal(QConfigurationTreeWidgetItem,
+                                              str)
     def __init__(self, parent, persistent_config, temp_config):
         QSearchTreeWidget.__init__(self, parent)
         self.setMatchedFlags(QtCore.Qt.ItemIsEditable)
@@ -183,7 +184,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         # disconnect() and clear() are here because create_tree might
         # also be called when an entirely new configuration object is set.
 
-        self.itemChanged[QTreeWidgetItem, int].connect(self.change_configuration)
+        self.itemChanged.connect(self.change_configuration)
         self.clear()
         self._configuration = persistent_config
         self._temp_configuration = temp_config
@@ -192,7 +193,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
 
         self.expandAll()
         self.resizeColumnToContents(0)
-        self.itemChanged[QTreeWidgetItem, int].connect(self.change_configuration)
+        self.itemChanged.connect(self.change_configuration)
 
     def change_configuration(self, item, col):
         if item.flags() & QtCore.Qt.ItemIsEditable:
@@ -443,7 +444,7 @@ class QConfigurationComboBox(QtWidgets.QComboBox, QConfigurationWidgetItem):
             for entry in entries:
                 self.addItem(entry)
 
-        self.currentIndexChanged[int].connect(self.value_changed)
+        self.currentIndexChanged.connect(self.value_changed)
 
     def set_value(self, value, signal=True):
         options = self.get_widget_options()
@@ -459,7 +460,7 @@ class QConfigurationComboBox(QtWidgets.QComboBox, QConfigurationWidgetItem):
         else:
             self.setCurrentIndex(-1)
         if not signal:
-            self.currentIndexChanged[int].connect(self.value_changed)
+            self.currentIndexChanged.connect(self.value_changed)
 
 class QConfigurationPane(QtWidgets.QWidget):
     def __init__(self, parent, persistent_config, temp_config, cat_fields):
@@ -632,7 +633,8 @@ class QConfigurationPane(QtWidgets.QWidget):
 # TODO: Make sure this functionality (Move and Clear Cache) is preserved
 
 class QThumbnailConfiguration(QtWidgets.QWidget):
-    configuration_changed = pyqtSignal(QVariant,QVariant)
+    configuration_changed = QtCore.pyqtSignal(QConfigurationTreeWidgetItem,
+                                              str)
     def thumbs_cache_directory_changed(self):
         """ thumbs_cache_changed(v: int) -> None
         

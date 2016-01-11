@@ -53,7 +53,7 @@ class QDebugger(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """
     This class provides a dockable interface to the debugger tree.
     """
-    debuggerHidden = pyqtSignal()
+    debuggerHidden = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
         self.app = vistrails.gui.application.get_vistrails_application()

@@ -392,7 +392,7 @@ class QParameterExplorationTable(QPromptWidget):
     string and boolean)
     
     """
-    exploreChange = pyqtSignal(QVariant)
+    exploreChange = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):
         """ QParameterExplorationTable(parent: QWidget)
                                        -> QParameterExplorationTable
@@ -683,7 +683,7 @@ class QDimensionSpinBox(QtWidgets.QSpinBox):
     'editingFinished()' signal when the user interact with mouse
     
     """    
-    editingFinished = pyqtSignal()
+    editingFinished = QtCore.pyqtSignal()
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
         Emit 'editingFinished()' signal when the user release a mouse button
@@ -898,7 +898,7 @@ class QParameterWidget(QtWidgets.QWidget):
         hLayout.addWidget(self.editor)
 
         self.selector = QDimensionSelector()
-        self.selector.radioButtons[4].toggled[bool].connect(self.disableParameter)
+        self.selector.radioButtons[4].toggled.connect(self.disableParameter)
         hLayout.addWidget(self.selector)
 
     def getDimension(self):

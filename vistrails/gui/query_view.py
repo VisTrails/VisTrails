@@ -285,7 +285,7 @@ class QQueryResultWorkflowView(QPipelineView):
         self.scene().set_read_only_mode(True)
     
 class QQueryBox(QtWidgets.QWidget):
-    textQueryChange = pyqtSignal(QVariant)
+    textQueryChange = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.build_widget()
@@ -333,12 +333,12 @@ class QQueryBox(QtWidgets.QWidget):
         self.setLayout(layout)
 
         self.searchBox.resetSearch.connect(self.resetSearch)
-        self.searchBox.executeSearch['QString'].connect(self.executeSearch)
-        self.searchBox.refineMode[bool].connect(self.refineMode)
+        self.searchBox.executeSearch.connect(self.executeSearch)
+        self.searchBox.refineMode.connect(self.refineMode)
         self.backButton.clicked.connect(self.backToSearch)
         self.editButton.clicked.connect(self.doEdit)
-        self.level_group.buttonClicked[QAbstractButton].connect(self.levelChanged)
-        useRegex.stateChanged[int].connect(self.useRegexChanged)
+        self.level_group.buttonClicked.connect(self.levelChanged)
+        useRegex.stateChanged.connect(self.useRegexChanged)
 
     def resetSearch(self, emit_signal=True):
         """
@@ -467,7 +467,8 @@ class QQueryView(QtWidgets.QWidget, BaseView):
         QQueryView.GLOBAL_RESULT_VIEW = \
             self.stacked_widget.addWidget(self.global_result_view)
         self.version_result_view = QQueryResultVersionView()
-        self.version_result_view.scene().versionSelected[int, bool, bool, bool, bool].connect(self.result_version_selected)
+        self.version_result_view.scene().versionSelected.connect(
+            self.result_version_selected)
         # self.version_result_view.set_controller(self.vt_controller)
         QQueryView.VERSION_RESULT_VIEW = \
             self.stacked_widget.addWidget(self.version_result_view)

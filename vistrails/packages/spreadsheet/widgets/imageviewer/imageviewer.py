@@ -224,7 +224,7 @@ class ImageViewerZoomSlider(QtWidgets.QSlider):
         self.setValue(100)
         self.setTracking(True)
         self.setStatusTip("Zoom in the image")
-        self.valueChanged[int].connect(self.updateZoom)
+        self.valueChanged.connect(self.updateZoom)
         self.needUpdateStatus.connect(self.updateStatus)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                            QtWidgets.QSizePolicy.Expanding)
@@ -353,7 +353,7 @@ class ImageViewerToolBar(QCellToolBar):
         self.appendAction(ImageViewerFlipAction(self))
         self.slider = ImageViewerZoomSlider(self)
         label = ImageViewerZoomLabel(self)
-        self.slider.valueChanged[int].connect(label.updateValue)
+        self.slider.valueChanged.connect(label.updateValue)
         self.appendWidget(self.slider)
         self.appendWidget(label)
         self.addAnimationButtons()

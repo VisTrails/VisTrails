@@ -63,7 +63,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
     related to parameter exploration
     
     """
-    exploreChange = pyqtSignal(QVariant)
+    exploreChange = QtCore.pyqtSignal(bool)
     explorationId = 0
     
     def __init__(self, parent=None):
@@ -80,7 +80,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
 
         self.peWidget = QParameterExplorationWidget()
         self.setCentralWidget(self.peWidget)
-        self.peWidget.table.exploreChange[bool].connect(self.exploreChange)
+        self.peWidget.table.exploreChange.connect(self.exploreChange)
 
         self.paramView = QParameterView(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,

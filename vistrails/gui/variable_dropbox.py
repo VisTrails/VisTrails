@@ -198,7 +198,7 @@ class QVerticalWidget(QPromptWidget):
         QPromptWidget.__init__(self, parent)
         self.setPromptText("Drag a constant from the Modules panel to create a variable")
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(5)
         self.layout().setAlignment(QtCore.Qt.AlignTop)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
@@ -212,7 +212,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         inputForm = QVariableInputWidget(uuid, name, descriptor, value, self)
-        inputForm.deleted[QWidget].connect(self.delete_form)
+        inputForm.deleted.connect(self.delete_form)
         self.layout().addWidget(inputForm)
         inputForm.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
@@ -226,7 +226,7 @@ class QVerticalWidget(QPromptWidget):
         """
         self.setEnabled(False)
         for v in self._variable_widgets:
-            v.deleted[QWidget].connect(self.delete_form)
+            v.deleted.connect(self.delete_form)
             self.layout().removeWidget(v)
             v.setParent(None)
             v.deleteLater()
@@ -234,7 +234,7 @@ class QVerticalWidget(QPromptWidget):
         self.setEnabled(True)
 
     def delete_form(self, input_form):
-        input_form.deleted[QWidget].connect(self.delete_form)
+        input_form.deleted.connect(self.delete_form)
         var_name = input_form.var_name
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
@@ -251,7 +251,7 @@ class QVerticalWidget(QPromptWidget):
 
 
 class QVariableInputWidget(QtWidgets.QDockWidget):
-    deleted = pyqtSignal(QVariant)
+    deleted = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, uuid, name, descriptor, value='', parent=None):
         QtWidgets.QDockWidget.__init__(self, parent)
         self.var_uuid = uuid

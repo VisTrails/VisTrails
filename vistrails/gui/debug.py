@@ -59,7 +59,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
            import gui.debug
            gui.debug.watch_signal(my_signal)
      """
-    messagesView = pyqtSignal(QVariant)
+    messagesView = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         ui = logging.StreamHandler(debugStream(self.write))
@@ -89,7 +89,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
                     'background-color: %s' % (
                     CurrentTheme.DEBUG_COLORS[name].name(),
                     CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name()))
-            box.toggled[bool].connect(self.refresh)
+            box.toggled.connect(self.refresh)
             filters.addWidget(box)
             self.levels[name] = box
 
@@ -97,7 +97,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
 
         # message list
         self.list = QtWidgets.QListWidget()
-        self.list.currentItemChanged[QListWidgetItem, QListWidgetItem].connect(self.showMessage)
+        self.list.currentItemChanged.connect(self.showMessage)
         layout.addWidget(self.list)
 
         # message details field
@@ -218,7 +218,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
             msg_box.setEscapeButton(QtWidgets.QMessageBox.Ok)
             msg_box.addButton('&Show Messages', msg_box.RejectRole)
             self.manyButton = None
-            msg_box.buttonClicked[QAbstractButton].connect(self.messageButtonClicked)
+            msg_box.buttonClicked.connect(self.messageButtonClicked)
             msg_box.rejected.connect(self.rejectMessage)
             self.updateMessageBox(item)
         else:

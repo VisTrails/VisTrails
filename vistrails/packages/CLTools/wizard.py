@@ -314,9 +314,9 @@ class QCLToolsWizard(QtWidgets.QWidget):
         self.layout().addWidget(self.stderrGroup)
         self.stderrGroup.setVisible(False)
 
-        self.showStdin.toggled[bool].connect(self.stdinGroup.setVisible)
-        self.showStdout.toggled[bool].connect(self.stdoutGroup.setVisible)
-        self.showStderr.toggled[bool].connect(self.stderrGroup.setVisible)
+        self.showStdin.toggled.connect(self.stdinGroup.setVisible)
+        self.showStdout.toggled.connect(self.stdoutGroup.setVisible)
+        self.showStderr.toggled.connect(self.stderrGroup.setVisible)
         
         self.argList = QtWidgets.QListWidget()
         self.layout().addWidget(self.argList)
@@ -356,7 +356,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
         self.generate_preview()
     
     def openFile(self):
-        fileName = QtWidgets.QFileDialog.g[0]etOpenFileName(self,
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                 "Open Wrapper",
                 self.file if self.file else default_dir(),
                 "Wrappers (*%s)" % SUFFIX)
@@ -446,7 +446,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
         self.generate_preview()
 
     def saveAs(self):
-        fileName = QtWidgets.QFileDialog.getSaveFileNa[0]me(self,
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self,
                             "Save Wrapper as",
                             self.file if self.file else default_dir(),
                             "Wrappers (*%s)" % SUFFIX)
@@ -694,7 +694,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
         args = self.parse(text)
         title = "Import arguments from man page for '%s'" % command
         self.manpageImport = QManpageImport(title, args, self)
-        self.manpageImport.importArgs[PyQt_PyObject].connect(self.importArgs)
+        self.manpageImport.importArgs.connect(self.importArgs)
         self.manpageImport.show()
 
     def generateFromHelpPage(self):
@@ -710,7 +710,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
 
         title = "Import arguments from help page (-h) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.helppageImport.importArgs[PyQt_PyObject].connect(self.importArgs)
+        self.helppageImport.importArgs.connect(self.importArgs)
         self.helppageImport.show()
 
     def generateFromHelpPage2(self):
@@ -726,7 +726,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
 
         title = "Import arguments from help page (--help) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.helppageImport.importArgs[PyQt_PyObject].connect(self.importArgs)
+        self.helppageImport.importArgs.connect(self.importArgs)
         self.helppageImport.show()
 
     def viewManPage(self):
@@ -943,8 +943,8 @@ class QArgWidget(QtWidgets.QWidget):
         layout2.addWidget(self.desc)
         
         if self.argtype not in self.stdTypes:
-            self.klassList.currentIndexChanged[int].connect(self.klassChanged)
-            self.typeList.currentIndexChanged[int].connect(self.typeChanged)
+            self.klassList.currentIndexChanged.connect(self.klassChanged)
+            self.typeList.currentIndexChanged.connect(self.typeChanged)
 
     def getValues(self):
         """ get the values from the widgets and store them """
@@ -1066,7 +1066,9 @@ class QManpageDialog(QtWidgets.QDialog):
         self.resize(800,600)
 
 class QManpageImport(QtWidgets.QDialog):
-    importArgs = pyqtSignal(QVariant)
+
+    importArgs = QtCore.pyqtSignal(list)
+
     def __init__(self, title, args, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle(title)

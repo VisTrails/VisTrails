@@ -59,13 +59,13 @@ class QCollectionWidget(QtWidgets.QTreeWidget):
     a core.collection.Collection object
     a subclass should provide a view of the collection
     """
-    workspaceListUpdated = pyqtSignal()
+    workspaceListUpdated = QtCore.pyqtSignal()
     def __init__(self, collection, parent=None):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.collection = collection
         self.collection.add_listener(self)
         self.setExpandsOnDoubleClick(False)
-        self.itemDoubleClicked[QTreeWidgetItem, int].connect(self.item_selected)
+        self.itemDoubleClicked.connect(self.item_selected)
         self.setIconSize(QtCore.QSize(16,16))
 
     def setup_widget(self, workspace=None):
@@ -192,7 +192,7 @@ class QCollectionWidget(QtWidgets.QTreeWidget):
 
     def add_file(self):
         s = QtWidgets.QFileDialog.getOpenFileName(
-   [0]                 self, "Choose a file",
+                    self, "Choose a file",
                     "", "Vistrail files (*.vt *.xml)")
         if str(s):
             locator = FileLocator(str(s))
@@ -474,6 +474,10 @@ class QExplorerWidgetItem(QtWidgets.QTreeWidgetItem):
         Collection.getInstance().commit()
 
 class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
+
+    vistrailChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+    detachVistrail = QtCore.pyqtSignal(QtWidgets.QWidget)
+
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
@@ -620,7 +624,7 @@ class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.open_list.remove_vt_window(vistrail_window)
 
 class QVistrailEntityItem(QBrowserWidgetItem):
-    detachVistrail = pyqtSignal(QVariant)
+
     def __init__(self, entity, window=None):
         QBrowserWidgetItem.__init__(self, entity)
         if window:
@@ -675,7 +679,7 @@ class QVistrailListLatestItem(QtWidgets.QTreeWidgetItem):
                                 self.parent().parent().window.tabs.currentIndex())
 
 class QVistrailList(QtWidgets.QTreeWidget):
-    vistrailChanged = pyqtSignal(QVariant)
+    vistrailChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, parent=None):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.searchMode = False
@@ -710,11 +714,11 @@ class QVistrailList(QtWidgets.QTreeWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-        self.itemDoubleClicked[QTreeWidgetItem, int].connect(self.item_selected)
+        self.itemDoubleClicked.connect(self.item_selected)
         
         self.setIconSize(QtCore.QSize(16,16))
 
-        self.itemPressed[QTreeWidgetItem, int].connect(self.onItemPressed)
+        self.itemPressed.connect(self.onItemPressed)
         self.updateHideExecutions()
         self.connect_current_changed()
 
@@ -737,15 +741,13 @@ class QVistrailList(QtWidgets.QTreeWidget):
     def connect_current_changed(self):
         # using currentItemChanged makes sure a drag selects the dragged-from
         # vistrail
-        self.currentItemChanged[QTreeWidgetItem, "
-                                   "QTreeWidgetItem].connect(self.item_changed)
+        self.currentItemChanged.connect(self.item_changed)
         # using item_clicked makes sure even selected items can be clicked
-        self.itemClicked[QTreeWidgetItem, int].connect(self.item_changed)
+        self.itemClicked.connect(self.item_changed)
 
     def disconnect_current_changed(self):
-        self.currentItemChanged[QTreeWidgetItem, "
-                                      "QTreeWidgetItem].connect(self.item_changed)
-        self.itemClicked[QTreeWidgetItem, int].connect(self.item_changed)
+        self.currentItemChanged.connect(self.item_changed)
+        self.itemClicked.connect(self.item_changed)
     
     def show_search_results(self):
         self.searchResultsItem = QtWidgets.QTreeWidgetItem(['Search Results'])

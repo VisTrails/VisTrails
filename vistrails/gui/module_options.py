@@ -57,8 +57,10 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
     QModuleIteration is a dialog for editing module looping options.
 
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
+
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal(int)
+
     def __init__(self, parent=None):
         """ 
         QModuleIteration(parent)
@@ -193,8 +195,8 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
         self.layout().setStretch(3, 0)
         self.update_module()
         self.pairwiseButton.toggled.connect(self.stateChanged)

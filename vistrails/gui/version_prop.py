@@ -187,12 +187,9 @@ class QVersionProp(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.versionMashups = QVersionMashups()
         vLayout.addWidget(self.versionMashups)
                 
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged.connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
 
         self.controller = None
         self.versionNumber = -1
@@ -485,9 +482,7 @@ class QVersionPropOverlay(QtWidgets.QFrame):
         self.notes_dialog = QNotesDialog(self)
         self.notes_dialog.hide()
 
-        QtCore.QObject.connect(self.notes_button,
-                               QtCore.SIGNAL("pressed()"),
-                               self.openNotes)
+        self.notes_button.pressed(self.openNotes)
 
     def updateGeometry(self):
         """ updateGeometry() -> None
@@ -594,7 +589,7 @@ class QExpandButton(QtWidgets.QLabel):
     """
     A transparent button type with a + draw in 
     """
-    pressed = pyqtSignal()
+    pressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         """
         QExpandButton(parent: QWidget) -> QExpandButton
@@ -689,17 +684,10 @@ class QNotesDialog(QtWidgets.QDialog):
         self.setLayout(layout)
         self.controller = None
 
-        QtCore.QObject.connect(self.apply_button,
-                               QtCore.SIGNAL("released()"),
-                               self.apply_pressed)
+        self.apply_button.released.connect(self.apply_pressed)
+        self.ok_button.released.connect(self.ok_pressed)
+        self.cancel_button.released.connect(self.cancel_pressed)
 
-        QtCore.QObject.connect(self.ok_button,
-                               QtCore.SIGNAL("released()"),
-                               self.ok_pressed)
-
-        QtCore.QObject.connect(self.cancel_button,
-                               QtCore.SIGNAL("released()"),
-                               self.cancel_pressed)
     def apply_pressed(self):
         """ apply_pressed() -> None
 

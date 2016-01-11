@@ -63,7 +63,7 @@ class Entry(QtWidgets.QWidget):
         layout.addWidget(remove_button)
 
         remove_button.clicked.connect(self.remove)
-        self.lineedit.textEdited['QString'].connect(self.changed)
+        self.lineedit.textEdited.connect(self.changed)
 
     @property
     def name(self):
@@ -82,8 +82,6 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
     """
     Configuration widget allowing to create the ports of the BuildTable module.
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
@@ -153,8 +151,8 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.saveButton.clicked[bool].connect(self.saveTriggered)
-        self.resetButton.clicked[bool].connect(self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None

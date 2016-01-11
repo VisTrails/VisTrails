@@ -61,7 +61,7 @@ class VistrailsViewerWindow(StoreViewerWindow):
 
         only_vt_checkbox = QtWidgets.QCheckBox("Only VisTrails Persisted files")
         only_vt_checkbox.setChecked(self._vt_only)
-        only_vt_checkbox.stateChanged[int].connect(self._set_vt_only)
+        only_vt_checkbox.stateChanged.connect(self._set_vt_only)
         buttons.append(('alwayson', only_vt_checkbox))
 
         return buttons
