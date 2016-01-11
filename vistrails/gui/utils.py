@@ -38,7 +38,8 @@
 without exposing Qt codes """
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+
 from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.theme
 from vistrails.core.system import systemType
@@ -47,25 +48,25 @@ import unittest
 
 ################################################################################
 
-OK_BUTTON              = QtGui.QMessageBox.Ok
-OPEN_BUTTON            = QtGui.QMessageBox.Open
-SAVE_BUTTON            = QtGui.QMessageBox.Save
-CANCEL_BUTTON          = QtGui.QMessageBox.Cancel
-CLOSE_BUTTON           = QtGui.QMessageBox.Close
-DISCARD_BUTTON         = QtGui.QMessageBox.Discard
-APPLY_BUTTON           = QtGui.QMessageBox.Apply
-RESET_BUTTON           = QtGui.QMessageBox.Reset
-RESTOREDEFAULTS_BUTTON = QtGui.QMessageBox.RestoreDefaults
-HELP_BUTTON            = QtGui.QMessageBox.Help
-SAVEALL_BUTTON         = QtGui.QMessageBox.SaveAll
-YES_BUTTON             = QtGui.QMessageBox.Yes
-YESTOALL_BUTTON        = QtGui.QMessageBox.YesToAll
-NO_BUTTON              = QtGui.QMessageBox.No
-NOTOALL_BUTTON         = QtGui.QMessageBox.NoToAll
-ABORT_BUTTON           = QtGui.QMessageBox.Abort
-RETRY_BUTTON           = QtGui.QMessageBox.Retry
-IGNORE_BUTTON          = QtGui.QMessageBox.Ignore
-NOBUTTON_BUTTON        = QtGui.QMessageBox.NoButton
+OK_BUTTON              = QtWidgets.QMessageBox.Ok
+OPEN_BUTTON            = QtWidgets.QMessageBox.Open
+SAVE_BUTTON            = QtWidgets.QMessageBox.Save
+CANCEL_BUTTON          = QtWidgets.QMessageBox.Cancel
+CLOSE_BUTTON           = QtWidgets.QMessageBox.Close
+DISCARD_BUTTON         = QtWidgets.QMessageBox.Discard
+APPLY_BUTTON           = QtWidgets.QMessageBox.Apply
+RESET_BUTTON           = QtWidgets.QMessageBox.Reset
+RESTOREDEFAULTS_BUTTON = QtWidgets.QMessageBox.RestoreDefaults
+HELP_BUTTON            = QtWidgets.QMessageBox.Help
+SAVEALL_BUTTON         = QtWidgets.QMessageBox.SaveAll
+YES_BUTTON             = QtWidgets.QMessageBox.Yes
+YESTOALL_BUTTON        = QtWidgets.QMessageBox.YesToAll
+NO_BUTTON              = QtWidgets.QMessageBox.No
+NOTOALL_BUTTON         = QtWidgets.QMessageBox.NoToAll
+ABORT_BUTTON           = QtWidgets.QMessageBox.Abort
+RETRY_BUTTON           = QtWidgets.QMessageBox.Retry
+IGNORE_BUTTON          = QtWidgets.QMessageBox.Ignore
+NOBUTTON_BUTTON        = QtWidgets.QMessageBox.NoButton
 
 _buttons_captions_dict = { OK_BUTTON   : "Ok",
                            OPEN_BUTTON : "Open",
@@ -93,7 +94,7 @@ def show_warning(title, message):
     Deprecated, consider using core.debug instead!
     """
     if systemType not in ['Darwin']:
-        QtGui.QMessageBox.warning(None, title, message)
+        QtWidgets.QMessageBox.warning(None, title, message)
     else:
         show_custom(title,message)
 
@@ -103,7 +104,7 @@ def show_info(title, message):
     Deprecated, consider using core.debug instead!
     """
     if systemType not in ['Darwin']:
-        QtGui.QMessageBox.information(None, title, message)
+        QtWidgets.QMessageBox.information(None, title, message)
     else:
         show_custom(title,message)
 
@@ -122,11 +123,11 @@ def show_question(title,
     dialog.
 
     """
-    qButtons = QtGui.QMessageBox.StandardButtons()
+    qButtons = QtWidgets.QMessageBox.StandardButtons()
     for button in buttons:
         qButtons |= button
     if systemType not in ['Darwin']:
-        return QtGui.QMessageBox.question(None, title, message,
+        return QtWidgets.QMessageBox.question(None, title, message,
                                           qButtons, default)
     else:
         return show_custom(title,message,None,buttons)
@@ -149,7 +150,7 @@ def build_custom_window(title, message, icon=None,
     The function returns the index of the button that was pressed.
 
     """
-    msgBox = QtGui.QMessageBox(parent)
+    msgBox = QtWidgets.QMessageBox(parent)
     abstractButtons = {}
     for b in buttons:
         msgBox.addButton(b)
@@ -178,7 +179,7 @@ def build_custom_window(title, message, icon=None,
         msgBox.setText("%s\n%s"%(title,
                                  message))
 
-    qButtons = QtGui.QMessageBox.StandardButtons()
+    qButtons = QtWidgets.QMessageBox.StandardButtons()
     return msgBox
 
 def show_custom(title, message, icon=None,

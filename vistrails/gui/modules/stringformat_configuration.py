@@ -36,7 +36,8 @@
 
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
@@ -47,6 +48,8 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
     Configuration widget creating the ports corresponding to the format.
 
     """
+    stateChanged = pyqtSignal()
+    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         """ StringFormatConfigurationWidget(
                 module: Module,
@@ -70,15 +73,14 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
         self.setWindowTitle("StringFormat Configuration")
 
         # Add an empty vertical layout
-        centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout = QtWidgets.QVBoxLayout()
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
 
         # Add the configuration button
-        self.button = QtGui.QPushButton("Sync ports")
-        self.connect(self.button, QtCore.SIGNAL('clicked()'),
-                     self.saveTriggered)
+        self.button = QtWidgets.QPushButton("Sync ports")
+        self.button.clicked.connect(self.saveTriggered)
         centralLayout.addWidget(self.button)
 
     def activate(self):
@@ -90,8 +92,8 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
 
         """
         if self.updateVistrail():
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def get_format(self):
         for i in range(self.module.getNumFunctions()):

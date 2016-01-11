@@ -37,7 +37,8 @@
 Parameter Exploration Tab """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
@@ -233,7 +234,7 @@ def assembleThumbnails(images, name, background='#000000'):
         filename = '%s_%s.png' % (name, i)
         sheet.save(filename)
         
-class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
+class QVirtualCellWindow(QtWidgets.QFrame, QToolWindowInterface):
     """
     QVirtualCellWindow contains a caption, a virtual cell
     configuration
@@ -244,38 +245,38 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         Initialize the widget
 
         """
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameShape(QtGui.QFrame.StyledPanel)
+        QtWidgets.QFrame.__init__(self, parent)
+        self.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.setWindowTitle('Spreadsheet Virtual Cell')
-        vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(2)
+        vLayout = QtWidgets.QVBoxLayout(self)
+        vLayout.setContentsMargins(2, 2, 2, 2)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
-        label = QtGui.QLabel('Arrange the cell(s) below to construct'
+        label = QtWidgets.QLabel('Arrange the cell(s) below to construct'
                              ' a virtual cell')
         font = QtGui.QFont(label.font())
         label.setFont(font)
         label.setWordWrap(True)        
         vLayout.addWidget(label)
 
-        hLayout = QtGui.QVBoxLayout()
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QVBoxLayout()
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         vLayout.addLayout(hLayout)
         self.config = QVirtualCellConfiguration()
-        self.config.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                                  QtGui.QSizePolicy.Maximum)
+        self.config.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                                  QtWidgets.QSizePolicy.Maximum)
         hLayout.addWidget(self.config)
-        hPadWidget = QtGui.QWidget()
+        hPadWidget = QtWidgets.QWidget()
         hLayout.addWidget(hPadWidget)
-        hPadWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                 QtGui.QSizePolicy.Ignored)
+        hPadWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                 QtWidgets.QSizePolicy.Ignored)
 
-        vPadWidget = QtGui.QWidget()
+        vPadWidget = QtWidgets.QWidget()
         vLayout.addWidget(vPadWidget)
-        vPadWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                QtGui.QSizePolicy.Expanding)
+        vPadWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                QtWidgets.QSizePolicy.Expanding)
 
         self.inspector = PipelineInspector()
         self.pipeline = None
@@ -336,7 +337,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         """
         self.config.setConfiguration(info)
 
-class QVirtualCellConfiguration(QtGui.QWidget):
+class QVirtualCellConfiguration(QtWidgets.QWidget):
     """
     QVirtualCellConfiguration is a widget provide a virtual layout of
     the spreadsheet cell. Given a number of cells want to layout, it
@@ -350,10 +351,10 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         Initialize the widget
 
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.rowCount = 1
         self.colCount = 1
-        gridLayout = QtGui.QGridLayout(self)
+        gridLayout = QtWidgets.QGridLayout(self)
         gridLayout.setSpacing(0)
         self.setLayout(gridLayout)
         label = QVirtualCellLabel('')
@@ -370,9 +371,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
             item = self.layout().takeAt(0)
             if item is None:
                 break
-            self.disconnect(item.widget(),
-                            QtCore.SIGNAL('finishedDragAndDrop'),
-                            self.compressCells)
+            item.widget().finishedDragAndDrop.connect(self.compressCells)
             item.widget().deleteLater()
             del item
         self.cells = []
@@ -391,8 +390,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
             label = QVirtualCellLabel(*cells[i])
             row.append(label)
             self.layout().addWidget(label, 0, i, 1, 1, QtCore.Qt.AlignCenter)
-            self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
-                         self.compressCells)
+            label.finishedDragAndDrop.connect(self.compressCells)
         self.cells.append(row)
 
         for r in range(self.numCell-1):
@@ -402,8 +400,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
                 row.append(label)
                 self.layout().addWidget(label, r+1, c, 1, 1,
                                         QtCore.Qt.AlignCenter)
-                self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
-                             self.compressCells)
+                label.finishedDragAndDrop.connect(self.compressCells)
             self.cells.append(row)
 
     def compressCells(self):
@@ -504,12 +501,13 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         # Compress to properly reset newly empty cells
         self.compressCells()
 
-class QVirtualCellLabel(QtGui.QLabel):
+class QVirtualCellLabel(QtWidgets.QLabel):
     """
     QVirtualCellLabel is a label represent a cell inside a cell. It
     has rounded shape with a caption text
     
     """
+    finishedDragAndDrop = pyqtSignal()
     def __init__(self, label=None, id=-1, parent=None):
         """ QVirtualCellLabel(text: QString, id: int,
                               parent: QWidget)
@@ -517,12 +515,12 @@ class QVirtualCellLabel(QtGui.QLabel):
         Construct the label image
 
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         self.setMargin(2)
         self.cellType = None
         self.setCellData(label, id)
         self.setAcceptDrops(True)
-        self.setFrameStyle(QtGui.QFrame.Panel)
+        self.setFrameStyle(QtWidgets.QFrame.Panel)
         self.palette().setColor(QtGui.QPalette.WindowText,
                                 CurrentTheme.HOVER_SELECT_COLOR)
 
@@ -596,7 +594,7 @@ class QVirtualCellLabel(QtGui.QLabel):
             drag.start(QtCore.Qt.MoveAction)
             if mimeData.cellData!=('', -1):
                 self.setCellData(*mimeData.cellData)
-            self.emit(QtCore.SIGNAL('finishedDragAndDrop'))
+            self.finishedDragAndDrop.emit()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -641,9 +639,9 @@ class QVirtualCellLabel(QtGui.QLabel):
         
         """
         if on:
-            self.setFrameStyle(QtGui.QFrame.Panel | QtGui.QFrame.Plain)
+            self.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
         else:
-            self.setFrameStyle(QtGui.QFrame.Panel)
+            self.setFrameStyle(QtWidgets.QFrame.Panel)
 
 ###############################################################################
 

@@ -40,14 +40,15 @@ should have no interaction with VisTrail core"""
 
 import os
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot, pyqtSignal
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.core.system import systemType, set_vistrails_data_directory
 ################################################################################
 
-class QToolWindow(QtGui.QDockWidget):
+class QToolWindow(QtWidgets.QDockWidget):
     """
     QToolWindow is a floating-dockable widget. It also keeps track of
     its widget window title to update the tool window accordingly
@@ -58,9 +59,9 @@ class QToolWindow(QtGui.QDockWidget):
         Construct a floating, dockable widget
         
         """
-        QtGui.QDockWidget.__init__(self, parent)
-        self.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)  
-        self.mwindow = QtGui.QMainWindow(self)
+        QtWidgets.QDockWidget.__init__(self, parent)
+        self.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)  
+        self.mwindow = QtWidgets.QMainWindow(self)
         self.centralwidget = widget
         self.mwindow.setWindowFlags(QtCore.Qt.Widget) 
         self.mwindow.setCentralWidget(widget)     
@@ -71,20 +72,19 @@ class QToolWindow(QtGui.QDockWidget):
         self.pinStatus = False
         self.monitorWindowTitle(widget)
         
-        self.connect(self, QtCore.SIGNAL("topLevelChanged(bool)"),
-                     self.setDefaultPinStatus)
+        self.topLevelChanged[bool].connect(self.setDefaultPinStatus)
              
     def createToolBar(self):
-        self.toolbar = QtGui.QToolBar(self.mwindow)
-        self.pinButton = QtGui.QAction(CurrentTheme.UNPINNED_PALETTE_ICON,
+        self.toolbar = QtWidgets.QToolBar(self.mwindow)
+        self.pinButton = QtWidgets.QAction(CurrentTheme.UNPINNED_PALETTE_ICON,
                                        "", self.toolbar,checkable=True,
                                        checked=False,
                                        toggled=self.pinStatusChanged)
         
         self.pinButton.setToolTip("Pin this on the Tab Bar")
-        spacer = QtGui.QWidget()
-        spacer.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, 
-                             QtGui.QSizePolicy.Preferred)
+        spacer = QtWidgets.QWidget()
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, 
+                             QtWidgets.QSizePolicy.Preferred)
         self.toolbar.addWidget(spacer)
         self.toolbar.addAction(self.pinButton)
         self.pinAction = self.pinButton
@@ -139,7 +139,7 @@ class QToolWindow(QtGui.QDockWidget):
             self.setWindowTitle(object.windowTitle())
         elif event.type()==QtCore.QEvent.Close:
             object.removeEventFilter(self)
-        return QtGui.QDockWidget.eventFilter(self, object, event)
+        return QtWidgets.QDockWidget.eventFilter(self, object, event)
         # return super(QToolWindow, self).eventFilter(object, event)                    
             
         
@@ -177,7 +177,7 @@ class QToolWindowInterface(object):
 
 ###############################################################################
 
-class QDockContainer(QtGui.QMainWindow):
+class QDockContainer(QtWidgets.QMainWindow):
     """
     QDockContainer is a window that can contain dock widgets while
     still be contained in a tool window. It is just a straight
@@ -189,12 +189,12 @@ class QDockContainer(QtGui.QMainWindow):
         Setup window to have its widget dockable everywhere
         
         """
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.setDockNestingEnabled(True)
 
 ###############################################################################
 
-class QSearchTreeWidget(QtGui.QTreeWidget):
+class QSearchTreeWidget(QtWidgets.QTreeWidget):
     """
     QSearchTreeWidget is just a QTreeWidget with a support function to
     refine itself when searching for some text
@@ -205,9 +205,9 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         Set up size policy and header
 
         """
-        QtGui.QTreeWidget.__init__(self, parent)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        QtWidgets.QTreeWidget.__init__(self, parent)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
         self.flags = QtCore.Qt.ItemIsDragEnabled
@@ -276,7 +276,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         anywhere as it's supposed to. It must have been a bug...
         
         """
-        data = QtGui.QTreeWidget.mimeData(self, itemList)
+        data = QtWidgets.QTreeWidget.mimeData(self, itemList)
         data.items = itemList
         return data
 
@@ -288,7 +288,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         """
         self.flags = flags
     
-class QSearchTreeWindow(QtGui.QWidget):
+class QSearchTreeWindow(QtWidgets.QWidget):
     """
     QSearchTreeWindow contains a search box on top of a tree widget
     for easy search and refine. The subclass has to implement
@@ -301,11 +301,11 @@ class QSearchTreeWindow(QtGui.QWidget):
         Intialize all GUI components
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setWindowTitle('Search Tree')
         
-        vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(0)
+        vLayout = QtWidgets.QVBoxLayout(self)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
@@ -315,15 +315,9 @@ class QSearchTreeWindow(QtGui.QWidget):
         self.treeWidget = self.createTreeWidget()
         vLayout.addWidget(self.treeWidget)
         
-        self.connect(self.searchBox,
-                     QtCore.SIGNAL('executeIncrementalSearch(QString)'),
-                     self.treeWidget.searchItemName)
-        self.connect(self.searchBox,
-                     QtCore.SIGNAL('executeSearch(QString)'),
-                     self.treeWidget.searchItemName)
-        self.connect(self.searchBox,
-                     QtCore.SIGNAL('resetSearch()'),
-                     self.clearTreeWidget)
+        self.searchBox.executeIncrementalSearch['QString'].connect(self.treeWidget.searchItemName)
+        self.searchBox.executeSearch['QString'].connect(self.treeWidget.searchItemName)
+        self.searchBox.resetSearch.connect(self.clearTreeWidget)
                      
     def clearTreeWidget(self):
         """ clearTreeWidget():
@@ -339,7 +333,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         """
         return QSearchTreeWidget(self)
 
-class QPromptWidget(QtGui.QLabel):
+class QPromptWidget(QtWidgets.QLabel):
     """
     QPromptWidget is a widget that will display a prompt text when it
     doesn't have any child visible, or else, it will disappear. This
@@ -352,7 +346,7 @@ class QPromptWidget(QtGui.QLabel):
         Set up the font and alignment for the prompt
         
         """
-        QtGui.QLabel.__init__(self, parent)        
+        QtWidgets.QLabel.__init__(self, parent)        
         self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.setWordWrap(True)
         self.regularFont = self.font()
@@ -400,10 +394,10 @@ class QPromptWidget(QtGui.QLabel):
                              QtCore.Qt.AlignCenter | QtCore.Qt.TextWordWrap,
                              self.promptText)
             painter.end()
-        QtGui.QLabel.paintEvent(self, event)
+        QtWidgets.QLabel.paintEvent(self, event)
         # super(QPromptWidget, self).paintEvent(event)
 
-class QStringEdit(QtGui.QFrame):
+class QStringEdit(QtWidgets.QFrame):
     """
     QStringEdit is a line edit that has an extra button to allow user
     to use a file as the value
@@ -414,27 +408,26 @@ class QStringEdit(QtGui.QFrame):
         Create a hbox layout to contain a line edit and a button
 
         """
-        QtGui.QFrame.__init__(self, parent)        
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        QtWidgets.QFrame.__init__(self, parent)        
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
-        self.lineEdit = QtGui.QLineEdit()
+        self.lineEdit = QtWidgets.QLineEdit()
         self.lineEdit.setFrame(False)
-        self.lineEdit.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                    QtGui.QSizePolicy.Expanding)
+        self.lineEdit.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                    QtWidgets.QSizePolicy.Expanding)
         hLayout.addWidget(self.lineEdit)
         self.setFocusProxy(self.lineEdit)
 
-        self.fileButton = QtGui.QToolButton()
+        self.fileButton = QtWidgets.QToolButton()
         self.fileButton.setText('...')
-        self.fileButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                                      QtGui.QSizePolicy.Expanding)
+        self.fileButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                                      QtWidgets.QSizePolicy.Expanding)
         self.fileButton.setFocusPolicy(QtCore.Qt.NoFocus)
         self.fileButton.setAutoFillBackground(True)
-        self.connect(self.fileButton, QtCore.SIGNAL('clicked()'),
-                     self.insertFileNameDialog)
+        self.fileButton.clicked.connect(self.insertFileNameDialog)
         hLayout.addWidget(self.fileButton)
 
     def setText(self, text):
@@ -464,17 +457,17 @@ class QStringEdit(QtGui.QFrame):
         
         """
         if frame:
-            self.setFrameStyle(QtGui.QFrame.StyledPanel |
-                               QtGui.QFrame.Plain)
+            self.setFrameStyle(QtWidgets.QFrame.StyledPanel |
+                               QtWidgets.QFrame.Plain)
         else:
-            self.setFrameStyle(QtGui.QFrame.NoFrame)
+            self.setFrameStyle(QtWidgets.QFrame.NoFrame)
 
     def insertFileNameDialog(self):
         """ insertFileNameDialog() -> None
         Allow user to insert a file name as a value to the string
         
         """
-        fileName = QtGui.QFileDialog.getOpenFileName(self,
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self[0],
                                                      'Use Filename '
                                                      'as Value...',
                                                      self.text(),
@@ -485,13 +478,15 @@ class QStringEdit(QtGui.QFrame):
 
 ###############################################################################
 
-class QSearchEditBox(QtGui.QComboBox):
+class QSearchEditBox(QtWidgets.QComboBox):
+    executeSearch = pyqtSignal(QVariant)
+    resetText = pyqtSignal()
     def __init__(self, incremental=True, parent=None):
-        QtGui.QComboBox.__init__(self, parent)
+        QtWidgets.QComboBox.__init__(self, parent)
         self.setEditable(True)
-        self.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Fixed)
+        self.setInsertPolicy(QtWidgets.QComboBox.InsertAtTop)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Fixed)
         regexp = QtCore.QRegExp("\S.*")
         self.setDuplicatesEnabled(False)
         validator = QtGui.QRegExpValidator(regexp, self)
@@ -507,32 +502,35 @@ class QSearchEditBox(QtGui.QComboBox):
         if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
             if self.currentText():
                 if not self.is_incremental:
-                    self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
-                              self.currentText())
+                    self.executeSearch.emit(self.currentText())
                 self.insertItem(0, self.currentText())
             else:
-                self.emit(QtCore.SIGNAL('resetText()'))
+                self.resetText.emit()
             return
-        QtGui.QComboBox.keyPressEvent(self, e)
+        QtWidgets.QComboBox.keyPressEvent(self, e)
         
 ###############################################################################
 
-class QSearchBox(QtGui.QWidget):
+class QSearchBox(QtWidgets.QWidget):
     """ 
     QSearchBox contains a search combo box with a clear button and
     a search icon.
 
     """
+    resetSearch = pyqtSignal()
+    refineMode = pyqtSignal(QVariant)
+    executeIncrementalSearch = pyqtSignal(QVariant)
+    executeSearch = pyqtSignal(QVariant)
     def __init__(self, refine=True, incremental=True, parent=None):
         """ QSearchBox(parent: QWidget) -> QSearchBox
         Intialize all GUI components
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setWindowTitle('Search')
         
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(2)
         self.setLayout(hLayout)
 
@@ -541,31 +539,29 @@ class QSearchBox(QtGui.QWidget):
         self.searchEdit.clearEditText()
 
         if refine:
-            self.actionGroup = QtGui.QActionGroup(self)
-            self.searchAction = QtGui.QAction('Search', self)
+            self.actionGroup = QtWidgets.QActionGroup(self)
+            self.searchAction = QtWidgets.QAction('Search', self)
             self.searchAction.setCheckable(True)
             self.actionGroup.addAction(self.searchAction)
-            self.refineAction = QtGui.QAction('Refine', self)
+            self.refineAction = QtWidgets.QAction('Refine', self)
             self.refineAction.setCheckable(True)
             self.actionGroup.addAction(self.refineAction)
             self.searchAction.setChecked(True)
 
-            self.searchMenu = QtGui.QMenu()
+            self.searchMenu = QtWidgets.QMenu()
             self.searchMenu.addAction(self.searchAction)
             self.searchMenu.addAction(self.refineAction)
 
-            self.searchButton = QtGui.QToolButton(self)
+            self.searchButton = QtWidgets.QToolButton(self)
             self.searchButton.setIcon(CurrentTheme.QUERY_ARROW_ICON)
             self.searchButton.setAutoRaise(True)
-            self.searchButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+            self.searchButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
             self.searchButton.setMenu(self.searchMenu)
             hLayout.addWidget(self.searchButton)
-            self.connect(self.searchAction, QtCore.SIGNAL('triggered()'),
-                         self.searchMode)
-            self.connect(self.refineAction, QtCore.SIGNAL('triggered()'),
-                         self.refineMode)
+            self.searchAction.triggered.connect(self.searchMode)
+            self.refineAction.triggered.connect(self.refineMode)
         else:
-            self.searchLabel = QtGui.QLabel(self)
+            self.searchLabel = QtWidgets.QLabel(self)
             pix = CurrentTheme.QUERY_VIEW_ICON.pixmap(QtCore.QSize(16,16))
             self.searchLabel.setPixmap(pix)
             self.searchLabel.setAlignment(QtCore.Qt.AlignCenter)
@@ -574,31 +570,23 @@ class QSearchBox(QtGui.QWidget):
         
         hLayout.addWidget(self.searchEdit)
 
-        self.resetButton = QtGui.QToolButton(self)
+        self.resetButton = QtWidgets.QToolButton(self)
         self.resetButton.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
+                self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
         self.resetButton.setIconSize(QtCore.QSize(12,12))
         self.resetButton.setAutoRaise(True)
         self.resetButton.setEnabled(False)
         hLayout.addWidget(self.resetButton)
         self.manualResetEnabled = False
 
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
-                     self.resetSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('activated(int)'),
-                     self.executeSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('resetText'),
-                     self.resetSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.executeTextSearch)
+        self.resetButton.clicked.connect(self.resetSearch)
+        self.searchEdit.activated[int].connect(self.executeSearch)
+        self.searchEdit.resetText.connect(self.resetSearch)
+        self.searchEdit.executeSearch['QString'].connect(self.executeTextSearch)
         if incremental:
-            self.connect(self.searchEdit, 
-                         QtCore.SIGNAL('editTextChanged(QString)'),
-                         self.executeIncrementalSearch)
+            self.searchEdit.editTextChanged['QString'].connect(self.executeIncrementalSearch)
         else:
-            self.connect(self.searchEdit,
-                         QtCore.SIGNAL('editTextChanged(QString)'),
-                         self.resetToggle)
+            self.searchEdit.editTextChanged['QString'].connect(self.resetToggle)
 
     def resetSearch(self):
         """
@@ -609,7 +597,7 @@ class QSearchBox(QtGui.QWidget):
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
         self.manualResetEnabled = False
-        self.emit(QtCore.SIGNAL('resetSearch()'))
+        self.resetSearch.emit()
 
     def clearSearch(self):
         """ clearSearch() -> None
@@ -627,14 +615,14 @@ class QSearchBox(QtGui.QWidget):
         searchMode() -> None
 
         """
-        self.emit(QtCore.SIGNAL('refineMode(bool)'), False) 
+        self.refineMode.emit(False)
     
     def refineMode(self):
         """
         refineMode() -> None
 
         """
-        self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
+        self.refineMode.emit(True)
 
     def resetToggle(self, text):
         self.resetButton.setEnabled((str(text) != '') or 
@@ -648,11 +636,10 @@ class QSearchBox(QtGui.QWidget):
         """
         self.resetButton.setEnabled((str(text)!='') or
                                     self.manualResetEnabled)
-        self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
+        self.executeIncrementalSearch.emit(text)
 
     def executeTextSearch(self, text):
-        self.emit(QtCore.SIGNAL('executeSearch(QString)'),
-                  text)
+        self.executeSearch.emit(text)
 
     def executeSearch(self, index):
         """
@@ -667,8 +654,7 @@ class QSearchBox(QtGui.QWidget):
             self.resetSearch() 
         else: 
             self.resetButton.setEnabled(True) 
-            self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
-                      self.searchEdit.currentText())
+            self.executeSearch.emit(self.searchEdit.currentText())
 
     def getCurrentText(self):
         return str(self.searchEdit.currentText())
@@ -680,7 +666,7 @@ class QSearchBox(QtGui.QWidget):
 
 ###############################################################################
 
-class QMouseTabBar(QtGui.QTabBar):
+class QMouseTabBar(QtWidgets.QTabBar):
     """QMouseTabBar is a QTabBar that emits a signal when a tab
     receives a mouse event. For now only doubleclick events are
     emitted."""
@@ -688,26 +674,26 @@ class QMouseTabBar(QtGui.QTabBar):
     tabDoubleClicked = pyqtSignal(int,QtCore.QPoint)
     
     def __init__(self, parent=None):
-        QtGui.QTabBar.__init__(self, parent)
+        QtWidgets.QTabBar.__init__(self, parent)
         
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             tab_idx = self.tabAt(event.pos())
             if tab_idx != -1:
                 self.tabDoubleClicked.emit(tab_idx, event.pos())
-        QtGui.QTabBar.mouseDoubleClickEvent(self, event)
+        QtWidgets.QTabBar.mouseDoubleClickEvent(self, event)
 
 ###############################################################################
 
-class QDockPushButton(QtGui.QPushButton):
+class QDockPushButton(QtWidgets.QPushButton):
     """QDockPushButton is a button to be used inside QDockWidgets. It will 
     set the minimum height on Mac so it looks nice on both Mac and Windows"""
     def __init__(self, text, parent=None):
-        QtGui.QPushButton.__init__(self, text, parent) 
+        QtWidgets.QPushButton.__init__(self, text, parent) 
         if systemType in ['Darwin']:
             self.setMinimumHeight(32)
 
-class QPathChooserToolButton(QtGui.QToolButton):
+class QPathChooserToolButton(QtWidgets.QToolButton):
     """
     QPathChooserToolButton is a toolbar button that opens a browser for
     paths.  The lineEdit is updated with the pathname that is selected.
@@ -725,9 +711,9 @@ class QPathChooserToolButton(QtGui.QToolButton):
                  PathChooserToolButton
 
         """
-        QtGui.QToolButton.__init__(self, parent)
+        QtWidgets.QToolButton.__init__(self, parent)
         self.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
+                self.style().standardPixmap(QtWidgets.QStyle.SP_DirOpenIcon)))
         self.setIconSize(QtCore.QSize(12,12))
         if toolTip is None:
             toolTip = 'Open a path chooser'
@@ -735,9 +721,7 @@ class QPathChooserToolButton(QtGui.QToolButton):
         self.setToolTip(toolTip)
         self.setAutoRaise(True)
         self.lineEdit = lineEdit
-        self.connect(self,
-                     QtCore.SIGNAL('clicked()'),
-                     self.runDialog)
+        self.clicked.connect(self.runDialog)
 
     def setPath(self, path):
         """
@@ -752,7 +736,7 @@ class QPathChooserToolButton(QtGui.QToolButton):
         return self.lineEdit.text() or self.defaultPath
 
     def openChooser(self):
-        path = QtGui.QFileDialog.getOpenFileName(self,
+        path = QtWidgets.QFileDialog.getOpenFileName(self[0],
                                                  'Select Path...',
                                                  self.getDefaultText(),
                                                  'All files '
@@ -780,7 +764,7 @@ class QFileChooserToolButton(QPathChooserToolButton):
                                         defaultPath)
 
     def openChooser(self):
-        path = QtGui.QFileDialog.getOpenFileName(self,
+        path = QtWidgets.QFileDialog.getOpenFileName(self[0],
                                                  'Select File...',
                                                  self.getDefaultText(),
                                                  'All files '
@@ -796,7 +780,7 @@ class QDirectoryChooserToolButton(QPathChooserToolButton):
                                        defaultPath)
 
     def openChooser(self):
-        path = QtGui.QFileDialog.getExistingDirectory(self,
+        path = QtWidgets.QFileDialog.getExistingDirectory(self,
                                                       'Select Directory...',
                                                       self.getDefaultText())
         return self.setDataDirectory(path)
@@ -810,8 +794,8 @@ class QOutputPathChooserToolButton(QPathChooserToolButton):
                                        defaultPath)
     
     def openChooser(self):
-        path = QtGui.QFileDialog.getSaveFileName(self,
-                                                 'Select Output Location...',
+        path = QtWidgets.QFileDialog.getSaveFileName(self,
+        [0]                                         'Select Output Location...',
                                                  self.getDefaultText(),
                                                  'All files (*.*)')
         return self.setDataDirectory(path)

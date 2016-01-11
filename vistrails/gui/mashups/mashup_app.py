@@ -36,8 +36,9 @@
 
 
 import os
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5.QtCore import pyqtSignal
 
 from vistrails.core import debug
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
@@ -50,9 +51,9 @@ from vistrails.packages.spreadsheet.spreadsheet_controller import \
     spreadsheetController
 
 
-class QMashupAppMainWindow(QtGui.QMainWindow):
+class QMashupAppMainWindow(QtWidgets.QMainWindow):
     #signals
-    appWasClosed = pyqtSignal(QtGui.QMainWindow)
+    appWasClosed = pyqtSignal(QtWidgets.QMainWindow)
 
     def __init__(self, parent=None, vistrail_view=None, dumpcells=False,
                  controller=None, version=-1):
@@ -61,14 +62,14 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         """
         # Constructing the main widget
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.vtkCells = []
-        self.setStatusBar(QtGui.QStatusBar(self))
+        self.setStatusBar(QtWidgets.QStatusBar(self))
 
         # Central widget
-        centralWidget = QtGui.QWidget()
-        self.mainLayout = QtGui.QVBoxLayout()
-        self.mainLayout.setMargin(0)
+        centralWidget = QtWidgets.QWidget()
+        self.mainLayout = QtWidgets.QVBoxLayout()
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(5)
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
@@ -92,7 +93,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.setWindowTitle('Mashup')
 
         # Assign "hidden" shortcut
-        self.editingModeAct = QtGui.QAction("Chang&e Layout",
+        self.editingModeAct = QtWidgets.QAction("Chang&e Layout",
                                  self, shortcut="Ctrl+E",
                                  statusTip="Change the layout of the widgets",
                                  triggered=self.toggleEditingMode)
@@ -136,30 +137,30 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         # Constructing buttons
         buttonDock = QCustomDockWidget('Control Buttons', self)
-        buttonWidget = QtGui.QWidget(buttonDock)
-        buttonWidget.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                                   QtGui.QSizePolicy.Preferred)
-        buttonLayout = QtGui.QGridLayout()
+        buttonWidget = QtWidgets.QWidget(buttonDock)
+        buttonWidget.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                   QtWidgets.QSizePolicy.Preferred)
+        buttonLayout = QtWidgets.QGridLayout()
         buttonWidget.setLayout(buttonLayout)
-        buttonLayout.setMargin(5)
-        self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update",
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.cb_auto_update = QtWidgets.QCheckBox("Turn on auto-update",
                                               self.centralWidget())
         self.cb_auto_update.setChecked(False)
-        self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in '%s'" % \
+        self.cb_loop_sequence = QtWidgets.QCheckBox("Render all steps in '%s'" % \
            (self.sequenceOption.alias.name if self.sequenceOption else 'None'),
             self.centralWidget())
         self.cb_loop_sequence.setChecked(False)
         self.cb_loop_sequence.setVisible(self.sequenceOption is not False)
         self.cb_loop_sequence.setToolTip(
                         "Render each step of this stepper for fast switching")
-        self.cb_loop_int = QtGui.QCheckBox("Interactive Steps",
+        self.cb_loop_int = QtWidgets.QCheckBox("Interactive Steps",
                                            self.centralWidget())
         self.cb_loop_int.setChecked(False)
         self.cb_loop_int.setVisible(False)
         self.cb_loop_int.setToolTip(
                  "Show complete result of each step instead of static images")
         self.cb_loop_sequence.clicked.connect(self.cb_loop_int.setVisible)
-        self.cb_keep_camera = QtGui.QCheckBox("Keep camera position",
+        self.cb_keep_camera = QtWidgets.QCheckBox("Keep camera position",
                                               self.centralWidget())
         self.cb_keep_camera.setChecked(True)
         self.connect(self.cb_auto_update,
@@ -168,25 +169,25 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.connect(self.cb_loop_int,
                      QtCore.SIGNAL("stateChanged(int)"),
                      self.loop_int_changed)
-        self.loopButton = QtGui.QPushButton("&Loop", self.centralWidget())
+        self.loopButton = QtWidgets.QPushButton("&Loop", self.centralWidget())
         self.loopButton.setToolTip("Loop automatically through steps")
         self.loopButton.setCheckable(True)
         self.loopButton.setVisible(self.sequenceOption is not False)
-        self.updateButton = QtGui.QPushButton("&Update", self.centralWidget())
+        self.updateButton = QtWidgets.QPushButton("&Update", self.centralWidget())
         if self.dumpcells:
-            self.quitButton = QtGui.QPushButton("&Save", self.centralWidget())
+            self.quitButton = QtWidgets.QPushButton("&Save", self.centralWidget())
             self.connect(self.quitButton,
                          QtCore.SIGNAL('clicked(bool)'),
                          self.saveAndExport)
         else:
-            self.quitButton = QtGui.QPushButton("&Quit", self.centralWidget())
+            self.quitButton = QtWidgets.QPushButton("&Quit", self.centralWidget())
             self.connect(self.quitButton,
                          QtCore.SIGNAL('clicked(bool)'),
                          self.close)
         buttonLayout.setColumnStretch(0, 1)
         if self.sequenceOption:
-            sequenceLayout = QtGui.QHBoxLayout()
-            sequenceLayout.setMargin(5)
+            sequenceLayout = QtWidgets.QHBoxLayout()
+            sequenceLayout.setContentsMargins(5, 5, 5, 5)
             sequenceLayout.addWidget(self.cb_loop_int)
             sequenceLayout.addWidget(self.cb_loop_sequence)
             buttonLayout.addLayout(sequenceLayout, 0, 0, QtCore.Qt.AlignRight)
@@ -208,15 +209,15 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
 
-        self.saveAllAct = QtGui.QAction("S&ave Combined", self,
+        self.saveAllAct = QtWidgets.QAction("S&ave Combined", self,
                                         shortcut=QtGui.QKeySequence.SelectAll,
                                         statusTip="Save combined images to disk",
                                         triggered=self.saveAllEvent)
-        self.saveAct = QtGui.QAction("&Save Each", self,
+        self.saveAct = QtWidgets.QAction("&Save Each", self,
                                      shortcut=QtGui.QKeySequence.Save,
                                      statusTip="Save separate images to disk",
                                      triggered=self.saveEventAction)
-        self.showBuilderAct = QtGui.QAction("VisTrails Main Window", self,
+        self.showBuilderAct = QtWidgets.QAction("VisTrails Main Window", self,
                                             statusTip="Show VisTrails Main Window",
                                             triggered=self.showBuilderWindow)
         self.createMenus()
@@ -474,10 +475,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
     def saveEvent(self, folder=None):
         if folder is None:
-            folder = QtGui.QFileDialog.getExistingDirectory(self,
+            folder = QtWidgets.QFileDialog.getExistingDirectory(self,
                                                         "Save images to...",
                                                         self.lastExportPath,
-                                                        QtGui.QFileDialog.ShowDirsOnly)
+                                                        QtWidgets.QFileDialog.ShowDirsOnly)
         if folder:
             self.dumpcells = str(folder)
             self.saveEach()
@@ -485,10 +486,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
     def saveAllEvent(self, folder=None):
         if folder is None:
-            folder = QtGui.QFileDialog.getExistingDirectory(self,
+            folder = QtWidgets.QFileDialog.getExistingDirectory(self,
                                                         "Save images to...",
                                                         self.lastExportPath,
-                                                        QtGui.QFileDialog.ShowDirsOnly)
+                                                        QtWidgets.QFileDialog.ShowDirsOnly)
         if folder:
             self.dumpcells = str(folder)
             self.saveAll()
@@ -497,7 +498,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.saveAll()
 
     def initCells(self, cellEvents):
-        cellLayout = QtGui.QHBoxLayout()
+        cellLayout = QtWidgets.QHBoxLayout()
         self.mainLayout.addLayout(cellLayout, self.numberOfCells * 2)
         self.cellWidgets = []
         vtkCells = []
@@ -506,8 +507,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if event.cellType.__name__ == 'QVTKWidget':
                 vtkCells.append(cellWidget)
             cellWidget.show()
-            cellWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                      QtGui.QSizePolicy.Expanding)
+            cellWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                      QtWidgets.QSizePolicy.Expanding)
             cellWidget.setMinimumSize(300, 100)
             cellLayout.addWidget(cellWidget)
             self.cellWidgets.append(cellWidget)
@@ -543,8 +544,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             else:
                 aliasWidget = QDropDownWidget(alias, vtparam, dock)
 
-            aliasWidget.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                                          QtGui.QSizePolicy.Maximum)
+            aliasWidget.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                          QtWidgets.QSizePolicy.Maximum)
             self.connect(aliasWidget,
                              QtCore.SIGNAL("contentsChanged"),
                              self.widget_changed)
@@ -558,8 +559,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         # Added a stretch space
         stretchDock = QCustomDockWidget('Stretch Space', self)
-        stretch = QtGui.QWidget()
-        stretch.setLayout(QtGui.QVBoxLayout())
+        stretch = QtWidgets.QWidget()
+        stretch.setLayout(QtWidgets.QVBoxLayout())
         stretch.layout().addStretch()
         stretchDock.setWidget(stretch)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, stretchDock)
@@ -634,26 +635,26 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         from vistrails.gui.vistrails_window import _app
         _app.show()
 
-class QCustomDockWidget(QtGui.QDockWidget):
+class QCustomDockWidget(QtWidgets.QDockWidget):
     def __init__(self, title, parent=None):
-        QtGui.QDockWidget.__init__(self, title, parent)
+        QtWidgets.QDockWidget.__init__(self, title, parent)
         self.setObjectName(title)
-        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable |
-                         QtGui.QDockWidget.DockWidgetMovable)
-        self.emptyTitleBar = QtGui.QWidget()
+        self.setFeatures(QtWidgets.QDockWidget.DockWidgetClosable |
+                         QtWidgets.QDockWidget.DockWidgetMovable)
+        self.emptyTitleBar = QtWidgets.QWidget()
         self.titleBarVisible = True
         self.hideTitleBar()
 
     def showTitleBar(self):
         self.titleBarVisible = True
-        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable |
-                         QtGui.QDockWidget.DockWidgetMovable)
+        self.setFeatures(QtWidgets.QDockWidget.DockWidgetClosable |
+                         QtWidgets.QDockWidget.DockWidgetMovable)
         self.setMaximumHeight(524287)
         self.setTitleBarWidget(None)
 
     def hideTitleBar(self):
         self.titleBarVisible = False
-        self.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+        self.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
         self.setTitleBarWidget(self.emptyTitleBar)
 
     def toggleTitleBar(self):

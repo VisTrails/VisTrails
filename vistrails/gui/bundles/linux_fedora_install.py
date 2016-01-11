@@ -63,7 +63,8 @@
 
 # ##############################################################################
 
-# from PyQt4 import Qt, QtCore, QtGui
+# from PyQt5 import Qt, QtCore
+
 
 # class GUIInstallProgress(InstallProgress):
 #     def __init__(self, pbar, status_label):

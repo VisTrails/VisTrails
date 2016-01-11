@@ -49,16 +49,17 @@ from vistrails.core.system import vistrails_root_directory
 
 
 try:
-    from PyQt4 import QtCore, QtGui
+    from PyQt5 import QtCore, QtWidgets
+
 except ImportError:
     qt_available = False
 else:
     qt_available = True
 
 
-class ProfileItem(QtGui.QListWidgetItem):
+class ProfileItem(QtWidgets.QListWidgetItem):
     def __init__(self, profile, text, italic=False):
-        QtGui.QListWidgetItem.__init__(self, text)
+        QtWidgets.QListWidgetItem.__init__(self, text)
         if italic:
             font = self.font()
             font.setItalic(True)
@@ -67,12 +68,12 @@ class ProfileItem(QtGui.QListWidgetItem):
 
 
 def choose_profile(profiles):
-    dialog = QtGui.QDialog()
+    dialog = QtWidgets.QDialog()
     dialog.setWindowTitle("IPython profile selection")
 
-    layout = QtGui.QVBoxLayout()
-    profile_list = QtGui.QListWidget()
-    profile_list.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    layout = QtWidgets.QVBoxLayout()
+    profile_list = QtWidgets.QListWidget()
+    profile_list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
     for profile in profiles:
         profile_list.addItem(ProfileItem(profile, profile))
 
@@ -81,29 +82,25 @@ def choose_profile(profiles):
     if not profiles:
         profile_list.addItem(ProfileItem('default', "default (create)", True))
 
-    buttons = QtGui.QHBoxLayout()
-    ok = QtGui.QPushButton("Select")
-    QtCore.QObject.connect(ok, QtCore.SIGNAL('clicked()'),
-                           dialog, QtCore.SLOT('accept()'))
+    buttons = QtWidgets.QHBoxLayout()
+    ok = QtWidgets.QPushButton("Select")
+    ok.clicked.connect(dialog, accept)
     buttons.addWidget(ok)
-    cancel = QtGui.QPushButton("Cancel")
-    QtCore.QObject.connect(cancel, QtCore.SIGNAL('clicked()'),
-                           dialog, QtCore.SLOT('reject()'))
+    cancel = QtWidgets.QPushButton("Cancel")
+    cancel.clicked.connect(dialog, reject)
     buttons.addWidget(cancel)
 
     def check_selection():
         selection = profile_list.selectedItems()
         ok.setEnabled(len(selection) == 1)
-    QtCore.QObject.connect(
-            profile_list, QtCore.SIGNAL('itemSelectionChanged()'),
-            check_selection)
+    profile_list.itemSelectionChanged.connect(check_selection)
     check_selection()
 
     layout.addWidget(profile_list)
     layout.addLayout(buttons)
     dialog.setLayout(layout)
 
-    if dialog.exec_() == QtGui.QDialog.Accepted:
+    if dialog.exec_() == QtWidgets.QDialog.Accepted:
         return profile_list.selectedItems()[0].profile
     else:
         return None
@@ -127,7 +124,7 @@ class EngineManager(object):
             self.profile = 'default'
         elif not qt_available:
             raise ValueError("'default' IPython profile does not exist "
-                             "and PyQt4 is not available")
+                             "and PyQt5 is not available")
         else:
             self.profile = choose_profile(profiles)
 
@@ -152,13 +149,13 @@ class EngineManager(object):
             if connect_only:
                 start_ctrl = False
             elif qt_available:
-                res = QtGui.QMessageBox.question(
+                res = QtWidgets.QMessageBox.question(
                         None,
                         "Start controller",
                         "Unable to connect to the configured IPython "
                         "controller. Do you want to start one?",
-                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                start_ctrl = res == QtGui.QMessageBox.Yes
+                        QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                start_ctrl = res == QtWidgets.QMessageBox.Yes
             else:
                 start_ctrl = True
         except IOError:
@@ -166,13 +163,13 @@ class EngineManager(object):
             if connect_only:
                 start_ctrl = False
             elif qt_available:
-                res = QtGui.QMessageBox.question(
+                res = QtWidgets.QMessageBox.question(
                         None,
                         "Start controller",
                         "No controller is configured in this IPython profile. "
                         "Do you want to start one?",
-                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                start_ctrl = res == QtGui.QMessageBox.Yes
+                        QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                start_ctrl = res == QtWidgets.QMessageBox.Yes
             else:
                 start_ctrl = True
 
@@ -192,7 +189,7 @@ class EngineManager(object):
                     '--profile=%s' % self.profile)
             if code is not None:
                 if qt_available:
-                    QtGui.QMessageBox.critical(
+                    QtWidgets.QMessageBox.critical(
                             None,
                             "Error",
                             "Controller exited with code %d" % code)
@@ -234,7 +231,7 @@ class EngineManager(object):
         c = self.ensure_controller()
         if c is None:
             if qt_available:
-                QtGui.QMessageBox.warning(
+                QtWidgets.QMessageBox.warning(
                         None,
                         "No controller",
                         "Can't start engines: couldn't connect to a "
@@ -242,7 +239,7 @@ class EngineManager(object):
             print("parallelflow: no controller, not starting engines")
         else:
             if not nb and qt_available:
-                nb, res = QtGui.QInputDialog.getInt(
+                nb, res = QtWidgets.QInputDialog.getInt(
                         None,
                         "Start engines",
                         prompt,
@@ -255,7 +252,7 @@ class EngineManager(object):
                 nb = 1
             print("parallelflow: about to start %d engines" % nb)
             if qt_available:
-                bar = QtGui.QProgressDialog(
+                bar = QtWidgets.QProgressDialog(
                         "Starting engines...",
                         None,
                         0, nb)
@@ -296,7 +293,7 @@ class EngineManager(object):
                 else:
                     failed = ', '.join('%d' % f for f in failed)
                 if qt_available:
-                    QtGui.QMessageBox.critical(
+                    QtWidgets.QMessageBox.critical(
                         None,
                         "Error",
                         "%d engine(s) exited with codes: %s" % (
@@ -353,29 +350,29 @@ class EngineManager(object):
         print("")
 
         if qt_available:
-            dialog = QtGui.QDialog()
-            layout = QtGui.QVBoxLayout()
-            form = QtGui.QFormLayout()
+            dialog = QtWidgets.QDialog()
+            layout = QtWidgets.QVBoxLayout()
+            form = QtWidgets.QFormLayout()
             form.addRow(
                     "Profile:",
-                    QtGui.QLabel(self.profile))
+                    QtWidgets.QLabel(self.profile))
             form.addRow(
                     "Connected:",
-                    QtGui.QLabel("yes" if connected else "no"))
+                    QtWidgets.QLabel("yes" if connected else "no"))
             form.addRow(
                     "Controller started from VisTrails:",
-                    QtGui.QLabel("running" if st_ctrl else "no"))
+                    QtWidgets.QLabel("running" if st_ctrl else "no"))
             form.addRow(
                     "Engines started from VisTrails:",
-                    QtGui.QLabel(str(st_engines)))
+                    QtWidgets.QLabel(str(st_engines)))
             form.addRow(
                     "Total engines in cluster:",
-                    QtGui.QLabel(str(nb_engines)
+                    QtWidgets.QLabel(str(nb_engines)
                                  if nb_engines is not None
                                  else "(unknown)"))
             layout.addLayout(form)
             if connected and client.ids:
-                tree = QtGui.QTreeWidget()
+                tree = QtWidgets.QTreeWidget()
                 tree.setHeaderHidden(False)
                 tree.setHeaderLabels(["IPython id", "PID", "System type"])
                 engine_tree = dict()
@@ -383,11 +380,11 @@ class EngineManager(object):
                     engine_tree.setdefault(fqdn, []).append(
                             (ip_id, pid, system))
                 for fqdn, info in engine_tree.items():
-                    node = QtGui.QTreeWidgetItem([fqdn])
+                    node = QtWidgets.QTreeWidgetItem([fqdn])
                     tree.addTopLevelItem(node)
                     tree.setFirstItemColumnSpanned(node, True)
                     for ip_id, pid, system in info:
-                        node.addChild(QtGui.QTreeWidgetItem([
+                        node.addChild(QtWidgets.QTreeWidgetItem([
                                 str(ip_id),
                                 str(pid),
                                 system]))
@@ -396,9 +393,8 @@ class EngineManager(object):
                 tree.expandAll()
                 layout.addWidget(tree)
 
-            ok = QtGui.QPushButton("Ok")
-            QtCore.QObject.connect(ok, QtCore.SIGNAL('clicked()'),
-                                   dialog, QtCore.SLOT('accept()'))
+            ok = QtWidgets.QPushButton("Ok")
+            ok.clicked.connect(dialog, accept)
             layout.addWidget(ok, 1, QtCore.Qt.AlignHCenter)
             dialog.setLayout(layout)
             dialog.exec_()
@@ -433,14 +429,14 @@ class EngineManager(object):
 
         if ctrl:
             if qt_available:
-                res = QtGui.QMessageBox.question(
+                res = QtWidgets.QMessageBox.question(
                         None,
                         "Shutdown controller",
                         "The controller is still running. Do you want to stop "
                         "it?",
-                        QtGui.QMessageBox.Yes,
-                        QtGui.QMessageBox.No)
-                res = res != QtGui.QMessageBox.No
+                        QtWidgets.QMessageBox.Yes,
+                        QtWidgets.QMessageBox.No)
+                res = res != QtWidgets.QMessageBox.No
             else:
                 res = True
             if res:
@@ -465,16 +461,16 @@ class EngineManager(object):
                     total = " (among %d total)" % len(self._client.ids)
                 else:
                     total = ''
-                res = QtGui.QMessageBox.question(
+                res = QtWidgets.QMessageBox.question(
                         None,
                         "Shutdown engines",
                         "%d engines started here%s are still "
                         "running. Do you want to stop them?" % (
                                 engines,
                                 total),
-                        QtGui.QMessageBox.Yes,
-                        QtGui.QMessageBox.No)
-                res = res != QtGui.QMessageBox.No
+                        QtWidgets.QMessageBox.Yes,
+                        QtWidgets.QMessageBox.No)
+                res = res != QtWidgets.QMessageBox.No
             else:
                 res = True
             if res:
@@ -497,7 +493,7 @@ class EngineManager(object):
         client = self.ensure_controller(connect_only=True)
         if client is None:
             if qt_available:
-                QtGui.QMessageBox.information(
+                QtWidgets.QMessageBox.information(
                         None,
                         "Couldn't connect",
                         "Couldn't connect to a controller. Is the cluster "
@@ -507,14 +503,14 @@ class EngineManager(object):
             return
 
         if qt_available:
-            res = QtGui.QMessageBox.question(
+            res = QtWidgets.QMessageBox.question(
                     None,
                     "Shutdown cluster",
                     "This will use the client connection to request the hub "
                     "and every engine to shutdown. Continue?",
-                    QtGui.QMessageBox.Ok,
-                    QtGui.QMessageBox.Cancel)
-            if res != QtGui.QMessageBox.Ok:
+                    QtWidgets.QMessageBox.Ok,
+                    QtWidgets.QMessageBox.Cancel)
+            if res != QtWidgets.QMessageBox.Ok:
                 return
 
         self._client.shutdown(

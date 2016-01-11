@@ -39,7 +39,8 @@
 
 
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
@@ -85,10 +86,10 @@ class ImageViewerCellWidget(QCellWidget):
         
         """
         QCellWidget.__init__(self, parent)
-        self.setLayout(QtGui.QVBoxLayout(self))
+        self.setLayout(QtWidgets.QVBoxLayout(self))
         self.setAnimationEnabled(True)
         
-        self.label = QtGui.QLabel()
+        self.label = QtWidgets.QLabel()
         self.layout().addWidget(self.label)
         
         self.label.setAutoFillBackground(True)
@@ -145,9 +146,9 @@ class ImageViewerCellWidget(QCellWidget):
         Save the current widget contents to a pdf file
         
         """
-        printer = QtGui.QPrinter()
+        printer = QtPrintSupport.QPrinter()
         
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         painter = QtGui.QPainter()
         painter.begin(printer)
@@ -166,7 +167,7 @@ class ImageViewerCellWidget(QCellWidget):
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
                 
-class ImageViewerFitToCellAction(QtGui.QAction):
+class ImageViewerFitToCellAction(QtWidgets.QAction):
     """
     ImageViewerFitToCellAction is the action to stretch the image to
     fit inside a cell
@@ -178,7 +179,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/fittocell.png"),
                                "&Fit To Cell",
                                parent)
@@ -207,7 +208,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         self.setChecked(cellWidget.label.hasScaledContents())
 
 
-class ImageViewerZoomSlider(QtGui.QSlider):
+class ImageViewerZoomSlider(QtWidgets.QSlider):
     """
     ImageViewerZoomSlider is a slider that allows user to zoom in and
     out by dragging it
@@ -218,15 +219,15 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         Setup the ranges, status tip, etc. of the slider
         
         """
-        QtGui.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
+        QtWidgets.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setRange(100, 300)
         self.setValue(100)
         self.setTracking(True)
         self.setStatusTip("Zoom in the image")
-        self.connect(self, QtCore.SIGNAL("valueChanged(int)"), self.updateZoom)
-        self.connect(self, QtCore.SIGNAL("needUpdateStatus"), self.updateStatus)
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                           QtGui.QSizePolicy.Expanding)
+        self.valueChanged[int].connect(self.updateZoom)
+        self.needUpdateStatus.connect(self.updateStatus)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                           QtWidgets.QSizePolicy.Expanding)
         
     def updateZoom(self, value):
         """ updateZoom(value: int) -> None
@@ -256,7 +257,7 @@ class ImageViewerZoomSlider(QtGui.QSlider):
                 self.setEnabled(False)
                 self.setValue(100)
                 
-class ImageViewerZoomLabel(QtGui.QLabel):
+class ImageViewerZoomLabel(QtWidgets.QLabel):
     """
     ImageViewerZoomLabel is the label sitting next to the ImageViewerZoomSlider
     
@@ -266,7 +267,7 @@ class ImageViewerZoomLabel(QtGui.QLabel):
         Setup the label with a status tip
         
         """
-        QtGui.QLabel.__init__(self, "100%", parent)
+        QtWidgets.QLabel.__init__(self, "100%", parent)
         self.setStatusTip("Zoom in the image")
         
     def updateValue(self, value):
@@ -275,7 +276,7 @@ class ImageViewerZoomLabel(QtGui.QLabel):
         """
         self.setText(str(value)+"%")
                 
-class ImageViewerRotateAction(QtGui.QAction):
+class ImageViewerRotateAction(QtWidgets.QAction):
     """
     ImageViewerRotateAction is the action to rotate the image
     
@@ -286,12 +287,12 @@ class ImageViewerRotateAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/rotate.png"),
                                "&Rotate CW...",
                                parent)
         self.setStatusTip("Rotate 90 degrees CW")
-        self.rotationMatrix = QtGui.QMatrix(0,1,-1,0,0,0)
+        self.rotationMatrix = QtGui.QTransform(0,1,-1,0,0,0)
         
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -306,7 +307,7 @@ class ImageViewerRotateAction(QtGui.QAction):
         cellWidget.label.setPixmap(cellWidget.label.pixmap().transformed(
             self.rotationMatrix))
 
-class ImageViewerFlipAction(QtGui.QAction):
+class ImageViewerFlipAction(QtWidgets.QAction):
     """
     ImageViewerFlipAction is the action to flip the image
     
@@ -316,12 +317,12 @@ class ImageViewerFlipAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/flip.png"),
                                "&Flip Horizontal...",
                                parent)
         self.setStatusTip("Flip the image horizontally")
-        self.flipMatrix = QtGui.QMatrix(-1,0,0,1,0,0)
+        self.flipMatrix = QtGui.QTransform(-1,0,0,1,0,0)
         
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -352,9 +353,7 @@ class ImageViewerToolBar(QCellToolBar):
         self.appendAction(ImageViewerFlipAction(self))
         self.slider = ImageViewerZoomSlider(self)
         label = ImageViewerZoomLabel(self)
-        self.connect(self.slider,
-                     QtCore.SIGNAL("valueChanged(int)"),
-                     label.updateValue)
+        self.slider.valueChanged[int].connect(label.updateValue)
         self.appendWidget(self.slider)
         self.appendWidget(label)
         self.addAnimationButtons()

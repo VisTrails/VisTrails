@@ -39,7 +39,8 @@ drop constants from the module palette
 """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
+
 from vistrails.gui.variable_dropbox import QVariableDropBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 

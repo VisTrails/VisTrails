@@ -44,7 +44,8 @@ QModuleTreeWidgetItem
 
 import os
 import traceback
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
@@ -72,11 +73,11 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         self.addButtonsToToolBar()
 
     def addButtonsToToolBar(self):
-        self.expandAction = QtGui.QAction(CurrentTheme.EXPAND_ALL_ICON,
+        self.expandAction = QtWidgets.QAction(CurrentTheme.EXPAND_ALL_ICON,
                                            "Expand All", self.toolWindow().toolbar,
                                            triggered=self.expandAll)
 
-        self.collapseAction = QtGui.QAction(CurrentTheme.COLLAPSE_ALL_ICON,
+        self.collapseAction = QtWidgets.QAction(CurrentTheme.COLLAPSE_ALL_ICON,
                                            "Collapse All", self.toolWindow().toolbar,
                                            triggered=self.collapseAll)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
@@ -257,9 +258,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
         self.setRootIsDecorated(False)
         self.delegate = QModuleTreeWidgetItemDelegate(self, self)
         self.setItemDelegate(self.delegate)
-        self.connect(self,
-                     QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
-                     self.onItemPressed)
+        self.itemPressed[QTreeWidgetItem, int].connect(self.onItemPressed)
 
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
@@ -296,13 +295,11 @@ class QModuleTreeWidget(QSearchTreeWidget):
                         assert False, "fell through"
                     menu_items = package.context_menu(text)
                     if menu_items:
-                        menu = QtGui.QMenu(self)
+                        menu = QtWidgets.QMenu(self)
                         for text, callback in menu_items:
-                            act = QtGui.QAction(text, self)
+                            act = QtWidgets.QAction(text, self)
                             act.setStatusTip(text)
-                            QtCore.QObject.connect(act,
-                                                   QtCore.SIGNAL("triggered()"),
-                                                   callback)
+                            act.triggered.connect(callback)
                             menu.addAction(act)
                         menu.exec_(event.globalPos())
                     return
@@ -338,7 +335,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
                 pipeline_view.scene().delete_tmp_module()
 
 
-class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
+class QModuleTreeWidgetItemDelegate(QtWidgets.QItemDelegate):
     """
     QModuleTreeWidgetItemDelegate will override the original
     QTreeWidget paint function to draw buttons for top-level item
@@ -354,7 +351,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Create the item delegate given the tree view
 
         """
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
         self.treeView = view
         self.isMac = systemType == 'Darwin'
 
@@ -366,36 +363,36 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         model = index.model()
         if not model.parent(index).isValid():
-            buttonOption = QtGui.QStyleOptionButton()
+            buttonOption = QtWidgets.QStyleOptionButton()
             buttonOption.state = option.state
             if self.isMac:
-                buttonOption.state |= QtGui.QStyle.State_Raised
-            buttonOption.state &= ~QtGui.QStyle.State_HasFocus
+                buttonOption.state |= QtWidgets.QStyle.State_Raised
+            buttonOption.state &= ~QtWidgets.QStyle.State_HasFocus
 
             buttonOption.rect = option.rect
             buttonOption.palette = option.palette
-            buttonOption.features = QtGui.QStyleOptionButton.None
+            buttonOption.features = QtWidgets.QStyleOptionButton.None
 
             style = self.treeView.style()
 
-            style.drawControl(QtGui.QStyle.CE_PushButton,
+            style.drawControl(QtWidgets.QStyle.CE_PushButton,
                               buttonOption,
                               painter,
                               self.treeView)
 
-            branchOption = QtGui.QStyleOption()
+            branchOption = QtWidgets.QStyleOption()
             i = 9 ### hardcoded in qcommonstyle.cpp
             r = option.rect
             branchOption.rect = QtCore.QRect(r.left() + i / 2,
                                              r.top() + (r.height() - i) / 2,
                                              i, i)
             branchOption.palette = option.palette
-            branchOption.state = QtGui.QStyle.State_Children
+            branchOption.state = QtWidgets.QStyle.State_Children
 
             if self.treeView.isExpanded(index):
-                branchOption.state |= QtGui.QStyle.State_Open
+                branchOption.state |= QtWidgets.QStyle.State_Open
 
-            style.drawPrimitive(QtGui.QStyle.PE_IndicatorBranch,
+            style.drawPrimitive(QtWidgets.QStyle.PE_IndicatorBranch,
                                 branchOption,
                                 painter, self.treeView)
 
@@ -415,19 +412,19 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                self.treeView.isEnabled(),
                                text)
         else:
-            QtGui.QItemDelegate.paint(self, painter, option, index)
+            QtWidgets.QItemDelegate.paint(self, painter, option, index)
 
     def sizeHint(self, option, index):
         """ sizeHint(option: QStyleOptionViewItem, index: QModelIndex) -> None
         Take into account the size of the top-level button
 
         """
-        return (QtGui.QItemDelegate.sizeHint(self, option, index) +
+        return (QtWidgets.QItemDelegate.sizeHint(self, option, index) +
                 QtCore.QSize(2, 2))
 
 
 
-class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
+class QModuleTreeWidgetItem(QtWidgets.QTreeWidgetItem):
     """
     QModuleTreeWidgetItem represents module on QModuleTreeWidget
 
@@ -443,7 +440,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         labels
 
         """
-        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, labelList)
         self.set_descriptor(descriptor)
 
         # Real flags store the widget's flags prior to masking related
@@ -472,7 +469,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
             # draggable or enabled
             flags = flags & ~(QtCore.Qt.ItemIsDragEnabled |
                               QtCore.Qt.ItemIsSelectable)
-        QtGui.QTreeWidgetItem.setFlags(self, flags)
+        QtWidgets.QTreeWidgetItem.setFlags(self, flags)
 
     def is_top_level(self):
         return self.descriptor is None
@@ -480,25 +477,19 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     def contextMenuEvent(self, event, widget):
         if self.is_top_level():
             return
-        menu = QtGui.QMenu(widget)
-        act = QtGui.QAction("View Documentation", widget)
+        menu = QtWidgets.QMenu(widget)
+        act = QtWidgets.QAction("View Documentation", widget)
         act.setStatusTip("View module documentation")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.view_documentation)
+        act.triggered.connect(self.view_documentation)
         menu.addAction(act)
         if self.descriptor.package == 'local.abstractions':
-            act = QtGui.QAction("Edit Subworkflow", widget)
+            act = QtWidgets.QAction("Edit Subworkflow", widget)
             act.setStatusTip("Edit this Subworkflow")
-            QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.edit_subworkflow)
+            act.triggered.connect(self.edit_subworkflow)
             menu.addAction(act)
-            act = QtGui.QAction("Remove Subworkflow", widget)
+            act = QtWidgets.QAction("Remove Subworkflow", widget)
             act.setStatusTip("Delete this Subworkflow")
-            QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.remove_subworkflow)
+            act.triggered.connect(self.remove_subworkflow)
             menu.addAction(act)
         menu.exec_(event.globalPos())
 
@@ -515,12 +506,12 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
     def remove_subworkflow(self):
         registry = get_module_registry()
-        res = QtGui.QMessageBox.question(None,
+        res = QtWidgets.QMessageBox.question(None,
                   'Delete subworkflow?',
                   'Remove local subworkflow "%s" and delete from disk?' % self.descriptor.name,
-                  buttons=QtGui.QMessageBox.Yes,
-                  defaultButton=QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
+                  buttons=QtWidgets.QMessageBox.Yes,
+                  defaultButton=QtWidgets.QMessageBox.No)
+        if res == QtWidgets.QMessageBox.Yes:
             os.unlink(self.descriptor.module.vt_fname)
             registry.delete_module(*self.descriptor.spec_tuple)
 

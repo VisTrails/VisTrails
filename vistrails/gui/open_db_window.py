@@ -45,7 +45,8 @@ QConnectionDBSetupWindow
 """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
@@ -56,7 +57,7 @@ from vistrails.gui.utils import show_info, show_warning, show_question, \
 NO_BUTTON, YES_BUTTON
 from vistrails.core import debug
 
-class QOpenDBWindow(QtGui.QDialog):
+class QOpenDBWindow(QtWidgets.QDialog):
     """
     QOpenDBWindow is a dialog containing two panels. the left panel shows all
     the stored database connections and the right paanel shows the vistrails
@@ -69,19 +70,19 @@ class QOpenDBWindow(QtGui.QDialog):
         Construct the dialog with the two panels
 
         """
-        QtGui.QDialog.__init__(self,parent)
+        QtWidgets.QDialog.__init__(self,parent)
         self.setWindowTitle("Choose a vistrail")
         self.save = False
-        mainLayout = QtGui.QVBoxLayout()
-        panelsLayout = QtGui.QGridLayout()
+        mainLayout = QtWidgets.QVBoxLayout()
+        panelsLayout = QtWidgets.QGridLayout()
 
         self.createActions()
-        self.saveasLayout = QtGui.QHBoxLayout()
-        self.saveasLabel = QtGui.QLabel("Save As:")
-        self.saveasEdt = QtGui.QLineEdit("")
+        self.saveasLayout = QtWidgets.QHBoxLayout()
+        self.saveasLabel = QtWidgets.QLabel("Save As:")
+        self.saveasEdt = QtWidgets.QLineEdit("")
         self.saveasEdt.setFixedWidth(200)
-        self.saveasEdt.setSizePolicy(QtGui.QSizePolicy.Fixed,
-                                     QtGui.QSizePolicy.Fixed)
+        self.saveasEdt.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                     QtWidgets.QSizePolicy.Fixed)
         self.saveasLayout.addWidget(self.saveasLabel)
         self.saveasLayout.addWidget(self.saveasEdt)
         self.saveasLabel.setVisible(False)
@@ -89,8 +90,8 @@ class QOpenDBWindow(QtGui.QDialog):
         self.connectionList = QDBConnectionList(self)
         self.objectList = QDBObjectList(self)
 
-        dbLabel = QtGui.QLabel("Databases:")
-        self.vtLabel = QtGui.QLabel("Vistrails: ")
+        dbLabel = QtWidgets.QLabel("Databases:")
+        self.vtLabel = QtWidgets.QLabel("Vistrails: ")
         
         panelsLayout.addWidget(dbLabel,0,0,1,1)
         panelsLayout.setColumnMinimumWidth(1,10)
@@ -98,26 +99,26 @@ class QOpenDBWindow(QtGui.QDialog):
         panelsLayout.addWidget(self.connectionList,1,0,1,1)
         panelsLayout.addWidget(self.objectList,1,2,1,2)
 
-        self.addButton = QtGui.QToolButton()
+        self.addButton = QtWidgets.QToolButton()
         self.addButton.setDefaultAction(self.addAct)
         self.addButton.setAutoRaise(True)
 
-        self.removeButton = QtGui.QToolButton()
+        self.removeButton = QtWidgets.QToolButton()
         self.removeButton.setDefaultAction(self.removeAct)
         self.removeButton.setAutoRaise(True)
         self.removeButton.setEnabled(False)
         
-        panelButtonsLayout = QtGui.QHBoxLayout()
-        panelButtonsLayout.setMargin(0)
+        panelButtonsLayout = QtWidgets.QHBoxLayout()
+        panelButtonsLayout.setContentsMargins(0, 0, 0, 0)
         panelButtonsLayout.setSpacing(0)
         panelButtonsLayout.addWidget(self.addButton)
         panelButtonsLayout.addWidget(self.removeButton)
         panelsLayout.addLayout(panelButtonsLayout,2,0,1,1,
                                QtCore.Qt.AlignLeft)
-        buttonsLayout = QtGui.QHBoxLayout()
-        self.cancelButton = QtGui.QPushButton('Cancel')
+        buttonsLayout = QtWidgets.QHBoxLayout()
+        self.cancelButton = QtWidgets.QPushButton('Cancel')
         self.cancelButton.setAutoDefault(False)
-        self.openButton = QtGui.QPushButton('Open')
+        self.openButton = QtWidgets.QPushButton('Open')
         self.openButton.setEnabled(False)
         self.openButton.setAutoDefault(True)
         
@@ -138,9 +139,9 @@ class QOpenDBWindow(QtGui.QDialog):
         Create actions related to context menu 
 
         """
-        self.addAct = QtGui.QAction("+", self)
+        self.addAct = QtWidgets.QAction("+", self)
         self.addAct.setStatusTip("Create a new connection")
-        self.removeAct = QtGui.QAction("-", self)
+        self.removeAct = QtWidgets.QAction("-", self)
         self.removeAct.setStatusTip("Remove the selected connection from list")
         
     def showEvent(self, e):
@@ -166,36 +167,16 @@ Would you like to create one?"
         Map signals between GUI components        
         
         """
-        self.connect(self.cancelButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.reject)
-        self.connect(self.openButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.accept)
-        self.connect(self.addAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.showConnConfig)
-        self.connect(self.removeAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.connectionList.removeConnection)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateDBObjectsList)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateButtons)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL("reloadConnections"),
-                     self.updateDBObjectsList)
-        self.connect(self.objectList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateButtons)
-        self.connect(self.saveasEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.objectList,
-                     QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem *)'),
-                     self.accept)
+        self.cancelButton.clicked.connect(self.reject)
+        self.openButton.clicked.connect(self.accept)
+        self.addAct.triggered.connect(self.showConnConfig)
+        self.removeAct.triggered.connect(self.connectionList.removeConnection)
+        self.connectionList.itemSelectionChanged.connect(self.updateDBObjectsList)
+        self.connectionList.itemSelectionChanged.connect(self.updateButtons)
+        self.connectionList.reloadConnections.connect(self.updateDBObjectsList)
+        self.objectList.itemSelectionChanged.connect(self.updateButtons)
+        self.saveasEdt.textChanged['QString'].connect(self.updateButtons)
+        self.objectList.itemDoubleClicked[QListWidgetItem].connect(self.accept)
 
     def updateDBObjectsList(self):
         """ updateDBObjectsList() -> None
@@ -251,7 +232,7 @@ Would you like to create one?"
         keywords["parent"] = self
         
         dialog = QConnectionDBSetupWindow(**keywords)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             config = {'id': int(dialog.id),
                       'name': str(dialog.nameEdt.text()),
                       'host': str(dialog.hostEdt.text()),
@@ -326,7 +307,7 @@ Would you like to create one?"
 
         dlg.prepareForOpening(obj_type)
         
-        if dlg.exec_() == QtGui.QDialog.Accepted:
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
             return (dlg.connectionList.getCurrentConnConfig(),
                     dlg.objectList.currentItem().id,
                     dlg.objectList.currentItem().name)
@@ -348,7 +329,7 @@ Would you like to create one?"
 
         dlg.prepareForSaving(obj_type)
 
-        if dlg.exec_() == QtGui.QDialog.Accepted:
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
             return (dlg.connectionList.getCurrentConnConfig(),
                     str(dlg.saveasEdt.text()).strip(' \n\t'))
         else:
@@ -356,22 +337,21 @@ Would you like to create one?"
         
 ################################################################################
 
-class QDBConnectionList(QtGui.QListWidget):
+class QDBConnectionList(QtWidgets.QListWidget):
     """
     QDBConnection list is a widget to show the available databases
 
     """
+    reloadConnections = pyqtSignal()
     def __init__(self, parent=None):
-        QtGui.QListWidget.__init__(self,parent)
+        QtWidgets.QListWidget.__init__(self,parent)
         self.__list = ExtConnectionList.getInstance(default_connections_file())
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setIconSize(QtCore.QSize(32,32))
         self.loadConnections()
-        self.editAct = QtGui.QAction("Edit", self)
+        self.editAct = QtWidgets.QAction("Edit", self)
         self.editAct.setStatusTip("Edit the selected connection")
-        self.connect(self.editAct,
-                     QtCore.SIGNAL("triggered()"),
-                     self.editConnection)
+        self.editAct.triggered.connect(self.editConnection)
         
     def getCurrentItemId(self):
         """getCurrentItemId() -> int
@@ -394,7 +374,7 @@ class QDBConnectionList(QtGui.QListWidget):
         """
         item = self.currentItem()
         if item:
-            menu = QtGui.QMenu()
+            menu = QtWidgets.QMenu()
             menu.addAction(self.editAct)
             menu.exec_(e.globalPos())
 
@@ -422,7 +402,7 @@ class QDBConnectionList(QtGui.QListWidget):
                                           int(id),
                                           str(c.name))
             self.addItem(cItem)
-        self.emit(QtCore.SIGNAL("reloadConnections"))
+        self.reloadConnections.emit()
         
     def loadConnections(self):
         """loadConnections() -> None
@@ -523,7 +503,7 @@ class QDBConnectionList(QtGui.QListWidget):
             if i.id == id:
                 self.setCurrentItem(i)
                 break
-        self.emit(QtCore.SIGNAL("reloadConnections"), id)
+        self.reloadConnections.emit(id)
 
     def getCurrentConnConfig(self):
         """getCurrentConnConfig() -> dict
@@ -558,7 +538,7 @@ class QDBConnectionList(QtGui.QListWidget):
     
 ################################################################################
     
-class QDBConnectionListItem(QtGui.QListWidgetItem):
+class QDBConnectionListItem(QtWidgets.QListWidgetItem):
     
     def __init__(self, icon, id, text, parent=None):
         """__init__(icon: QIcon, id: int, text: QString, parent: QListWidget)
@@ -566,19 +546,19 @@ class QDBConnectionListItem(QtGui.QListWidgetItem):
         Creates an item with id
         
         """
-        QtGui.QListWidgetItem.__init__(self,icon, text, parent)
+        QtWidgets.QListWidgetItem.__init__(self,icon, text, parent)
         self.id = id
 
 ################################################################################
 
-class QDBObjectList(QtGui.QListWidget):
+class QDBObjectList(QtWidgets.QListWidget):
     """
     QDBObjectList is a widget to show the vistrails available in the selected
     database
 
     """
     def __init__(self, parent=None, obj_type='vistrail'):
-        QtGui.QListWidget.__init__(self, parent)
+        QtWidgets.QListWidget.__init__(self, parent)
         self.obj_type = obj_type
 
     def updateContents(self, conn_id=-1):
@@ -614,7 +594,7 @@ class QDBObjectList(QtGui.QListWidget):
             
 ################################################################################
 
-class QDBObjectListItem(QtGui.QListWidgetItem):
+class QDBObjectListItem(QtWidgets.QListWidgetItem):
     
     def __init__(self, icon, id, name, date, parent=None):
         """__init__(icon: QIcon, id: int, name: QString,
@@ -623,7 +603,7 @@ class QDBObjectListItem(QtGui.QListWidgetItem):
         Creates an item with id
         
         """
-        QtGui.QListWidgetItem.__init__(self, icon, name, parent)
+        QtWidgets.QListWidgetItem.__init__(self, icon, name, parent)
         self.id = id
         self.name = name
         self.date = date
@@ -631,7 +611,7 @@ class QDBObjectListItem(QtGui.QListWidgetItem):
 
 ################################################################################
 
-class QConnectionDBSetupWindow(QtGui.QDialog):
+class QConnectionDBSetupWindow(QtWidgets.QDialog):
     """
     QConnectionDBSetupWindow is a dialog for creating a DB connection.
     
@@ -645,32 +625,32 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
         create tells if the caption of the button is Create or Update
 
         """
-        QtGui.QDialog.__init__(self,parent)
+        QtWidgets.QDialog.__init__(self,parent)
         if create:
             self.setWindowTitle("Create a new connection")
         else:
             self.setWindowTitle("Update a connection")
             
-        mainLayout = QtGui.QVBoxLayout()
-        infoLayout = QtGui.QGridLayout()
+        mainLayout = QtWidgets.QVBoxLayout()
+        infoLayout = QtWidgets.QGridLayout()
         self.id = id
-        nameLabel = QtGui.QLabel("Save as Connection Name:", self)
-        self.nameEdt = QtGui.QLineEdit(name, self)
-        hostLabel = QtGui.QLabel("Server Hostname:", self)
-        self.hostEdt = QtGui.QLineEdit(host, self)
-        portLabel = QtGui.QLabel("Port:", self)
-        self.portEdt = QtGui.QSpinBox(self)
+        nameLabel = QtWidgets.QLabel("Save as Connection Name:", self)
+        self.nameEdt = QtWidgets.QLineEdit(name, self)
+        hostLabel = QtWidgets.QLabel("Server Hostname:", self)
+        self.hostEdt = QtWidgets.QLineEdit(host, self)
+        portLabel = QtWidgets.QLabel("Port:", self)
+        self.portEdt = QtWidgets.QSpinBox(self)
         self.portEdt.setMaximum(65535)
         self.portEdt.setValue(port)
-        userLabel = QtGui.QLabel("Username:", self)
-        self.userEdt = QtGui.QLineEdit(user, self)
-        passwdLabel = QtGui.QLabel("Password:", self)
-        self.passwdEdt = QtGui.QLineEdit(passwd,self)
-        self.passwdEdt.setEchoMode(QtGui.QLineEdit.Password)
+        userLabel = QtWidgets.QLabel("Username:", self)
+        self.userEdt = QtWidgets.QLineEdit(user, self)
+        passwdLabel = QtWidgets.QLabel("Password:", self)
+        self.passwdEdt = QtWidgets.QLineEdit(passwd,self)
+        self.passwdEdt.setEchoMode(QtWidgets.QLineEdit.Password)
         self.passwdEdt.setToolTip("For your protection, your "
                                   "password will not be saved.")
-        databaseLabel = QtGui.QLabel("Database:", self)
-        self.databaseEdt = QtGui.QLineEdit(db,self)
+        databaseLabel = QtWidgets.QLabel("Database:", self)
+        self.databaseEdt = QtWidgets.QLineEdit(db,self)
         mainLayout.addLayout(infoLayout)
         infoLayout.addWidget(nameLabel,0,0,1,1)
         infoLayout.addWidget(self.nameEdt,0,1,1,1)
@@ -685,15 +665,15 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
         infoLayout.addWidget(databaseLabel,4,0,1,1)
         infoLayout.addWidget(self.databaseEdt,4,1,1,3)
         
-        buttonsLayout = QtGui.QHBoxLayout()
+        buttonsLayout = QtWidgets.QHBoxLayout()
         if create:
             caption = 'Create'
         else:
             caption = 'Update'
-        self.createButton = QtGui.QPushButton(caption, self)
+        self.createButton = QtWidgets.QPushButton(caption, self)
         self.createButton.setDefault(True)
-        self.cancelButton = QtGui.QPushButton('Cancel', self)
-        self.testButton = QtGui.QPushButton('Test', self)
+        self.cancelButton = QtWidgets.QPushButton('Cancel', self)
+        self.testButton = QtWidgets.QPushButton('Test', self)
         
         buttonsLayout.addStretch(1)
         buttonsLayout.addWidget(self.cancelButton)
@@ -711,33 +691,15 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
         Map signals between GUI components        
         
         """
-        self.connect(self.cancelButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.reject)
-        self.connect(self.createButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.accept)
-        self.connect(self.testButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.testConnection)
-        self.connect(self.nameEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.hostEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.userEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.passwdEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.databaseEdt,
-                     QtCore.SIGNAL('textChanged(QString)'),
-                     self.updateButtons)
-        self.connect(self.portEdt,
-                     QtCore.SIGNAL('valueChanged(int)'),
-                     self.updateButtons)
+        self.cancelButton.clicked.connect(self.reject)
+        self.createButton.clicked.connect(self.accept)
+        self.testButton.clicked.connect(self.testConnection)
+        self.nameEdt.textChanged['QString'].connect(self.updateButtons)
+        self.hostEdt.textChanged['QString'].connect(self.updateButtons)
+        self.userEdt.textChanged['QString'].connect(self.updateButtons)
+        self.passwdEdt.textChanged['QString'].connect(self.updateButtons)
+        self.databaseEdt.textChanged['QString'].connect(self.updateButtons)
+        self.portEdt.valueChanged[int].connect(self.updateButtons)
 
     def testConnection(self):
         """testConnection() -> None """

@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
+
 
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
@@ -43,28 +44,28 @@ from vistrails.gui.theme import CurrentTheme
 
 import weakref
 
-class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
+class QParamExploreInspector(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.set_title("Explore Inspector")
 
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(3)
 
         self.controller = None
         self.pe_properties = QParamExpProperties()
-        p_prop_group = QtGui.QGroupBox(self.pe_properties.windowTitle())
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        p_prop_group = QtWidgets.QGroupBox(self.pe_properties.windowTitle())
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.pe_properties)
         p_prop_group.setLayout(g_layout)
         layout.addWidget(p_prop_group)
         self.virtual_cell = QVirtualCellWindow()
-        v_cell_group = QtGui.QGroupBox(self.virtual_cell.windowTitle())
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        v_cell_group = QtWidgets.QGroupBox(self.virtual_cell.windowTitle())
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.virtual_cell)
         v_cell_group.setLayout(g_layout)
@@ -74,17 +75,17 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def addButtonsToToolbar(self):
         # Add the back/forward exploration buttons
-        self.versionsLabel = QtGui.QLabel('Exploration: 0/0')
+        self.versionsLabel = QtWidgets.QLabel('Exploration: 0/0')
         self.toolWindow().toolbar.insertWidget(self.toolWindow().pinAction,
                                                self.versionsLabel)
         self.pe_properties.versionsLabel = weakref.proxy(self.versionsLabel)
-        self.backAction = QtGui.QAction(
+        self.backAction = QtWidgets.QAction(
             QtGui.QIcon(CurrentTheme.LEFT_ARROW_PIXMAP),
             'Go to Previous Exploration', None, triggered=self.backPressed)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.backAction)
         self.pe_properties.backAction = weakref.proxy(self.backAction)
-        self.forwardAction = QtGui.QAction(
+        self.forwardAction = QtWidgets.QAction(
             QtGui.QIcon(CurrentTheme.RIGHT_ARROW_PIXMAP),
             'Got to Next Exploration', None, triggered=self.forwardPressed)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
@@ -116,26 +117,26 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pe_properties.goForward()
         
 
-class QParamExpProperties(QtGui.QWidget):
+class QParamExpProperties(QtWidgets.QWidget):
     def __init__(self, controller=None, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.controller = controller
         self.versionNumber = -1
         self.versionsLabel = None
         self.backAction = None
         self.forwardAction = None
-        vLayout = QtGui.QVBoxLayout()
+        vLayout = QtWidgets.QVBoxLayout()
         self.setLayout(vLayout)
-        vLayout.setMargin(3)
+        vLayout.setContentsMargins(3, 3, 3, 3)
         vLayout.setSpacing(3)
-        gLayout = QtGui.QGridLayout()
+        gLayout = QtWidgets.QGridLayout()
         gLayout.setColumnMinimumWidth(1,5)
         gLayout.setRowMinimumHeight(0,24)
         gLayout.setRowMinimumHeight(1,24)
         gLayout.setRowMinimumHeight(2,24)
         gLayout.setRowMinimumHeight(3,24)        
         vLayout.addLayout(gLayout)
-        gLayout.setMargin(3)
+        gLayout.setContentsMargins(3, 3, 3, 3)
         gLayout.setSpacing(3)
         
         #vtVersionLabel = QtGui.QLabel('Workflow:', self)
@@ -144,18 +145,18 @@ class QParamExpProperties(QtGui.QWidget):
         #self.vtVersionEdit = QtGui.QLabel('', self)
         #gLayout.addWidget(self.vtVersionEdit, 0, 2, 1, 1)
         
-        tagLabel = QtGui.QLabel('Exploration Tag:', self)
+        tagLabel = QtWidgets.QLabel('Exploration Tag:', self)
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
-        editLayout = QtGui.QHBoxLayout()
-        self.tagEdit = QtGui.QLineEdit()
+        editLayout = QtWidgets.QHBoxLayout()
+        self.tagEdit = QtWidgets.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
         editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
 
-        self.tagReset = QtGui.QToolButton(self)
+        self.tagReset = QtWidgets.QToolButton(self)
         self.tagReset.setIcon(QtGui.QIcon(
-              self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
+              self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
         self.tagReset.setIconSize(QtCore.QSize(12,12))
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)
@@ -163,24 +164,21 @@ class QParamExpProperties(QtGui.QWidget):
 
         gLayout.addLayout(editLayout, 0, 2, 1, 1)
 
-        userLabel = QtGui.QLabel('User:', self)
+        userLabel = QtWidgets.QLabel('User:', self)
         gLayout.addWidget(userLabel, 1, 0, 1, 1)
         
-        self.userEdit = QtGui.QLabel('', self)
+        self.userEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.userEdit, 1, 2, 1, 1)
 
-        dateLabel = QtGui.QLabel('Date:', self)
+        dateLabel = QtWidgets.QLabel('Date:', self)
         gLayout.addWidget(dateLabel, 2, 0, 1, 1)
 
-        self.dateEdit = QtGui.QLabel('', self)
+        self.dateEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
         
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged['QString'].connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
         
     def updateController(self, controller):
         self.controller = controller

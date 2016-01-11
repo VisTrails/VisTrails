@@ -49,8 +49,9 @@ QListEditItemDelegate
 
 
 import copy
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -59,7 +60,7 @@ from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
 ################################################################################
-class QAliasInspector(QtGui.QScrollArea):
+class QAliasInspector(QtWidgets.QScrollArea):
     """
     QAliasInspector is a widget to display the details of an alias.
     """
@@ -67,7 +68,7 @@ class QAliasInspector(QtGui.QScrollArea):
     aliasChanged = pyqtSignal(Alias)
     
     def __init__(self, alias_list, parent=None):
-        QtGui.QScrollArea.__init__(self,parent)
+        QtWidgets.QScrollArea.__init__(self,parent)
         self.setAcceptDrops(False)
         self.setWidgetResizable(True)
         self.vWidget = QAliasDetailsWidget(alias_list)
@@ -80,84 +81,84 @@ class QAliasInspector(QtGui.QScrollArea):
         self.vWidget.updateContents(alias_item, controller)
  
 ################################################################################       
-class QAliasDetailsWidget(QtGui.QWidget):
+class QAliasDetailsWidget(QtWidgets.QWidget):
     #signals
     aliasChanged = pyqtSignal(Alias)
     
     def __init__(self, table, parent=None):
-        QtGui.QWidget.__init__(self,parent)
+        QtWidgets.QWidget.__init__(self,parent)
         self.alias = None
         self.table = table
         self.createWidgets()
         self.updateContents()
         
     def createWidgets(self):
-        self.main_layout = QtGui.QVBoxLayout()
-        self.label = QtGui.QLabel("Alias Details")
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.label = QtWidgets.QLabel("Alias Details")
         self.main_layout.addWidget(self.label)
         
-        self.name_label = QtGui.QLabel("Name")
-        self.name_edit = QtGui.QLineEdit()
-        l1 = QtGui.QVBoxLayout()
+        self.name_label = QtWidgets.QLabel("Name")
+        self.name_edit = QtWidgets.QLineEdit()
+        l1 = QtWidgets.QVBoxLayout()
         l1.setContentsMargins(0, 11, 0, 0)
         l1.setSpacing(3)
         l1.addWidget(self.name_label)
         l1.addWidget(self.name_edit)
         
-        self.order_label = QtGui.QLabel("Order")
-        self.order_spinbox = QtGui.QSpinBox()
+        self.order_label = QtWidgets.QLabel("Order")
+        self.order_spinbox = QtWidgets.QSpinBox()
         self.order_spinbox.setRange(0,self.table.topLevelItemCount()-1)
         if self.alias:
             self.order_spinbox.setValue(self.alias.component.pos)
-        l2 = QtGui.QVBoxLayout()
+        l2 = QtWidgets.QVBoxLayout()
         l2.setContentsMargins(0, 11, 0, 0)
         l2.setSpacing(3)
         l2.addWidget(self.order_label)
         l2.addWidget(self.order_spinbox)
         
-        l3 = QtGui.QHBoxLayout()
+        l3 = QtWidgets.QHBoxLayout()
         l3.addLayout(l1)
         l3.addLayout(l2)
         self.main_layout.addLayout(l3)
         
         #Display Widget
-        self.dw_groupbox = QtGui.QGroupBox()
+        self.dw_groupbox = QtWidgets.QGroupBox()
         self.dw_groupbox.setFlat(True)
-        self.dw_label = QtGui.QLabel("Display Widget")
-        self.dw_combobox = QtGui.QComboBox()
+        self.dw_label = QtWidgets.QLabel("Display Widget")
+        self.dw_combobox = QtWidgets.QComboBox()
         self.dw_combobox.addItem("combobox")
         self.dw_combobox.addItem("slider")
         self.dw_combobox.addItem("numericstepper")
         
-        self.dw_layout = QtGui.QVBoxLayout()
+        self.dw_layout = QtWidgets.QVBoxLayout()
         self.dw_layout.setContentsMargins(0, 11, 0, 0)
-        self.dw_slider_layout = QtGui.QHBoxLayout()
-        self.dw_minval_label = QtGui.QLabel("Min Val")
-        self.dw_maxval_label = QtGui.QLabel("Max Val")
-        self.dw_stepsize_label = QtGui.QLabel("Step Size")
-        self.dw_minval_edit = QtGui.QLineEdit()
-        self.dw_maxval_edit = QtGui.QLineEdit()
-        self.dw_stepsize_edit = QtGui.QLineEdit()
+        self.dw_slider_layout = QtWidgets.QHBoxLayout()
+        self.dw_minval_label = QtWidgets.QLabel("Min Val")
+        self.dw_maxval_label = QtWidgets.QLabel("Max Val")
+        self.dw_stepsize_label = QtWidgets.QLabel("Step Size")
+        self.dw_minval_edit = QtWidgets.QLineEdit()
+        self.dw_maxval_edit = QtWidgets.QLineEdit()
+        self.dw_stepsize_edit = QtWidgets.QLineEdit()
         
-        l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l = QtWidgets.QVBoxLayout()
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_minval_label)
         l.addWidget(self.dw_minval_edit)
         self.dw_slider_layout.addLayout(l)
-        l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l = QtWidgets.QVBoxLayout()
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_maxval_label)
         l.addWidget(self.dw_maxval_edit)
         self.dw_slider_layout.addLayout(l)
-        l = QtGui.QVBoxLayout()
-        l.setMargin(0)
+        l = QtWidgets.QVBoxLayout()
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
         l.addWidget(self.dw_stepsize_label)
         l.addWidget(self.dw_stepsize_edit)
         self.dw_slider_layout.addLayout(l)
-        self.dw_seq_toggle = QtGui.QCheckBox("Loop")
+        self.dw_seq_toggle = QtWidgets.QCheckBox("Loop")
         self.dw_seq_toggle.setToolTip("Enable option to loop through all steps")
         self.dw_slider_layout.addWidget(self.dw_seq_toggle)
         self.dw_layout.addWidget(self.dw_label)
@@ -167,20 +168,20 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.toggle_dw_combobox(0)
         
         #Default Value
-        self.dv_groupbox = QtGui.QGroupBox()
+        self.dv_groupbox = QtWidgets.QGroupBox()
         self.dv_groupbox.setFlat(True)
-        self.dv_label = QtGui.QLabel("Default Value")
-        self.dv_layout = QtGui.QVBoxLayout()
+        self.dv_label = QtWidgets.QLabel("Default Value")
+        self.dv_layout = QtWidgets.QVBoxLayout()
         self.dv_layout.setContentsMargins(0, 11, 0, 0)
         self.dv_layout.addWidget(self.dv_label)
         self.dv_groupbox.setLayout(self.dv_layout)
         self.dv_widget = None
         
         #Values List
-        self.vl_groupbox = QtGui.QGroupBox()
+        self.vl_groupbox = QtWidgets.QGroupBox()
         self.vl_groupbox.setFlat(True)
-        self.vl_label = QtGui.QLabel("Values List")
-        self.vl_layout = QtGui.QVBoxLayout()
+        self.vl_label = QtWidgets.QLabel("Values List")
+        self.vl_layout = QtWidgets.QVBoxLayout()
         self.vl_layout.setContentsMargins(0, 11, 0, 0)
         self.vl_layout.addWidget(self.vl_label)
         self.vl_editor = None
@@ -191,10 +192,10 @@ class QAliasDetailsWidget(QtGui.QWidget):
         self.main_layout.addWidget(self.vl_groupbox)
         self.main_layout.addStretch(1)
         
-        self.deleteButton = QtGui.QPushButton("Delete Alias")
+        self.deleteButton = QtWidgets.QPushButton("Delete Alias")
         self.deleteButton.clicked.connect(self.table.removeCurrentAlias)
-        self.deleteButton.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,
-                                                           QtGui.QSizePolicy.Fixed))
+        self.deleteButton.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                                           QtWidgets.QSizePolicy.Fixed))
         self.main_layout.addWidget(self.deleteButton)
         
         self.setLayout(self.main_layout)
@@ -376,9 +377,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
                 
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
-                self.disconnect(self.dv_widget,
-                                QtCore.SIGNAL("contentsChanged"),
-                                self.widgetContentsChanged)
+                self.disconnect()
                 self.dv_widget.deleteLater()
             
             self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
@@ -389,9 +388,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
-                self.disconnect(self.vl_editor,
-                                QtCore.SIGNAL("valuesChanged"),
-                                self.valuesListChanged)
+                self.disconnect()
                 self.vl_editor.deleteLater()
                 self.vl_editor = None
            
@@ -408,17 +405,13 @@ class QAliasDetailsWidget(QtGui.QWidget):
             
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
-                self.disconnect(self.dv_widget,
-                                QtCore.SIGNAL("contentsChanged"),
-                                self.widgetContentsChanged)
+                self.disconnect()
                 self.dv_widget.deleteLater()
                 self.dv_widget = None
                 
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
-                self.disconnect(self.vl_editor,
-                                QtCore.SIGNAL("valuesChanged"),
-                                self.valuesListChanged)
+                self.disconnect()
                 self.vl_editor.deleteLater()
                 self.vl_editor = None
                 
@@ -449,32 +442,33 @@ class QAliasDetailsWidget(QtGui.QWidget):
         
 ################################################################################
 
-class QValuesListEditor(QtGui.QWidget):
+class QValuesListEditor(QtWidgets.QWidget):
     """
     QValuesListEditor is the actual widget allowing users to
     enter a list of values
     
     """
+    valuesChanged = pyqtSignal()
     def __init__(self, alias, controller, parent=None):
         """ QValuesListEditor(alias_item: AliasTableItem, parent: QWidget)
                                      -> QValuesListEditor
         Construct an edit box with a button for bringing up the dialog
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self._alias = alias
         self.type = alias.component.type
         self.controller = controller
         
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
         
-        self.listValues = QtGui.QLineEdit()
+        self.listValues = QtWidgets.QLineEdit()
     
-        self.listValues.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                      QtGui.QSizePolicy.Maximum)
+        self.listValues.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                      QtWidgets.QSizePolicy.Maximum)
         self.alias_item_updated()
         
         hLayout.addWidget(self.listValues)
@@ -482,7 +476,7 @@ class QValuesListEditor(QtGui.QWidget):
         self.connect(self.listValues, QtCore.SIGNAL('editingFinished()'),
                      self.values_were_edited)
 
-        inputButton = QtGui.QToolButton()
+        inputButton = QtWidgets.QToolButton()
         inputButton.setText('...')
         self.connect(inputButton, QtCore.SIGNAL('clicked()'),
                      self.editListValues)
@@ -544,7 +538,7 @@ class QValuesListEditor(QtGui.QWidget):
         
         """
         dialog = QListEditDialog(self._alias, self.controller, None)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             values = dialog.getList()
             #print values
             self._alias.component.valueList = copy.copy(values)
@@ -555,12 +549,12 @@ class QValuesListEditor(QtGui.QWidget):
                           for v in values]
             self.listValues.setText('[%s]' % ', '.join(values2))
             self.listValues.home(False)
-            self.emit(QtCore.SIGNAL("valuesChanged"))
+            self.valuesChanged.emit()
         dialog.deleteLater()
 
 ##############################################################################
 
-class QListEditDialog(QtGui.QDialog):
+class QListEditDialog(QtWidgets.QDialog):
     """
     QListEditDialog provides an interface for user to edit a list of
     values and export to a string
@@ -572,29 +566,29 @@ class QListEditDialog(QtGui.QDialog):
         Parse values and setup the table
         
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self._alias = alias
-        vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.controller = controller
         self.setLayout(vLayout)
         
-        label = QtGui.QLabel("Please enter values in boxes below. "
+        label = QtWidgets.QLabel("Please enter values in boxes below. "
                              "'Add' appends an empty value to the list. "
                              "And 'Del' removes the selected values.")
         label.setMargin(5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 
-        self.table = QtGui.QTableWidget(0, 1, parent)
+        self.table = QtWidgets.QTableWidget(0, 1, parent)
         self.table.setHorizontalHeaderLabels(['Values'])
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.verticalHeader().setMovable(True)
+        self.table.verticalHeader().setSectionsMovable(True)
         
         self.delegate = QListEditItemDelegate(alias, controller)
         self.table.setItemDelegate(self.delegate)
-        self.table.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.table.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         for v in alias.component.valueList:
             self.addRow(v)
         self.connect(self.table.verticalHeader(),
@@ -603,33 +597,33 @@ class QListEditDialog(QtGui.QDialog):
         
         vLayout.addWidget(self.table)
 
-        hLayout = QtGui.QHBoxLayout()        
+        hLayout = QtWidgets.QHBoxLayout()        
         vLayout.addLayout(hLayout)
 
-        okButton = QtGui.QPushButton('&OK')
-        okButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                               QtGui.QSizePolicy.Maximum)
+        okButton = QtWidgets.QPushButton('&OK')
+        okButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                               QtWidgets.QSizePolicy.Maximum)
         self.connect(okButton, QtCore.SIGNAL('clicked()'), self.okButtonPressed)
         hLayout.addWidget(okButton)
 
-        cancelButton = QtGui.QPushButton('&Cancel')
-        cancelButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                                   QtGui.QSizePolicy.Maximum)
+        cancelButton = QtWidgets.QPushButton('&Cancel')
+        cancelButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                                   QtWidgets.QSizePolicy.Maximum)
         self.connect(cancelButton, QtCore.SIGNAL('clicked()'), self.reject)
         hLayout.addWidget(cancelButton)
 
-        addButton = QtGui.QPushButton('&Add')
+        addButton = QtWidgets.QPushButton('&Add')
         addButton.setIcon(CurrentTheme.ADD_STRING_ICON)
-        addButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                                QtGui.QSizePolicy.Maximum)
+        addButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                                QtWidgets.QSizePolicy.Maximum)
         self.connect(addButton, QtCore.SIGNAL('clicked()'), self.addRow)
         hLayout.addWidget(addButton)
         
-        removeButton = QtGui.QPushButton('&Del')
+        removeButton = QtWidgets.QPushButton('&Del')
         removeButton.setIcon(QtGui.QIcon(
-            self.style().standardPixmap(QtGui.QStyle.SP_DialogCancelButton)))
-        removeButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                                   QtGui.QSizePolicy.Maximum)
+            self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCancelButton)))
+        removeButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                                   QtWidgets.QSizePolicy.Maximum)
         self.connect(removeButton, QtCore.SIGNAL('clicked()'),
                      self.removeSelection)
         hLayout.addWidget(removeButton)
@@ -683,9 +677,9 @@ class QListEditDialog(QtGui.QDialog):
         widget = \
           QAliasDetailsWidget.createAliasWidget(alias, self.controller, None)
         if not isinstance(widget, StandardConstantWidget):
-            item = QtGui.QTableWidgetItem()
+            item = QtWidgets.QTableWidgetItem()
         else:
-            item = QtGui.QTableWidgetItem(text)
+            item = QtWidgets.QTableWidgetItem(text)
         row = self.table.rowCount()-1
         
         self.table.setItem(row, 0, item)
@@ -705,19 +699,20 @@ class QListEditDialog(QtGui.QDialog):
 
 ##############################################################################
 
-class QListEditItemDelegate(QtGui.QItemDelegate):
+class QListEditItemDelegate(QtWidgets.QItemDelegate):
     """
     QListEditItemDelegate sets up the editor for the QListEditDialog
     table
     
     """
 
+    commitData = pyqtSignal(QVariant)
     def __init__(self, alias_item, controller, parent=None):
         """ QListEditItemDelegate(parent: QWidget) -> QListEditItemDelegate
         Store the uncommit editor for commit later
         
         """
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
         self.controller = controller
         self.alias_item = alias_item
         self.editor = None
@@ -757,6 +752,6 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
     def finishEditing(self):
         #print "finishEditing"
         if self.editor:
-            self.emit(QtCore.SIGNAL('commitData(QWidget*)'), self.editor)
+            self.commitData.emit(self.editor)
 
 ##############################################################################

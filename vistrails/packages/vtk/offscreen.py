@@ -56,8 +56,9 @@ class VTKRenderOffscreen(Module):
 
         widget = None
         if system.systemType=='Darwin':
-            from PyQt4 import QtCore, QtGui
-            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            from PyQt5 import QtCore, QtWidgets
+
+            widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)
             widget.show()
             window.SetWindowInfo(str(int(widget.winId())))    

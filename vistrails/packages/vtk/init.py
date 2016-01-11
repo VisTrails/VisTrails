@@ -88,8 +88,9 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     # dependency...
     widget = None
     if systemType=='Darwin':
-        from PyQt4 import QtCore, QtGui
-        widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+        from PyQt5 import QtCore, QtWidgets
+
+        widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
         widget.resize(w, h)
         widget.show()
         window.SetWindowInfo(str(int(widget.winId())))

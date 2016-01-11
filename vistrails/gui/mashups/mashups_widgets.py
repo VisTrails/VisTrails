@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.utils import get_widget_class
@@ -43,60 +44,61 @@ from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
     StandardConstantWidget
 from vistrails.core.modules.module_registry import get_module_registry
 
-class QAliasSliderWidget(QtGui.QWidget):
+class QAliasSliderWidget(QtWidgets.QWidget):
+    contentsChanged = pyqtSignal(QVariant)
+    receivedfocus = pyqtSignal(QVariant)
+    removedfocus = pyqtSignal(QVariant)
     def __init__(self, alias, vtparam, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.alias = alias
         self.vtparam = vtparam
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
-        label = QtGui.QLabel(alias.name)
+        label = QtWidgets.QLabel(alias.name)
         label.font().setBold(True)
         self.value = QSliderWidget(param=vtparam, parent=self)
         self.value.setRange(alias.component.minVal, alias.component.maxVal)
         self.value.setSingleStep(alias.component.stepSize)
         self.value.setContents(self.alias.component.val)
         
-        self.connect(self.value,
-                     QtCore.SIGNAL("contentsChanged"),
-                     self.contents_changed)
+        self.value.contentsChanged.connect(self.contents_changed)
         
-        hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(8)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.setContentsMargins(8, 8, 8, 8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
         self.setLayout(hbox)
    
     def contents_changed(self, info):
         #print "drop down emitting"
-        self.emit(QtCore.SIGNAL('contentsChanged'), (self, info))
+        self.contentsChanged.emit((self, info))
              
     def focusInEvent(self, event):
-        self.emit(QtCore.SIGNAL("receivedfocus"), self)
+        self.receivedfocus.emit(self)
         
     def focusOutEvent(self, event):
-        self.emit(QtCore.SIGNAL("removedfocus"), self)
+        self.removedfocus.emit(self)
         
 ###############################################################################        
 
-class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
+class QSliderWidget(ConstantWidgetMixin, QtWidgets.QSlider):
     contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
-        QtGui.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
+        QtWidgets.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type in['Integer', 'Float']
         self.sliderType = int if param.type == 'Integer' else float
         assert param.identifier == get_vistrails_basic_pkg_id()
         
-        self.connect(self, QtCore.SIGNAL('valueChanged(int)'),self.change_val)
-        QtGui.QSlider.setSingleStep(self, 1)
-        QtGui.QSlider.setPageStep(self, 5)
+        self.valueChanged[int].connect(self.change_val)
+        QtWidgets.QSlider.setSingleStep(self, 1)
+        QtWidgets.QSlider.setPageStep(self, 5)
         self.floatMinVal = 0.0
         self.floatMaxVal = 1.0
         self.floatStepSize = 1
         self.numSteps = 1
         self.setContents(param.strValue)
-        self.setTickPosition(QtGui.QSlider.TicksAbove)        
+        self.setTickPosition(QtWidgets.QSlider.TicksAbove)        
     
     def contents(self):
         floatVal = float(self.value()) * self.floatStepSize + self.floatMinVal
@@ -125,7 +127,7 @@ class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
     def setRange(self, minVal, maxVal):
         self.floatMinVal = float(minVal)
         self.floatMaxVal = float(maxVal)
-        QtGui.QSlider.setRange(self, 0, 1)
+        QtWidgets.QSlider.setRange(self, 0, 1)
         self.setSingleStep(self.floatStepSize)
         
     def setSingleStep(self, stepSize):
@@ -133,19 +135,22 @@ class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
             number of steps """
         self.floatStepSize = float(stepSize)
         self.numSteps = int((self.floatMaxVal - self.floatMinVal)/self.floatStepSize)
-        QtGui.QSlider.setRange(self, 0, self.numSteps)
+        QtWidgets.QSlider.setRange(self, 0, self.numSteps)
 
         
 ###############################################################################
 
-class QAliasNumericStepperWidget(QtGui.QWidget):
+class QAliasNumericStepperWidget(QtWidgets.QWidget):
+    contentsChanged = pyqtSignal(QVariant)
+    receivedfocus = pyqtSignal(QVariant)
+    removedfocus = pyqtSignal(QVariant)
     def __init__(self, alias, vtparam, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.alias = alias
         self.vtparam = vtparam
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
-        label = QtGui.QLabel(alias.name)
+        label = QtWidgets.QLabel(alias.name)
         label.font().setBold(True)
         if self.alias.component.type == "Integer":
             self.value = QNumericStepperIntegerWidget(param=vtparam,
@@ -162,37 +167,34 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
             self.value.setSingleStep(float(alias.component.stepSize))
             self.value.setContents(self.alias.component.val)
 
-        self.connect(self.value,
-                     QtCore.SIGNAL("contentsChanged"),
-                     self.contents_changed)
+        self.value.contentsChanged.connect(self.contents_changed)
         
-        hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(8)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.setContentsMargins(8, 8, 8, 8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
         self.setLayout(hbox)    
    
     def contents_changed(self, info):
         #print "drop down emitting"
-        self.emit(QtCore.SIGNAL('contentsChanged'), (self, info))
+        self.contentsChanged.emit((self, info))
              
     def focusInEvent(self, event):
-        self.emit(QtCore.SIGNAL("receivedfocus"), self)
+        self.receivedfocus.emit(self)
         
     def focusOutEvent(self, event):
-        self.emit(QtCore.SIGNAL("removedfocus"), self)
+        self.removedfocus.emit(self)
         
 ###############################################################################
-class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
+class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtWidgets.QSpinBox):
     contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
-        QtGui.QSpinBox.__init__(self, parent)
+        QtWidgets.QSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type == 'Integer'
         assert param.identifier == get_vistrails_basic_pkg_id()
         
-        self.connect(self, QtCore.SIGNAL('valueChanged(int)'),
-                     self.change_val)
+        self.valueChanged[int].connect(self.change_val)
         self.setContents(param.strValue)
         
     def contents(self):
@@ -212,16 +214,15 @@ class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
         self.update_parent()
 ###############################################################################
 
-class QNumericStepperFloatWidget(ConstantWidgetMixin, QtGui.QDoubleSpinBox):
+class QNumericStepperFloatWidget(ConstantWidgetMixin, QtWidgets.QDoubleSpinBox):
     contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
-        QtGui.QDoubleSpinBox.__init__(self, parent)
+        QtWidgets.QDoubleSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         assert param.type == 'Float'
         assert param.identifier == get_vistrails_basic_pkg_id()
         
-        self.connect(self, QtCore.SIGNAL('valueChanged(double)'),
-                     self.change_val)
+        self.valueChanged[double].connect(self.change_val)
         self.setContents(param.strValue)
         
     def contents(self):
@@ -242,30 +243,31 @@ class QNumericStepperFloatWidget(ConstantWidgetMixin, QtGui.QDoubleSpinBox):
 
 ###############################################################################
 
-class QDropDownWidget(QtGui.QWidget):
+class QDropDownWidget(QtWidgets.QWidget):
+    contentsChanged = pyqtSignal(QVariant)
+    receivedfocus = pyqtSignal(QVariant)
+    removedfocus = pyqtSignal(QVariant)
     def __init__(self, alias, vtparam, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.alias = alias
         self.vtparam = vtparam
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
-        label = QtGui.QLabel(alias.name)
+        label = QtWidgets.QLabel(alias.name)
         label.font().setBold(True)
         self.value = self.createAliasWidget(val=self.alias.component.val,
                                             parent=self)
-        self.connect(self.value,
-                     QtCore.SIGNAL("contentsChanged"),
-                     self.contents_changed)
-        self.dropdownbtn = QtGui.QToolButton(self)
+        self.value.contentsChanged.connect(self.contents_changed)
+        self.dropdownbtn = QtWidgets.QToolButton(self)
         self.dropdownbtn.setArrowType(QtCore.Qt.DownArrow)
         self.dropdownbtn.setAutoRaise(True)
             
         #menu button
         self.createMenu()
-        self.dropdownbtn.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.dropdownbtn.setPopupMode(QtWidgets.QToolButton.InstantPopup)
             
-        hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(8)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.setContentsMargins(8, 8, 8, 8)
         hbox.addWidget(label)
         hbox.addWidget(self.value)
         hbox.addWidget(self.dropdownbtn)
@@ -273,21 +275,21 @@ class QDropDownWidget(QtGui.QWidget):
         
     def createMenu(self):
         self.menu = QMenuValue(self)
-        self.menu.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                                QtGui.QSizePolicy.Maximum)
-        mbox = QtGui.QVBoxLayout()
+        self.menu.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                QtWidgets.QSizePolicy.Maximum)
+        mbox = QtWidgets.QVBoxLayout()
         mbox.setSpacing(1)
-        mbox.setMargin(2)
+        mbox.setContentsMargins(2, 2, 2, 2)
         self.menu_widgets = {}   
         valuelist = self.alias.component.valueList
        
         for v in valuelist:
-            hbox = QtGui.QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             rb = QMenuRadioButton()
             rb.setChecked(False)
             vw = self.createMenuAliasWidget(val=v, parent=self)
-            vw.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                                QtGui.QSizePolicy.Maximum)
+            vw.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                QtWidgets.QSizePolicy.Maximum)
             vw.setReadOnly(True)
             
             self.menu_widgets[rb] = vw
@@ -295,28 +297,20 @@ class QDropDownWidget(QtGui.QWidget):
             hbox.addWidget(vw)
             mbox.addLayout(hbox)
            
-            self.connect(rb,
-                         QtCore.SIGNAL("clicked(bool)"),
-                         self.menu.hide)
-            self.connect(vw,
-                         QtCore.SIGNAL("clicked(bool)"),
-                         rb.setChecked)
+            rb.clicked[bool].connect(self.menu.hide)
+            vw.clicked[bool].connect(rb.setChecked)
         self.menu.setLayout(mbox)
         self.dropdownbtn.setMenu(self.menu)
         
         #there's a bug on a mac that causes the menu to be always displayed
         #where it was shown for the first time... We need to ensure
         #the right position.
-        self.connect(self.menu,
-                     QtCore.SIGNAL("aboutToShow()"),
-                     self.ensure_menu_position)
-        self.connect(self.menu,
-                     QtCore.SIGNAL("aboutToHide()"),
-                     self.value_selected)
+        self.menu.aboutToShow.connect(self.ensure_menu_position)
+        self.menu.aboutToHide.connect(self.value_selected)
         
     def contents_changed(self, info):
         #print "drop down emitting"
-        self.emit(QtCore.SIGNAL('contentsChanged'), (self, info))
+        self.contentsChanged.emit((self, info))
         
     def ensure_menu_position(self):
         #print self.dropdownbtn.pos(), 
@@ -353,32 +347,34 @@ class QDropDownWidget(QtGui.QWidget):
                 break
                 
     def focusInEvent(self, event):
-        self.emit(QtCore.SIGNAL("receivedfocus"), self)
+        self.receivedfocus.emit(self)
         
     def focusOutEvent(self, event):
-        self.emit(QtCore.SIGNAL("removedfocus"), self)
+        self.removedfocus.emit(self)
         
-class QMenuRadioButton(QtGui.QRadioButton):
+class QMenuRadioButton(QtWidgets.QRadioButton):
     def focusInEvent(self, event):
         self.setChecked(True)
         #self.emit(QtCore.SIGNAL("clicked(bool)"), True)
-        QtGui.QRadioButton.focusInEvent(self, event)
+        QtWidgets.QRadioButton.focusInEvent(self, event)
         
-class QMenuValue(QtGui.QMenu):    
+class QMenuValue(QtWidgets.QMenu):    
+    clicked = pyqtSignal(QVariant)
     def mousePressEvent(self, e):
         vw = self.childAt(e.pos())
         while vw is not None and not isinstance(vw, QMenuValueItem):
             vw = vw.parent()
         if vw is not None:
-            vw.emit(QtCore.SIGNAL("clicked(bool)"), True)
-        QtGui.QMenu.mousePressEvent(self, e)
+            vw.clicked.emit(True)
+        QtWidgets.QMenu.mousePressEvent(self, e)
         
-class QMenuValueItem(QtGui.QWidget):
+class QMenuValueItem(QtWidgets.QWidget):
+    clicked = pyqtSignal(QVariant)
     def __init__(self, widget, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.widget = widget
-        vlayout = QtGui.QVBoxLayout()
-        vlayout.setMargin(0)
+        vlayout = QtWidgets.QVBoxLayout()
+        vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.setSpacing(0)
         vlayout.addWidget(self.widget)
         self.setLayout(vlayout)
@@ -390,4 +386,4 @@ class QMenuValueItem(QtGui.QWidget):
         return self.widget.contents()
     
     def mousePressEvent(self, e):
-        self.emit(QtCore.SIGNAL("clicked(bool)"), True)
+        self.clicked.emit(True)

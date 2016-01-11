@@ -435,7 +435,8 @@ class TestColorConversion(unittest.TestCase):
 
     def test_hsv_with_qt(self):
         try:
-            from PyQt4 import QtGui
+            from PyQt5 import QtGui
+
         except ImportError:
             self.skipTest("QtGui not available")
         for color in self.colors:

@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from vistrails.core.configuration import get_vistrails_configuration, \
                                          get_vistrails_persistent_configuration
@@ -49,9 +50,9 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 import os
 
-class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
+class QModuleInfo(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
-        QtGui.QWidget.__init__(self, parent, flags)
+        QtWidgets.QWidget.__init__(self, parent, flags)
         self.ports_visible = True
         self.types_visible = True
 
@@ -69,7 +70,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                  'gui/resources/images/eye.png'))
 
-        self.portVisibilityAction = QtGui.QAction(eye_open_icon,
+        self.portVisibilityAction = QtWidgets.QAction(eye_open_icon,
                                         "Show/hide port visibility toggle buttons",
                                         None,
                                         triggered=self.showPortVisibility)
@@ -77,7 +78,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.portVisibilityAction.setChecked(True)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.portVisibilityAction)
-        self.showTypesAction = QtGui.QAction(letterIcon('T'),
+        self.showTypesAction = QtWidgets.QAction(letterIcon('T'),
                                         "Show/hide type information",
                                         None,
                                         triggered=self.showTypes)
@@ -85,7 +86,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.showTypesAction.setChecked(True)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.showTypesAction)
-        self.showEditsAction = QtGui.QAction(
+        self.showEditsAction = QtWidgets.QAction(
                  QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                           'gui/resources/images/pencil.png')),
                  "Show/hide parameter widgets",
@@ -112,55 +113,52 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         scene.setupScene(self.controller.current_pipeline)
 
     def build_widget(self):
-        name_label = QtGui.QLabel("Name:")
-        self.name_edit = QtGui.QLineEdit()
-        self.connect(self.name_edit, QtCore.SIGNAL('editingFinished()'),
-                     self.name_editing_finished)
+        name_label = QtWidgets.QLabel("Name:")
+        self.name_edit = QtWidgets.QLineEdit()
+        self.name_edit.editingFinished.connect(self.name_editing_finished)
         self.name_edit.setMinimumSize(50, 22)
-        type_label = QtGui.QLabel("Type:")
-        self.type_edit = QtGui.QLabel("")
-        package_label = QtGui.QLabel("Package:")
-        self.package_edit = QtGui.QLabel("")
-        namespace_label = QtGui.QLabel("Namespace:")
-        self.namespace_edit = QtGui.QLabel("")
-        id = QtGui.QLabel("Id:")
-        self.module_id = QtGui.QLabel("")
+        type_label = QtWidgets.QLabel("Type:")
+        self.type_edit = QtWidgets.QLabel("")
+        package_label = QtWidgets.QLabel("Package:")
+        self.package_edit = QtWidgets.QLabel("")
+        namespace_label = QtWidgets.QLabel("Namespace:")
+        self.namespace_edit = QtWidgets.QLabel("")
+        id = QtWidgets.QLabel("Id:")
+        self.module_id = QtWidgets.QLabel("")
         self.configure_button = QDockPushButton("Configure")
-        self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
-                     self.configure)
+        self.configure_button.clicked.connect(self.configure)
         self.doc_button = QDockPushButton("Documentation")
-        self.connect(self.doc_button, QtCore.SIGNAL('clicked()'),
-                     self.documentation)
+        self.doc_button.clicked.connect(self.documentation)
 
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(4)
         def add_line(left, right):
-            h_layout = QtGui.QHBoxLayout()
-            h_layout.setMargin(2)
+            h_layout = QtWidgets.QHBoxLayout()
+            h_layout.setContentsMargins(2, 2, 2, 2)
             h_layout.setSpacing(2)
             h_layout.setAlignment(QtCore.Qt.AlignLeft)
             h_layout.addWidget(left)
             h_layout.addWidget(right)
-            h_widget = QtGui.QWidget()
+            h_widget = QtWidgets.QWidget()
             h_widget.setLayout(h_layout)
-            h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                   QtGui.QSizePolicy.Preferred)
+            h_widget.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
+                                   QtWidgets.QSizePolicy.Preferred)
             layout.addWidget(h_widget)
         add_line(name_label, self.name_edit)
         add_line(type_label, self.type_edit)
         add_line(package_label, self.package_edit)
         add_line(namespace_label, self.namespace_edit)
         add_line(id, self.module_id)
-        h_layout = QtGui.QHBoxLayout()
-        h_layout.setMargin(2)
+        h_layout = QtWidgets.QHBoxLayout()
+        h_layout.setContentsMargins(2, 2, 2, 2)
         h_layout.setSpacing(5)
         h_layout.setAlignment(QtCore.Qt.AlignCenter)
         h_layout.addWidget(self.configure_button)
         h_layout.addWidget(self.doc_button)
         layout.addLayout(h_layout)
         
-        self.tab_widget = QtGui.QTabWidget()
+        self.tab_widget = QtWidgets.QTabWidget()
         # keep from overflowing on mac
         if systemType in ['Darwin']:
             self.tab_widget.tabBar().setStyleSheet('font-size: 12pt')

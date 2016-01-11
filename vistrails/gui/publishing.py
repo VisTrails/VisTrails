@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import os
 
 from vistrails.core.db.locator import FileLocator, DBLocator, UntitledLocator
@@ -44,9 +45,9 @@ from vistrails.core.publishing.parse_latex import parse_latex_file, \
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
-class QLatexFigureItem(QtGui.QListWidgetItem):
+class QLatexFigureItem(QtWidgets.QListWidgetItem):
     def __init__(self, opt_dict, parent=None):
-        QtGui.QListWidgetItem.__init__(self, parent)
+        QtWidgets.QListWidgetItem.__init__(self, parent)
         self.opt_dict = opt_dict
 
     def update_opt_dict(self, opt_dict):
@@ -56,9 +57,9 @@ class QLatexFigureItem(QtGui.QListWidgetItem):
         return self.opt_dict
 
 
-class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
+class QLatexAssistant(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtGui.QWidget.__init__(self, parent, f)
+        QtWidgets.QWidget.__init__(self, parent, f)
         
         self.set_title("Export To LaTeX")
 
@@ -67,8 +68,8 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         # thumbnail display
         # set figure specific options (show workflow, show execution, show
         # set includegraphics options
-        source_label = QtGui.QLabel("LaTeX Source:")
-        self.source_edit = QtGui.QLineEdit()
+        source_label = QtWidgets.QLabel("LaTeX Source:")
+        self.source_edit = QtWidgets.QLineEdit()
         source_selector = QDockPushButton("Select...")
         # source_selector = QtGui.QToolButton()
         # source_selector.setIcon(QtGui.QIcon(
@@ -76,38 +77,30 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         # source_selector.setIconSize(QtCore.QSize(12,12))
         source_selector.setToolTip("Open a file chooser")
         # source_selector.setAutoRaise(True)
-        self.connect(source_selector,
-                     QtCore.SIGNAL('clicked()'),
-                     self.selectSource)
+        source_selector.clicked.connect(self.selectSource)
 
-        source_group = QtGui.QGroupBox("LaTeX Source")
-        s_layout = QtGui.QHBoxLayout()
+        source_group = QtWidgets.QGroupBox("LaTeX Source")
+        s_layout = QtWidgets.QHBoxLayout()
         s_layout.addWidget(source_label)
         s_layout.addWidget(self.source_edit)
         s_layout.addWidget(source_selector)
         s_layout.setStretch(1,1)
         source_group.setLayout(s_layout)
 
-        self.figure_list = QtGui.QListWidget()
+        self.figure_list = QtWidgets.QListWidget()
         self.figure_list.setSelectionMode(self.figure_list.SingleSelection)
-        self.preview_image = QtGui.QLabel()
+        self.preview_image = QtWidgets.QLabel()
         self.preview_image.setScaledContents(False)
         self.preview_image.setMinimumSize(240, 240)
         add_figure = QDockPushButton("Add Figure")
         delete_figure = QDockPushButton("Delete Figure")
         
-        self.connect(add_figure,
-                     QtCore.SIGNAL("clicked()"),
-                     self.addFigure)
-        self.connect(delete_figure,
-                     QtCore.SIGNAL("clicked()"),
-                     self.deleteFigure)
-        self.connect(self.figure_list,
-                     QtCore.SIGNAL("itemSelectionChanged()"),
-                     self.figureSelected)
+        add_figure.clicked.connect(self.addFigure)
+        delete_figure.clicked.connect(self.deleteFigure)
+        self.figure_list.itemSelectionChanged.connect(self.figureSelected)
         
-        figure_group = QtGui.QGroupBox("Figures")
-        figure_layout = QtGui.QGridLayout()
+        figure_group = QtWidgets.QGroupBox("Figures")
+        figure_layout = QtWidgets.QGridLayout()
         figure_layout.addWidget(self.figure_list,0,0,1,2)
         figure_layout.addWidget(self.preview_image,0,2)
         figure_layout.addWidget(add_figure,1,0,QtCore.Qt.AlignRight)
@@ -116,35 +109,34 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         
         # figure type, vistrail reference (vt_locator), version (smart tag)
         # use current version
-        self.figure_type = QtGui.QComboBox()
+        self.figure_type = QtWidgets.QComboBox()
         self.figure_type.setEditable(False)
         # items = []
         # items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
         self.figure_type.addItems(["Workflow Results", "Workflow Graph",
                                    "Version Tree"])
-        self.figure_ref = QtGui.QLineEdit()
-        version_label = QtGui.QLabel("Version:")
-        self.figure_version = QtGui.QLineEdit()
-        tag_label = QtGui.QLabel("Tag:")
-        self.figure_tag = QtGui.QComboBox()
+        self.figure_ref = QtWidgets.QLineEdit()
+        version_label = QtWidgets.QLabel("Version:")
+        self.figure_version = QtWidgets.QLineEdit()
+        tag_label = QtWidgets.QLabel("Tag:")
+        self.figure_tag = QtWidgets.QComboBox()
         self.figure_tag.setEditable(True)
-        self.figure_smart = QtGui.QCheckBox("Smart Tag")
+        self.figure_smart = QtWidgets.QCheckBox("Smart Tag")
         current_button = QDockPushButton("Use Current")
         
-        self.connect(current_button, QtCore.SIGNAL("clicked()"),
-                     self.useCurrent)
+        current_button.clicked.connect(self.useCurrent)
 
-        graphicx_label = QtGui.QLabel("Arguments for includegraphics:")
-        self.graphicx_edit = QtGui.QLineEdit()
+        graphicx_label = QtWidgets.QLabel("Arguments for includegraphics:")
+        self.graphicx_edit = QtWidgets.QLineEdit()
 
-        self.def_group = QtGui.QGroupBox("Figure Definition")
-        def_layout = QtGui.QVBoxLayout()
-        def_h_layout = QtGui.QHBoxLayout()
+        self.def_group = QtWidgets.QGroupBox("Figure Definition")
+        def_layout = QtWidgets.QVBoxLayout()
+        def_h_layout = QtWidgets.QHBoxLayout()
         def_h_layout.addWidget(self.figure_ref)
         def_h_layout.addWidget(self.figure_type)
         def_h_layout.setStretch(0,1)
         def_layout.addLayout(def_h_layout)
-        def_h_layout = QtGui.QHBoxLayout()        
+        def_h_layout = QtWidgets.QHBoxLayout()        
         def_h_layout.addWidget(version_label)
         def_h_layout.addWidget(self.figure_version)
         def_h_layout.addWidget(tag_label)
@@ -153,32 +145,32 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         def_h_layout.addWidget(current_button)
         def_h_layout.setStretch(3,1)
         def_layout.addLayout(def_h_layout)
-        def_h_layout = QtGui.QHBoxLayout()
+        def_h_layout = QtWidgets.QHBoxLayout()
         def_h_layout.addWidget(graphicx_label)
         def_h_layout.addWidget(self.graphicx_edit)
         def_h_layout.setStretch(1,1)
         def_layout.addLayout(def_h_layout)
         self.def_group.setLayout(def_layout)
 
-        self.chbPdf = QtGui.QCheckBox("As PDF")
-        self.chbCache = QtGui.QCheckBox("Cache Images")
-        self.chbLatexVTL = QtGui.QCheckBox("Include .vtl")
+        self.chbPdf = QtWidgets.QCheckBox("As PDF")
+        self.chbCache = QtWidgets.QCheckBox("Cache Images")
+        self.chbLatexVTL = QtWidgets.QCheckBox("Include .vtl")
 
-        self.chbWorkflow = QtGui.QCheckBox("Include Workflow")
-        self.chbFullTree = QtGui.QCheckBox("Include Full Tree")
+        self.chbWorkflow = QtWidgets.QCheckBox("Include Workflow")
+        self.chbFullTree = QtWidgets.QCheckBox("Include Full Tree")
         self.chbFullTree.setEnabled(False)
-        self.chbExecute = QtGui.QCheckBox("Execute Workflow")
-        self.chbSpreadsheet = QtGui.QCheckBox("Show Spreadsheet Only")
+        self.chbExecute = QtWidgets.QCheckBox("Execute Workflow")
+        self.chbSpreadsheet = QtWidgets.QCheckBox("Show Spreadsheet Only")
 
-        self.gbEmbedOpt = QtGui.QGroupBox("Embed Options")
-        gblayout = QtGui.QGridLayout()
+        self.gbEmbedOpt = QtWidgets.QGroupBox("Embed Options")
+        gblayout = QtWidgets.QGridLayout()
         gblayout.addWidget(self.chbPdf, 0, 0)
         gblayout.addWidget(self.chbCache, 0, 1)
         gblayout.addWidget(self.chbLatexVTL, 1, 0)
         self.gbEmbedOpt.setLayout(gblayout)
 
-        self.gbDownOpt = QtGui.QGroupBox("Download Options")
-        gblayout = QtGui.QGridLayout()
+        self.gbDownOpt = QtWidgets.QGroupBox("Download Options")
+        gblayout = QtWidgets.QGridLayout()
         gblayout.addWidget(self.chbWorkflow, 0, 0)
         gblayout.addWidget(self.chbFullTree, 0, 1)
         gblayout.addWidget(self.chbExecute, 1, 0)
@@ -189,18 +181,17 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         save_button = QDockPushButton("Save...")
         save_button.setAutoDefault(True)
 
-        self.connect(save_button, QtCore.SIGNAL("clicked()"),
-                     self.saveLatex)
+        save_button.clicked.connect(self.saveLatex)
         
-        main_layout = QtGui.QVBoxLayout()
+        main_layout = QtWidgets.QVBoxLayout()
         main_layout.addWidget(source_group)
         main_layout.addWidget(figure_group)
         main_layout.addWidget(self.def_group)
-        main_h_layout = QtGui.QHBoxLayout()
+        main_h_layout = QtWidgets.QHBoxLayout()
         main_h_layout.addWidget(self.gbEmbedOpt)
         main_h_layout.addWidget(self.gbDownOpt)
         main_layout.addLayout(main_h_layout)
-        main_h_layout = QtGui.QHBoxLayout()
+        main_h_layout = QtWidgets.QHBoxLayout()
         main_h_layout.setAlignment(QtCore.Qt.AlignRight)
         main_h_layout.addWidget(revert_button)
         main_h_layout.addWidget(save_button)
@@ -212,8 +203,8 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         self.selected_item = None
 
     def selectSource(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self,
-                                                  'Load LaTeX File...',
+        fname = QtWidgets.QFileDialog.getOpenFileName(self,
+            [0]                                      'Load LaTeX File...',
                                                   self.source_edit.text(),
                                                   'LaTeX files (*.tex)')
         if fname:
@@ -445,22 +436,22 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
     def useCurrent(self):
         pass
 
-class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
+class QVersionEmbed(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtGui.QWidget.__init__(self, parent, 
+        QtWidgets.QWidget.__init__(self, parent, 
                                f | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowTitle('Publish Workflow')
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.versionNumber = None
         self.versionTag = ''
-        label1 = QtGui.QLabel("Embed:")
-        self.cbcontent = QtGui.QComboBox()
+        label1 = QtWidgets.QLabel("Embed:")
+        self.cbcontent = QtWidgets.QComboBox()
         self.cbcontent.setEditable(False)
         items = ["Workflow Results", "Workflow Graph", "History Tree Graph"]
         self.cbcontent.addItems(items)
-        label2 = QtGui.QLabel("In:")
+        label2 = QtWidgets.QLabel("In:")
         
-        self.cbtype = QtGui.QComboBox()
+        self.cbtype = QtWidgets.QComboBox()
         self.cbtype.setEditable(False)
         items = ["Wiki", "Latex", "Shared Memory"]
         self.cbtype.addItems(items)
@@ -469,46 +460,46 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pptag = 'Image(s) from (%s,%s,%s,%s,%s)'
         
         #options
-        self.gbEmbedOpt = QtGui.QGroupBox("Embed Options")
-        self.chbPdf = QtGui.QCheckBox("As PDF")
-        self.chbSmartTag = QtGui.QCheckBox("Smart Tag")
-        self.chbCache = QtGui.QCheckBox("Cache Images")
-        self.chbLatexVTL = QtGui.QCheckBox("Include .vtl")
+        self.gbEmbedOpt = QtWidgets.QGroupBox("Embed Options")
+        self.chbPdf = QtWidgets.QCheckBox("As PDF")
+        self.chbSmartTag = QtWidgets.QCheckBox("Smart Tag")
+        self.chbCache = QtWidgets.QCheckBox("Cache Images")
+        self.chbLatexVTL = QtWidgets.QCheckBox("Include .vtl")
         self.chbLatexVTL.setEnabled(False)
         
-        gblayout = QtGui.QGridLayout()
+        gblayout = QtWidgets.QGridLayout()
         gblayout.addWidget(self.chbPdf, 0, 0)
         gblayout.addWidget(self.chbSmartTag, 0, 1)
         gblayout.addWidget(self.chbCache, 1, 0)
         gblayout.addWidget(self.chbLatexVTL, 1, 1)
         self.gbEmbedOpt.setLayout(gblayout)
         
-        self.gbDownOpt = QtGui.QGroupBox("Download Options")
-        self.chbWorkflow = QtGui.QCheckBox("Include Workflow")
-        self.chbFullTree = QtGui.QCheckBox("Include Full Tree")
+        self.gbDownOpt = QtWidgets.QGroupBox("Download Options")
+        self.chbWorkflow = QtWidgets.QCheckBox("Include Workflow")
+        self.chbFullTree = QtWidgets.QCheckBox("Include Full Tree")
         self.chbFullTree.setEnabled(False)
-        self.chbExecute = QtGui.QCheckBox("Execute Workflow")
-        self.chbSpreadsheet = QtGui.QCheckBox("Show Spreadsheet Only")
+        self.chbExecute = QtWidgets.QCheckBox("Execute Workflow")
+        self.chbSpreadsheet = QtWidgets.QCheckBox("Show Spreadsheet Only")
         
-        gblayout = QtGui.QGridLayout()
+        gblayout = QtWidgets.QGridLayout()
         gblayout.addWidget(self.chbWorkflow, 0, 0)
         gblayout.addWidget(self.chbFullTree, 0, 1)
         gblayout.addWidget(self.chbExecute, 1, 0)
         gblayout.addWidget(self.chbSpreadsheet, 1, 1)
         self.gbDownOpt.setLayout(gblayout)
         
-        self.embededt = QtGui.QTextEdit(self)
+        self.embededt = QtWidgets.QTextEdit(self)
         self.embededt.setAcceptRichText(False)
         self.embededt.setReadOnly(False)
         # self.exportHtml = '<a href="export">Export...</a>'
         # self.copyHtml = '<a href="copy">Copy to Clipboard</a>'
         # self.copylabel = QtGui.QLabel(self.copyHtml)
         # self.copylabel.setCursor(QtCore.Qt.PointingHandCursor)
-        self.copyButton = QtGui.QPushButton() # "Copy to Clipboard")
+        self.copyButton = QtWidgets.QPushButton() # "Copy to Clipboard")
         self.copyButton.setMinimumSize(50, 30)
         self.link = "copy"
         
-        self.helpLabel = QtGui.QLabel()
+        self.helpLabel = QtWidgets.QLabel()
         # "After making your selection, "
         #                               "click on 'Copy To Clipboard'. "
         #                               "The code changes based on your "
@@ -519,7 +510,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         font.setItalic(True)
         self.helpLabel.setFont(font)
         
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.addWidget(label1,0,0)
         layout.addWidget(self.cbcontent,0,1)
         layout.addWidget(label2,1,0)
@@ -534,21 +525,15 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.changeEmbedType("Wiki")
         
         #connect signals
-        self.connect(self.cbtype,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeEmbedType)
+        self.cbtype.activated['QString'].connect(self.changeEmbedType)
         
         # self.connect(self.copylabel,
         #              QtCore.SIGNAL("linkActivated(const QString &)"),
         #              self.linkActivated)
 
-        self.connect(self.copyButton,
-                     QtCore.SIGNAL("clicked()"),
-                     self.copyClicked)
+        self.copyButton.clicked.connect(self.copyClicked)
         
-        self.connect(self.cbcontent,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeOption)
+        self.cbcontent.activated['QString'].connect(self.changeOption)
         
         optlist = [self.cbcontent,
                    self.chbPdf,
@@ -560,22 +545,14 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
                    self.chbExecute,
                    self.chbSpreadsheet]
         for cb in optlist:
-            self.connect(cb, QtCore.SIGNAL("toggled(bool)"),
-                         self.changeOption)
+            cb.toggled[bool].connect(self.changeOption)
         #special cases
-        self.connect(self.chbWorkflow, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeIncludeWorkflow)
-        self.connect(self.chbSpreadsheet, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeShowSpreadsheet)
-        self.connect(self.chbExecute, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeExecute)
-        self.connect(self.cbcontent,
-                     QtCore.SIGNAL("activated(const QString &)"),
-                     self.changeContent)
-        self.connect(self.chbSmartTag, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeSmartTag)
-        self.connect(self.chbCache, QtCore.SIGNAL("toggled(bool)"),
-                     self.changeCache)
+        self.chbWorkflow.toggled[bool].connect(self.changeIncludeWorkflow)
+        self.chbSpreadsheet.toggled[bool].connect(self.changeShowSpreadsheet)
+        self.chbExecute.toggled[bool].connect(self.changeExecute)
+        self.cbcontent.activated['QString'].connect(self.changeContent)
+        self.chbSmartTag.toggled[bool].connect(self.changeSmartTag)
+        self.chbCache.toggled[bool].connect(self.changeCache)
         
     def set_controller(self, controller):
         self.controller = controller
@@ -675,7 +652,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def copyClicked(self):
         if self.link == 'copy':
-            clipboard = QtGui.QApplication.clipboard()
+            clipboard = QtWidgets.QApplication.clipboard()
             clipboard.setText(self.embededt.toPlainText())
         elif self.link=='export':
             app = QtCore.QCoreApplication.instance()

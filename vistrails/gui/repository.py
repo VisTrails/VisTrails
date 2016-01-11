@@ -39,7 +39,8 @@ Includes login and upload tabs
 """
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+
 from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
@@ -55,19 +56,19 @@ import json
 
 ##############################################################################
 
-class QRepositoryPushWidget(QtGui.QWidget):
+class QRepositoryPushWidget(QtWidgets.QWidget):
     """ Tab that shows main repository options
         Allows users to login and push VisTrails to the Repository """
 
     def __init__(self, parent, status_bar, dialog):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self._status_bar = status_bar
         self.dialog = dialog
 
-        base_layout = QtGui.QVBoxLayout(self)
+        base_layout = QtWidgets.QVBoxLayout(self)
 
-        top = QtGui.QFrame(self)
-        bottom = QtGui.QFrame(self)
+        top = QtWidgets.QFrame(self)
+        bottom = QtWidgets.QFrame(self)
 
         base_layout.addWidget(top)
         base_layout.addWidget(bottom, 1)
@@ -86,13 +87,13 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         ######################################################################
         # Detail Table
-        bottom_layout = QtGui.QVBoxLayout(bottom)
-        bottom_layout.setMargin(2)
+        bottom_layout = QtWidgets.QVBoxLayout(bottom)
+        bottom_layout.setContentsMargins(2, 2, 2, 2)
         bottom_layout.setSpacing(2)
 
         # Show what workflows are unrunnble on the repository
         # and for what reasons
-        self._unrunnable_table = QtGui.QTableWidget(0, 2, top)
+        self._unrunnable_table = QtWidgets.QTableWidget(0, 2, top)
         self._unrunnable_table.horizontalHeader().setStretchLastSection(True)
 
         bottom_layout.addWidget(self._unrunnable_table)
@@ -101,16 +102,14 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         ######################################################################
         # Push info
-        top_layout = QtGui.QVBoxLayout(top)
+        top_layout = QtWidgets.QVBoxLayout(top)
 
-        self._vistrail_status_label = QtGui.QLabel("")
+        self._vistrail_status_label = QtWidgets.QLabel("")
         self._vistrail_status_label.setWordWrap(True)
         top_layout.addWidget(self._vistrail_status_label)
 
-        self.serverCombo = QtGui.QComboBox()
-        self.connect(self.serverCombo,
-                     QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.check_dependencies)
+        self.serverCombo = QtWidgets.QComboBox()
+        self.serverCombo.currentIndexChanged[int].connect(self.check_dependencies)
         top_layout.addWidget(self.serverCombo)
 
         """
@@ -125,12 +124,12 @@ class QRepositoryPushWidget(QtGui.QWidget):
         self.perm_view.setEnabled(True)
         """
 
-        self.permission_gb = QtGui.QGroupBox(self)
+        self.permission_gb = QtWidgets.QGroupBox(self)
         self.permission_gb.setTitle("Default Global Permissions")
-        glayout = QtGui.QHBoxLayout()
-        self.perm_view = QtGui.QCheckBox("view")
-        self.perm_download = QtGui.QCheckBox("download")
-        self.perm_edit = QtGui.QCheckBox("edit")
+        glayout = QtWidgets.QHBoxLayout()
+        self.perm_view = QtWidgets.QCheckBox("view")
+        self.perm_download = QtWidgets.QCheckBox("download")
+        self.perm_edit = QtWidgets.QCheckBox("edit")
         glayout.addWidget(self.perm_view)
         glayout.addWidget(self.perm_download)
         glayout.addWidget(self.perm_edit)
@@ -139,7 +138,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
         self.permission_gb.setLayout(glayout)
         top_layout.addWidget(self.permission_gb)
 
-        self._details_label = QtGui.QLabel("")
+        self._details_label = QtWidgets.QLabel("")
         self._details_label.setWordWrap(True)
         top_layout.addWidget(self._details_label)
 
@@ -147,32 +146,28 @@ class QRepositoryPushWidget(QtGui.QWidget):
             lbl.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
             lbl.setWordWrap(True)
 
-        self._push_button = QtGui.QPushButton("&Push")
+        self._push_button = QtWidgets.QPushButton("&Push")
         self._push_button.setEnabled(False)
-        self.connect(self._push_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.push_vistrail_to_repository)
-        self._branch_button = QtGui.QPushButton("&Branch")
+        self._push_button.clicked.connect(self.push_vistrail_to_repository)
+        self._branch_button = QtWidgets.QPushButton("&Branch")
         self._branch_button.hide()
-        self.connect(self._branch_button,
-                     QtCore.SIGNAL("clicked()"),
-                     (lambda branching=True : self.push_vistrail_to_repository(branching)))
-        button_box = QtGui.QDialogButtonBox()
+        self._branch_button.clicked.connect((lambda branching=True : self.push_vistrail_to_repository(branching)))
+        button_box = QtWidgets.QDialogButtonBox()
         button_box.addButton(self._push_button,
-                             QtGui.QDialogButtonBox.ActionRole)
+                             QtWidgets.QDialogButtonBox.ActionRole)
         button_box.addButton(self._branch_button,
-                             QtGui.QDialogButtonBox.ActionRole)
+                             QtWidgets.QDialogButtonBox.ActionRole)
         bottom_layout.addWidget(button_box)
 
     def populate_table(self):
         self._unrunnable_table.clear()
 
         # set horizontal headers
-        wf_title = QtGui.QTableWidgetItem('Workflow')
+        wf_title = QtWidgets.QTableWidgetItem('Workflow')
         wf_title.setTextAlignment(QtCore.Qt.AlignCenter)
         self._unrunnable_table.setHorizontalHeaderItem(0, wf_title)
 
-        detail_title = QtGui.QTableWidgetItem('Unsupported Modules/Packages')
+        detail_title = QtWidgets.QTableWidgetItem('Unsupported Modules/Packages')
         detail_title.setTextAlignment(QtCore.Qt.AlignCenter)
         self._unrunnable_table.setHorizontalHeaderItem(1, detail_title)
 
@@ -180,10 +175,10 @@ class QRepositoryPushWidget(QtGui.QWidget):
         count = 0
         for wf in list(self._unrunnable_wfs.keys()):
             details = \
-                    QtGui.QTableWidgetItem(', '.join(self._unrunnable_wfs[wf]))
+                    QtWidgets.QTableWidgetItem(', '.join(self._unrunnable_wfs[wf]))
             details.setTextAlignment(QtCore.Qt.AlignCenter)
 
-            wf_item = QtGui.QTableWidgetItem(str(wf))
+            wf_item = QtWidgets.QTableWidgetItem(str(wf))
             wf_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
             if count >= self._unrunnable_table.rowCount():
@@ -194,7 +189,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         # delete vertical headers
         for i in range(self._unrunnable_table.rowCount()):
-            self._unrunnable_table.setVerticalHeaderItem(i, QtGui.QTableWidgetItem())
+            self._unrunnable_table.setVerticalHeaderItem(i, QtWidgets.QTableWidgetItem())
 
     def update_push_information(self):
         """ display push information text in this widget """
@@ -535,11 +530,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
 
-class QRepositoryLoginPopup(QtGui.QDialog):
+class QRepositoryLoginPopup(QtWidgets.QDialog):
     """ Dialog that shows repository authentication """
 
     def __init__(self, parent, status_bar, dialog):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self._status_bar = status_bar
         self.dialog = dialog
         self.dialog.cookiejar = None
@@ -551,60 +546,56 @@ class QRepositoryLoginPopup(QtGui.QDialog):
 
         self.setWindowTitle('Log in to Web Repository')
 
-        grid_layout = QtGui.QGridLayout(self)
+        grid_layout = QtWidgets.QGridLayout(self)
         grid_layout.setSpacing(10)
 
-        l1 = QtGui.QLabel("Repository location: %s" % \
+        l1 = QtWidgets.QLabel("Repository location: %s" % \
                           self.config.webRepositoryURL, self)
         grid_layout.addWidget(l1, 0, 0, 1, 2)
 
-        l2 = QtGui.QLabel("Username:", self)
+        l2 = QtWidgets.QLabel("Username:", self)
         grid_layout.addWidget(l2, 1, 0)
 
         if self.config.check('webRepositoryUser'):
-            self.loginUser = QtGui.QLineEdit(self.config.webRepositoryUser, self)
+            self.loginUser = QtWidgets.QLineEdit(self.config.webRepositoryUser, self)
         else:
-            self.loginUser = QtGui.QLineEdit("", self)
+            self.loginUser = QtWidgets.QLineEdit("", self)
 
         self.loginUser.setFixedWidth(200)
-        self.loginUser.setSizePolicy(QtGui.QSizePolicy.Fixed,
-                                     QtGui.QSizePolicy.Fixed)
+        self.loginUser.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                     QtWidgets.QSizePolicy.Fixed)
         grid_layout.addWidget(self.loginUser, 1, 1)
 
-        l3 = QtGui.QLabel("Password:", self)
+        l3 = QtWidgets.QLabel("Password:", self)
         grid_layout.addWidget(l3, 2, 0)
 
-        self.loginPassword = QtGui.QLineEdit("", self)
+        self.loginPassword = QtWidgets.QLineEdit("", self)
         self.loginPassword.setEchoMode(2)
         self.loginPassword.setFixedWidth(200)
-        self.loginPassword.setSizePolicy(QtGui.QSizePolicy.Fixed,
-                                     QtGui.QSizePolicy.Fixed)
+        self.loginPassword.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                     QtWidgets.QSizePolicy.Fixed)
         grid_layout.addWidget(self.loginPassword, 2, 1)
 
-        self.saveLogin = QtGui.QCheckBox("Save username", self)
+        self.saveLogin = QtWidgets.QCheckBox("Save username", self)
         if self.config.check('webRepositoryUser'):
             self.saveLogin.setChecked(True)
         grid_layout.addWidget(self.saveLogin, 3, 0)
 
-        self._login_status_label= QtGui.QLabel("", self)
+        self._login_status_label= QtWidgets.QLabel("", self)
         grid_layout.addWidget(self._login_status_label, 4, 0)
 
-        self._login_button = QtGui.QPushButton("&Login", self)
-        self._cancel_button = QtGui.QPushButton("&Cancel", self)
+        self._login_button = QtWidgets.QPushButton("&Login", self)
+        self._cancel_button = QtWidgets.QPushButton("&Cancel", self)
 
-        self.connect(self._login_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.clicked_on_login)
+        self._login_button.clicked.connect(self.clicked_on_login)
 
-        self.connect(self._cancel_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.clicked_on_cancel)
+        self._cancel_button.clicked.connect(self.clicked_on_cancel)
 
-        button_box = QtGui.QDialogButtonBox()
+        button_box = QtWidgets.QDialogButtonBox()
         button_box.addButton(self._login_button,
-                             QtGui.QDialogButtonBox.ActionRole)
+                             QtWidgets.QDialogButtonBox.ActionRole)
         button_box.addButton(self._cancel_button,
-                             QtGui.QDialogButtonBox.ActionRole)
+                             QtWidgets.QDialogButtonBox.ActionRole)
 
         grid_layout.addWidget(button_box, 5, 0)
 
@@ -692,26 +683,26 @@ class QRepositoryLoginPopup(QtGui.QDialog):
     def close_dialog(self, status=0):
         self.accept()
 
-class QRepositoryDialog(QtGui.QDialog):
+class QRepositoryDialog(QtWidgets.QDialog):
     """ Dialog that shows repository options """
 
     cookiejar = None
     cookie_url = None
     loginUser = None
     def __init__(self, parent):
-        QtGui.QDialog.__init__(self, parent)
-        self._status_bar = QtGui.QStatusBar(self)
+        QtWidgets.QDialog.__init__(self, parent)
+        self._status_bar = QtWidgets.QStatusBar(self)
         self.setWindowTitle('Push vistrail to Web Repository')
 
-        l = QtGui.QVBoxLayout(self)
-        l.setMargin(0)
+        l = QtWidgets.QVBoxLayout(self)
+        l.setContentsMargins(0, 0, 0, 0)
         l.setSpacing(0)
 
-        widget = QtGui.QWidget(self)
-        user_layout = QtGui.QHBoxLayout(widget)
-        self._user_text = QtGui.QLabel('N/A')
+        widget = QtWidgets.QWidget(self)
+        user_layout = QtWidgets.QHBoxLayout(widget)
+        self._user_text = QtWidgets.QLabel('N/A')
         user_layout.addWidget(self._user_text)
-        self._logout_button = QtGui.QPushButton('Log out')
+        self._logout_button = QtWidgets.QPushButton('Log out')
         #self._logout_button.setFixedWidth(100)
         user_layout.addWidget(self._logout_button)
         user_layout.addStretch(1)
@@ -720,17 +711,13 @@ class QRepositoryDialog(QtGui.QDialog):
                                                   self.__class__)
         l.addWidget(self._push_widget)
 
-        self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
+        self._button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Close,
                                                   QtCore.Qt.Horizontal,
                                                   self)
         
-        self.connect(self._button_box,
-                     QtCore.SIGNAL('clicked(QAbstractButton *)'),
-                     self.close_dialog)
+        self._button_box.clicked[QAbstractButton].connect(self.close_dialog)
 
-        self.connect(self._logout_button,
-                     QtCore.SIGNAL('clicked()'),
-                     self.clicked_on_logout)
+        self._logout_button.clicked.connect(self.clicked_on_logout)
 
         l.addWidget(self._button_box)
         l.addWidget(self._status_bar)
@@ -749,7 +736,7 @@ class QRepositoryDialog(QtGui.QDialog):
         if not self.cookiejar:
             loginDialog = QRepositoryLoginPopup(self, self._status_bar, self.__class__)
             res = loginDialog.exec_()
-            if res == QtGui.QDialog.Rejected:
+            if res == QtWidgets.QDialog.Rejected:
                 self.close_dialog()
                 return
         self._user_text.setText('Logged in as: %s@%s' % (self.loginUser, self.cookie_url))

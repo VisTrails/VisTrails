@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
@@ -51,34 +52,34 @@ from vistrails.gui.open_db_window import QDBConnectionList, QConnectionDBSetupWi
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 import vistrails.gui
 
-class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
+class QExplorerWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        self.splitter = QtGui.QSplitter()
+        self.splitter = QtWidgets.QSplitter()
         self.splitter.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.splitter)
         self.connectionList = QDBConnectionList(self)
-        dbGrid = QtGui.QGridLayout(self)
-        dbGrid.setMargin(0)
+        dbGrid = QtWidgets.QGridLayout(self)
+        dbGrid.setContentsMargins(0, 0, 0, 0)
         dbGrid.setSpacing(0)
         dbGrid.addWidget(self.connectionList, 2, 1, QtCore.Qt.AlignLeft)
-        self.addAct = QtGui.QAction("Add Database", self)
-        self.removeAct = QtGui.QAction("Remove Database", self)
-        self.addButton = QtGui.QToolButton()
+        self.addAct = QtWidgets.QAction("Add Database", self)
+        self.removeAct = QtWidgets.QAction("Remove Database", self)
+        self.addButton = QtWidgets.QToolButton()
         self.addButton.setToolTip("Create a new database connection")
         self.addButton.setDefaultAction(self.addAct)
         self.addButton.setAutoRaise(True)
-        self.removeButton = QtGui.QToolButton()
+        self.removeButton = QtWidgets.QToolButton()
         self.removeButton.setToolTip("Remove the selected connection from list")
         self.removeButton.setDefaultAction(self.removeAct)
         self.removeButton.setAutoRaise(True)
         self.removeButton.setEnabled(False)
-        panelButtonsLayout = QtGui.QHBoxLayout()
-        panelButtonsLayout.setMargin(0)
+        panelButtonsLayout = QtWidgets.QHBoxLayout()
+        panelButtonsLayout.setContentsMargins(0, 0, 0, 0)
         panelButtonsLayout.setSpacing(0)
         panelButtonsLayout.addWidget(self.addButton)
         panelButtonsLayout.addWidget(self.removeButton)
@@ -86,19 +87,11 @@ class QExplorerWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         dbWidget = QDBWidget(parent, self.connectionList)
         dbWidget.setLayout(dbGrid)
         self.splitter.addWidget(dbWidget)
-        self.connect(self.addAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.showConnConfig)
-        self.connect(self.removeAct,
-                     QtCore.SIGNAL('triggered()'),
-                     self.connectionList.removeConnection)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateEditButtons)
-        self.connect(self.connectionList,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.checkConnection)
-        self.tabView = QtGui.QTabWidget()
+        self.addAct.triggered.connect(self.showConnConfig)
+        self.removeAct.triggered.connect(self.connectionList.removeConnection)
+        self.connectionList.itemSelectionChanged.connect(self.updateEditButtons)
+        self.connectionList.itemSelectionChanged.connect(self.checkConnection)
+        self.tabView = QtWidgets.QTabWidget()
         self.tabView.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(self.tabView)
 #        self.workflowSearch = WorkflowSearchWidget(self.connectionList)
@@ -142,7 +135,7 @@ def showConnConfig(connectionList, *args, **keywords):
     
     """
     dialog = QConnectionDBSetupWindow(**keywords)
-    if dialog.exec_() == QtGui.QDialog.Accepted:
+    if dialog.exec_() == QtWidgets.QDialog.Accepted:
         config = {'id': int(dialog.id),
                   'name': str(dialog.nameEdt.text()),
                   'host': str(dialog.hostEdt.text()),
@@ -196,19 +189,19 @@ def checkConnection(connectionList):
                 del config['name']
                 del config['id']
 
-class QDBWidget(QtGui.QWidget):
+class QDBWidget(QtWidgets.QWidget):
     """ Custom widget for handling the showConnConfig """
 
     def __init__(self, parent, connectionList):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.connectionList = connectionList
 
     def showConnConfig(self, *args, **keywords):
         return showConnConfig(self.connectionList, *args, **keywords)
 
-class ExecutionSearchWidget(QtGui.QSplitter):
+class ExecutionSearchWidget(QtWidgets.QSplitter):
     def __init__(self, connectionList):
-        QtGui.QSplitter.__init__(self)
+        QtWidgets.QSplitter.__init__(self)
         self.connectionList = connectionList
         self.conn = None
         self.config = None
@@ -224,105 +217,97 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         self.completed = None
         self.modules = []
         self.setOrientation(QtCore.Qt.Vertical)
-        self.searchLayout = QtGui.QGridLayout()
-        self.vistrailEditCheckBox = QtGui.QCheckBox()
+        self.searchLayout = QtWidgets.QGridLayout()
+        self.vistrailEditCheckBox = QtWidgets.QCheckBox()
         self.vistrailEditCheckBox.setToolTip('Check to enable this search option')
-        self.vistrailEdit = QtGui.QLineEdit()
+        self.vistrailEdit = QtWidgets.QLineEdit()
         self.searchLayout.addWidget(self.vistrailEditCheckBox, 0,0)
-        self.searchLayout.addWidget(QtGui.QLabel('Vistrail:'), 0,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Vistrail:'), 0,1)
         self.searchLayout.addWidget(self.vistrailEdit,         0,2)
-        self.versionEditCheckBox = QtGui.QCheckBox()
+        self.versionEditCheckBox = QtWidgets.QCheckBox()
         self.versionEditCheckBox.setToolTip('Check to enable this search option')
-        self.versionEdit = QtGui.QLineEdit()
+        self.versionEdit = QtWidgets.QLineEdit()
         self.searchLayout.addWidget(self.versionEditCheckBox, 0,3)
-        self.searchLayout.addWidget(QtGui.QLabel('Version:'), 0,4)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Version:'), 0,4)
         self.searchLayout.addWidget(self.versionEdit,         0,5)
-        self.fromTimeEditCheckBox = QtGui.QCheckBox()
+        self.fromTimeEditCheckBox = QtWidgets.QCheckBox()
         self.fromTimeEditCheckBox.setToolTip('Check to enable this search option')
-        self.fromTimeEdit = QtGui.QDateTimeEdit(QtCore.QDateTime.currentDateTime().addDays(-1))
+        self.fromTimeEdit = QtWidgets.QDateTimeEdit(QtCore.QDateTime.currentDateTime().addDays(-1))
         self.fromTimeEdit.setDisplayFormat('yyyy-MM-d H:mm:ss')
         self.fromTimeEdit.setCalendarPopup(True)
         self.searchLayout.addWidget(self.fromTimeEditCheckBox,  1,0)
-        self.searchLayout.addWidget(QtGui.QLabel('From time:'), 1,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('From time:'), 1,1)
         self.searchLayout.addWidget(self.fromTimeEdit,          1,2)
-        self.toTimeEditCheckBox = QtGui.QCheckBox()
+        self.toTimeEditCheckBox = QtWidgets.QCheckBox()
         self.toTimeEditCheckBox.setToolTip('Check to enable this search option')
-        self.toTimeEdit = QtGui.QDateTimeEdit(QtCore.QDateTime.currentDateTime())
+        self.toTimeEdit = QtWidgets.QDateTimeEdit(QtCore.QDateTime.currentDateTime())
         self.toTimeEdit.setDisplayFormat('yyyy-MM-d H:mm:ss')
         self.toTimeEdit.setCalendarPopup(True)
         self.searchLayout.addWidget(self.toTimeEditCheckBox,  1,3)
-        self.searchLayout.addWidget(QtGui.QLabel('To time:'), 1,4)
+        self.searchLayout.addWidget(QtWidgets.QLabel('To time:'), 1,4)
         self.searchLayout.addWidget(self.toTimeEdit,          1,5)
-        self.userEditCheckBox = QtGui.QCheckBox()
+        self.userEditCheckBox = QtWidgets.QCheckBox()
         self.userEditCheckBox.setToolTip('Check to enable this search option')
-        self.userEdit = QtGui.QLineEdit()
+        self.userEdit = QtWidgets.QLineEdit()
         self.searchLayout.addWidget(self.userEditCheckBox, 2,0)
-        self.searchLayout.addWidget(QtGui.QLabel('User:'), 2,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('User:'), 2,1)
         self.searchLayout.addWidget(self.userEdit,         2,2)
-        self.completedEditCheckBox = QtGui.QCheckBox()
+        self.completedEditCheckBox = QtWidgets.QCheckBox()
         self.completedEditCheckBox.setToolTip('Check to enable this search option')
-        self.completedEdit = QtGui.QComboBox()
+        self.completedEdit = QtWidgets.QComboBox()
         self.completedEdit.addItems(['Yes', 'No', 'Error'])
         self.searchLayout.addWidget(self.completedEditCheckBox, 2,3)
-        self.searchLayout.addWidget(QtGui.QLabel('Completed:'), 2,4)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Completed:'), 2,4)
         self.searchLayout.addWidget(self.completedEdit,         2,5)
         
-        self.moduleEditCheckBox = QtGui.QCheckBox()
+        self.moduleEditCheckBox = QtWidgets.QCheckBox()
         self.moduleEditCheckBox.setToolTip('Check to enable this search option')
-        self.moduleEdit = QtGui.QLineEdit()
+        self.moduleEdit = QtWidgets.QLineEdit()
         self.moduleEdit.setToolTip('Add module names separated by ,\nResult type can be specified by using: ModuleName:Yes/No/Error')
         self.searchLayout.addWidget(self.moduleEditCheckBox,  3,0)
-        self.searchLayout.addWidget(QtGui.QLabel('Modules:'), 3,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Modules:'), 3,1)
         self.searchLayout.addWidget(self.moduleEdit,          3,2)
-        self.thumbsCheckBox = QtGui.QCheckBox()
+        self.thumbsCheckBox = QtWidgets.QCheckBox()
         self.thumbsCheckBox.setToolTip('Check to view result thumbnails (may be slow)')
         self.searchLayout.addWidget(self.thumbsCheckBox,  3,3)
-        self.searchLayout.addWidget(QtGui.QLabel('View thumbs'), 3,4)
-        self.searchButton = QtGui.QPushButton("Search")
+        self.searchLayout.addWidget(QtWidgets.QLabel('View thumbs'), 3,4)
+        self.searchButton = QtWidgets.QPushButton("Search")
         self.searchButton.setStatusTip("Search the database for executions")
         self.searchLayout.addWidget(self.searchButton, 3, 5)
-        self.searchWidget = QtGui.QWidget()
+        self.searchWidget = QtWidgets.QWidget()
         self.searchWidget.setLayout(self.searchLayout)
         self.addWidget(self.searchWidget)
-        self.itemView = QtGui.QTreeWidget(self.parent())
+        self.itemView = QtWidgets.QTreeWidget(self.parent())
         self.addWidget(self.itemView)
-        statusGrid = QtGui.QGridLayout()
-        statusGrid.setMargin(0)
+        statusGrid = QtWidgets.QGridLayout()
+        statusGrid.setContentsMargins(0, 0, 0, 0)
         statusGrid.setSpacing(0)
-        statusWidget = QtGui.QWidget()
+        statusWidget = QtWidgets.QWidget()
         statusWidget.setLayout(statusGrid)
         self.addWidget(statusWidget)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setStretchFactor(2, 0)
-        statusLayout = QtGui.QHBoxLayout()
+        statusLayout = QtWidgets.QHBoxLayout()
         statusLayout.setSpacing(5)
         statusGrid.addLayout(statusLayout, 2, 1, QtCore.Qt.AlignLeft)
         
-        self.prevButton = QtGui.QPushButton("Previous")
+        self.prevButton = QtWidgets.QPushButton("Previous")
         self.prevButton.setStatusTip("Show previous results")
         self.prevButton.hide()
         statusLayout.addWidget(self.prevButton)
 
-        self.nextButton = QtGui.QPushButton("Next")
+        self.nextButton = QtWidgets.QPushButton("Next")
         self.nextButton.setStatusTip("Show next results")
         self.nextButton.hide()
         statusLayout.addWidget(self.nextButton)
 
-        self.statusText = QtGui.QLabel('No query specified')
+        self.statusText = QtWidgets.QLabel('No query specified')
         statusLayout.addWidget(self.statusText)
-        self.connect(self.searchButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.newQuery)
-        self.connect(self.prevButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoPrevious)
-        self.connect(self.nextButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoNext)
-        self.connect(self.itemView,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *,int)'),
-                     self.showItem)
+        self.searchButton.clicked.connect(self.newQuery)
+        self.prevButton.clicked.connect(self.gotoPrevious)
+        self.nextButton.clicked.connect(self.gotoNext)
+        self.itemView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0
@@ -423,12 +408,12 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         for wf_exec in wf_exec_list:
             item = QExecutionItem(wf_exec)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setResizeMode(4, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(1, QtGui.QHeaderView.Interactive)
-        self.itemView.header().setResizeMode(0, QtGui.QHeaderView.Interactive)
-        self.itemView.header().resizeSections(QtGui.QHeaderView.Stretch)
+        self.itemView.header().setResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(1, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().setResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().resizeSections(QtWidgets.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:
             self.statusText.setText("Select a database")
@@ -460,7 +445,7 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         args['version'] = version_name if version_name else v_version
         open_vistrail(locator, **args)
 
-class QExecutionItem(QtGui.QTreeWidgetItem):
+class QExecutionItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, wf_exec, parent=None):
         (v_name, v_id, log_id, v_version, version_name, e_id,
          ts_start, ts_end, user, completed, thumb) = wf_exec
@@ -468,7 +453,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
         completed = {'-1':'Error', '0':'No', '1':'Yes'}.get(str(completed), 'Unknown')
         labels = (str(v_name), str(version),
                   str(ts_start), str(ts_end), str(completed))
-        QtGui.QTreeWidgetItem.__init__(self, labels)
+        QtWidgets.QTreeWidgetItem.__init__(self, labels)
         self.wf_exec = wf_exec
         self.setToolTip(0, 'vistrail:%s version:%s log:%s wf_exec:%s user:%s' %
                            (v_id, v_version, log_id, e_id, user))
@@ -486,11 +471,11 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 return int(self.text(sort_col)) < int(other.text(sort_col))
             except ValueError:
                 pass
-        return QtGui.QTreeWidgetItem.__lt__(self, other)
+        return QtWidgets.QTreeWidgetItem.__lt__(self, other)
 
-class WorkflowSearchWidget(QtGui.QSplitter):
+class WorkflowSearchWidget(QtWidgets.QSplitter):
     def __init__(self, connectionList):
-        QtGui.QSplitter.__init__(self)
+        QtWidgets.QSplitter.__init__(self)
         self.connectionList = connectionList
         self.conn = None
         self.config = None
@@ -505,98 +490,90 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         self.thumbs = None
         self.modules = []
         self.setOrientation(QtCore.Qt.Vertical)
-        self.searchLayout = QtGui.QGridLayout()
-        self.vistrailEditCheckBox = QtGui.QCheckBox()
+        self.searchLayout = QtWidgets.QGridLayout()
+        self.vistrailEditCheckBox = QtWidgets.QCheckBox()
         self.vistrailEditCheckBox.setToolTip('Check to enable this search option')
-        self.vistrailEdit = QtGui.QLineEdit()
+        self.vistrailEdit = QtWidgets.QLineEdit()
         self.searchLayout.addWidget(self.vistrailEditCheckBox, 0,0)
-        self.searchLayout.addWidget(QtGui.QLabel('Vistrail:'), 0,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Vistrail:'), 0,1)
         self.searchLayout.addWidget(self.vistrailEdit,         0,2)
-        self.versionEditCheckBox = QtGui.QCheckBox()
+        self.versionEditCheckBox = QtWidgets.QCheckBox()
         self.versionEditCheckBox.setToolTip('Check to enable this search option')
-        self.versionEdit = QtGui.QLineEdit()
+        self.versionEdit = QtWidgets.QLineEdit()
         self.searchLayout.addWidget(self.versionEditCheckBox, 0,3)
-        self.searchLayout.addWidget(QtGui.QLabel('Version:'), 0,4)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Version:'), 0,4)
         self.searchLayout.addWidget(self.versionEdit,         0,5)
-        self.fromTimeEditCheckBox = QtGui.QCheckBox()
+        self.fromTimeEditCheckBox = QtWidgets.QCheckBox()
         self.fromTimeEditCheckBox.setToolTip('Check to enable this search option')
-        self.fromTimeEdit = QtGui.QDateTimeEdit(QtCore.QDateTime.currentDateTime().addDays(-1))
+        self.fromTimeEdit = QtWidgets.QDateTimeEdit(QtCore.QDateTime.currentDateTime().addDays(-1))
         self.fromTimeEdit.setDisplayFormat('yyyy-MM-d H:mm:ss')
         self.fromTimeEdit.setCalendarPopup(True)
         self.searchLayout.addWidget(self.fromTimeEditCheckBox,  1,0)
-        self.searchLayout.addWidget(QtGui.QLabel('From time:'), 1,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('From time:'), 1,1)
         self.searchLayout.addWidget(self.fromTimeEdit,          1,2)
-        self.toTimeEditCheckBox = QtGui.QCheckBox()
+        self.toTimeEditCheckBox = QtWidgets.QCheckBox()
         self.toTimeEditCheckBox.setToolTip('Check to enable this search option')
-        self.toTimeEdit = QtGui.QDateTimeEdit(QtCore.QDateTime.currentDateTime())
+        self.toTimeEdit = QtWidgets.QDateTimeEdit(QtCore.QDateTime.currentDateTime())
         self.toTimeEdit.setDisplayFormat('yyyy-MM-d H:mm:ss')
         self.toTimeEdit.setCalendarPopup(True)
         self.searchLayout.addWidget(self.toTimeEditCheckBox,  1,3)
-        self.searchLayout.addWidget(QtGui.QLabel('To time:'), 1,4)
+        self.searchLayout.addWidget(QtWidgets.QLabel('To time:'), 1,4)
         self.searchLayout.addWidget(self.toTimeEdit,          1,5)
-        self.userEditCheckBox = QtGui.QCheckBox()
+        self.userEditCheckBox = QtWidgets.QCheckBox()
         self.userEditCheckBox.setToolTip('Check to enable this search option')
-        self.userEdit = QtGui.QLineEdit()
+        self.userEdit = QtWidgets.QLineEdit()
         self.searchLayout.addWidget(self.userEditCheckBox, 2,0)
-        self.searchLayout.addWidget(QtGui.QLabel('User:'), 2,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('User:'), 2,1)
         self.searchLayout.addWidget(self.userEdit,         2,2)
       
-        self.moduleEditCheckBox = QtGui.QCheckBox()
+        self.moduleEditCheckBox = QtWidgets.QCheckBox()
         self.moduleEditCheckBox.setToolTip('Check to enable this search option')
-        self.moduleEdit = QtGui.QLineEdit()
+        self.moduleEdit = QtWidgets.QLineEdit()
         self.moduleEdit.setToolTip('Add module names separated by ,\nConnected modules can be specified by using: ModuleA->ModuleB')
         self.searchLayout.addWidget(self.moduleEditCheckBox,  3,0)
-        self.searchLayout.addWidget(QtGui.QLabel('Modules:'), 3,1)
+        self.searchLayout.addWidget(QtWidgets.QLabel('Modules:'), 3,1)
         self.searchLayout.addWidget(self.moduleEdit,          3,2)
-        self.thumbsCheckBox = QtGui.QCheckBox()
+        self.thumbsCheckBox = QtWidgets.QCheckBox()
         self.thumbsCheckBox.setToolTip('Check to view result thumbnails (may be slow)')
         self.searchLayout.addWidget(self.thumbsCheckBox,  3,3)
-        self.searchLayout.addWidget(QtGui.QLabel('View thumbs'), 3,4)
-        self.searchButton = QtGui.QPushButton("Search")
+        self.searchLayout.addWidget(QtWidgets.QLabel('View thumbs'), 3,4)
+        self.searchButton = QtWidgets.QPushButton("Search")
         self.searchButton.setStatusTip("Search the database for executions")
         self.searchLayout.addWidget(self.searchButton, 3, 5)
-        self.searchWidget = QtGui.QWidget()
+        self.searchWidget = QtWidgets.QWidget()
         self.searchWidget.setLayout(self.searchLayout)
         self.addWidget(self.searchWidget)
-        self.itemView = QtGui.QTreeWidget(self.parent())
+        self.itemView = QtWidgets.QTreeWidget(self.parent())
         self.addWidget(self.itemView)
-        statusGrid = QtGui.QGridLayout()
-        statusGrid.setMargin(0)
+        statusGrid = QtWidgets.QGridLayout()
+        statusGrid.setContentsMargins(0, 0, 0, 0)
         statusGrid.setSpacing(0)
-        statusWidget = QtGui.QWidget()
+        statusWidget = QtWidgets.QWidget()
         statusWidget.setLayout(statusGrid)
         self.addWidget(statusWidget)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setStretchFactor(2, 0)
-        statusLayout = QtGui.QHBoxLayout()
+        statusLayout = QtWidgets.QHBoxLayout()
         statusLayout.setSpacing(5)
         statusGrid.addLayout(statusLayout, 2, 1, QtCore.Qt.AlignLeft)
         
-        self.prevButton = QtGui.QPushButton("Previous")
+        self.prevButton = QtWidgets.QPushButton("Previous")
         self.prevButton.setStatusTip("Show previous results")
         self.prevButton.hide()
         statusLayout.addWidget(self.prevButton)
 
-        self.nextButton = QtGui.QPushButton("Next")
+        self.nextButton = QtWidgets.QPushButton("Next")
         self.nextButton.setStatusTip("Show next results")
         self.nextButton.hide()
         statusLayout.addWidget(self.nextButton)
 
-        self.statusText = QtGui.QLabel('No query specified')
+        self.statusText = QtWidgets.QLabel('No query specified')
         statusLayout.addWidget(self.statusText)
-        self.connect(self.searchButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.newQuery)
-        self.connect(self.prevButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoPrevious)
-        self.connect(self.nextButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.gotoNext)
-        self.connect(self.itemView,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *,int)'),
-                     self.showItem)
+        self.searchButton.clicked.connect(self.newQuery)
+        self.prevButton.clicked.connect(self.gotoPrevious)
+        self.nextButton.clicked.connect(self.gotoNext)
+        self.itemView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0
@@ -699,11 +676,11 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         for workflow in workflow_list:
             item = QWorkflowItem(workflow)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setResizeMode(1, QtGui.QHeaderView.Interactive)
-        self.itemView.header().setResizeMode(0, QtGui.QHeaderView.Interactive)
-        self.itemView.header().resizeSections(QtGui.QHeaderView.Stretch)
+        self.itemView.header().setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(1, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().setResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        self.itemView.header().resizeSections(QtWidgets.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:
             self.statusText.setText("Select a database")
@@ -731,12 +708,12 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         #print "args", args
         open_vistrail(locator, **args)
 
-class QWorkflowItem(QtGui.QTreeWidgetItem):
+class QWorkflowItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, workflow, parent=None):
         (v_name, v_id, v_version, version_name, time, user, thumb) = workflow
         version = version_name if version_name else v_version
         labels = (str(v_name), str(version), str(time), str(user))
-        QtGui.QTreeWidgetItem.__init__(self, labels)
+        QtWidgets.QTreeWidgetItem.__init__(self, labels)
         self.workflow = workflow
         self.setToolTip(0, 'vistrail:%s version:%s' % (v_id, v_version))
         if thumb:
@@ -753,4 +730,4 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
                 return int(self.text(sort_col)) < int(other.text(sort_col))
             except ValueError:
                 pass
-        return QtGui.QTreeWidgetItem.__lt__(self, other)
+        return QtWidgets.QTreeWidgetItem.__lt__(self, other)

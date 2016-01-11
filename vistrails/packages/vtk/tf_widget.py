@@ -38,7 +38,8 @@
 # Transfer Function Widget for VTK
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.modules.module_registry import get_module_registry
@@ -221,25 +222,25 @@ class TransferFunction(object):
 ##############################################################################
 # Graphics Items
 
-class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
+class TransferFunctionPoint(QtWidgets.QGraphicsEllipseItem):
 
     selection_pens = { True: QtGui.QPen(QtGui.QBrush(
         QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),GLOBAL_SCALE * 0.012),
                        False: QtGui.QPen() }
 
     def __init__(self, scalar, opacity, color, parent=None):
-        QtGui.QGraphicsEllipseItem.__init__(self, parent)
+        QtWidgets.QGraphicsEllipseItem.__init__(self, parent)
         self._scalar = scalar
         self._opacity = opacity
         self._color = QtGui.QColor(color[0]*255,
                                    color[1]*255,
                                    color[2]*255)
         self.setPen(QtGui.QPen(QtGui.QColor(0,0,0)))
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsFocusable) 
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable) 
         if QtCore.QT_VERSION >= 0x40600:
-            self.setFlag(QtGui.QGraphicsItem.ItemSendsGeometryChanges)
+            self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setZValue(2.0)
 
         self._sx = 1.0
@@ -281,9 +282,9 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         self.refresh()
 
     def itemChange(self, change, value):
-        if change == QtGui.QGraphicsItem.ItemSelectedChange:
+        if change == QtWidgets.QGraphicsItem.ItemSelectedChange:
             self.setPen(self.selection_pens[value])
-        if change == QtGui.QGraphicsItem.ItemPositionChange:
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             # moves point
             # value is now a QPointF, not a QPoint so no conversion needed
             pt = value
@@ -313,8 +314,8 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
                         "Right-click to remove point\n"
                         "Scalar: %.5f, Opacity: %.5f" % (self._scalar,
                                                          self._opacity))
-            return QtGui.QGraphicsItem.itemChange(self, change, pt)
-        return QtGui.QGraphicsItem.itemChange(self, change, value)
+            return QtWidgets.QGraphicsItem.itemChange(self, change, pt)
+        return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
     def remove_self(self):
         if not self._left_line or not self._right_line:
@@ -334,7 +335,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         self._left_line.refresh()
 
     def mouseDoubleClickEvent(self, event):
-        new_color = QtGui.QColorDialog.getColor(self._color)
+        new_color = QtWidgets.QColorDialog.getColor(self._color)
         if not new_color.isValid():
             return
         self._color = new_color
@@ -346,14 +347,14 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         # sometimes the graphicsitem gets recreated, and we need to abort
         if self.parentItem():
             self.parentItem()._tf_poly.setup()
-            QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
+            QtWidgets.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
             event.accept()
             self.remove_self()
         else:
-            QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
+            QtWidgets.QGraphicsEllipseItem.mousePressEvent(self, event)
 
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
@@ -373,10 +374,10 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
                       self._color.greenF(),
                       self._color.blueF()))
 
-class TransferFunctionPolygon(QtGui.QGraphicsPolygonItem):
+class TransferFunctionPolygon(QtWidgets.QGraphicsPolygonItem):
 
     def __init__(self, parent=None):
-        QtGui.QGraphicsPolygonItem.__init__(self, parent)
+        QtWidgets.QGraphicsPolygonItem.__init__(self, parent)
 
     def setup(self):
         # This inspects the scene, finds the left-most point, and
@@ -408,11 +409,11 @@ class TransferFunctionPolygon(QtGui.QGraphicsPolygonItem):
         polygon = QtGui.QPolygonF(pts)
         self.setPolygon(polygon)
 
-class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
+class TransferFunctionLine(QtWidgets.QGraphicsPolygonItem):
 
     def __init__(self, point_left, point_right, parent=None):
         assert point_right._scalar >= point_left._scalar
-        QtGui.QGraphicsPolygonItem.__init__(self, parent)
+        QtWidgets.QGraphicsPolygonItem.__init__(self, parent)
         self._point_left = point_left
         self._point_right = point_right
         self._point_left._right_line = self
@@ -502,10 +503,10 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
 ##############################################################################
 # Scene, view, widget
 
-class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
+class QGraphicsTransferFunction(QtWidgets.QGraphicsWidget, ConstantWidgetMixin):
     contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
-        QtGui.QGraphicsWidget.__init__(self, parent)
+        QtWidgets.QGraphicsWidget.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         self.setAcceptHoverEvents(True)
         if not param.strValue:
@@ -528,15 +529,18 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
               QtCore.QPointF(GLOBAL_SCALE, 0.0),
               QtCore.QPointF(GLOBAL_SCALE, GLOBAL_SCALE),
               QtCore.QPointF(0.0, GLOBAL_SCALE)]
-        polygon = QtGui.QGraphicsPolygonItem(QtGui.QPolygonF(ps), self)
+        # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
+        polygon = QtWidgets.QGraphicsPolygonItem(QtGui.QPolygonF(ps), self)
         polygon.setPen(pen)
 
         for i in range(51):
             u = GLOBAL_SCALE * float(i) / 50.0
 
-            line = QtGui.QGraphicsLineItem(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), self)
+            # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
+            line = QtWidgets.QGraphicsLineItem(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), self)
             line.setPen(pen)
-            line = QtGui.QGraphicsLineItem(QtCore.QLineF(0.0, u, GLOBAL_SCALE, u), self)
+            # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
+            line = QtWidgets.QGraphicsLineItem(QtCore.QLineF(0.0, u, GLOBAL_SCALE, u), self)
             line.setPen(pen)
 
         self.setGeometry(self.boundingRect())
@@ -617,58 +621,58 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
 
     def hoverLeaveEvent(self, event):
         self.update_parent()
-        QtGui.QGraphicsWidget.hoverLeaveEvent(self, event)
+        QtWidgets.QGraphicsWidget.hoverLeaveEvent(self, event)
 
-class TransferFunctionScene(QtGui.QGraphicsScene):
+class TransferFunctionScene(QtWidgets.QGraphicsScene):
 
     def __init__(self, param, parent=None):
-        QtGui.QGraphicsScene.__init__(self, parent)
+        QtWidgets.QGraphicsScene.__init__(self, parent)
         self.tf = QGraphicsTransferFunction(param)
         self.addItem(self.tf)
 
-class TransferFunctionView(QtGui.QGraphicsView):
+class TransferFunctionView(QtWidgets.QGraphicsView):
     def __init__(self, parent=None):
-        QtGui.QGraphicsView.__init__(self, parent)
+        QtWidgets.QGraphicsView.__init__(self, parent)
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         
     def resizeEvent(self, event):
         self.resetMatrix()
-        self.setMatrix(QtGui.QMatrix(event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
+        self.setMatrix(QtGui.QTransform(event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
                                      0, event.size().height() / (GLOBAL_SCALE*10.0/9), GLOBAL_SCALE, 0))
         self.scene().tf.update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
         
     def focusOutEvent(self, event):
         self.parent().update_parent()
-        QtGui.QGraphicsView.focusOutEvent(self, event)
+        QtWidgets.QGraphicsView.focusOutEvent(self, event)
 
 default_tf = TransferFunction()
 default_tf.add_point(0.0, 0.0, (0.0, 0.0, 0.0))
 default_tf.add_point(1.0, 0.0, (0.0, 0.0, 0.0))
 
-class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
+class TransferFunctionWidget(QtWidgets.QWidget, ConstantWidgetMixin):
     contentsChanged = QtCore.pyqtSignal(tuple)
 
     GraphicsItem = QGraphicsTransferFunction
 
     def __init__(self, param, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self._scene = TransferFunctionScene(param, self)
         self._scene.tf.update_parent = self.update_parent
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
         self._view = TransferFunctionView(self)
         self._view.setScene(self._scene)
         self._view.setMinimumSize(200,200)
         self._view.setMaximumHeight(280)
         self._view.show()
-        self._view.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                 QtGui.QSizePolicy.Expanding)
+        self._view.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                 QtWidgets.QSizePolicy.Expanding)
         # TODO remove this
-        self._view.setMatrix(QtGui.QMatrix(1, 0, 0, -1, GLOBAL_SCALE, 0))
+        self._view.setMatrix(QtGui.QTransform(1, 0, 0, -1, GLOBAL_SCALE, 0))
         self.setMinimumSize(260,240)
-        caption = QtGui.QLabel("Double-click on the line to add a point")
+        caption = QtWidgets.QLabel("Double-click on the line to add a point")
         font = QtGui.QFont('Arial', 11)
         font.setItalic(True)
         caption.setFont(font)

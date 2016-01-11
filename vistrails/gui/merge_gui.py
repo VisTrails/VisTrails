@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
+
 import os
 import vistrails.api
 
@@ -45,9 +46,9 @@ CHOICE_RESOLVED = 2
 CHOICE_OWN = 3
 CHOICE_OWN_ALL = 4
 
-class resolve_tags(QtGui.QWidget):
+class resolve_tags(QtWidgets.QWidget):
     def __init__(self, a, b, text, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.value = 4
         self.a = a
@@ -62,70 +63,70 @@ class resolve_tags(QtGui.QWidget):
         self.move(250, 200)
 
         # main layout
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         # info boxes
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
 
-        otherLabel = QtGui.QLabel(self)
+        otherLabel = QtWidgets.QLabel(self)
         otherLabel.setAlignment(QtCore.Qt.AlignHCenter)
         otherLabel.setText("Other version")
         hbox.addWidget(otherLabel)
 
-        ownLabel = QtGui.QLabel(self)
+        ownLabel = QtWidgets.QLabel(self)
         ownLabel.setAlignment(QtCore.Qt.AlignHCenter)
         ownLabel.setText("Your version")
         hbox.addWidget(ownLabel)
 
         # tags
-        self.tedit = QtGui.QLineEdit(self.text)
+        self.tedit = QtWidgets.QLineEdit(self.text)
         self.tedit.setAlignment(QtCore.Qt.AlignHCenter)
         vbox.addWidget(self.tedit)
 
         # info boxes
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
 
         # info boxes
-        vbox1 = QtGui.QVBoxLayout()
+        vbox1 = QtWidgets.QVBoxLayout()
         vbox1.setAlignment(QtCore.Qt.AlignHCenter)
         hbox.addLayout(vbox1)
-        userLabel = QtGui.QLabel(self)
+        userLabel = QtWidgets.QLabel(self)
         userLabel.setText("User: " + self.a.db_user)
         vbox1.addWidget(userLabel)
-        timeLabel = QtGui.QLabel(self)
+        timeLabel = QtWidgets.QLabel(self)
         timeLabel.setText("Time: " + str(self.a.db_date))
         vbox1.addWidget(timeLabel)
 
-        vbox2 = QtGui.QVBoxLayout()
+        vbox2 = QtWidgets.QVBoxLayout()
         vbox2.setAlignment(QtCore.Qt.AlignHCenter)
         hbox.addLayout(vbox2)
-        userLabel = QtGui.QLabel(self)
+        userLabel = QtWidgets.QLabel(self)
         userLabel.setText("User: " + self.b.db_user)
         vbox2.addWidget(userLabel)
-        timeLabel = QtGui.QLabel(self)
+        timeLabel = QtWidgets.QLabel(self)
         timeLabel.setText("Time: " + str(self.b.db_date))
         vbox2.addWidget(timeLabel)
 
-        buttons = QtGui.QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
         vbox.addLayout(buttons)
 
-        self.otherAll = QtGui.QPushButton('Keep other (for all)', self)
-        self.connect(self.otherAll, QtCore.SIGNAL('clicked()'), self.setOtherAll)
+        self.otherAll = QtWidgets.QPushButton('Keep other (for all)', self)
+        self.otherAll.clicked.connect(self.setOtherAll)
         buttons.addWidget(self.otherAll)
-        self.other = QtGui.QPushButton('Keep other', self)
-        self.connect(self.other, QtCore.SIGNAL('clicked()'), self.setOther)
+        self.other = QtWidgets.QPushButton('Keep other', self)
+        self.other.clicked.connect(self.setOther)
         buttons.addWidget(self.other)
-        self.resolve = QtGui.QPushButton('Resolved', self)
-        self.connect(self.resolve, QtCore.SIGNAL('clicked()'), self.setResolved)
+        self.resolve = QtWidgets.QPushButton('Resolved', self)
+        self.resolve.clicked.connect(self.setResolved)
         buttons.addWidget(self.resolve)
-        self.own = QtGui.QPushButton('Keep yours', self)
-        self.connect(self.own, QtCore.SIGNAL('clicked()'), self.setOwn)
+        self.own = QtWidgets.QPushButton('Keep yours', self)
+        self.own.clicked.connect(self.setOwn)
         buttons.addWidget(self.own)
-        self.ownAll = QtGui.QPushButton('Keep yours (for all)', self)
-        self.connect(self.ownAll, QtCore.SIGNAL('clicked()'), self.setOwnAll)
+        self.ownAll = QtWidgets.QPushButton('Keep yours (for all)', self)
+        self.ownAll.clicked.connect(self.setOwnAll)
         buttons.addWidget(self.ownAll)
 
     def setOtherAll(self):
@@ -145,9 +146,9 @@ class resolve_tags(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-class resolve_notes(QtGui.QWidget):
+class resolve_notes(QtWidgets.QWidget):
     def __init__(self, a, b, text, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.value = 4
         self.a = a
@@ -162,30 +163,30 @@ class resolve_notes(QtGui.QWidget):
         self.move(250, 200)
 
         # main layout
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         # thumbs layout
-        self.tedit = QtGui.QTextEdit(self.text)
+        self.tedit = QtWidgets.QTextEdit(self.text)
         vbox.addWidget(self.tedit)
 
-        buttons = QtGui.QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
         vbox.addLayout(buttons)
 
-        self.otherAll = QtGui.QPushButton('Keep other (for all)', self)
-        self.connect(self.otherAll, QtCore.SIGNAL('clicked()'), self.setOtherAll)
+        self.otherAll = QtWidgets.QPushButton('Keep other (for all)', self)
+        self.otherAll.clicked.connect(self.setOtherAll)
         buttons.addWidget(self.otherAll)
-        self.other = QtGui.QPushButton('Keep other', self)
-        self.connect(self.other, QtCore.SIGNAL('clicked()'), self.setOther)
+        self.other = QtWidgets.QPushButton('Keep other', self)
+        self.other.clicked.connect(self.setOther)
         buttons.addWidget(self.other)
-        self.resolve = QtGui.QPushButton('Resolved', self)
-        self.connect(self.resolve, QtCore.SIGNAL('clicked()'), self.setResolved)
+        self.resolve = QtWidgets.QPushButton('Resolved', self)
+        self.resolve.clicked.connect(self.setResolved)
         buttons.addWidget(self.resolve)
-        self.own = QtGui.QPushButton('Keep yours', self)
-        self.connect(self.own, QtCore.SIGNAL('clicked()'), self.setOwn)
+        self.own = QtWidgets.QPushButton('Keep yours', self)
+        self.own.clicked.connect(self.setOwn)
         buttons.addWidget(self.own)
-        self.ownAll = QtGui.QPushButton('Keep yours (for all)', self)
-        self.connect(self.ownAll, QtCore.SIGNAL('clicked()'), self.setOwnAll)
+        self.ownAll = QtWidgets.QPushButton('Keep yours (for all)', self)
+        self.ownAll.clicked.connect(self.setOwnAll)
         buttons.addWidget(self.ownAll)
 
     def setOtherAll(self):
@@ -205,9 +206,9 @@ class resolve_notes(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-class resolve_thumbs(QtGui.QWidget):
+class resolve_thumbs(QtWidgets.QWidget):
     def __init__(self, a, b, old_tmp_dir, new_tmp_dir, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.value = 4
         self.a = a
@@ -223,61 +224,61 @@ class resolve_thumbs(QtGui.QWidget):
         self.move(250, 200)
 
         # main layout
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         # thumbs layout
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
 
-        other = QtGui.QVBoxLayout()
+        other = QtWidgets.QVBoxLayout()
         hbox.addLayout(other)
-        otherLabel = QtGui.QLabel(self)
+        otherLabel = QtWidgets.QLabel(self)
         otherLabel.setText("Other version")
         other.addWidget(otherLabel)
         path = os.path.join(self.old_tmp_dir, 'thumbs', self.a.db_value)
         pixmap = QtGui.QPixmap(path)
-        thumb1 = QtGui.QLabel(self)
+        thumb1 = QtWidgets.QLabel(self)
         thumb1.setPixmap(pixmap)
         other.addWidget(thumb1)
-        userLabel = QtGui.QLabel(self)
+        userLabel = QtWidgets.QLabel(self)
         userLabel.setText("User: " + self.a.db_user)
         other.addWidget(userLabel)
-        timeLabel = QtGui.QLabel(self)
+        timeLabel = QtWidgets.QLabel(self)
         timeLabel.setText("Time: " + str(self.a.db_date))
         other.addWidget(timeLabel)
 
-        own = QtGui.QVBoxLayout()
+        own = QtWidgets.QVBoxLayout()
         hbox.addLayout(own)
-        ownLabel = QtGui.QLabel(self)
+        ownLabel = QtWidgets.QLabel(self)
         ownLabel.setText("Your version")
         own.addWidget(ownLabel)
         path = os.path.join(self.old_tmp_dir, 'thumbs', self.b.db_value)
         pixmap = QtGui.QPixmap(path)
-        thumb2 = QtGui.QLabel(self)
+        thumb2 = QtWidgets.QLabel(self)
         thumb2.setPixmap(pixmap)
         own.addWidget(thumb2)
-        userLabel = QtGui.QLabel(self)
+        userLabel = QtWidgets.QLabel(self)
         userLabel.setText("User: " + self.b.db_user)
         own.addWidget(userLabel)
-        timeLabel = QtGui.QLabel(self)
+        timeLabel = QtWidgets.QLabel(self)
         timeLabel.setText("Time: " + str(self.b.db_date))
         own.addWidget(timeLabel)
 
-        buttons = QtGui.QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
         vbox.addLayout(buttons)
 
-        self.otherAll = QtGui.QPushButton('Keep other (for all)', self)
-        self.connect(self.otherAll, QtCore.SIGNAL('clicked()'), self.setOtherAll)
+        self.otherAll = QtWidgets.QPushButton('Keep other (for all)', self)
+        self.otherAll.clicked.connect(self.setOtherAll)
         buttons.addWidget(self.otherAll)
-        self.other = QtGui.QPushButton('Keep other', self)
-        self.connect(self.other, QtCore.SIGNAL('clicked()'), self.setOther)
+        self.other = QtWidgets.QPushButton('Keep other', self)
+        self.other.clicked.connect(self.setOther)
         buttons.addWidget(self.other)
-        self.own = QtGui.QPushButton('Keep yours', self)
-        self.connect(self.own, QtCore.SIGNAL('clicked()'), self.setOwn)
+        self.own = QtWidgets.QPushButton('Keep yours', self)
+        self.own.clicked.connect(self.setOwn)
         buttons.addWidget(self.own)
-        self.ownAll = QtGui.QPushButton('Keep yours (for all)', self)
-        self.connect(self.ownAll, QtCore.SIGNAL('clicked()'), self.setOwnAll)
+        self.ownAll = QtWidgets.QPushButton('Keep yours (for all)', self)
+        self.ownAll.clicked.connect(self.setOwnAll)
         buttons.addWidget(self.ownAll)
 
     def setOtherAll(self):
@@ -300,7 +301,7 @@ class MergeGUI(object):
         exm.show()
         app = vistrails.api.get_builder_window()
         if not app:
-            app = QtGui.QApplication([])
+            app = QtWidgets.QApplication([])
             app.exec_()
         return exm.value, exm.text
 
@@ -310,7 +311,7 @@ class MergeGUI(object):
         exm.show()
         app = vistrails.api.get_builder_window()
         if not app:
-            app = QtGui.QApplication([])
+            app = QtWidgets.QApplication([])
             app.exec_()
         return exm.value, exm.text
 
@@ -320,6 +321,6 @@ class MergeGUI(object):
         exm.show()
         app = vistrails.api.get_builder_window()
         if not app:
-            app = QtGui.QApplication([])
+            app = QtWidgets.QApplication([])
             app.exec_()
         return exm.value

@@ -1,6 +1,7 @@
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
@@ -25,6 +26,8 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
     Allows to edit a list of filenames.
     """
+    stateChanged = pyqtSignal()
+    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
@@ -32,21 +35,18 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         # Window title
         self.setWindowTitle("Directory configuration")
 
-        central_layout = QtGui.QVBoxLayout()
-        central_layout.setMargin(0)
+        central_layout = QtWidgets.QVBoxLayout()
+        central_layout.setContentsMargins(0, 0, 0, 0)
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
 
-        self._list = QtGui.QListWidget()
+        self._list = QtWidgets.QListWidget()
         self._list.setSortingEnabled(True)
-        self.connect(self._list,
-                     QtCore.SIGNAL('itemChanged(QListWidgetItem*)'),
-                     lambda i: self.updateState())
+        self._list.itemChanged[QListWidgetItem].connect(lambda i: self.updateState())
         central_layout.addWidget(self._list)
 
-        add_button = QtGui.QPushButton("Add a file")
-        self.connect(add_button, QtCore.SIGNAL('clicked()'),
-                     self.add_file)
+        add_button = QtWidgets.QPushButton("Add a file")
+        add_button.clicked.connect(self.add_file)
         central_layout.addWidget(add_button)
 
         self.createButtons()
@@ -54,7 +54,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         self.createEntries()
 
     def add_file(self):
-        item = QtGui.QListWidgetItem("file")
+        item = QtWidgets.QListWidgetItem("file")
         item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable |
                       QtCore.Qt.ItemIsEnabled)
         self._list.addItem(item)
@@ -64,21 +64,19 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         Create and connect signals to Ok & Cancel button
 
         """
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton("&Save", self)
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton("&Reset", self)
+        self.resetButton = QtWidgets.QPushButton("&Reset", self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked[bool].connect(self.saveTriggered)
+        self.resetButton.clicked[bool].connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -89,8 +87,8 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -113,7 +111,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
             name = str(self._list.item(i).text())
 
             if name in seen_new_ports:
-                QtGui.QMessageBox.critical(
+                QtWidgets.QMessageBox.critical(
                         self,
                         "Duplicated port name",
                         "There are several input ports with name %r" % name)
@@ -136,7 +134,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
     def createEntries(self):
         for name in self.getCurrentPorts():
-            item = QtGui.QListWidgetItem(name)
+            item = QtWidgets.QListWidgetItem(name)
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable |
                           QtCore.Qt.ItemIsEnabled)
             self._list.addItem(item)
@@ -150,11 +148,11 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()

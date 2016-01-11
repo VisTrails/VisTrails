@@ -37,7 +37,8 @@
 
 import cgi
 import logging
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.debug
@@ -50,7 +51,7 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 ################################################################################
 
 
-class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
+class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """ Class used for showing error messages and
         debugging QT signals.
 
@@ -58,28 +59,29 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
            import gui.debug
            gui.debug.watch_signal(my_signal)
      """
+    messagesView = pyqtSignal(QVariant)
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         ui = logging.StreamHandler(debugStream(self.write))
         ui.setFormatter(logging.Formatter(
                 '%(levelname)s\n%(asctime)s\n%(message)s'))
         ui.setLevel(logging.DEBUG)
         vistrails.core.debug.DebugPrint.getInstance().logger.addHandler(ui)
         self.setWindowTitle('VisTrails Messages')
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
         # top message filter buttons
-        filters = QtGui.QHBoxLayout()
+        filters = QtWidgets.QHBoxLayout()
         layout.addLayout(filters)
 
-        filterLabel = QtGui.QLabel('Filter:')
+        filterLabel = QtWidgets.QLabel('Filter:')
         filterLabel.setFixedWidth(40)
         filters.addWidget(filterLabel)
 
         self.levels = {}
         for i, name in enumerate(('DEBUG', 'INFO', 'WARNING', 'CRITICAL')):
-            box = QtGui.QCheckBox(name, self)
+            box = QtWidgets.QCheckBox(name, self)
             box.setCheckable(True)
             box.setChecked(name != 'DEBUG')
             box.setStyleSheet(
@@ -87,46 +89,42 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
                     'background-color: %s' % (
                     CurrentTheme.DEBUG_COLORS[name].name(),
                     CurrentTheme.DEBUG_FILTER_BACKGROUND_COLOR.name()))
-            self.connect(box, QtCore.SIGNAL('toggled(bool)'), self.refresh)
+            box.toggled[bool].connect(self.refresh)
             filters.addWidget(box)
             self.levels[name] = box
 
         filters.addStretch()
 
         # message list
-        self.list = QtGui.QListWidget()
-        self.connect(self.list,
-                     QtCore.SIGNAL('currentItemChanged(QListWidgetItem *, QListWidgetItem *)'),
-                     self.showMessage)
+        self.list = QtWidgets.QListWidget()
+        self.list.currentItemChanged[QListWidgetItem, QListWidgetItem].connect(self.showMessage)
         layout.addWidget(self.list)
 
         # message details field
-        self.text = QtGui.QTextEdit()
+        self.text = QtWidgets.QTextEdit()
         self.text.setReadOnly(True)
         self.text.hide()
         layout.addWidget(self.text)
 
         # bottom buttons
-        buttons = QtGui.QGridLayout()
+        buttons = QtWidgets.QGridLayout()
         layout.addLayout(buttons)
-        leftbuttons = QtGui.QGridLayout()
+        leftbuttons = QtWidgets.QGridLayout()
         buttons.addLayout(leftbuttons, 0, 0, QtCore.Qt.AlignLeft)
-        rightbuttons = QtGui.QGridLayout()
+        rightbuttons = QtWidgets.QGridLayout()
         buttons.addLayout(rightbuttons, 0, 1, QtCore.Qt.AlignRight)
 
         copy = QDockPushButton('Copy &Message', self)
         copy.setToolTip('Copy selected message to clipboard')
         copy.setFixedWidth(125)
         rightbuttons.addWidget(copy, 0, 0)
-        self.connect(copy, QtCore.SIGNAL('clicked()'),
-                     self.copyMessage)
+        copy.clicked.connect(self.copyMessage)
 
         copyAll = QDockPushButton('Copy &All', self)
         copyAll.setToolTip('Copy all messages to clipboard (Can be a lot)')
         copyAll.setFixedWidth(125)
         rightbuttons.addWidget(copyAll, 0, 1)
-        self.connect(copyAll, QtCore.SIGNAL('clicked()'),
-                     self.copyAll)
+        copyAll.clicked.connect(self.copyAll)
         self.msg_box = None
         self.itemQueue = []
         self.resize(700, 400)
@@ -180,7 +178,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         call to a signal so that every time signal is emitted, it gets
         registered on the log.
         """
-        self.connect(obj, sig, self.__debugSignal)
+        obj.sig.connect(self.__debugSignal)
 
     def __debugSignal(self, *args):
         """ Receives debug signal """
@@ -193,13 +191,13 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         s = item.data(32)
         msgs = s.split('\n')
         if msgs[0] == "INFO":
-            msg_box.setIcon(QtGui.QMessageBox.Information)
+            msg_box.setIcon(QtWidgets.QMessageBox.Information)
             msg_box.setWindowTitle("Information")
         elif msgs[0] == "WARNING":
-            msg_box.setIcon(QtGui.QMessageBox.Warning)
+            msg_box.setIcon(QtWidgets.QMessageBox.Warning)
             msg_box.setWindowTitle("Warning")
         elif msgs[0] == "CRITICAL":
-            msg_box.setIcon(QtGui.QMessageBox.Critical)
+            msg_box.setIcon(QtWidgets.QMessageBox.Critical)
             msg_box.setWindowTitle("Critical error")
         msg_box.setText(msgs[3])
 
@@ -213,19 +211,15 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
             # create messagebox
             # app segfaults if the handle to the old messagebox is removed
             self.old_msg_box = msg_box
-            msg_box = QtGui.QMessageBox(self.parent())
+            msg_box = QtWidgets.QMessageBox(self.parent())
             self.msg_box = msg_box
-            msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
-            msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-            msg_box.setEscapeButton(QtGui.QMessageBox.Ok)
+            msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
+            msg_box.setEscapeButton(QtWidgets.QMessageBox.Ok)
             msg_box.addButton('&Show Messages', msg_box.RejectRole)
             self.manyButton = None
-            self.connect(msg_box,
-                         QtCore.SIGNAL('buttonClicked(QAbstractButton *)'),
-                         self.messageButtonClicked)
-            self.connect(msg_box,
-                         QtCore.SIGNAL('rejected()'),
-                         self.rejectMessage)
+            msg_box.buttonClicked[QAbstractButton].connect(self.messageButtonClicked)
+            msg_box.rejected.connect(self.rejectMessage)
             self.updateMessageBox(item)
         else:
             self.itemQueue.append(item)
@@ -237,7 +231,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
             text = '&Next Message (%s more)' % many
             if not self.manyButton:
                 # create button
-                self.manyButton=QtGui.QPushButton(text)
+                self.manyButton=QtWidgets.QPushButton(text)
                 msg_box.addButton(self.manyButton, msg_box.DestructiveRole)
             else:
                 self.manyButton.setText(text)
@@ -283,7 +277,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
             msgs[3] = "Unknown Error"
             s = '\n'.join(msgs)
         text = msgs[3]
-        item = QtGui.QListWidgetItem(text)
+        item = QtWidgets.QListWidgetItem(text)
         item.setData(32, s)
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
         self.list.addItem(item)
@@ -306,12 +300,12 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
     def closeEvent(self, e):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
-        self.emit(QtCore.SIGNAL("messagesView(bool)"), False)
+        self.messagesView.emit(False)
 
     def showEvent(self, e):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
-        self.emit(QtCore.SIGNAL("messagesView(bool)"), True)
+        self.messagesView.emit(True)
 
     def reject(self):
         """ Captures Escape key and closes window correctly """

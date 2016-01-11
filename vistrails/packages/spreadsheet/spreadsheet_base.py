@@ -43,7 +43,8 @@ others:
 
 
 
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
+
 
 from .spreadsheet_helpers import CellHelpers
 from .spreadsheet_registry import spreadsheetRegistry
@@ -150,7 +151,7 @@ class StandardSheetReference(object):
             return self.candidate[0]
 
 
-class StandardSingleCellSheetTab(QtGui.QWidget,
+class StandardSingleCellSheetTab(QtWidgets.QWidget,
                                  StandardWidgetSheetTabInterface):
     """
     StandardSingleCellSheetTab is a container of StandardWidgetSheet
@@ -164,15 +165,15 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         Initialize with the vertical layout containing only a single widget
 
         """
-        QtGui.QWidget.__init__(self, None)
+        QtWidgets.QWidget.__init__(self, None)
         StandardWidgetSheetTabInterface.__init__(self)
         self.type = 'StandardSingleCellSheetTab'
         self.tabWidget = tabWidget
-        self.vLayout = QtGui.QVBoxLayout()
+        self.vLayout = QtWidgets.QVBoxLayout()
         self.vLayout.setSpacing(0)
-        self.vLayout.setMargin(0)
+        self.vLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.vLayout)
-        self.cell = QtGui.QWidget()
+        self.cell = QtWidgets.QWidget()
         self.layout().addWidget(self.cell)
         self.helpers = CellHelpers(self)
         self.toolBars = {}

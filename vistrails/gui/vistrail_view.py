@@ -37,7 +37,8 @@
 view and a version tree for each opened Vistrail """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
@@ -67,7 +68,7 @@ from vistrails.gui.query_view import QueryEntry
 
 ################################################################################
 
-class QVistrailView(QtGui.QWidget):
+class QVistrailView(QtWidgets.QWidget):
     """
     QVistrailView is a widget containing four stacked widgets: Pipeline View,
     Version Tree View, Query View and Parameter Exploration view
@@ -78,10 +79,10 @@ class QVistrailView(QtGui.QWidget):
         """ QVistrailView(parent: QWidget) -> QVistrailView
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
-        layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.is_executing = False
         self.is_abstraction = False
@@ -94,7 +95,7 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.hide()
         self.tabs.tabDoubleClicked.connect(self.tabDoubleClicked)
         layout.addWidget(self.tabs)
-        self.stack = QtGui.QStackedWidget(self)
+        self.stack = QtWidgets.QStackedWidget(self)
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
@@ -535,8 +536,7 @@ class QVistrailView(QtGui.QWidget):
                     view.set_tab_idx(view.tab_idx-1)
     
     def remove_view_by_index(self, index):
-        self.disconnect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
+        self.disconnect()
         close_current = False
         if index == self.tabs.currentIndex():
             close_current = True
@@ -546,8 +546,7 @@ class QVistrailView(QtGui.QWidget):
         del self.tab_to_view[index]
         if stack_idx >= 0:
             view = self.stack.widget(stack_idx)
-            self.disconnect(view, QtCore.SIGNAL("windowTitleChanged"),
-                     self.view_title_changed)
+            self.disconnect()
             self.stack.removeWidget(view)
         self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:
@@ -575,7 +574,7 @@ class QVistrailView(QtGui.QWidget):
         self.tab_changed(index)
 
     def get_current_tab(self, query_top_level=False):
-        window = QtGui.QApplication.activeWindow()
+        window = QtWidgets.QApplication.activeWindow()
         if window in list(self.detached_views.values()):
             return window.view   
         else:
@@ -587,7 +586,7 @@ class QVistrailView(QtGui.QWidget):
             return widget
         
     def get_current_outer_tab(self):
-        window = QtGui.QApplication.activeWindow()
+        window = QtWidgets.QApplication.activeWindow()
         if window in list(self.detached_views.values()):
             return window.view   
         else:
@@ -1019,7 +1018,7 @@ class QVistrailView(QtGui.QWidget):
         self.controller.write_registry(locator)
 
     def save_version_graph(self):
-        filename = QtGui.QFileDialog.getSaveFileName(
+        filename = QtWidgets.QFileDialog.[0]getSaveFileName(
             self.window(),
             "Save DOT...",
             vistrails_file_directory(),

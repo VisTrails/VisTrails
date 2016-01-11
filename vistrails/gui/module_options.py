@@ -41,7 +41,8 @@ QModuleOptions
 """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
@@ -51,18 +52,20 @@ import unittest
 
 ###############################################################################
 
-class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
+class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
     """
     QModuleIteration is a dialog for editing module looping options.
 
     """
+    stateChanged = pyqtSignal()
+    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, parent=None):
         """ 
         QModuleIteration(parent)
         -> None
 
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle("Module Execution Options")
         self.createButtons()
         self.update_module()
@@ -75,25 +78,25 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         self.controller = None
         self.state_changed = False
         self.module = None
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         # self.layout().addStrut()
-        layout = QtGui.QHBoxLayout()
-        type_group = QtGui.QButtonGroup(self) # Number group
-        layout.addWidget(QtGui.QLabel("Port list combination method:"))
-        self.pairwiseButton = QtGui.QRadioButton("Pairwise")
+        layout = QtWidgets.QHBoxLayout()
+        type_group = QtWidgets.QButtonGroup(self) # Number group
+        layout.addWidget(QtWidgets.QLabel("Port list combination method:"))
+        self.pairwiseButton = QtWidgets.QRadioButton("Pairwise")
         self.pairwiseButton.setToolTip("Execute multiple looped input ports pairwise:"
                                        " [(A, B), (C, D)] -> [(A, C), (B, D)]")
         type_group.addButton(self.pairwiseButton)
         layout.addWidget(self.pairwiseButton)
         layout.setStretch(0, 0)
-        self.cartesianButton = QtGui.QRadioButton("Cartesian")
+        self.cartesianButton = QtWidgets.QRadioButton("Cartesian")
         self.cartesianButton.setToolTip("Execute multiple looped input ports using cartesian product:"
                                        " [(A, B), (C, D)] -> [(A, C), (A, D), (B, C), (B, D)]")
         self.cartesianButton.setChecked(True)
         type_group.addButton(self.cartesianButton)
         layout.addWidget(self.cartesianButton)
         layout.setStretch(1, 0)
-        self.customButton = QtGui.QRadioButton("Custom")
+        self.customButton = QtWidgets.QRadioButton("Custom")
         self.customButton.setToolTip("Build a custom combination using pairwise/cartesian functions")
         type_group.addButton(self.customButton)
         layout.addWidget(self.customButton)
@@ -106,29 +109,29 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         self.layout().addWidget(self.portCombiner)
         self.portCombiner.setVisible(False)
         
-        whileLayout = QtGui.QVBoxLayout()
+        whileLayout = QtWidgets.QVBoxLayout()
 
-        self.whileButton = QtGui.QCheckBox("While Loop")
+        self.whileButton = QtWidgets.QCheckBox("While Loop")
         self.whileButton.setToolTip('Repeatedly execute module until a specified output port has a false value')
         whileLayout.addWidget(self.whileButton)
         whileLayout.setStretch(0, 0)
 
-        layout = QtGui.QHBoxLayout()
-        self.condLabel = QtGui.QLabel("Condition output port:")
+        layout = QtWidgets.QHBoxLayout()
+        self.condLabel = QtWidgets.QLabel("Condition output port:")
         layout.addWidget(self.condLabel)
         layout.setStretch(0, 0)
-        self.condEdit = QtGui.QLineEdit()
+        self.condEdit = QtWidgets.QLineEdit()
         self.condEdit.setToolTip('Name of output port containing the condition of the loop')
         layout.addWidget(self.condEdit)
         layout.setStretch(1, 1)
         whileLayout.addLayout(layout)
         whileLayout.setStretch(1, 0)
 
-        layout = QtGui.QHBoxLayout()
-        self.maxLabel = QtGui.QLabel("Max iterations:")
+        layout = QtWidgets.QHBoxLayout()
+        self.maxLabel = QtWidgets.QLabel("Max iterations:")
         layout.addWidget(self.maxLabel)
         layout.setStretch(0, 0)
-        self.maxEdit = QtGui.QLineEdit()
+        self.maxEdit = QtWidgets.QLineEdit()
         self.maxEdit.setValidator(QtGui.QIntValidator())
         self.maxEdit.setToolTip('Fail after this number of iterations have been reached (default=20)')
         layout.addWidget(self.maxEdit)
@@ -136,11 +139,11 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         whileLayout.addLayout(layout)
         whileLayout.setStretch(2, 0)
 
-        layout = QtGui.QHBoxLayout()
-        self.delayLabel = QtGui.QLabel("Delay:")
+        layout = QtWidgets.QHBoxLayout()
+        self.delayLabel = QtWidgets.QLabel("Delay:")
         layout.addWidget(self.delayLabel)
         layout.setStretch(0, 0)
-        self.delayEdit = QtGui.QLineEdit()
+        self.delayEdit = QtWidgets.QLineEdit()
         self.delayEdit.setValidator(QtGui.QDoubleValidator(self))
         self.delayEdit.setToolTip('Delay between iterations in fractions of seconds')
         layout.addWidget(self.delayEdit)
@@ -148,22 +151,22 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         whileLayout.addLayout(layout)
         whileLayout.setStretch(2, 0)
 
-        layout = QtGui.QHBoxLayout()
-        self.feedInputLabel = QtGui.QLabel("Feedback Input port:")
+        layout = QtWidgets.QHBoxLayout()
+        self.feedInputLabel = QtWidgets.QLabel("Feedback Input port:")
         layout.addWidget(self.feedInputLabel)
         layout.setStretch(0, 0)
-        self.feedInputEdit = QtGui.QLineEdit()
+        self.feedInputEdit = QtWidgets.QLineEdit()
         self.feedInputEdit.setToolTip('Name of input port to feed the value from last iteration')
         layout.addWidget(self.feedInputEdit)
         layout.setStretch(1, 1)
         whileLayout.addLayout(layout)
         whileLayout.setStretch(3, 0)
 
-        layout = QtGui.QHBoxLayout()
-        self.feedOutputLabel = QtGui.QLabel("Feedback Output port:")
+        layout = QtWidgets.QHBoxLayout()
+        self.feedOutputLabel = QtWidgets.QLabel("Feedback Output port:")
         layout.addWidget(self.feedOutputLabel)
         layout.setStretch(0, 0)
-        self.feedOutputEdit = QtGui.QLineEdit()
+        self.feedOutputEdit = QtWidgets.QLineEdit()
         self.feedOutputEdit.setToolTip('Name of output port to feed to next iteration')
         layout.addWidget(self.feedOutputEdit)
         layout.setStretch(1, 1)
@@ -173,27 +176,25 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         whileLayout.addStretch(1)
         self.layout().addLayout(whileLayout)
 
-        self.jobCacheButton = QtGui.QCheckBox("Cache Output Persistently")
+        self.jobCacheButton = QtWidgets.QCheckBox("Cache Output Persistently")
         self.jobCacheButton.setToolTip('Cache the module results persistently to disk. (outputs must be constants)')
         self.layout().addWidget(self.jobCacheButton)
         self.layout().setStretch(2, 0)
 
         self.layout().addStretch(1)
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton('&Save', self)
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         self.buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton('&Reset', self)
+        self.resetButton = QtWidgets.QPushButton('&Reset', self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)        
+        self.saveButton.clicked[bool].connect(self.saveTriggered)
+        self.resetButton.clicked[bool].connect(self.resetTriggered)
         self.layout().setStretch(3, 0)
         self.update_module()
         self.pairwiseButton.toggled.connect(self.stateChanged)
@@ -226,8 +227,8 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL("stateChanged"))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
             
     def resetTriggered(self, checked = False):
         self.update_module(self.module)
@@ -408,31 +409,31 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
 PORTITEM = 1000
 DOTITEM = 1001
 CROSSITEM = 1002
-class PortItem(QtGui.QTreeWidgetItem):
+class PortItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, port_name, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent, PORTITEM)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, PORTITEM)
         self.setText(0, port_name)
         self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDropEnabled)
 
-class DotItem(QtGui.QTreeWidgetItem):
+class DotItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent, DOTITEM)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, DOTITEM)
         self.setExpanded(True)
         self.setIcon(0, CurrentTheme.DOT_PRODUCT_ICON)
         self.setText(0, 'Dot')
 
-class CrossItem(QtGui.QTreeWidgetItem):
+class CrossItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent, CROSSITEM)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, CROSSITEM)
         self.setExpanded(True)
         self.setIcon(0, CurrentTheme.CROSS_PRODUCT_ICON)
         self.setText(0, 'Cross')
 
-class QPortCombineTreeWidget(QtGui.QTreeWidget):
+class QPortCombineTreeWidget(QtWidgets.QTreeWidget):
     def __init__(self, callback):
-        QtGui.QTreeWidget.__init__(self)
+        QtWidgets.QTreeWidget.__init__(self)
         self._callback = callback
-        self.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.header().hide()
         self.setExpandsOnDoubleClick(False)
         self.setItemsExpandable(False)
@@ -443,7 +444,7 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
                         "selected product.")
 
     def dropEvent(self, event):
-        QtGui.QTreeWidget.dropEvent(self, event)
+        QtWidgets.QTreeWidget.dropEvent(self, event)
         self.expandAll()
         self._callback()
 
@@ -493,12 +494,12 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
             PortItem(port_name, self)
             
     def contextMenuEvent(self, event):
-        menu = QtGui.QMenu()
-        dotAction = QtGui.QAction(CurrentTheme.DOT_PRODUCT_ICON,
+        menu = QtWidgets.QMenu()
+        dotAction = QtWidgets.QAction(CurrentTheme.DOT_PRODUCT_ICON,
                                   'Add Pairwise Product', self)
         dotAction.triggered.connect(self.addDot)
         menu.addAction(dotAction)
-        crossAction = QtGui.QAction(CurrentTheme.CROSS_PRODUCT_ICON,
+        crossAction = QtWidgets.QAction(CurrentTheme.CROSS_PRODUCT_ICON,
                                     'Add Cartesian Product', self)
         crossAction.triggered.connect(self.addCross)
         menu.addAction(crossAction)
@@ -531,7 +532,7 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
                 self.takeTopLevelItem(self.indexOfTopLevelItem(item))
             self._callback()
         else:
-            QtGui.QTreeWidget.keyPressEvent(self, event)
+            QtWidgets.QTreeWidget.keyPressEvent(self, event)
 
 class TestIterationGui(unittest.TestCase):
     def testGetSet(self):

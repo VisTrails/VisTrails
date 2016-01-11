@@ -36,7 +36,8 @@
 
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules import basic_modules
@@ -46,20 +47,18 @@ from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellContainer
 
 
-class PromptWindow(QtGui.QDialog):
+class PromptWindow(QtWidgets.QDialog):
     def __init__(self, widget, label=None):
-        QtGui.QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.setWindowTitle("Check intermediate results")
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().addWidget(widget)
         if label is not None:
-            self.layout().addWidget(QtGui.QLabel(label))
-        buttons = QtGui.QDialogButtonBox(
-                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
-        self.connect(buttons, QtCore.SIGNAL('accepted()'),
-                     self, QtCore.SLOT('accept()'))
-        self.connect(buttons, QtCore.SIGNAL('rejected()'),
-                     self, QtCore.SLOT('reject()'))
+            self.layout().addWidget(QtWidgets.QLabel(label))
+        buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No)
+        buttons.accepted.connect(self, accept)
+        buttons.rejected.connect(self, reject)
         self.layout().addWidget(buttons)
 
 
@@ -89,7 +88,7 @@ class PromptIsOkay(Module):
         ncell = oldparent.takeWidget()
         assert ncell == cell
         dialog = PromptWindow(cell, label)
-        result = dialog.exec_() == QtGui.QDialog.Accepted
+        result = dialog.exec_() == QtWidgets.QDialog.Accepted
         oldparent.setWidget(cell)
 
         self.set_output('result', result)

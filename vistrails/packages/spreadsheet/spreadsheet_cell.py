@@ -44,7 +44,8 @@ esizer, etc.:
 
 import datetime
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+
 import tempfile
 
 from vistrails.core import debug
@@ -57,7 +58,7 @@ from . import cell_rc
 from . import celltoolbar_rc
 
 
-class QCellWidget(QtGui.QWidget):
+class QCellWidget(QtWidgets.QWidget):
     """
     QCellWidget is the base cell class. All types of spreadsheet cells
     should inherit from this.
@@ -71,9 +72,9 @@ class QCellWidget(QtGui.QWidget):
         Instantiate the cell and helper properties
 
         """
-        QtGui.QWidget.__init__(self, parent, flags)
+        QtWidgets.QWidget.__init__(self, parent, flags)
         self._historyImages = []
-        self._player = QtGui.QLabel(self.parent())
+        self._player = QtWidgets.QLabel(self.parent())
         self._player.setAutoFillBackground(True)
         self._player.setFocusPolicy(QtCore.Qt.NoFocus)
         self._player.setScaledContents(True)
@@ -86,11 +87,9 @@ class QCellWidget(QtGui.QWidget):
                                   hasattr(self, 'saveToPNG'))
         self._output_module = None
         self._output_configuration = None
-        self.connect(self._playerTimer,
-                     QtCore.SIGNAL('timeout()'),
-                     self.playNextFrame)
+        self._playerTimer.timeout.connect(self.playNextFrame)
         if configuration.fixedCellSize:
-            self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+            self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
             self.setFixedSize(200, 180)
 
     def setAnimationEnabled(self, enabled):
@@ -139,7 +138,7 @@ class QCellWidget(QtGui.QWidget):
 
         """
         self.clearHistory()
-        QtGui.QWidget.deleteLater(self)
+        QtWidgets.QWidget.deleteLater(self)
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple)
@@ -155,7 +154,7 @@ class QCellWidget(QtGui.QWidget):
         Re-adjust the player widget
 
         """
-        QtGui.QWidget.resizeEvent(self, e)
+        QtWidgets.QWidget.resizeEvent(self, e)
 
         if self._player.isVisible():
             self._player.setGeometry(self.geometry())
@@ -240,14 +239,14 @@ class QCellWidget(QtGui.QWidget):
             pixmap.save(filename)
 
     def saveToPDF(self, filename):
-        printer = QtGui.QPrinter()
+        printer = QtPrintSupport.QPrinter()
 
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         pixmap = self.grabWindowPixmap()
         size = pixmap.size()
         printer.setPaperSize(QtCore.QSizeF(size.width(), size.height()),
-                             QtGui.QPrinter.Point)
+                             QtPrintSupport.QPrinter.Point)
         painter = QtGui.QPainter()
         painter.begin(printer)
         rect = painter.viewport()
@@ -293,26 +292,27 @@ class QCellWidget(QtGui.QWidget):
         mode.compute_output(self._output_module, mode_config)
 
 
-class QCellToolBar(QtGui.QToolBar):
+class QCellToolBar(QtWidgets.QToolBar):
     """
     CellToolBar is inherited from QToolBar with some functionalities
     for interacting with CellHelpers
 
     """
+    needUpdateStatus = pyqtSignal(QVariant)
     def __init__(self, sheet):
         """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar
         Initialize the cell toolbar by calling the user-defined
         toolbar construction function
 
         """
-        QtGui.QToolBar.__init__(self,sheet)
+        QtWidgets.QToolBar.__init__(self,sheet)
         self.setOrientation(QtCore.Qt.Horizontal)
         self.sheet = sheet
         self.row = -1
         self.col = -1
         self.layout().setMargin(0)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        pixmap = self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
         self.addExecuteCellAction()
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
@@ -335,8 +335,7 @@ class QCellToolBar(QtGui.QToolBar):
                     self)
             self.saveActionVar.setStatusTip("Export this cell only")
 
-            self.connect(self.saveActionVar, QtCore.SIGNAL('triggered(bool)'),
-                         self.exportCell)
+            self.saveActionVar.triggered[bool].connect(self.exportCell)
         self.appendAction(self.saveActionVar)
 
     def exportCell(self, checked=False):
@@ -354,7 +353,7 @@ class QCellToolBar(QtGui.QToolBar):
             if cell.get_conf_file_format() is not None:
                 selected_filter = '(*.%s)' % cell.get_conf_file_format()
             (filename, save_format) = \
-                    QtGui.QFileDialog.getSaveFileNameAndFilter(
+                    QtWidgets.QFileDialog.getSaveFileName(
                         self, "Select a File to Export the Cell",
                         ".", ';;'.join(['(*.%s)' % f for f in formats]),
                         selected_filter)
@@ -363,11 +362,11 @@ class QCellToolBar(QtGui.QToolBar):
                 cell.save_via_file_output(filename, save_mode)
         else:
             if not cell.save_formats:
-                QtGui.QMessageBox.information(
+                QtWidgets.QMessageBox.information(
                         self, "Export cell",
                         "This cell type doesn't provide any export option")
                 return
-            filename = QtGui.QFileDialog.getSaveFileName(
+            filename = QtWidgets.QFileDialog.getSa[0]veFileName(
                 self, "Select a File to Export the Cell",
                 ".", ';;'.join(cell.save_formats))
             if filename:
@@ -381,8 +380,7 @@ class QCellToolBar(QtGui.QToolBar):
                     self)
             self.executeActionVar.setStatusTip("Re-execute this cell")
 
-            self.connect(self.executeActionVar, QtCore.SIGNAL('triggered(bool)'),
-                         self.executeCell)
+            self.executeActionVar.triggered[bool].connect(self.executeCell)
         self.appendAction(self.executeActionVar)
 
     def executeCell(self, checked=False):
@@ -432,8 +430,7 @@ class QCellToolBar(QtGui.QToolBar):
         """
         cellWidget = self.sheet.getCell(self.row, self.col)
         for action in self.actions():
-            action.emit(QtCore.SIGNAL('needUpdateStatus'),
-                        (self.sheet, self.row, self.col, cellWidget))
+            action.needUpdateStatus.emit((self.sheet, self.row, self.col, cellWidget))
 
     def connectAction(self, action, widget):
         """ connectAction(action: QAction, widget: QWidget) -> None
@@ -441,14 +438,11 @@ class QCellToolBar(QtGui.QToolBar):
 
         """
         if hasattr(widget, 'updateStatus'):
-            self.connect(action, QtCore.SIGNAL('needUpdateStatus'),
-                         widget.updateStatus)
+            action.needUpdateStatus.connect(widget.updateStatus)
         if hasattr(widget, 'triggeredSlot'):
-            self.connect(action, QtCore.SIGNAL('triggered()'),
-                         widget.triggeredSlot)
+            action.triggered.connect(widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
-            self.connect(action, QtCore.SIGNAL('toggled(bool)'),
-                         widget.toggledSlot)
+            action.toggled[bool].connect(widget.toggledSlot)
 
     def appendAction(self, action):
         """ appendAction(action: QAction) -> QAction
@@ -482,7 +476,7 @@ class QCellToolBar(QtGui.QToolBar):
             return None
 
 
-class QCellToolBarSelectedCell(QtGui.QAction):
+class QCellToolBarSelectedCell(QtWidgets.QAction):
     """
     QCellToolBarSelectedCell is an action only visible if the cell isn't empty.
     """
@@ -518,16 +512,16 @@ class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
 
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        r = QtGui.QMessageBox.question(cellWidget, 'Clear cell',
+        r = QtWidgets.QMessageBox.question(cellWidget, 'Clear cell',
                                        'Are you sure to clear the cell?',
-                                       QtGui.QMessageBox.Yes |
-                                       QtGui.QMessageBox.No,
-                                       QtGui.QMessageBox.No)
-        if (r==QtGui.QMessageBox.Yes):
+                                       QtWidgets.QMessageBox.Yes |
+                                       QtWidgets.QMessageBox.No,
+                                       QtWidgets.QMessageBox.No)
+        if (r==QtWidgets.QMessageBox.Yes):
             self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
 
 
-class QCellToolBarMergeCells(QtGui.QAction):
+class QCellToolBarMergeCells(QtWidgets.QAction):
     """
     QCellToolBarMergeCells is the action to merge selected cells to a
     single cell if they are in consecutive poisitions
@@ -539,7 +533,7 @@ class QCellToolBarMergeCells(QtGui.QAction):
         Setup the image, status tip, etc. of the action
 
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                icon,
                                "&Merge cells",
                                parent)
@@ -619,7 +613,7 @@ class QCellToolBarMergeCells(QtGui.QAction):
                 self.setVisible(False)
 
 
-class QCellToolBarCaptureToHistory(QtGui.QAction):
+class QCellToolBarCaptureToHistory(QtWidgets.QAction):
     """
     QCellToolBarCaptureToHistory is the action to capture the
     underlying widget to history for play back. The cell type must
@@ -632,7 +626,7 @@ class QCellToolBarCaptureToHistory(QtGui.QAction):
         Setup the image, status tip, etc. of the action
 
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/camera_mount.png"),
                                "&Capture image to history",
                                parent)
@@ -662,7 +656,7 @@ class QCellToolBarCaptureToHistory(QtGui.QAction):
             self.setVisible(False)
 
 
-class QCellToolBarPlayHistory(QtGui.QAction):
+class QCellToolBarPlayHistory(QtWidgets.QAction):
     """
     QCellToolBarPlayHistory is the action to play the history as an
     animation
@@ -680,7 +674,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
                          "Pa&use the history playback"]
         self.statusTips = ["Playback all image files kept in the history",
                            "Pause the playback"]
-        QtGui.QAction.__init__(self, self.icons[0], self.toolTips[0], parent)
+        QtWidgets.QAction.__init__(self, self.icons[0], self.toolTips[0], parent)
         self.setStatusTip(self.statusTips[0])
         self.status = 0
 
@@ -715,7 +709,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
             self.setVisible(False)
 
 
-class QCellToolBarClearHistory(QtGui.QAction):
+class QCellToolBarClearHistory(QtWidgets.QAction):
     """
     QCellToolBarClearHistory is the action to reset cell history
 
@@ -726,7 +720,7 @@ class QCellToolBarClearHistory(QtGui.QAction):
         Setup the image, status tip, etc. of the action
 
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/noatunloopsong.png"),
                                "&Clear this cell history",
                                parent)
@@ -756,7 +750,7 @@ class QCellToolBarClearHistory(QtGui.QAction):
             self.setVisible(False)
 
 
-class QCellContainer(QtGui.QWidget):
+class QCellContainer(QtWidgets.QWidget):
     """ QCellContainer is a simple QWidget containing the actual cell
     widget as a child. This also acts as a sentinel protecting the
     actual cell widget from being destroyed by sheet widgets
@@ -768,10 +762,10 @@ class QCellContainer(QtGui.QWidget):
         Create an empty container
 
         """
-        QtGui.QWidget.__init__(self, parent)
-        layout = QtGui.QVBoxLayout()
+        QtWidgets.QWidget.__init__(self, parent)
+        layout = QtWidgets.QVBoxLayout()
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.containedWidget = None
         self.setWidget(widget)
@@ -814,7 +808,7 @@ class QCellContainer(QtGui.QWidget):
         return widget
 
 
-class QCellPresenter(QtGui.QLabel):
+class QCellPresenter(QtWidgets.QLabel):
     """
     QCellPresenter represents a cell in the Editing Mode. It has an
     info bar on top and control dragable icons on the bottom
@@ -825,16 +819,16 @@ class QCellPresenter(QtGui.QLabel):
         Create the layout of the widget
 
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         self.setAutoFillBackground(True)
         self.setScaledContents(True)
         self.setMargin(0)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.cellWidget = None
 
-        layout = QtGui.QGridLayout(self)
+        layout = QtWidgets.QGridLayout(self)
         layout.setSpacing(2)
-        layout.setMargin(self.margin())
+        layout.setContentsMargins(s, e, l, f, ., m, a, r, g, i, n, (, s, e, l, f, ., m, a, r, g, i, n, (, s, e, l, f, ., m, a, r, g, i, n, (, s, e, l, f, ., m, a, r, g, i, n, ()
         layout.setRowStretch(1, 1)
         self.setLayout(layout)
 
@@ -895,10 +889,10 @@ class QCellPresenter(QtGui.QLabel):
         """
         if (self.cellWidget):
             self.cellWidget.deleteLater()
-        QtGui.QLabel.deleteLater(self)
+        QtWidgets.QLabel.deleteLater(self)
 
 
-class QInfoLineEdit(QtGui.QLineEdit):
+class QInfoLineEdit(QtWidgets.QLineEdit):
     """
     QInfoLineEdit is wrapper for a transparent, un-frame, read-only
     line edit
@@ -909,7 +903,7 @@ class QInfoLineEdit(QtGui.QLineEdit):
         Initialize the line edit
 
         """
-        QtGui.QLineEdit.__init__(self, parent)
+        QtWidgets.QLineEdit.__init__(self, parent)
         self.setReadOnly(True)
         self.setFrame(False)
         pal = QtGui.QPalette(self.palette())
@@ -918,7 +912,7 @@ class QInfoLineEdit(QtGui.QLineEdit):
         self.setPalette(pal)
 
 
-class QInfoLabel(QtGui.QLabel):
+class QInfoLabel(QtWidgets.QLabel):
     """
     QInfoLabel is wrapper for a transparent, bolded label
 
@@ -928,13 +922,13 @@ class QInfoLabel(QtGui.QLabel):
         Initialize the line edit
 
         """
-        QtGui.QLabel.__init__(self, text, parent)
+        QtWidgets.QLabel.__init__(self, text, parent)
         font = QtGui.QFont(self.font())
         font.setBold(True)
         self.setFont(font)
 
 
-class QPipelineInfo(QtGui.QFrame):
+class QPipelineInfo(QtWidgets.QFrame):
     """
     QPipelineInfo displays information about the executed pipeline of
     a cell. It has 3 static lines: Vistrail name, (pipeline name,
@@ -946,10 +940,10 @@ class QPipelineInfo(QtGui.QFrame):
         Create the 3 information lines
 
         """
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
         self.setAutoFillBackground(True)
-        self.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum)
+        self.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
 
         pal = QtGui.QPalette(self.palette())
         color = QtGui.QColor(pal.brush(QtGui.QPalette.Base).color())
@@ -957,19 +951,19 @@ class QPipelineInfo(QtGui.QFrame):
         pal.setBrush(QtGui.QPalette.Base, QtGui.QBrush(color))
         self.setPalette(pal)
 
-        topLayout = QtGui.QVBoxLayout(self)
+        topLayout = QtWidgets.QVBoxLayout(self)
         topLayout.setSpacing(0)
-        topLayout.setMargin(0)
+        topLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(topLayout)
 
-        hLine = QtGui.QFrame()
-        hLine.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Plain)
+        hLine = QtWidgets.QFrame()
+        hLine.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Plain)
         hLine.setFixedHeight(1)
         topLayout.addWidget(hLine)
 
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.setSpacing(2)
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         topLayout.addLayout(layout)
 
         self.edits = []
@@ -982,8 +976,8 @@ class QPipelineInfo(QtGui.QFrame):
             layout.addWidget(edit, i, 1, 1, 1)
 
         topLayout.addStretch()
-        hLine = QtGui.QFrame()
-        hLine.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Plain)
+        hLine = QtWidgets.QFrame()
+        hLine.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Plain)
         hLine.setFixedHeight(1)
         topLayout.addWidget(hLine)
 
@@ -1002,7 +996,7 @@ class QPipelineInfo(QtGui.QFrame):
                 edit.setText('N/A')
 
 
-class QCellManipulator(QtGui.QFrame):
+class QCellManipulator(QtWidgets.QFrame):
     """
     QCellManipulator contains several dragable icons that allow users
     to move/copy or perform some operation from one cell to
@@ -1016,19 +1010,19 @@ class QCellManipulator(QtGui.QFrame):
         Create the 3 information lines
 
         """
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
         self.setAcceptDrops(True)
-        self.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(0)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         layout.addStretch()
 
-        bLayout = QtGui.QHBoxLayout()
+        bLayout = QtWidgets.QHBoxLayout()
         layout.addLayout(bLayout)
 
         bInfo = [(':/images/copy_cell.png',
@@ -1052,16 +1046,16 @@ class QCellManipulator(QtGui.QFrame):
             button.setToolTip(b[1])
             button.setStatusTip(b[1])
             button.action = b[2]
-            vLayout = QtGui.QVBoxLayout()
+            vLayout = QtWidgets.QVBoxLayout()
             vLayout.addWidget(button)
-            label = QtGui.QLabel(b[3])
+            label = QtWidgets.QLabel(b[3])
             label.setAlignment(QtCore.Qt.AlignCenter)
             vLayout.addWidget(label)
             bLayout.addLayout(vLayout)
             self.buttons.append(button)
             self.buttons.append(label)
 
-        self.updateButton = QtGui.QToolButton()
+        self.updateButton = QtWidgets.QToolButton()
         self.updateButton.setIconSize(QtCore.QSize(64, 64))
         self.updateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(
             ':/images/update.png')))
@@ -1070,11 +1064,10 @@ class QCellManipulator(QtGui.QFrame):
         self.updateButton.setStatusTip(self.updateButton.toolTip())
         self.updateButton.setText('Create Version')
         self.updateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.connect(self.updateButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.updateVersion)
+        self.updateButton.clicked[bool].connect(self.updateVersion)
         self.buttons.append(self.updateButton)
 
-        self.locateButton = QtGui.QToolButton()
+        self.locateButton = QtWidgets.QToolButton()
         self.locateButton.setIconSize(QtCore.QSize(64, 64))
         self.locateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(
             ':/images/locate.png')))
@@ -1083,12 +1076,11 @@ class QCellManipulator(QtGui.QFrame):
         self.locateButton.setStatusTip(self.locateButton.toolTip())
         self.locateButton.setText('Locate Version')
         self.locateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
-        self.connect(self.locateButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.locateVersion)
+        self.locateButton.clicked[bool].connect(self.locateVersion)
         self.buttons.append(self.locateButton)
 
 
-        uLayout = QtGui.QHBoxLayout()
+        uLayout = QtWidgets.QHBoxLayout()
         uLayout.addStretch()
         uLayout.addWidget(self.locateButton)
         uLayout.addWidget(self.updateButton)
@@ -1099,7 +1091,7 @@ class QCellManipulator(QtGui.QFrame):
 
         layout.addStretch()
 
-        self.innerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
+        self.innerRubberBand = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle,
                                                  self)
 
     def assignCell(self, sheet, row, col):
@@ -1252,7 +1244,7 @@ class QCellManipulator(QtGui.QFrame):
                     view.activateWindow()
 
 
-class QCellDragLabel(QtGui.QLabel):
+class QCellDragLabel(QtWidgets.QLabel):
     """
     QCellDragLabel is a pixmap label allowing users to drag it to
     another cell manipulator
@@ -1263,9 +1255,9 @@ class QCellDragLabel(QtGui.QLabel):
         Construct the pixmap label
 
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         self.setMargin(0)
-        self.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
         self.setPixmap(pixmap)
         self.setScaledContents(True)
         self.setFixedSize(64, 64)
@@ -1288,7 +1280,7 @@ class QCellDragLabel(QtGui.QLabel):
 
         """
         self.startPos = QtCore.QPoint(event.pos())
-        QtGui.QLabel.mousePressEvent(self, event)
+        QtWidgets.QLabel.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -1306,7 +1298,7 @@ class QCellDragLabel(QtGui.QLabel):
             return
 
         p = event.pos() - self.startPos
-        if p.manhattanLength()>=QtGui.QApplication.startDragDistance():
+        if p.manhattanLength()>=QtWidgets.QApplication.startDragDistance():
             drag = QtGui.QDrag(self)
             data = QtCore.QMimeData()
             data.cellInfo = self.cellInfo

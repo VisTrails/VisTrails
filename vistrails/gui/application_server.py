@@ -54,7 +54,8 @@ import urllib.request, urllib.parse, urllib.error
 import xmlrpc.client
 import configparser
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+
 import socketserver
 from xmlrpc.server import SimpleXMLRPCServer
 from datetime import date, datetime
@@ -2067,7 +2068,7 @@ class ComponentSimpleGUI(XMLObject):
 ################################################################################
 
 class VistrailsServerSingleton(VistrailsApplicationInterface,
-                               QtGui.QApplication):
+                               QtWidgets.QApplication):
     """
     VistrailsServerSingleton is the singleton of the application,
     there will be only one instance of the application during VisTrails
@@ -2083,7 +2084,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         return self
 
     def __init__(self):
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtWidgets.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
         if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise vistrails.core.requirements.MissingRequirement("Qt version >= 4.2")

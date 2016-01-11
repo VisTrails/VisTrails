@@ -41,7 +41,8 @@
 
 import copy
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
+
 import sys
 
 from vistrails.core import debug

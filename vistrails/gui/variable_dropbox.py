@@ -45,7 +45,8 @@ QHoverVariableLabel
 """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -62,7 +63,7 @@ import uuid
 
 ################################################################################
 
-class QVariableDropBox(QtGui.QScrollArea):
+class QVariableDropBox(QtWidgets.QScrollArea):
     """
     QVariableDropBox is just a widget such that items that subclass
     Constant from the module palette can be dropped into its client rect.
@@ -74,7 +75,7 @@ class QVariableDropBox(QtGui.QScrollArea):
         Initialize widget constraints
         
         """
-        QtGui.QScrollArea.__init__(self, parent)
+        QtWidgets.QScrollArea.__init__(self, parent)
         self.setAcceptDrops(True)
         self.setWidgetResizable(True)
         self.vWidget = QVerticalWidget()
@@ -118,19 +119,19 @@ class QVariableDropBox(QtGui.QScrollArea):
                 if issubclass(item.descriptor.module, Constant):
                     if item.descriptor and self.controller:
                         self.lockUpdate()
-                        (text, ok) = QtGui.QInputDialog.getText(self,
+                        (text, ok) = QtWidgets.QInputDialog.getText(self,
                                                                 'Set Variable Name',
                                                                 'Enter the variable name',
-                                                                QtGui.QLineEdit.Normal,
+                                                                QtWidgets.QLineEdit.Normal,
                                                                 '')
                         var_name = str(text).strip()
                         while ok and self.controller.check_vistrail_variable(var_name):
                             msg =" This variable name is already being used.\
  Please enter a different variable name "
-                            (text, ok) = QtGui.QInputDialog.getText(self,
+                            (text, ok) = QtWidgets.QInputDialog.getText(self,
                                                                     'Set Variable Name',
                                                                     msg,
-                                                                    QtGui.QLineEdit.Normal,
+                                                                    QtWidgets.QLineEdit.Normal,
                                                                     text)
                             var_name = str(text).strip()
                         if ok:
@@ -196,12 +197,12 @@ class QVerticalWidget(QPromptWidget):
         """
         QPromptWidget.__init__(self, parent)
         self.setPromptText("Drag a constant from the Modules panel to create a variable")
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(5)
         self.layout().setAlignment(QtCore.Qt.AlignTop)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         self.setMinimumHeight(20)
         self._variable_widgets = []
         
@@ -211,8 +212,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         inputForm = QVariableInputWidget(uuid, name, descriptor, value, self)
-        self.connect(inputForm, QtCore.SIGNAL('deleted(QWidget*)'), 
-                     self.delete_form)
+        inputForm.deleted[QWidget].connect(self.delete_form)
         self.layout().addWidget(inputForm)
         inputForm.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
@@ -226,8 +226,7 @@ class QVerticalWidget(QPromptWidget):
         """
         self.setEnabled(False)
         for v in self._variable_widgets:
-            self.disconnect(v, QtCore.SIGNAL('deleted(QWidget*)'), 
-                         self.delete_form)
+            v.deleted[QWidget].connect(self.delete_form)
             self.layout().removeWidget(v)
             v.setParent(None)
             v.deleteLater()
@@ -235,8 +234,7 @@ class QVerticalWidget(QPromptWidget):
         self.setEnabled(True)
 
     def delete_form(self, input_form):
-        self.disconnect(input_form, QtCore.SIGNAL('deleted(QWidget*)'), 
-                     self.delete_form)
+        input_form.deleted[QWidget].connect(self.delete_form)
         var_name = input_form.var_name
         variableBox = self.parent().parent()
         self.layout().removeWidget(input_form)
@@ -252,21 +250,22 @@ class QVerticalWidget(QPromptWidget):
         self.setMinimumHeight(self.layout().minimumSize().height())
 
 
-class QVariableInputWidget(QtGui.QDockWidget):
+class QVariableInputWidget(QtWidgets.QDockWidget):
+    deleted = pyqtSignal(QVariant)
     def __init__(self, uuid, name, descriptor, value='', parent=None):
-        QtGui.QDockWidget.__init__(self, parent)
+        QtWidgets.QDockWidget.__init__(self, parent)
         self.var_uuid = uuid
         self.var_name = name
         self.descriptor = descriptor
-        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable)
+        self.setFeatures(QtWidgets.QDockWidget.DockWidgetClosable)
         # Create group and titlebar widgets for input widget
         self.group_box = QVariableInputForm(descriptor, value, self)
         self.setWidget(self.group_box)
-        title_widget = QtGui.QWidget()
-        title_layout = QtGui.QHBoxLayout()
-        self.closeButton = QtGui.QToolButton()
+        title_widget = QtWidgets.QWidget()
+        title_layout = QtWidgets.QHBoxLayout()
+        self.closeButton = QtWidgets.QToolButton()
         self.closeButton.setAutoRaise(True)
-        self.closeButton.setIcon(QtGui.QIcon(self.style().standardPixmap(QtGui.QStyle.SP_TitleBarCloseButton)))
+        self.closeButton.setIcon(QtGui.QIcon(self.style().standardPixmap(QtWidgets.QStyle.SP_TitleBarCloseButton)))
         self.closeButton.setIconSize(QtCore.QSize(13, 13))
         self.closeButton.setFixedWidth(16)
         self.label = QHoverVariableLabel(name)
@@ -274,7 +273,7 @@ class QVariableInputWidget(QtGui.QDockWidget):
         title_layout.addWidget(self.closeButton)
         title_widget.setLayout(title_layout)
         self.setTitleBarWidget(title_widget)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'), self.close)
+        self.closeButton.clicked.connect(self.close)
         
     def renameVariable(self, var_name):
         # First delete old var entry
@@ -297,13 +296,13 @@ class QVariableInputWidget(QtGui.QDockWidget):
         if choice == NO_BUTTON:
             event.ignore()
             return
-        self.emit(QtCore.SIGNAL('deleted(QWidget*)'), self)
+        self.deleted.emit(self)
 
     def keyPressEvent(self, e):
         if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             self.close()
         else:
-            QtGui.QDockWidget.keyPressEvent(self, e)
+            QtWidgets.QDockWidget.keyPressEvent(self, e)
     
     def check_variable(self, name):
         """ check_variable(name: str) -> Boolean
@@ -315,7 +314,7 @@ class QVariableInputWidget(QtGui.QDockWidget):
             return variableBox.controller.check_vistrail_variable(name)
         return False
 
-class QVariableInputForm(QtGui.QGroupBox):
+class QVariableInputForm(QtWidgets.QGroupBox):
     """
     QVariableInputForm is a widget with multiple input lines depends on
     the method signature
@@ -327,13 +326,13 @@ class QVariableInputForm(QtGui.QGroupBox):
         Initialize with a vertical layout
         
         """
-        QtGui.QGroupBox.__init__(self, parent)
-        self.setLayout(QtGui.QGridLayout())
+        QtWidgets.QGroupBox.__init__(self, parent)
+        self.setLayout(QtWidgets.QGridLayout())
         self.layout().setMargin(5)
         self.layout().setSpacing(5)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                           QtGui.QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                           QtWidgets.QSizePolicy.Fixed)
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
         # Create widget for editing variable
@@ -378,7 +377,7 @@ class QVariableInputForm(QtGui.QGroupBox):
             variableBox.controller.set_vistrail_variable(inputWidget.var_name, var)
             variableBox.unlockUpdate()
 
-class QDragVariableLabel(QtGui.QLabel):
+class QDragVariableLabel(QtWidgets.QLabel):
     """
     QDragVariableLabel is a QLabel that can be dragged to connect
     to an input port
@@ -389,7 +388,7 @@ class QDragVariableLabel(QtGui.QLabel):
         Initialize the label with a variable type
         
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         self.var_type = var_type
         self.setText(var_type)
         self.setAttribute(QtCore.Qt.WA_Hover)
@@ -409,7 +408,7 @@ class QDragVariableLabel(QtGui.QLabel):
         if event.type()==QtCore.QEvent.HoverLeave:
             self.palette().setColor(QtGui.QPalette.WindowText,
                                     CurrentTheme.HOVER_DEFAULT_COLOR)
-        return QtGui.QLabel.event(self, event)
+        return QtWidgets.QLabel.event(self, event)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None        
@@ -449,7 +448,7 @@ class QDragVariableLabel(QtGui.QLabel):
             drag.setPixmap(pixmap)
             drag.start(QtCore.Qt.MoveAction)
 
-class QHoverVariableLabel(QtGui.QLabel):
+class QHoverVariableLabel(QtWidgets.QLabel):
     """
     QHoverVariableLabel is a QLabel that supports hover actions similar
     to a hot link
@@ -460,7 +459,7 @@ class QHoverVariableLabel(QtGui.QLabel):
         Initialize the label with a variable name
         
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         self.var_name = var_name
         self.setText(var_name)
         self.setAttribute(QtCore.Qt.WA_Hover)
@@ -480,7 +479,7 @@ class QHoverVariableLabel(QtGui.QLabel):
         if event.type()==QtCore.QEvent.HoverLeave:
             self.palette().setColor(QtGui.QPalette.WindowText,
                                     CurrentTheme.HOVER_DEFAULT_COLOR)
-        return QtGui.QLabel.event(self, event)
+        return QtWidgets.QLabel.event(self, event)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None        
@@ -491,19 +490,19 @@ class QHoverVariableLabel(QtGui.QLabel):
         if event.button()==QtCore.Qt.LeftButton:
             inputWidget = self.parent().parent()
             orig_var_name = inputWidget.var_name
-            (text, ok) = QtGui.QInputDialog.getText(self,
+            (text, ok) = QtWidgets.QInputDialog.getText(self,
                                                     'Set New Variable Name',
                                                     'Enter the new variable name',
-                                                    QtGui.QLineEdit.Normal,
+                                                    QtWidgets.QLineEdit.Normal,
                                                     orig_var_name)
             var_name = str(text).strip()
             while ok and self.parent().parent().check_variable(var_name):
                 msg =" This variable name is already being used.\
  Please enter a different variable name "
-                (text, ok) = QtGui.QInputDialog.getText(self,
+                (text, ok) = QtWidgets.QInputDialog.getText(self,
                                                         'Set New Variable Name',
                                                         msg,
-                                                        QtGui.QLineEdit.Normal,
+                                                        QtWidgets.QLineEdit.Normal,
                                                         text)
                 var_name = str(text).strip()
             if ok and var_name != orig_var_name:

@@ -42,7 +42,8 @@
 
 import vtk
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import sip
 from vistrails.core import system
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
@@ -170,8 +171,8 @@ class QVTKWidget(QCellWidget):
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding))
         self.toolBarType = QVTKWidgetToolBar
         self.iHandlers = []
         self.setAnimationEnabled(True)
@@ -349,7 +350,7 @@ class QVTKWidget(QCellWidget):
                 try:
                     display = int(QtGui.QX11Info.display())
                 except TypeError:
-                    # This was changed for PyQt4.2
+                    # This was changed for PyQt5.2
                     if isinstance(QtGui.QX11Info.display(), QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                 if display is not None:
@@ -709,7 +710,7 @@ class QVTKWidget(QCellWidget):
         
         self.SelectActiveRenderer(iren)
         
-        if e.delta()>0:
+        if e.angleDelta().y()>0:
             iren.InvokeEvent("MouseWheelForwardEvent")
         else:
             iren.InvokeEvent("MouseWheelBackwardEvent")
@@ -1031,7 +1032,7 @@ class QVTKWidget(QCellWidget):
         else:
             self.saveToPNG(filename)
 
-class QVTKWidgetSaveCamera(QtGui.QAction):
+class QVTKWidgetSaveCamera(QtWidgets.QAction):
     """
     QVTKWidgetSaveCamera is the action to capture the current camera
     of the vtk renderers and save it back to the pipeline
@@ -1042,7 +1043,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                "Save &Camera",
                                parent)
         self.setStatusTip("Save current camera views to the pipeline")

@@ -35,15 +35,16 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 import vistrails.core.system
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.mashups.mashups_manager import MashupsManager
 from vistrails.gui.utils import show_warning
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
-class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
+class QMashupsInspector(QtWidgets.QFrame, QVistrailsPaletteInterface):
     """
     QMashupsInspector is a widget with tabs showing properties of the selected
     mashuptrail. It contains a list of tagged mashups, and when a mashup is
@@ -57,33 +58,33 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
                             parent: QWidget) -> QMashupsInspector
         
         """
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
         QVistrailsPaletteInterface.__init__(self)
         #print "****** Inspector INIT"
         self.set_title("Mashups Inspector")
-        self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        self.setFrameStyle(QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         
         #ok, this will store the original vistrail controller
         self.controller = controller
         self.mshpController = None #MashupController
         self.manager = MashupsManager.getInstance()
         
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(3)
-        self.workflowLabel = QtGui.QLabel("Workflow: ")
+        self.workflowLabel = QtWidgets.QLabel("Workflow: ")
         layout.addWidget(self.workflowLabel)
         self.mashupsList = QMashupsListPanel(parent=self)
-        listLabel = QtGui.QLabel("Available Mashups:")
+        listLabel = QtWidgets.QLabel("Available Mashups:")
         layout.addWidget(listLabel)
         layout.addWidget(self.mashupsList)
         
         self.mashupInspector = QMashupProp(parent=self)
-        inspector_group = QtGui.QGroupBox("Mashup properties")
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(1)
+        inspector_group = QtWidgets.QGroupBox("Mashup properties")
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(1, 1, 1, 1)
         g_layout.setSpacing(3)
         g_layout.addWidget(self.mashupInspector)
         inspector_group.setLayout(g_layout)
@@ -123,17 +124,17 @@ class QMashupsInspector(QtGui.QFrame, QVistrailsPaletteInterface):
         
 ################################################################################        
 
-class QMashupProp(QtGui.QWidget):
+class QMashupProp(QtWidgets.QWidget):
     def __init__(self, controller=None, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.controller = controller
         self.versionNumber = -1
-        vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
-        gLayout = QtGui.QGridLayout()
-        gLayout.setMargin(0)
+        gLayout = QtWidgets.QGridLayout()
+        gLayout.setContentsMargins(0, 0, 0, 0)
         gLayout.setSpacing(5)
         gLayout.setColumnMinimumWidth(1,5)
         gLayout.setRowMinimumHeight(0,24)
@@ -148,20 +149,20 @@ class QMashupProp(QtGui.QWidget):
         #self.vtVersionEdit = QtGui.QLabel('', self)
         #gLayout.addWidget(self.vtVersionEdit, 0, 2, 1, 1)
         
-        tagLabel = QtGui.QLabel('Mashup Tag:', self)
+        tagLabel = QtWidgets.QLabel('Mashup Tag:', self)
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
-        editLayout = QtGui.QHBoxLayout()
-        editLayout.setMargin(0)
+        editLayout = QtWidgets.QHBoxLayout()
+        editLayout.setContentsMargins(0, 0, 0, 0)
         editLayout.setSpacing(2)
-        self.tagEdit = QtGui.QLineEdit()
+        self.tagEdit = QtWidgets.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
         editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
 
-        self.tagReset = QtGui.QToolButton(self)
+        self.tagReset = QtWidgets.QToolButton(self)
         self.tagReset.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
+                self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
         self.tagReset.setIconSize(QtCore.QSize(12,12))
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)
@@ -169,16 +170,16 @@ class QMashupProp(QtGui.QWidget):
 
         gLayout.addLayout(editLayout, 0, 2, 1, 1)
 
-        userLabel = QtGui.QLabel('User:', self)
+        userLabel = QtWidgets.QLabel('User:', self)
         gLayout.addWidget(userLabel, 1, 0, 1, 1)
         
-        self.userEdit = QtGui.QLabel('', self)
+        self.userEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.userEdit, 1, 2, 1, 1)
 
-        dateLabel = QtGui.QLabel('Date:', self)
+        dateLabel = QtWidgets.QLabel('Date:', self)
         gLayout.addWidget(dateLabel, 2, 0, 1, 1)
 
-        self.dateEdit = QtGui.QLabel('', self)
+        self.dateEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
         
         self.btnExport = QDockPushButton("Export...")
@@ -271,9 +272,9 @@ class QMashupProp(QtGui.QWidget):
     def exportMashupGUI(self):
         if self.controller:
             dialog = QMashupExportDialog(self)
-            if dialog.exec_() == QtGui.QDialog.Accepted:
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
                 result = dialog.btnPressed
-                fileName = QtGui.QFileDialog.getSaveFileName(
+                fileName = QtWidgets.QFileDialog.getSaveF[0]ileName(
                            self,
                            "Export Mashup...",
                            vistrails.core.system.vistrails_file_directory(),
@@ -291,15 +292,15 @@ class QMashupProp(QtGui.QWidget):
                         
 ################################################################################
             
-class QMashupsListPanel(QtGui.QWidget):
+class QMashupsListPanel(QtWidgets.QWidget):
     def __init__(self, controller=None, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.controller = controller
-        self.mashupsList = QtGui.QListWidget()
-        self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.mashupsList = QtWidgets.QListWidget()
+        self.mashupsList.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.mashupsList.itemSelectionChanged.connect(self.changeSelection)
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         layout.addWidget(self.mashupsList)
         self.setLayout(layout)
@@ -351,39 +352,39 @@ class QMashupsListPanel(QtGui.QWidget):
             
 ################################################################################
 
-class QMashupListPanelItem(QtGui.QListWidgetItem):
+class QMashupListPanelItem(QtWidgets.QListWidgetItem):
     def __init__(self, tag, version, parent=None):
-        QtGui.QListWidgetItem.__init__(self, tag, parent)
+        QtWidgets.QListWidgetItem.__init__(self, tag, parent)
         self.tag = tag
         self.version = version
         
 ################################################################################
 
-class QMashupExportDialog(QtGui.QDialog):
+class QMashupExportDialog(QtWidgets.QDialog):
     FULLTREE = 0
     MINIMAL = 1
     LINK = 2
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle('VisTrails - Exporting Mashup')
-        dlgLayout = QtGui.QVBoxLayout()
-        gb = QtGui.QGroupBox("This will export the mashup as a file:")
-        gblayout = QtGui.QVBoxLayout()
-        self.rbMinimal = QtGui.QRadioButton("Include only this mashup\
+        dlgLayout = QtWidgets.QVBoxLayout()
+        gb = QtWidgets.QGroupBox("This will export the mashup as a file:")
+        gblayout = QtWidgets.QVBoxLayout()
+        self.rbMinimal = QtWidgets.QRadioButton("Include only this mashup\
  and its original workflow")
         self.rbMinimal.setChecked(True)
-        self.rbFullTree = QtGui.QRadioButton("Include full tree (this will also\
+        self.rbFullTree = QtWidgets.QRadioButton("Include full tree (this will also\
  include other mashups)")
-        self.rbLink = QtGui.QRadioButton("As a link (this will work only on\
+        self.rbLink = QtWidgets.QRadioButton("As a link (this will work only on\
  this machine)")
         gblayout.addWidget(self.rbMinimal)
         gblayout.addWidget(self.rbFullTree)
         gblayout.addWidget(self.rbLink)
         gb.setLayout(gblayout)
         
-        btnOk = QtGui.QPushButton("OK")
-        btnCancel = QtGui.QPushButton("Cancel")
-        btnLayout = QtGui.QHBoxLayout()
+        btnOk = QtWidgets.QPushButton("OK")
+        btnCancel = QtWidgets.QPushButton("Cancel")
+        btnLayout = QtWidgets.QHBoxLayout()
         btnLayout.addStretch()
         btnLayout.addWidget(btnOk)
         btnLayout.addWidget(btnCancel)
@@ -408,4 +409,3 @@ class QMashupExportDialog(QtGui.QDialog):
         
     def btnCancelPressed(self):
         self.btnPressed = -1
-        self.reject()

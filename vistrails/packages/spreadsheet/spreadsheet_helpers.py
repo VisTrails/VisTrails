@@ -43,7 +43,8 @@ resizer, etc.:
 
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 
 class CellResizerConfig(object):
@@ -103,7 +104,7 @@ class CellResizerConfig(object):
         return QtGui.QCursor(QtCore.Qt.SizeFDiagCursor)
 
 
-class CellResizer(QtGui.QLabel):
+class CellResizer(QtWidgets.QLabel):
     """
     CellResizer is a customized shape SizeGrip that stays on top of
     the widget, moving this size grip will end up resizing the
@@ -118,7 +119,7 @@ class CellResizer(QtGui.QLabel):
         Initialize the size grip with the default triangular shape
 
         """
-        QtGui.QLabel.__init__(self,sheet)
+        QtWidgets.QLabel.__init__(self,sheet)
         self.setFixedSize(config.size, config.size)
         self.setPixmap(config.pixmap())
         self.setMask(config.mask())

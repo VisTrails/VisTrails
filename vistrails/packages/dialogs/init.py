@@ -39,7 +39,8 @@
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.packagemanager import get_package_manager
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
+
 
 
 class Dialog(Module):
@@ -61,7 +62,7 @@ class TextDialog(Dialog):
                      {'optional': True, 'defaults': "['']"})]
     _output_ports = [('result', basic_modules.String)]
 
-    mode = QtGui.QLineEdit.Normal
+    mode = QtWidgets.QLineEdit.Normal
 
     def compute(self):
         if self.has_input('title'):
@@ -74,7 +75,7 @@ class TextDialog(Dialog):
 
         self.cacheable_dialog = self.get_input('cacheable')
 
-        (result, ok) = QtGui.QInputDialog.getText(None, title, label,
+        (result, ok) = QtWidgets.QInputDialog.getText(None, title, label,
                                                   self.mode,
                                                   default)
         if not ok:
@@ -86,7 +87,7 @@ class PasswordDialog(TextDialog):
     _input_ports = [('label', basic_modules.String,
                      {'optional': True, 'defaults': "['Password']"})]
 
-    mode = QtGui.QLineEdit.Password
+    mode = QtWidgets.QLineEdit.Password
 
 
 class YesNoDialog(Dialog):
@@ -103,11 +104,11 @@ class YesNoDialog(Dialog):
 
         self.cacheable_dialog = self.get_input('cacheable')
 
-        result = QtGui.QMessageBox.question(
+        result = QtWidgets.QMessageBox.question(
                 None,
                 title, label,
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        result = result == QtGui.QMessageBox.Yes
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        result = result == QtWidgets.QMessageBox.Yes
 
         self.set_output('result', result)
 

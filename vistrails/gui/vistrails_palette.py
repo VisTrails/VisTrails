@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
+
 from vistrails.gui.common_widgets import QToolWindowInterface
 
 class QVistrailsPaletteInterface(QToolWindowInterface):
@@ -70,9 +71,7 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
 
     def set_action(self, action):
         self.action = action
-        self.connect(self.toolWindow(), 
-                     QtCore.SIGNAL("visibilityChanged(bool)"),
-                     self.visibility_changed)
+        self.toolWindow().visibilityChanged[bool].connect(self.visibility_changed)
 
     def get_action(self):
         return self.action

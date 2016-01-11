@@ -40,7 +40,8 @@
 
 from vistrails.core.modules.basic_modules import PathObject
 from vistrails.core.modules.vistrails_module import Module
-from PyQt4 import QtCore, QtGui, QtSvg
+from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets, QtPrintSupport
+
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReference
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
@@ -83,7 +84,7 @@ class SVGCellWidget(QCellWidget):
         Create a SVGCellWidget without any toolbar
         """
         QCellWidget.__init__(self, parent)        
-        self.setLayout(QtGui.QVBoxLayout(self))
+        self.setLayout(QtWidgets.QVBoxLayout(self))
 
         self.svgWidget = QtSvg.QSvgWidget()
         self.layout().addWidget(self.svgWidget)
@@ -109,12 +110,12 @@ class SVGCellWidget(QCellWidget):
             super(SVGCellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         b_rect = self.svgWidget.contentsRect()
         printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
-                             QtGui.QPrinter.Point)
+                             QtPrintSupport.QPrinter.Point)
         painter = QtGui.QPainter(printer)
         self.svgWidget.render(painter, QtCore.QRectF(), b_rect)
         painter.end()

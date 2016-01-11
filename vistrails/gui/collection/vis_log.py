@@ -36,7 +36,8 @@
 """ This modules builds a widget to visualize workflow execution logs """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.group_exec import GroupExec
@@ -53,13 +54,13 @@ import vistrails.core.db.io
 ##############################################################################
 
 
-class QExecutionItem(QtGui.QTreeWidgetItem):
+class QExecutionItem(QtWidgets.QTreeWidgetItem):
     """
     QExecutionItem represents a workflow or module execution.
 
     """
     def __init__(self, execution, parent=None, prev=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
         self.execution = execution
         execution.item = self
         self.modules = []
@@ -159,14 +160,14 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
 
         return self.data(1, QtCore.Qt.UserRole) < other.data(1, QtCore.Qt.UserRole)
 
-class QExecutionListWidget(QtGui.QTreeWidget):
+class QExecutionListWidget(QtWidgets.QTreeWidget):
     """
     QExecutionListWidget is a widget containing a list of workflow executions.
     
     """
     def __init__(self, parent=None):
-        QtGui.QTreeWidget.__init__(self, parent)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        QtWidgets.QTreeWidget.__init__(self, parent)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setColumnCount(2)
         self.setHeaderLabels(['Pipeline', 'Start']) # end is hidden
         self.header().setDefaultSectionSize(200)
@@ -189,7 +190,7 @@ class QExecutionListWidget(QtGui.QTreeWidget):
         self.addTopLevelItem(QExecutionItem(workflow_exec))
        
     
-class QLegendBox(QtGui.QFrame):
+class QLegendBox(QtWidgets.QFrame):
     """
     QLegendBox is just a rectangular box with a solid color
     
@@ -200,8 +201,8 @@ class QLegendBox(QtGui.QFrame):
         Initialize the widget with a color and fixed size
         
         """
-        QtGui.QFrame.__init__(self, parent, f)
-        self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
+        QtWidgets.QFrame.__init__(self, parent, f)
+        self.setFrameStyle(QtWidgets.QFrame.Box | QtWidgets.QFrame.Plain)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
         palette = QtGui.QPalette(self.palette())
@@ -216,15 +217,15 @@ class QLegendBox(QtGui.QFrame):
                 self.setAttribute(QtCore.Qt.WA_MacBrushedMetal, False)
         
 
-class QLegendWidget(QtGui.QWidget):
+class QLegendWidget(QtWidgets.QWidget):
     """
     QLegendWindow contains a list of QLegendBox and its description
     
     """
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self.gridLayout = QtGui.QGridLayout(self)
-        self.gridLayout.setMargin(10)
+        QtWidgets.QWidget.__init__(self, parent)
+        self.gridLayout = QtWidgets.QGridLayout(self)
+        self.gridLayout.setContentsMargins(1, 0, 1, 0, 1, 0, 1, 0)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -238,11 +239,11 @@ class QLegendWidget(QtGui.QWidget):
             self.gridLayout.addWidget(
                 QLegendBox(brush, CurrentTheme.VISUAL_DIFF_LEGEND_SIZE, self),
                 x*2, y*2)
-            self.gridLayout.addWidget(QtGui.QLabel(text, self), x*2, y*2+1)
+            self.gridLayout.addWidget(QtWidgets.QLabel(text, self), x*2, y*2+1)
 
-class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
+class QLogDetails(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.controller = None
         self.execution = None
         self.parentItem = None
@@ -252,35 +253,30 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         self.executionList.setExpandsOnDoubleClick(False)
         self.isDoubling = False
         self.isUpdating = False
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-        self.backButton = QtGui.QPushButton('Go back')
+        self.backButton = QtWidgets.QPushButton('Go back')
         self.backButton.setToolTip("Go back to parent workflow")
         layout.addWidget(self.backButton)
         self.backButton.hide()
 
         layout.addWidget(self.legend)
         layout.addWidget(self.executionList)
-        self.detailsWidget = QtGui.QTextEdit()
+        self.detailsWidget = QtWidgets.QTextEdit()
         layout.addWidget(self.detailsWidget)
         self.setLayout(layout)
-        self.connect(self.executionList, 
-                     QtCore.SIGNAL("itemSelectionChanged()"),
-                     self.set_execution)
-        self.connect(self.backButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.goBack)
+        self.executionList.itemSelectionChanged.connect(self.set_execution)
+        self.backButton.clicked.connect(self.goBack)
 #        self.connect(self.executionList, QtCore.SIGNAL(
 #         "itemClicked(QTreeWidgetItem *, int)"),
 #         self.singleClick)
-        self.connect(self.executionList, QtCore.SIGNAL(
-         "itemDoubleClicked(QTreeWidgetItem *, int)"),
-         self.doubleClick)
+        self.executionList.
+         "itemDoubleClicked[QTreeWidgetItem, int].connect(self.doubleClick)
         self.addButtonsToToolbar()
 
     def addButtonsToToolbar(self):
         # Add the open version action
-        self.openVersionAction = QtGui.QAction(
+        self.openVersionAction = QtWidgets.QAction(
             QtGui.QIcon.fromTheme('go-next'),
             'Go to this pipeline', None, triggered=self.openVersion)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
@@ -430,8 +426,7 @@ class QLogView(QPipelineView):
         self.parentItem = None
         self.isUpdating = False
         # Hook shape selecting functions
-        self.connect(self.scene(), QtCore.SIGNAL("moduleSelected"),
-                     self.moduleSelected)
+        self.scene().moduleSelected.connect(self.moduleSelected)
 
     def set_default_layout(self):
         self.set_palette_layout({QtCore.Qt.RightDockWidgetArea: QLogDetails})

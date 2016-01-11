@@ -46,8 +46,9 @@ QAliasList
 
 
 import copy
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot, pyqtSignal
+from PyQt5 import QtCore, QtWidgets
+
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 
 from vistrails.core.data_structures.bijectivedict import Bidict
@@ -57,7 +58,7 @@ from vistrails.gui.mashups.alias_inspector import QAliasInspector
 from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON
 
 ###############################################################################
-class QAliasListPanel(QtGui.QWidget, BaseView):
+class QAliasListPanel(QtWidgets.QWidget, BaseView):
     """
     QAliasListPanel shows list of aliases in pipeline.
     
@@ -73,24 +74,24 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
                             parent: QWidget) -> QAliasListPanel
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.controller = None
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
-        layout = QtGui.QVBoxLayout()
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
+        layout = QtWidgets.QVBoxLayout()
         self.aliases = QAliasList(controller, self)
         self.inspector = QAliasInspector(self.aliases)
         self.updateController(controller)
         self.setLayout(layout)
         #self.layout().setMargin(0)
         #self.layout().setSpacing(1)
-        self.splitter = QtGui.QSplitter()
+        self.splitter = QtWidgets.QSplitter()
         layout.addWidget(self.splitter)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.addWidget(self.aliases)
         self.splitter.addWidget(self.inspector)
-        self.splitter.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        self.splitter.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         self.splitter.setStretchFactor(0,0)
         self.splitter.setStretchFactor(1,1)
 
@@ -156,7 +157,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
         
 ###############################################################################
 
-class QAliasList(QtGui.QTreeWidget):
+class QAliasList(QtWidgets.QTreeWidget):
     """
     QAliasList just inherits from QListView to have a customized
     list and items
@@ -171,9 +172,9 @@ class QAliasList(QtGui.QTreeWidget):
         """ QAliasList(parent: QWidget) -> QAliasTable
 
         """
-        QtGui.QTreeWidget.__init__(self, parent)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        QtWidgets.QTreeWidget.__init__(self, parent)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         self.setRootIsDecorated(False)
         self.panel = panel
         self.aliases = Bidict()
@@ -205,7 +206,7 @@ class QAliasList(QtGui.QTreeWidget):
             old_alias = item.alias.alias
             new_alias = str(item.text())
             if new_alias in list(self.aliases.keys()):
-                QtGui.QMessageBox.warning(self,
+                QtWidgets.QMessageBox.warning(self,
                                           "VisMashup",
                                           """Label name %s already exists. 
                                           Please type a different name. """ % 
@@ -337,7 +338,7 @@ class QAliasList(QtGui.QTreeWidget):
             self.aliasRemoved.emit(name)        
 ################################################################################
 
-class QAliasListItem (QtGui.QTreeWidgetItem):
+class QAliasListItem (QtWidgets.QTreeWidgetItem):
     """
     QAliasListtItem represents alias on QAliasList
     
@@ -347,7 +348,7 @@ class QAliasListItem (QtGui.QTreeWidgetItem):
         Create a new item with alias and text
 
         """
-        QtGui.QTreeWidgetItem.__init__(self, parent, labels)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, labels)
         self.alias = alias
 
 ###############################################################################    

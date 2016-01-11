@@ -41,7 +41,8 @@ to the spreadsheet:
 
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from .spreadsheet_window import SpreadsheetWindow
 
@@ -70,7 +71,7 @@ class SpreadsheetController(object):
         global spreadsheetWindow
         if spreadsheetWindow is not None:
             return spreadsheetWindow
-        wList = QtGui.QApplication.topLevelWidgets()
+        wList = QtWidgets.QApplication.topLevelWidgets()
         for w in wList:
             if isinstance(w, SpreadsheetWindow):
                 spreadsheetWindow = w

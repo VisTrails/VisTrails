@@ -35,7 +35,8 @@
 ###############################################################################
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 from vistrails.core.utils import any, expression
 from vistrails.core import system
 
@@ -45,6 +46,7 @@ from .constant_configuration import StandardConstantWidget, ColorWidget
 
 class QueryWidgetMixin(object):
 
+    contentsChanged = pyqtSignal(QVariant)
     def __init__(self, contents=None, query_method=None):
         self._last_contents = contents
         self._last_query_method = query_method
@@ -63,25 +65,25 @@ class QueryWidgetMixin(object):
                 self.parent().updateMethod()
             self._last_contents = new_contents
             self._last_query_method = new_query_method
-            self.emit(QtCore.SIGNAL('contentsChanged'), (self,new_contents))
+            self.contentsChanged.emit((self,new_contents))
 
-class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
+class BaseQueryWidget(QtWidgets.QWidget, QueryWidgetMixin):
     def __init__(self, contents_klass, query_methods, param, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         QueryWidgetMixin.__init__(self, param.strValue, param.queryMethod)
 
         contents = param.strValue
         queryMethod = param.queryMethod
 
-        layout = QtGui.QHBoxLayout()
-        self.op_button = QtGui.QToolButton()
-        self.op_button.setPopupMode(QtGui.QToolButton.InstantPopup)
+        layout = QtWidgets.QHBoxLayout()
+        self.op_button = QtWidgets.QToolButton()
+        self.op_button.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         self.op_button.setArrowType(QtCore.Qt.NoArrow)
-        action_group = QtGui.QActionGroup(self.op_button)
+        action_group = QtWidgets.QActionGroup(self.op_button)
         actions = []
         checked_exists = False
         for method in query_methods:
-            action = QtGui.QAction(method, self)
+            action = QtWidgets.QAction(method, self)
             action.setCheckable(True)
             action_group.addAction(action)
             if method == queryMethod:
@@ -92,7 +94,7 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
             actions[0].setChecked(True)
             self._last_query_method = str(actions[0].text())
             
-        menu = QtGui.QMenu(self.op_button)
+        menu = QtWidgets.QMenu(self.op_button)
         menu.addActions(actions)
         self.op_button.setMenu(menu)
         self.op_button.setText(action_group.checkedAction().text())
@@ -100,14 +102,13 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
         self.contents_widget = contents_klass(param)
         self.contents_widget.setContents(contents)
 
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.op_button)
         layout.addWidget(self.contents_widget)
         self.setLayout(layout)
 
-        self.connect(self.op_button, QtCore.SIGNAL('triggered(QAction*)'),
-                     self.update_action)
+        self.op_button.triggered[QAction].connect(self.update_action)
 
     def contents(self):
         return self.contents_widget.contents()

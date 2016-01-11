@@ -48,7 +48,8 @@ QPipelineView
 """
 
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import GraphContainsCycles
@@ -97,7 +98,7 @@ import vistrails.gui.utils
 ##############################################################################
 # QAbstractGraphicsPortItem
 
-class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
+class QAbstractGraphicsPortItem(QtWidgets.QAbstractGraphicsShapeItem):
     """
     QAbstractGraphicsPortItem represents a port shape drawing on top
     (a child) of QGraphicsModuleItem, it must be implemented by a
@@ -116,9 +117,9 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         """
         # local lookups are faster than global lookups..
         self._rect = CurrentTheme.PORT_RECT.translated(x,y)
-        QtGui.QAbstractGraphicsShapeItem.__init__(self, parent)
+        QtWidgets.QAbstractGraphicsShapeItem.__init__(self, parent)
         self.setZValue(1)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.controller = None
         self.port = port
         self.dragging = False
@@ -273,7 +274,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         
     def contextMenuEvent(self, event):
         if len(self.removeVarActions) > 0:
-            menu = QtGui.QMenu()
+            menu = QtWidgets.QMenu()
             for (action, _) in self.removeVarActions:
                 menu.addAction(action)
             menu.exec_(event.screenPos())
@@ -286,11 +287,11 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             return remove_action
 
         for (action, callback) in self.removeVarActions:
-            action.disconnect(action, QtCore.SIGNAL("triggered()"), callback)
+            action.disconnect()
         self.removeVarActions = []
         if len(self.vistrail_vars) > 1:
             removeAllVarsAct = \
-                QtGui.QAction("Disconnect all vistrail variables", 
+                QtWidgets.QAction("Disconnect all vistrail variables", 
                               self.scene())
             removeAllVarsAct.setStatusTip("Disconnects all vistrail"
                                           " variables from the port")
@@ -302,7 +303,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         for vistrail_var_uuid in sorted(self.vistrail_vars,
                                     key=lambda x: self.getVistrailVarName(x)):
             vistrail_var_name = self.getVistrailVarName(vistrail_var_uuid)
-            removeVarAction = QtGui.QAction('Disconnect vistrail var "%s"' % \
+            removeVarAction = QtWidgets.QAction('Disconnect vistrail var "%s"' % \
                                               vistrail_var_name, self.scene())
             removeVarAction.setStatusTip('Disconnects vistrail variable "%s"'
                                          ' from the port' % vistrail_var_name)
@@ -351,7 +352,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.dragging = True
             self.setSelected(True)
             event.accept()
-        QtGui.QAbstractGraphicsShapeItem.mousePressEvent(self, event)
+        QtWidgets.QAbstractGraphicsShapeItem.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -368,7 +369,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             self.tmp_connection_item = None
         self.dragging = False
         self.setSelected(False)
-        QtGui.QAbstractGraphicsShapeItem.mouseReleaseEvent(self, event)
+        QtWidgets.QAbstractGraphicsShapeItem.mouseReleaseEvent(self, event)
         
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None
@@ -406,11 +407,11 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                 if converters:
                     tooltip = ('<strong>conversion required</strong><br/>\n'
                                '%s' % tooltip)
-                QtGui.QToolTip.showText(event.screenPos(), tooltip)
+                QtWidgets.QToolTip.showText(event.screenPos(), tooltip)
             else:
-                QtGui.QToolTip.hideText()
+                QtWidgets.QToolTip.hideText()
             self.tmp_connection_item.setConverting(snapPort and converters)
-        QtGui.QAbstractGraphicsShapeItem.mouseMoveEvent(self, event)
+        QtWidgets.QAbstractGraphicsShapeItem.mouseMoveEvent(self, event)
         
     def findSnappedPort(self, pos):
         """ findSnappedPort(pos: QPoint) -> Port        
@@ -433,9 +434,9 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         Do not allow port to be selected
 
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+        if change==QtWidgets.QGraphicsItem.ItemSelectedChange and value:
             return False
-        return QtGui.QAbstractGraphicsShapeItem.itemChange(self, change, value)
+        return QtWidgets.QAbstractGraphicsShapeItem.itemChange(self, change, value)
 
 ##############################################################################
 # QGraphicsPortItem
@@ -554,7 +555,7 @@ class QGraphicsPortDiamondItem(QGraphicsPortPolygonItem):
 ################################################################################
 # QGraphicsConfigureItem
 
-class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
+class QGraphicsConfigureItem(QtWidgets.QGraphicsPolygonItem):
     """
     QGraphicsConfigureItem is a small triangle shape drawing on top (a child)
     of QGraphicsModuleItem
@@ -569,7 +570,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         _pen = CurrentTheme.CONFIGURE_PEN
         _brush = CurrentTheme.CONFIGURE_BRUSH
         _shape = CurrentTheme.CONFIGURE_SHAPE
-        QtGui.QGraphicsPolygonItem.__init__(self, _shape, parent, scene)
+        QtWidgets.QGraphicsPolygonItem.__init__(self,  _shape,  parent)
+        if scene is not None: scene.addItem(self)
         self.setZValue(1)
         self.setPen(_pen)
         self.setBrush(_brush)
@@ -619,7 +621,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 
         """
         module = self.controller.current_pipeline.modules[self.moduleId]
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         menu.addAction(self.configureAct)
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
@@ -638,52 +640,52 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Create actions related to context menu 
 
         """
-        self.configureAct = QtGui.QAction("Edit Configuration\tCtrl+E", self.scene())
+        self.configureAct = QtWidgets.QAction("Edit Configuration\tCtrl+E", self.scene())
         self.configureAct.setStatusTip("Edit the Configure of the module")
         QtCore.QObject.connect(self.configureAct, 
                                QtCore.SIGNAL("triggered()"),
                                self.configure)
-        self.annotateAct = QtGui.QAction("Annotate", self.scene())
+        self.annotateAct = QtWidgets.QAction("Annotate", self.scene())
         self.annotateAct.setStatusTip("Annotate the module")
         QtCore.QObject.connect(self.annotateAct,
                                QtCore.SIGNAL("triggered()"),
                                self.annotate)
-        self.viewDocumentationAct = QtGui.QAction("View Documentation", self.scene())
+        self.viewDocumentationAct = QtWidgets.QAction("View Documentation", self.scene())
         self.viewDocumentationAct.setStatusTip("View module documentation")
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
-        self.editLoopingAct = QtGui.QAction("Execution Options", self.scene())
+        self.editLoopingAct = QtWidgets.QAction("Execution Options", self.scene())
         self.editLoopingAct.setStatusTip("Edit module execution options")
         QtCore.QObject.connect(self.editLoopingAct,
                                QtCore.SIGNAL("triggered()"),
                                self.editLooping)
-        self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
+        self.changeModuleLabelAct = QtWidgets.QAction("Set Module Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
         QtCore.QObject.connect(self.changeModuleLabelAct,
                                QtCore.SIGNAL("triggered()"),
                                self.changeModuleLabel)
-        self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
+        self.setBreakpointAct = QtWidgets.QAction("Set Breakpoint", self.scene())
         self.setBreakpointAct.setStatusTip("Set Breakpoint")
         QtCore.QObject.connect(self.setBreakpointAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_breakpoint)
-        self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
+        self.setWatchedAct = QtWidgets.QAction("Watch Module", self.scene())
         self.setWatchedAct.setStatusTip("Watch Module")
         QtCore.QObject.connect(self.setWatchedAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_watched)
-        self.runModuleAct = QtGui.QAction("Run this module", self.scene())
+        self.runModuleAct = QtWidgets.QAction("Run this module", self.scene())
         self.runModuleAct.setStatusTip("Run this module")
         QtCore.QObject.connect(self.runModuleAct,
                                QtCore.SIGNAL("triggered()"),
                                self.run_module)
-        self.setErrorAct = QtGui.QAction("Show Error", self.scene())
+        self.setErrorAct = QtWidgets.QAction("Show Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_error)
-        self.upgradeAbstractionAct = QtGui.QAction("Upgrade Module", self.scene())
+        self.upgradeAbstractionAct = QtWidgets.QAction("Upgrade Module", self.scene())
         self.upgradeAbstractionAct.setStatusTip("Upgrade the subworkflow module")
         QtCore.QObject.connect(self.upgradeAbstractionAct,
                    QtCore.SIGNAL("triggered()"),
@@ -759,22 +761,22 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
             do_upgrade = True
             if not connections_preserved and upgrade_fail_prompt:
                 ports_msg = '\n'.join(["  - %s port '%s'" % (p[0].capitalize(), p[1]) for p in missing_ports])
-                r = QtGui.QMessageBox.question(getBuilderWindow(), 'Modify Pipeline',
+                r = QtWidgets.QMessageBox.question(getBuilderWindow(), 'Modify Pipeline',
                                        'Upgrading this module will change the pipeline because the following ports no longer exist in the upgraded module:\n\n'
                                        + ports_msg +
                                        '\n\nIf you proceed, function calls or connections to these ports will no longer exist and the pipeline may not execute properly.\n\n'
                                        'Are you sure you want to proceed?',
-                                       QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                                       QtGui.QMessageBox.No)
-                do_upgrade = (r==QtGui.QMessageBox.Yes)
+                                       QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                       QtWidgets.QMessageBox.No)
+                do_upgrade = (r==QtWidgets.QMessageBox.Yes)
             if do_upgrade:
                 self.controller.upgrade_abstraction_module(self.moduleId)
                 self.scene().setupScene(self.controller.current_pipeline)
                 self.controller.invalidate_version_tree()
         
-class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
+class QGraphicsTmpConnItem(QtWidgets.QGraphicsLineItem):
     def __init__(self, startPortItem, zValue=1, alwaysDraw=False, parent=None):
-        QtGui.QGraphicsLineItem.__init__(self, parent)
+        QtWidgets.QGraphicsLineItem.__init__(self, parent)
         self.startPortItem = startPortItem
         self.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
         self.setZValue(zValue)
@@ -816,7 +818,7 @@ class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
 
     def hide(self):
         self.disconnect(True)
-        QtGui.QGraphicsLineItem.hide(self)
+        QtWidgets.QGraphicsLineItem.hide(self)
 
     def setConverting(self, converting):
         if converting:
@@ -828,7 +830,7 @@ class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
 # QGraphicsConnectionItem
 
 class QGraphicsConnectionItem(QGraphicsItemInterface,
-                              QtGui.QGraphicsPathItem):
+                              QtWidgets.QGraphicsPathItem):
     """
     QGraphicsConnectionItem is a connection shape connecting two port items
 
@@ -852,8 +854,9 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         self.dstPortItem = dstPortItem
         path = self.create_path(srcPortItem.getPosition(), 
                                 dstPortItem.getPosition())
-        QtGui.QGraphicsPathItem.__init__(self, path, parent)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        QtWidgets.QGraphicsPathItem.__init__(self,  path)
+        if parent is not None: parent.addItem(self)
+        self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
         # Bump it slightly higher than the highest module
         self.setZValue(max(srcModule.id,
                            dstModule.id) + 0.1)
@@ -993,7 +996,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         """
         # Selection rules to be used only when a module isn't forcing 
         # the update
-        if (change==QtGui.QGraphicsItem.ItemSelectedChange and 
+        if (change==QtWidgets.QGraphicsItem.ItemSelectedChange and 
             self.useSelectionRules):
             # Check for a selected module
             selectedItems = self.scene().selectedItems()
@@ -1015,12 +1018,12 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
                     if value:
                         return False
         self.useSelectionRules = True
-        return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
+        return QtWidgets.QGraphicsPathItem.itemChange(self, change, value)    
 
 ##############################################################################
 # QGraphicsModuleItem
 
-class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
+class QGraphicsModuleItem(QGraphicsItemInterface, QtWidgets.QGraphicsItem):
     """
     QGraphicsModuleItem knows how to draw a Vistrail Module into the
     pipeline view. It is usually a rectangular shape with a bold text
@@ -1030,22 +1033,23 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     ('output port' end of the connection)
     
     """
+    moduleSelected = pyqtSignal(QVariant,QVariant)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsModuleItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsModuleItem
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsItem.__init__(self, parent, scene)
+        QtWidgets.QGraphicsItem.__init__(self, parent, scene)
         self.paddedRect = QtCore.QRectF()
         if QtCore.QT_VERSION >= 0x40600:
             #Qt 4.6 specific flags
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
-                          QtGui.QGraphicsItem.ItemIsMovable |
-                          QtGui.QGraphicsItem.ItemSendsGeometryChanges)
+            self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable |
+                          QtWidgets.QGraphicsItem.ItemIsMovable |
+                          QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         else:
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
-                          QtGui.QGraphicsItem.ItemIsMovable)
+            self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable |
+                          QtWidgets.QGraphicsItem.ItemIsMovable)
         self.setAcceptHoverEvents(True)
         self.setFlag(self.ItemIsFocusable)
         self.setZValue(0)
@@ -1430,18 +1434,18 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         painter.setRenderHints(QtGui.QPainter.Antialiasing |
                                QtGui.QPainter.SmoothPixmapTransform)
         painter.translate(center_x, center_y)
-        self.paint(painter, QtGui.QStyleOptionGraphicsItem())
+        self.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
         for port in self.inputPorts.values():
             m = port.matrix()
             painter.save()
             painter.translate(m.dx(), m.dy())
-            port.paint(painter, QtGui.QStyleOptionGraphicsItem())
+            port.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
             painter.restore()
         for port in self.outputPorts.values():
             m = port.matrix()
             painter.save()
             painter.translate(m.dx(), m.dy())
-            port.paint(painter, QtGui.QStyleOptionGraphicsItem())
+            port.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
             painter.restore()
         painter.end()
         return pixmap
@@ -1854,7 +1858,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             if not self.scene().read_only_mode:
                 self.scene().delete_selected_items()
         else:
-            QtGui.QGraphicsItem.keyPressEvent(self, event)
+            QtWidgets.QGraphicsItem.keyPressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
@@ -1862,7 +1866,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.controller.set_changed(True)
 
     def hoverEnterEvent(self, event):
-        if QtGui.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
+        if QtWidgets.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
 
             scene = self.scene()
             if scene.function_tooltip:
@@ -1887,20 +1891,20 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             else:
                 self.function_overview = ''
 
-            scene.function_tooltip = QtGui.QGraphicsTextItem()
+            scene.function_tooltip = QtWidgets.QGraphicsTextItem()
             pos = self.paddedRect.bottomLeft()+self.pos()
             scene.function_tooltip.setPos(pos)
             scene.function_tooltip.setAcceptHoverEvents(False)
             scene.addItem(scene.function_tooltip)
             scene.function_tooltip.setHtml(self.function_overview)
             scene.function_tooltip.setZValue(1000000)
-        return QtGui.QGraphicsItem.hoverEnterEvent(self, event)
+        return QtWidgets.QGraphicsItem.hoverEnterEvent(self, event)
 
     def hoverLeaveEvent(self, event):
         if self.scene().function_tooltip:
             self.scene().removeItem(self.scene().function_tooltip)
             self.scene().function_tooltip = None
-        return QtGui.QGraphicsItem.hoverLeaveEvent(self, event)
+        return QtWidgets.QGraphicsItem.hoverLeaveEvent(self, event)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value
@@ -1909,7 +1913,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         # Move connections with modules
-        if change==QtGui.QGraphicsItem.ItemPositionChange and \
+        if change==QtWidgets.QGraphicsItem.ItemPositionChange and \
                 self.handlePositionChanges:
             oldPos = self.pos()
             newPos = value
@@ -1943,7 +1947,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # Do not allow lone connections to be selected with modules.
         # Also autoselect connections between selected modules.  Thus the
         # selection is always the subgraph
-        elif change==QtGui.QGraphicsItem.ItemSelectedHasChanged:
+        elif change==QtWidgets.QGraphicsItem.ItemSelectedHasChanged:
             # Unselect any connections between modules that are not selected
             for item in self.scene().selectedItems():
                 if isinstance(item,QGraphicsConnectionItem):
@@ -1977,10 +1981,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             selectedId = -1
             if len(selectedItems)==1:
                 selectedId = selectedItems[0].id
-            self.scene().emit(QtCore.SIGNAL('moduleSelected'),
-                              selectedId, selectedItems)
+            self.scene().moduleSelected.emit(selectedId, selectedItems)
             self._needs_state_updated = True
-        return QtGui.QGraphicsItem.itemChange(self, change, value)
+        return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
 def choose_converter(converters, parent=None):
     """Chooses a converter among a list.
@@ -1988,29 +1991,29 @@ def choose_converter(converters, parent=None):
     if len(converters) == 1:
         return converters[0]
 
-    class ConverterItem(QtGui.QListWidgetItem):
+    class ConverterItem(QtWidgets.QListWidgetItem):
         def __init__(self, converter):
-            QtGui.QListWidgetItem.__init__(self, converter.name)
+            QtWidgets.QListWidgetItem.__init__(self, converter.name)
             self.converter = converter
 
-    dialog = QtGui.QDialog(parent)
+    dialog = QtWidgets.QDialog(parent)
     dialog.setWindowTitle("Automatic conversion")
-    layout = QtGui.QVBoxLayout()
+    layout = QtWidgets.QVBoxLayout()
 
-    label = QtGui.QLabel(
+    label = QtWidgets.QLabel(
             "You are connecting two incompatible ports, however there are "
             "matching Converter modules. Please choose which Converter should "
             "be inserted on this connection:")
     label.setWordWrap(True)
     layout.addWidget(label)
-    list_widget = QtGui.QListWidget()
-    list_widget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    list_widget = QtWidgets.QListWidget()
+    list_widget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
     for converter in sorted(converters, key=lambda c: c.name):
         list_widget.addItem(ConverterItem(converter))
     layout.addWidget(list_widget)
 
-    buttons = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel,
+    buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel,
             QtCore.Qt.Horizontal)
     QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
                            dialog, QtCore.SLOT('accept()'))
@@ -2018,14 +2021,14 @@ def choose_converter(converters, parent=None):
                            dialog, QtCore.SLOT('reject()'))
     layout.addWidget(buttons)
 
-    ok = buttons.button(QtGui.QDialogButtonBox.Ok)
+    ok = buttons.button(QtWidgets.QDialogButtonBox.Ok)
     ok.setEnabled(False)
     QtCore.QObject.connect(
             list_widget, QtCore.SIGNAL('itemSelectionChanged()'),
             lambda: ok.setEnabled(True))
 
     dialog.setLayout(layout)
-    if dialog.exec_() == QtGui.QDialog.Accepted:
+    if dialog.exec_() == QtWidgets.QDialog.Accepted:
         return list_widget.selectedItems()[0].converter
     else:
         return None
@@ -2040,6 +2043,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     
     """
 
+    moduleSelected = pyqtSignal(QVariant,QVariant)
     def __init__(self, parent=None):
         """ QPipelineScene(parent: QWidget) -> QPipelineScene
         Initialize the graphics scene with no shapes
@@ -2498,7 +2502,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                               src_item.port.short_sigstring,
                                               dst_item.port.name, 
                                               dst_item.port.short_sigstring)
-                QtGui.QToolTip.showText(v.mapToGlobal(
+                QtWidgets.QToolTip.showText(v.mapToGlobal(
                         v.mapFromScene((dst_item.getPosition() + 
                                         src_item.getPosition())/2.0)),
                                         tooltip)
@@ -2507,7 +2511,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
 
         if tmp_connection_item is not None:
             tmp_connection_item.hide()
-            QtGui.QToolTip.hideText()
+            QtWidgets.QToolTip.hideText()
         return tmp_connection_item
             
     def updateTmpInputConnection(self, pos):
@@ -2582,11 +2586,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 # Highlight new nearest port
                 if nearest_port is not None:
                     nearest_port.setSelected(True)
-                    QtGui.QToolTip.showText(event.screenPos(), nearest_port.toolTip())
+                    QtWidgets.QToolTip.showText(event.screenPos(), nearest_port.toolTip())
                     event.accept()
                     return
                 else:
-                    QtGui.QToolTip.hideText()
+                    QtWidgets.QToolTip.hideText()
         # Ignore if not accepted and returned by this point
         if not systemType in ['Darwin']:
             # Workaround: On a Mac, dropEvent isn't called if dragMoveEvent is ignored
@@ -2826,7 +2830,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     else:
                         msg = 'Vistrail Variable "%s" is already connected' \
                             ' to this port.' % var_name
-                        QtGui.QMessageBox.information(None, 
+                        QtWidgets.QMessageBox.information(None, 
                                                       "Already Connected",
                                                       msg)
                     event.accept()
@@ -2874,8 +2878,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.update()
                 self.noUpdate = False
                 # Notify that no module is selected
-                self.emit(QtCore.SIGNAL('moduleSelected'),
-                          -1, selectedItems)
+                self.moduleSelected.emit(-1, selectedItems)
                 # Current pipeline changed, so we need to change the
                 # _old_*_ids. However, remove_module takes care of
                 # module ids, and the for loop above takes care of
@@ -3008,7 +3011,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         items = self.get_selected_item_ids(False)
         if items is not None:
-            cb = QtGui.QApplication.clipboard()
+            cb = QtWidgets.QApplication.clipboard()
             text = self.controller.copy_modules_and_connections(items[0],items[1])
             cb.setText(text)
             
@@ -3018,7 +3021,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.controller and not self.read_only_mode:
-            cb = QtGui.QApplication.clipboard()        
+            cb = QtWidgets.QApplication.clipboard()        
             text = cb.text()
             if text=='' or not text.startswith("<workflow"): return
             ids = self.controller.paste_modules_and_connections(text, center)
@@ -3122,19 +3125,19 @@ class QPipelineScene(QInteractiveGraphicsScene):
         text = toolTip
         if errorTrace and errorTrace.strip() != 'None':
             text += '\n\n' + errorTrace
-        class StackPopup(QtGui.QDialog):
+        class StackPopup(QtWidgets.QDialog):
             def __init__(self, errorTrace='', parent=None):
-                QtGui.QDialog.__init__(self, parent)
+                QtWidgets.QDialog.__init__(self, parent)
                 self.resize(700, 400)
                 self.setWindowTitle('Module Error')
-                layout = QtGui.QVBoxLayout()
+                layout = QtWidgets.QVBoxLayout()
                 self.setLayout(layout)
-                text = QtGui.QTextEdit('')
+                text = QtWidgets.QTextEdit('')
                 text.insertPlainText(errorTrace)
                 text.setReadOnly(True)
-                text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+                text.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
                 layout.addWidget(text)
-                close = QtGui.QPushButton('Close', self)
+                close = QtWidgets.QPushButton('Close', self)
                 close.setFixedWidth(100)
                 layout.addWidget(close)
                 self.connect(close, QtCore.SIGNAL('clicked()'),
@@ -3161,9 +3164,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 currentLabel = module.get_annotation_by_key('__desc__').value.strip()
             else:
                 currentLabel = ''
-            (text, ok) = QtGui.QInputDialog.getText(None, 'Set Module Label',
+            (text, ok) = QtWidgets.QInputDialog.getText(None, 'Set Module Label',
                                                     'Enter the module label',
-                                                    QtGui.QLineEdit.Normal,
+                                                    QtWidgets.QLineEdit.Normal,
                                                     currentLabel)
             if ok:
                 if not text:
@@ -3187,12 +3190,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 # It has already been confirmed in a progress update
                 p._progress_canceled = False
                 raise AbortExecution("Execution aborted by user")
-            r = QtGui.QMessageBox.question(self.parent(),
+            r = QtWidgets.QMessageBox.question(self.parent(),
                 'Execution Paused',
                 'Are you sure you want to abort the execution?',
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                QtGui.QMessageBox.No)
-            if r == QtGui.QMessageBox.Yes:
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No)
+            if r == QtWidgets.QMessageBox.Yes:
                 raise AbortExecution("Execution aborted by user")
             else:
                 p.goOn()
@@ -3202,7 +3205,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 0, ''))
         QtCore.QCoreApplication.processEvents()
 
@@ -3211,7 +3214,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 1, error.msg,
                                                         errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
@@ -3221,7 +3224,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 2, ''))
         QtCore.QCoreApplication.processEvents()
 
@@ -3230,7 +3233,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 3, ''))
         QtCore.QCoreApplication.processEvents()
 
@@ -3249,7 +3252,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 # Module does not exist in pipeline
                 return
             p.setLabelText(module.name)
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
         
@@ -3266,13 +3269,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 p._progress_canceled = True
                 raise
         status = '%d%% Completed' % int(progress*100)
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
                                                         status, progress))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_persistent(self, moduleId):
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 6, ''))
         QtCore.QCoreApplication.processEvents()
 
@@ -3282,7 +3285,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         status = "Module is suspended, reason: %s" % error
-        QtGui.QApplication.postEvent(self,
+        QtWidgets.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
 
@@ -3329,7 +3332,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         This will prevent user to add/remove modules and connections."""
         self.read_only_mode = on
 
-class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
+class QGraphicsFunctionsWidget(QtWidgets.QGraphicsWidget):
     """ GraphicsWidget containing all editable functions
 
     """
@@ -3337,7 +3340,7 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
     function_changed = QtCore.pyqtSignal(str, list)
 
     def __init__(self, module, parent=None, constant=None):
-        QtGui.QGraphicsWidget.__init__(self, parent)
+        QtWidgets.QGraphicsWidget.__init__(self, parent)
         self.function_widgets = []
         height = 0
         width = 0
@@ -3374,7 +3377,7 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
     def boundingRect(self):
         return self.bounds
 
-class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
+class QGraphicsFunctionWidget(QtWidgets.QGraphicsWidget):
     """ GraphicsWidget containing an editable function
 
     """
@@ -3382,7 +3385,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
     function_changed = QtCore.pyqtSignal(str, list)
 
     def __init__(self, function, parent=None, constant=None):
-        QtGui.QGraphicsWidget.__init__(self, parent)
+        QtWidgets.QGraphicsWidget.__init__(self, parent)
         self.function = function
         self.param_widgets = []
         self.widths = [] # (widget, width)
@@ -3402,7 +3405,8 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 name += '...'
             editRect = bounds(name)
             width = max(width, editRect.width())
-            fname = QtGui.QGraphicsSimpleTextItem(name, self)
+            # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
+            fname = QtWidgets.QGraphicsSimpleTextItem(name, self)
             fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
             fname.setPos(-1, -1)
 
@@ -3445,7 +3449,8 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 if scale>MAX_WIDTH:
                     param_widget.setScale(MAX_WIDTH/scale)
                     rect.setSize(rect.size()*MAX_WIDTH/scale)
-                bg = QtGui.QGraphicsRectItem(rect, self)
+                # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
+                bg = QtWidgets.QGraphicsRectItem(rect, self)
                 # TODO COLOR
                 bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
                 bg.setZValue(-1)
@@ -3461,7 +3466,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 param_widget.setAttribute(QtCore.Qt.WA_NoSystemBackground, True)
                 param_widget.setMaximumSize(MAX_WIDTH/SCALE, MAX_WIDTH/SCALE)
                 param_widget.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
-                proxy = QtGui.QGraphicsProxyWidget(self)
+                proxy = QtWidgets.QGraphicsProxyWidget(self)
                 proxy.setWidget(param_widget)
                 proxy.setScale(SCALE)
                 rect = param_widget.geometry()
@@ -3683,7 +3688,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return True        
 
     def clipboard_non_empty(self):
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         clipboard_text = clipboard.text()
         return bool(clipboard_text) #and \
         #    str(clipboard_text).startswith("<workflow")
@@ -3761,7 +3766,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                 else:
                     dialog.exec_()
             else:
-                QtGui.QMessageBox.warning(
+                QtWidgets.QMessageBox.warning(
                         self,
                         'No modules selected',
                         'You must select at least one module to use the '
