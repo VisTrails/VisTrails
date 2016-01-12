@@ -131,17 +131,13 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setCurrentIndex(0)
         self.current_tab = self.stack.setCurrentIndex(0)
         self.pipeline_selected()
-        self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
-        self.connect(self.tabs, QtCore.SIGNAL("tabCloseRequested(int)"),
-                     self.remove_view_by_index)
+        self.tabs.currentChanged.connect(self.tab_changed)
+        self.tabstabCloseRequested.connect(self.remove_view_by_index)
        
         #self.view_changed()
         #self.tab_changed(0)
 
-        self.connect(self.controller,
-                     QtCore.SIGNAL('stateChanged'),
-                     self.stateChanged)
+        self.controller.stateChanged.connect(self.stateChanged)
 
         from vistrails.gui.vistrails_window import _app
         _app.register_notification("reg_new_abstraction", 
@@ -446,8 +442,7 @@ class QVistrailView(QtGui.QWidget):
             if self.isTabDetachable(tab_idx):
                 self.tabs.setTabToolTip(tab_idx, "Double-click to detach it")
             
-        self.connect(view, QtCore.SIGNAL("windowTitleChanged"),
-                     self.view_title_changed)
+        view.windowTitleWasChanged.connect(self.view_title_changed)
         if self.tabs.count() == 1:
             #self.tabs.hide()
             self.tabs.setTabsClosable(False)
@@ -475,8 +470,7 @@ class QVistrailView(QtGui.QWidget):
             window = QBaseViewWindow(view=view, parent=None)
             view.set_title(title)
             window.setWindowTitle(title)
-            self.connect(window, QtCore.SIGNAL("viewWasClosed"),
-                         self.detachedViewWasClosed)
+            window.viewWasClosed.connect(self.detachedViewWasClosed)
             self.detached_views[view] = window
             window.move(self.rect().center())
             window.show()
@@ -560,8 +554,7 @@ class QVistrailView(QtGui.QWidget):
                 new_index = index
         
             self.tab_changed(new_index)
-        self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
+        self.tabs.currentChanged.connect(self.tab_changed)
 #        self.tabs.setCurrentIndex(new_index)
 #        print self.current_tab
         
@@ -728,8 +721,7 @@ class QVistrailView(QtGui.QWidget):
     def create_pipeline_view(self, read_only=False, set_controller=True):
         view = self.create_view(QPipelineView)
         view.setReadOnlyMode(read_only)
-        self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view))
+        view.scene().moduleSelected.connect(self.gen_module_selected(view))
         if set_controller:
             view.set_controller(self.controller)
             view.set_to_current()
@@ -744,19 +736,13 @@ class QVistrailView(QtGui.QWidget):
 
     def create_version_view(self):
         view = self.create_view(QVersionTreeView, False)
-        self.connect(view.scene(), 
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                     self.version_selected)
-        self.connect(view.scene(),
-                     QtCore.SIGNAL('diffRequested(int,int)'),
-                     self.diff_requested)
+        view.scene().versionSelected.connect(self.version_selected)
+        view.scene().diffRequested.connect(self.diff_requested)
         return view
 
     def create_query_view(self):
         view = self.create_view(QQueryView, False)
-        self.connect(view.pipeline_view.scene(), 
-                     QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view.pipeline_view))
+        view.pipeline_view.scene().moduleSelected.connect(self.gen_module_selected(view.pipeline_view))
         # self.connect(view.version_result_view.scene(),
         #              QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
         #              self.version_selected)
@@ -770,8 +756,7 @@ class QVistrailView(QtGui.QWidget):
 
     def create_diff_view(self):
         view = self.create_view(QDiffView)
-        self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view))
+        view.scene().moduleSelected.connect(self.gen_module_selected(view))
         return view
 
     def create_pe_view(self):

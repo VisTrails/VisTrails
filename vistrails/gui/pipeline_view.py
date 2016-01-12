@@ -295,9 +295,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                               self.scene())
             removeAllVarsAct.setStatusTip("Disconnects all vistrail"
                                           " variables from the port")
-            QtCore.QObject.connect(removeAllVarsAct, 
-                                   QtCore.SIGNAL("triggered()"),
-                                   self.removeAllVars)
+            removeAllVarsAct.triggered.connect(self.removeAllVars)
             self.removeVarActions.append((removeAllVarsAct,
                                           self.removeAllVars))
         for vistrail_var_uuid in sorted(self.vistrail_vars,
@@ -308,9 +306,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             removeVarAction.setStatusTip('Disconnects vistrail variable "%s"'
                                          ' from the port' % vistrail_var_name)
             callback = gen_action(vistrail_var_uuid)
-            QtCore.QObject.connect(removeVarAction,
-                                   QtCore.SIGNAL("triggered()"),
-                                   callback)
+            removeVarAction.triggered.connect(callback)
             self.removeVarActions.append((removeVarAction, callback))
 
 
@@ -641,54 +637,34 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         self.configureAct = QtGui.QAction("Edit Configuration\tCtrl+E", self.scene())
         self.configureAct.setStatusTip("Edit the Configure of the module")
-        QtCore.QObject.connect(self.configureAct, 
-                               QtCore.SIGNAL("triggered()"),
-                               self.configure)
+        self.configureAct.triggered.connect(self.configure)
         self.annotateAct = QtGui.QAction("Annotate", self.scene())
         self.annotateAct.setStatusTip("Annotate the module")
-        QtCore.QObject.connect(self.annotateAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.annotate)
+        self.annotateAct.triggered.connect(self.annotate)
         self.viewDocumentationAct = QtGui.QAction("View Documentation", self.scene())
         self.viewDocumentationAct.setStatusTip("View module documentation")
-        QtCore.QObject.connect(self.viewDocumentationAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.viewDocumentation)
+        self.viewDocumentationAct.triggered.connect(self.viewDocumentation)
         self.editLoopingAct = QtGui.QAction("Execution Options", self.scene())
         self.editLoopingAct.setStatusTip("Edit module execution options")
-        QtCore.QObject.connect(self.editLoopingAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.editLooping)
+        self.editLoopingAct.triggered.connect(self.editLooping)
         self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
-        QtCore.QObject.connect(self.changeModuleLabelAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.changeModuleLabel)
+        self.changeModuleLabelAct.triggered.connect(self.changeModuleLabel)
         self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
         self.setBreakpointAct.setStatusTip("Set Breakpoint")
-        QtCore.QObject.connect(self.setBreakpointAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.set_breakpoint)
+        self.setBreakpointAct.triggered.connect(self.set_breakpoint)
         self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
         self.setWatchedAct.setStatusTip("Watch Module")
-        QtCore.QObject.connect(self.setWatchedAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.set_watched)
+        self.setWatchedAct.triggered.connect(self.set_watched)
         self.runModuleAct = QtGui.QAction("Run this module", self.scene())
         self.runModuleAct.setStatusTip("Run this module")
-        QtCore.QObject.connect(self.runModuleAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.run_module)
+        self.runModuleAct.triggered.connect(self.run_module)
         self.setErrorAct = QtGui.QAction("Show Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
-        QtCore.QObject.connect(self.setErrorAct,
-                               QtCore.SIGNAL("triggered()"),
-                               self.set_error)
+        self.setErrorAct.triggered.connect(self.set_error)
         self.upgradeAbstractionAct = QtGui.QAction("Upgrade Module", self.scene())
         self.upgradeAbstractionAct.setStatusTip("Upgrade the subworkflow module")
-        QtCore.QObject.connect(self.upgradeAbstractionAct,
-                   QtCore.SIGNAL("triggered()"),
-                   self.upgradeAbstraction)
+        self.upgradeAbstractionAct.triggered.connect(self.upgradeAbstraction)
 
     def run_module(self):
         self.scene().parent().execute(target=self.moduleId)
@@ -2777,7 +2753,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 for module_id, list_depth in depths:
                     if module_id in self.modules:
                         self.modules[module_id].module.list_depth = list_depth
-        for c in self.connections.itervalues():
+        for c in self.connections.values():
             c.setupConnection()
 
     def delete_tmp_module(self):
@@ -3138,8 +3114,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 close = QtGui.QPushButton('Close', self)
                 close.setFixedWidth(100)
                 layout.addWidget(close)
-                self.connect(close, QtCore.SIGNAL('clicked()'),
-                             self, QtCore.SLOT('close()'))
+                close.clicked.connect(self.close)
         sp = StackPopup(text)
         sp.exec_()
 

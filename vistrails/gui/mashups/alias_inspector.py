@@ -380,9 +380,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             
             self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
             self.dv_layout.addWidget(self.dv_widget)
-            self.connect(self.dv_widget,
-                         QtCore.SIGNAL("contentsChanged"),
-                         self.widgetContentsChanged)
+            self.dv_widget.contentsChanged.connect(self.widgetContentsChanged)
         
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
@@ -394,9 +392,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
             self.vl_layout.addWidget(self.vl_editor)
         
             #capturing widget changes to update alias
-            self.connect(self.vl_editor,
-                         QtCore.SIGNAL("valuesChanged"),
-                         self.valuesListChanged)
+            self.vl_editor.valuesChanged.connect(self.valuesListChanged)
             self.setEnabled(True)
         else:
             self.name_edit.setText("")
@@ -471,13 +467,11 @@ class QValuesListEditor(QtGui.QWidget):
         
         hLayout.addWidget(self.listValues)
         
-        self.connect(self.listValues, QtCore.SIGNAL('editingFinished()'),
-                     self.values_were_edited)
+        self.listValues.editingFinished.connect(self.values_were_edited)
 
         inputButton = QtGui.QToolButton()
         inputButton.setText('...')
-        self.connect(inputButton, QtCore.SIGNAL('clicked()'),
-                     self.editListValues)
+        inputButton.clicked.connect(self.editListValues)
         hLayout.addWidget(inputButton)
         
     def alias_item_updated(self):
@@ -589,9 +583,7 @@ class QListEditDialog(QtGui.QDialog):
         self.table.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         for v in alias.component.valueList:
             self.addRow(v)
-        self.connect(self.table.verticalHeader(),
-                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
-                     self.rowMoved)
+        self.table.verticalHeader().sectionMoved.connect(self.rowMoved)
         
         vLayout.addWidget(self.table)
 
@@ -601,20 +593,20 @@ class QListEditDialog(QtGui.QDialog):
         okButton = QtGui.QPushButton('&OK')
         okButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
                                QtGui.QSizePolicy.Maximum)
-        self.connect(okButton, QtCore.SIGNAL('clicked()'), self.okButtonPressed)
+        okButton.clicked.connect(self.okButtonPressed)
         hLayout.addWidget(okButton)
 
         cancelButton = QtGui.QPushButton('&Cancel')
         cancelButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
                                    QtGui.QSizePolicy.Maximum)
-        self.connect(cancelButton, QtCore.SIGNAL('clicked()'), self.reject)
+        cancelButton.clicked.connect(self.reject)
         hLayout.addWidget(cancelButton)
 
         addButton = QtGui.QPushButton('&Add')
         addButton.setIcon(CurrentTheme.ADD_STRING_ICON)
         addButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
                                 QtGui.QSizePolicy.Maximum)
-        self.connect(addButton, QtCore.SIGNAL('clicked()'), self.addRow)
+        addButton.clicked.connect(self.addRow)
         hLayout.addWidget(addButton)
         
         removeButton = QtGui.QPushButton('&Del')
@@ -622,8 +614,7 @@ class QListEditDialog(QtGui.QDialog):
             self.style().standardPixmap(QtGui.QStyle.SP_DialogCancelButton)))
         removeButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
                                    QtGui.QSizePolicy.Maximum)
-        self.connect(removeButton, QtCore.SIGNAL('clicked()'),
-                     self.removeSelection)
+        removeButton.clicked.connect(self.removeSelection)
         hLayout.addWidget(removeButton)
         
     def sizeHint(self):
