@@ -295,8 +295,7 @@ class StandardConstantWidget(QtWidgets.QLineEdit,ConstantWidgetBase):
     def __init__(self, param, parent=None):
         QtWidgets.QLineEdit.__init__(self, parent)
         ConstantWidgetBase.__init__(self, param)
-        self.connect(self, QtCore.SIGNAL("returnPressed()"), 
-                     self.update_parent)
+        self.returnPressed.connect(self.update_parent)
 
     def setContents(self, value, silent=False):
         self.setText(expression.evaluate_expressions(value))
@@ -342,9 +341,7 @@ class StandardConstantEnumWidget(QtWidgets.QComboBox, ConstantEnumWidgetBase):
     def __init__(self, param, parent=None):
         QtWidgets.QComboBox.__init__(self, parent)
         ConstantEnumWidgetBase.__init__(self, param)
-        self.connect(self,
-                     QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.update_parent)
+        self.currentIndexChanged.connect(self.update_parent)
 
     def setValues(self, values):
         self.addItems(values)
@@ -353,9 +350,7 @@ class StandardConstantEnumWidget(QtWidgets.QComboBox, ConstantEnumWidgetBase):
         if is_free:
             self.setEditable(True)
             self.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
-            self.connect(self.lineEdit(),
-                         QtCore.SIGNAL('returnPressed()'),
-                         self.update_parent)
+            self.lineEdit().returnPressed.connect(self.update_parent)
 
     def setNonEmpty(self, is_non_empty):
         if not is_non_empty:
@@ -556,8 +551,7 @@ class BooleanWidget(QtWidgets.QCheckBox, ConstantWidgetBase):
         """
         QtWidgets.QCheckBox.__init__(self, parent)
         ConstantWidgetBase.__init__(self, param)
-        self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
-                     self.change_state)
+        self.stateChanged.connect(self.change_state)
         
     def contents(self):
         return self._values[self._states.index(self.checkState())]
@@ -669,7 +663,7 @@ class ColorWidget(QColorWidget, ConstantWidgetBase):
     def __init__(self, param, parent=None):
         QColorWidget.__init__(self, parent)
         ConstantWidgetBase.__init__(self, param)
-        self.connect(self, QtCore.SIGNAL("clicked()"), self.openChooser)
+        self.clicked.connect(self.openChooser)
 
     def contents(self):
         return self.color_str
@@ -686,7 +680,7 @@ class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
     
     def setFree(self, is_free):
         if is_free:
-            self.connect(self, QtCore.SIGNAL("clicked()"), self.openChooser)
+            self.clicked.connect(self.openChooser)
 
     def wasTriggered(self, action):
         self.setColorString(action.data())
@@ -696,8 +690,7 @@ class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
         menu = QtWidgets.QMenu()
         self.action_group = QtWidgets.QActionGroup(menu)
         self.action_group.setExclusive(True)
-        self.connect(self.action_group, QtCore.SIGNAL('triggered(QAction*)'),
-                     self.wasTriggered)
+        self.action_group.triggered.connect(self.wasTriggered)
         size = menu.style().pixelMetric(QtWidgets.QStyle.PM_SmallIconSize)
         for i, color_str in enumerate(values):
             qcolor = self.colorFromString(color_str)

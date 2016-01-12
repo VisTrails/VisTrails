@@ -150,9 +150,7 @@ class QMashupView(QtWidgets.QMainWindow, BaseView):
             #self.pipelineTab.set_controller(self.mshpController.vtController)
             #self.pipelineTab.set_to_current()
             self.mshpController.vtController.change_selected_version(self.vtversion)
-            self.connect(self.mshpController.vtController,
-                         QtCore.SIGNAL('vistrailChanged()'),
-                         self.mshpControllerVistrailChanged)
+            self.mshpController.vtController.vistrailChanged.connect(self.mshpControllerVistrailChanged)
             self.mshpController.versionChanged.connect(self.mshpVersionChanged)
             self.mshpController.stateChanged.connect(self.mshpStateChanged)
             self.aliasPanel.updateController(self.mshpController)

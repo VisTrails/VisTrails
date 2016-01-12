@@ -161,12 +161,8 @@ class QMashupAppMainWindow(QtWidgets.QMainWindow):
         self.cb_keep_camera = QtWidgets.QCheckBox("Keep camera position",
                                               self.centralWidget())
         self.cb_keep_camera.setChecked(True)
-        self.connect(self.cb_auto_update,
-                     QtCore.SIGNAL("stateChanged(int)"),
-                     self.auto_update_changed)
-        self.connect(self.cb_loop_int,
-                     QtCore.SIGNAL("stateChanged(int)"),
-                     self.loop_int_changed)
+        self.cb_auto_update.stateChanged.connect(self.auto_update_changed)
+        self.cb_loop_int.stateChanged.connect(self.loop_int_changed)
         self.loopButton = QtWidgets.QPushButton("&Loop", self.centralWidget())
         self.loopButton.setToolTip("Loop automatically through steps")
         self.loopButton.setCheckable(True)
@@ -174,14 +170,10 @@ class QMashupAppMainWindow(QtWidgets.QMainWindow):
         self.updateButton = QtWidgets.QPushButton("&Update", self.centralWidget())
         if self.dumpcells:
             self.quitButton = QtWidgets.QPushButton("&Save", self.centralWidget())
-            self.connect(self.quitButton,
-                         QtCore.SIGNAL('clicked(bool)'),
-                         self.saveAndExport)
+            self.quitButton.clicked.connect(self.saveAndExport)
         else:
             self.quitButton = QtWidgets.QPushButton("&Quit", self.centralWidget())
-            self.connect(self.quitButton,
-                         QtCore.SIGNAL('clicked(bool)'),
-                         self.close)
+            self.quitButton.clicked.connect(self.close)
         buttonLayout.setColumnStretch(0, 1)
         if self.sequenceOption:
             sequenceLayout = QtWidgets.QHBoxLayout()
@@ -196,13 +188,9 @@ class QMashupAppMainWindow(QtWidgets.QMainWindow):
             self.loopButton.setEnabled(False)
         buttonLayout.addWidget(self.updateButton, 1, 2, QtCore.Qt.AlignRight)
         buttonLayout.addWidget(self.quitButton, 1, 3, QtCore.Qt.AlignRight)
-        self.connect(self.updateButton,
-                     QtCore.SIGNAL('clicked(bool)'),
-                     self.updateButtonClick)
+        self.updateButton.clicked.connect(self.updateButtonClick)
         if self.sequenceOption:
-            self.connect(self.loopButton,
-                         QtCore.SIGNAL('clicked(bool)'),
-                         self.loopButtonClick)
+            self.loopButton.clicked.connect(self.loopButtonClick)
         buttonDock.setWidget(buttonWidget)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
@@ -544,9 +532,7 @@ class QMashupAppMainWindow(QtWidgets.QMainWindow):
 
             aliasWidget.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                                           QtWidgets.QSizePolicy.Maximum)
-            self.connect(aliasWidget,
-                             QtCore.SIGNAL("contentsChanged"),
-                             self.widget_changed)
+            aliasWidget.contentsChanged.connect(self.widget_changed)
 
             dock.setWidget(aliasWidget)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)

@@ -134,10 +134,8 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.save_triggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.reset_triggered)
+        self.saveButton.clicked.connect(self.save_triggered)
+        self.resetButton.clicked.connect(self.reset_triggered)
         return buttonLayout
 
     def save_triggered(self):

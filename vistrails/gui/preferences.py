@@ -146,15 +146,13 @@ class QPackagesWidget(QtWidgets.QWidget):
         
         self.update_button.clicked.connect(self.populate_lists)
 
-        self.connect(self._available_packages_list,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.selected_available_list,
-                     QtCore.Qt.QueuedConnection)
+        self._available_packages_list.itemSelectionChanged.connect(
+            self.selected_available_list,
+            QtCore.Qt.QueuedConnection)
 
-        self.connect(self._enabled_packages_list,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.selected_enabled_list,
-                     QtCore.Qt.QueuedConnection)
+        self._enabled_packages_list.itemSelectionChanged.connect(
+            self.selected_enabled_list,
+            QtCore.Qt.QueuedConnection)
 
         sm = QtWidgets.QAbstractItemView.SingleSelection
         self._available_packages_list.setSelectionMode(sm)
@@ -220,24 +218,16 @@ class QPackagesWidget(QtWidgets.QWidget):
         
         self._enable_button = QtWidgets.QPushButton("&Enable")
         self._enable_button.setEnabled(False)
-        self.connect(self._enable_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.enable_current_package)
+        self._enable_button.clicked.connect(self.enable_current_package)
         self._disable_button = QtWidgets.QPushButton("&Disable")
         self._disable_button.setEnabled(False)
-        self.connect(self._disable_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.disable_current_package)
+        self._disable_button.clicked.connect(self.disable_current_package)
         self._configure_button = QtWidgets.QPushButton("&Configure...")
         self._configure_button.setEnabled(False)
-        self.connect(self._configure_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.configure_current_package)
+        self._configure_button.clicked.connect(self.configure_current_package)
         self._reload_button = QtWidgets.QPushButton("&Reload")
         self._reload_button.setEnabled(False)
-        self.connect(self._reload_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.reload_current_package)
+        self._reload_button.clicked.connect(self.reload_current_package)
         button_box = QtWidgets.QDialogButtonBox()
         button_box.addButton(self._enable_button, QtWidgets.QDialogButtonBox.ActionRole)
         button_box.addButton(self._disable_button, QtWidgets.QDialogButtonBox.ActionRole)
@@ -245,10 +235,9 @@ class QPackagesWidget(QtWidgets.QWidget):
         button_box.addButton(self._reload_button, QtWidgets.QDialogButtonBox.ActionRole)
         right_layout.addWidget(button_box)
 
-        self.connect(self,
-                     self.select_package_after_update_signal,
-                     self.select_package_after_update_slot,
-                     QtCore.Qt.QueuedConnection)
+        self.select_package_after_update_signal.connect(
+            self.select_package_after_update_slot,
+            QtCore.Qt.QueuedConnection)
 
         # pm = get_package_manager()
         # self.connect(pm,
@@ -643,13 +632,9 @@ class QPreferencesDialog(QtWidgets.QDialog):
         self._configuration_tab = self.create_configuration_tab()
         self._tab_widget.addTab(self._configuration_tab, 'Expert')
 
-        self.connect(self._tab_widget,
-                     QtCore.SIGNAL('currentChanged(int)'),
-                     self.tab_changed)
+        self._tab_widget.currentChanged.connect(self.tab_changed)
 
-        self.connect(self._configuration_tab._tree.treeWidget,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
+        self._configuration_tab._tree.treeWidget.configuration_changed.connect(self.configuration_changed)
 
     def close_dialog(self):
         self.done(0)

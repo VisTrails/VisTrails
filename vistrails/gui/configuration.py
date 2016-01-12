@@ -466,7 +466,7 @@ class QConfigurationPane(QtWidgets.QWidget):
     def __init__(self, parent, persistent_config, temp_config, cat_fields):
         QtWidgets.QWidget.__init__(self, parent)
         layout = QtWidgets.QFormLayout()
-        layout.setContentsMargins(1, 0, 1, 0, 1, 0, 1, 0)
+        layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(4)
         self.setLayout(layout)
         self._configuration = persistent_config
@@ -557,24 +557,30 @@ class QConfigurationPane(QtWidgets.QWidget):
                 widget_type = "lineedit"
 
         if widget_type == "combo":
-            widget = QConfigurationComboBox(config_key, field,
-                                            self.field_changed)
+            widget = QConfigurationComboBox(key=config_key,
+                                            field=field,
+                                            callback_f=self.field_changed)
         elif widget_type == "lineedit":
-            widget = QConfigurationLineEdit(config_key, field,
-                                            self.field_changed)
+            widget = QConfigurationLineEdit(key=config_key,
+                                            field=field,
+                                            callback_f=self.field_changed)
         elif widget_type == "pathedit":
-            widget = QConfigurationPathEdit(config_key, field,
-                                            self.field_changed)
+            widget = QConfigurationPathEdit(key=config_key,
+                                            field=field,
+                                            callback_f=self.field_changed)
         elif widget_type == "thumbnailcache":
-            widget = QConfigurationThumbnailCache(config_key, field,
-                                                  self.field_changed)
+            widget = QConfigurationThumbnailCache(key=config_key,
+                                                  field=field,
+                                                  callback_f=self.field_changed)
         elif widget_type == "linuxext":
-            widget = QConfigurationLinuxHandler(config_key, field,
-                                                self.field_changed)
+            widget = QConfigurationLinuxHandler(key=config_key,
+                                                field=field,
+                                                callback_f=self.field_changed)
         else:
             config_val = bool(config_val)
-            widget = QConfigurationCheckBox(config_key, field,
-                                            self.field_changed)
+            widget = QConfigurationCheckBox(key=config_key,
+                                            field=field,
+                                            callback_f=self.field_changed)
         widget.set_value(config_val, False)
 
         label_text = widget.get_label_text()

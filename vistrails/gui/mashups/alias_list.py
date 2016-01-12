@@ -180,9 +180,7 @@ class QAliasList(QtWidgets.QTreeWidget):
         self.header().setStretchLastSection(True)
         self.setHeaderLabels(["Position", "Name", "Type"])
         self.itemSelectionChanged.connect(self.setPreviousSelected)
-        self.connect(self,
-                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)"),
-                     self.currentAliasChanged)
+        self.currentItemChanged.connect(self.currentAliasChanged)
         self.previousSelected = -1
     
     @QtCore.pyqtSlot()
