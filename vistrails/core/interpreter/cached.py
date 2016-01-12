@@ -34,12 +34,12 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import base64
 import copy
 import gc
-import cPickle as pickle
+import pickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
@@ -216,7 +216,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
     def clear(self):
         self._file_pool.cleanup()
         self._persistent_pipeline.clear()
-        for obj in self._objects.itervalues():
+        for obj in self._objects.values():
             obj.clear()
         self._objects = {}
 
@@ -232,7 +232,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             return
         g = self._persistent_pipeline.graph
         modules_to_clean = (set(modules_to_clean) &
-                            set(self._persistent_pipeline.modules.iterkeys()))
+                            set(self._persistent_pipeline.modules.keys()))
         dependencies = g.vertices_topological_sort(modules_to_clean)
         for v in dependencies:
             self._persistent_pipeline.delete_module(v)
@@ -245,7 +245,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         pipeline, and the modules that depend on them.
         """
         non_cacheable_modules = [i for
-                                 (i, mod) in self._objects.iteritems()
+                                 (i, mod) in self._objects.items()
                                  if not mod.is_cacheable()]
         self.clean_modules(non_cacheable_modules)
 
@@ -381,7 +381,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         constant = create_constant(p, module)
                         connector = ModuleConnector(constant, 'value',
                                                     f.get_spec('output'))
-                    except Exception, e:
+                    except Exception as e:
                         debug.unexpected_exception(e)
                         err = ModuleError(
                                 module,
@@ -401,7 +401,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                             connector = ModuleConnector(constant, 'value',
                                                         f.get_spec('output'))
                             tupleModule.set_input_port(j, connector)
-                        except Exception, e:
+                        except Exception as e:
                             debug.unexpected_exception(e)
                             err = ModuleError(
                                     module,
@@ -430,7 +430,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             callable_(self._persistent_pipeline, self._objects)
 
         tmp_id_to_module_map = {}
-        for i, j in tmp_to_persistent_module_map.iteritems():
+        for i, j in tmp_to_persistent_module_map.items():
             tmp_id_to_module_map[i] = self._objects[j]
         return (tmp_id_to_module_map, tmp_to_persistent_module_map.inverse,
                 module_added_set, conn_added_set, to_delete, errors)
@@ -470,7 +470,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 logger=logger,
                 view=view,
                 remap_id=get_remapped_id,
-                ids=pipeline.modules.keys(),
+                ids=list(pipeline.modules.keys()),
                 module_executed_hook=module_executed_hook)
 
         # PARAMETER CHANGES SETUP
@@ -482,7 +482,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             return lambda *args: change_parameter(obj, *args)
 
         # Update **all** modules in the current pipeline
-        for i, obj in tmp_id_to_module_map.iteritems():
+        for i, obj in tmp_id_to_module_map.items():
             obj.in_pipeline = True # set flag to indicate in pipeline
             obj.logging = logging_obj
             obj.change_parameter = make_change_parameter(obj)
@@ -532,20 +532,20 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 pass
             except AbortExecution:
                 break
-            except ModuleSuspended, ms:
+            except ModuleSuspended as ms:
                 ms.module.logging.end_update(ms.module, ms,
                                              was_suspended=True)
                 continue
-            except ModuleErrors, mes:
+            except ModuleErrors as mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me)
                     logging_obj.signalError(me.module, me)
                     abort = abort or me.abort
-            except ModuleError, me:
+            except ModuleError as me:
                 me.module.logging.end_update(me.module, me, me.errorTrace)
                 logging_obj.signalError(me.module, me)
                 abort = me.abort
-            except ModuleBreakpoint, mb:
+            except ModuleBreakpoint as mb:
                 mb.module.logging.end_update(mb.module)
                 logging_obj.signalError(mb.module, mb)
                 abort = True
@@ -561,24 +561,24 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             while result is not None:
                 try:
                     for m in Generator.generators:
-                        result = m.generator.next()
+                        result = next(m.generator)
                     continue
                 except AbortExecution:
                     break
-                except ModuleErrors, mes:
+                except ModuleErrors as mes:
                     for me in mes.module_errors:
                         me.module.logging.end_update(me.module, me)
                         logging_obj.signalError(me.module, me)
                         abort = abort or me.abort
-                except ModuleError, me:
+                except ModuleError as me:
                     me.module.logging.end_update(me.module, me, me.errorTrace)
                     logging_obj.signalError(me.module, me)
                     abort = me.abort
-                except ModuleBreakpoint, mb:
+                except ModuleBreakpoint as mb:
                     mb.module.logging.end_update(mb.module)
                     logging_obj.signalError(mb.module, mb)
                     abort = True
-                except Exception, e:
+                except Exception as e:
                     import traceback
                     traceback.print_exc()
                     abort = True
@@ -602,7 +602,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         caches = {}
 
         to_delete = []
-        for (tmp_id, obj) in tmp_id_to_module_map.iteritems():
+        for (tmp_id, obj) in tmp_id_to_module_map.items():
             if clean_pipeline:
                 to_delete.append(obj.id)
             objs[tmp_id] = obj
@@ -638,7 +638,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self.clean_modules(to_delete)
 
         def dict2set(s):
-            return set(k for k, v in s.iteritems() if v)
+            return set(k for k, v in s.items() if v)
         if view is not None:
             persistent = set(objs) - (dict2set(errs) | dict2set(execs) |
                                       dict2set(suspended) | dict2set(cached))
@@ -646,7 +646,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 view.set_module_persistent(i)
 
         if reset_computed:
-            for module in self._objects.itervalues():
+            for module in self._objects.values():
                 module.computed = False
 
     def execute(self, pipeline, **kwargs):
@@ -745,7 +745,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             res = self.execute_pipeline(pipeline, *(res[:2]), **new_kwargs)
         else:
             res = (to_delete, res[0], errors, {}, {}, {}, [])
-            for (i, error) in errors.iteritems():
+            for (i, error) in errors.items():
                 view.set_module_error(i, error)
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
@@ -811,7 +811,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 i = self._persistent_pipeline \
                         .subpipeline_id_from_signature(new_sig)
                 module_id_map[new_module_id] = i
-        for connection in pipeline.connections.itervalues():
+        for connection in pipeline.connections.values():
             new_sig = pipeline.connection_signature(connection.id)
             if not self._persistent_pipeline.has_connection_signature(new_sig):
                 # Must add connection to persistent pipeline
@@ -853,7 +853,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             else:
                 module_id_map[module_id] = None
                 object_map[module_id] = None
-        for connection in pipeline.connections.itervalues():
+        for connection in pipeline.connections.values():
             sig = pipeline.connection_signature(connection.id)
             if persistent_p.has_connection_signature(sig):
                 connection_id_map[connection.id] = \

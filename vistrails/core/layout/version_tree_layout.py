@@ -38,9 +38,9 @@ Interface Vistrails - TreeLayoutLW to align version trees.
 Originally written by Lauro D. Lins.
 
 """
-from __future__ import division
 
-from tree_layout import TreeLW, NodeLW, TreeLayoutLW
+
+from .tree_layout import TreeLW, NodeLW, TreeLayoutLW
 from vistrails.core.data_structures.point import Point
 
 ################################################################################
@@ -103,7 +103,7 @@ class VistrailsTreeLayoutLW(object):
         X.add(0)
 
         # include the tagged nodes
-        for id, tag_name in vistrail.get_tagMap().iteritems():
+        for id, tag_name in vistrail.get_tagMap().items():
             if id in graph.vertices:
                 nodes.append((id, tag_name))
                 X.add(id)

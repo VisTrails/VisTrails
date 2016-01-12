@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
@@ -89,8 +89,8 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         if dialog.exec_() == QtGui.QDialog.Accepted:
             config = {'host': str(dialog.hostEdt.text()),
                       'port': int(dialog.portEdt.value()),
-                      'user': unicode(dialog.userEdt.text()),
-                      'passwd': unicode(dialog.passwdEdt.text()),
+                      'user': str(dialog.userEdt.text()),
+                      'passwd': str(dialog.passwdEdt.text()),
                       'db': str(dialog.databaseEdt.text())
                       }
             try:
@@ -98,7 +98,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                 config['succeeded'] = True
                 config['name'] = str(dialog.nameEdt.text())
                 config['id'] = dialog.id
-            except VistrailsDBException, e:
+            except VistrailsDBException as e:
                 debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
         return config
@@ -114,7 +114,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         try:
             vistrails.db.services.io.test_db_connection(testconfig)
             config['succeeded'] = True
-        except VistrailsDBException, e:
+        except VistrailsDBException as e:
             config = show_dialog(parent, config['id'],
                                  config['name'], host, port, config['user'],
                                  passwd, database, create = False)

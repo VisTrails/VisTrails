@@ -37,7 +37,7 @@
 
 QControlFlowAssistDialog
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -59,7 +59,7 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         """
 
         # FIXME do this here to avoid circular refs
-        from pipeline_view_select import QReadOnlyPortSelectPipelineView
+        from .pipeline_view_select import QReadOnlyPortSelectPipelineView
 
         QtGui.QDialog.__init__(self, parent)
         self.module_ids = selected_module_ids

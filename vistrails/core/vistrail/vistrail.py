@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.paramexplore.paramexplore import ParameterExploration
 
@@ -291,7 +291,7 @@ class Vistrail(DBVistrail):
             max_ver = max(v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade'))
             # If that action has an upgrade, use it
             if self.has_upgrade(max_ver):
-                max_ver = long(self.get_upgrade(max_ver))
+                max_ver = int(self.get_upgrade(max_ver))
             return max_ver
         except Exception:
             return 0
@@ -303,7 +303,7 @@ class Vistrail(DBVistrail):
         """
         try:
             return Vistrail.getPipelineDispatcher[type(version)](self, version)
-        except Exception, e:
+        except Exception as e:
             raise InvalidPipeline([e])
     
     def getPipelineVersionName(self, version):
@@ -548,9 +548,9 @@ class Vistrail(DBVistrail):
         Returns True if a tag with given name or number exists
        
         """
-        if isinstance(tag, (int, long)):
+        if isinstance(tag, int):
             return self.has_tag(tag)
-        elif isinstance(tag, basestring):
+        elif isinstance(tag, str):
             return self.has_tag_str(tag)
         
     def addTag(self, version_name, version_number):
@@ -731,7 +731,7 @@ class Vistrail(DBVistrail):
         if a is not None:
             # Recurse to get the newest upgrade in case there are
             # multiple chained upgrades
-            return self.get_upgrade(long(a.value), False)
+            return self.get_upgrade(int(a.value), False)
         if root_level:
             return None
         return action_id
@@ -934,7 +934,7 @@ class Vistrail(DBVistrail):
 
         # the sorting is for the display using graphviz
         # we want to always add nodes from left to right
-        for action in sorted(self.actionMap.itervalues(), 
+        for action in sorted(iter(self.actionMap.values()), 
                              key=lambda x: x.timestep):
             # We need to check the presence of the parent's timestep
             # on the graph because it might have been previously
@@ -1017,7 +1017,7 @@ class Vistrail(DBVistrail):
     # Dispatch in runtime according to type
     getPipelineDispatcher = {}
     getPipelineDispatcher[type(0)] = getPipelineVersionNumber
-    getPipelineDispatcher[type(0L)] = getPipelineVersionNumber
+    getPipelineDispatcher[type(0)] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
 
     class InvalidAbstraction(Exception):
@@ -1044,7 +1044,7 @@ class Vistrail(DBVistrail):
                 try:
                     if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
-                except AttributeError, e:
+                except AttributeError as e:
                     debug.unexpected_exception(e)
         return package_list
 
@@ -1324,7 +1324,7 @@ class TestVistrail(unittest.TestCase):
                               filename).load()
             if not isinstance(v, Vistrail):
                 v = v.vistrail
-            version_ids = v.actionMap.keys()
+            version_ids = list(v.actionMap.keys())
             if old_v is None:
                 old_v = random.choice(version_ids)
             p = v.getPipeline(old_v)
@@ -1341,7 +1341,7 @@ class TestVistrail(unittest.TestCase):
             if new_v is not None:
                 do_single_test(old_v, new_v)
             else:
-                for i in xrange(10):
+                for i in range(10):
                     new_v = random.choice(version_ids)
                     do_single_test(old_v, new_v)
                     old_v = new_v

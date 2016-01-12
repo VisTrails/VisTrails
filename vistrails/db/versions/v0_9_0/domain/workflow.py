@@ -34,11 +34,11 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from auto_gen import DBWorkflow as _DBWorkflow
-from auto_gen import DBAbstractionRef, DBModule
-from id_scope import IdScope
+
+from .auto_gen import DBWorkflow as _DBWorkflow
+from .auto_gen import DBAbstractionRef, DBModule
+from .id_scope import IdScope
 
 import copy
 
@@ -81,11 +81,11 @@ class DBWorkflow(_DBWorkflow):
         return str[0].upper() + str[1:]
 
     def db_print_objects(self):
-        for k,v in self.objects.iteritems():
-            print '%s: %s' % (k, v)
+        for k,v in self.objects.items():
+            print('%s: %s' % (k, v))
 
     def db_has_object(self, type, id):
-        return self.objects.has_key((type, id))
+        return (type, id) in self.objects
 
     def db_get_object(self, type, id):
         return self.objects[(type, id)]
@@ -98,7 +98,7 @@ class DBWorkflow(_DBWorkflow):
             else:
                 if parent_obj_type == 'abstractionRef':
                     parent_obj_type = 'module'
-                if self.objects.has_key((parent_obj_type, parent_obj_id)):
+                if (parent_obj_type, parent_obj_id) in self.objects:
                     parent_obj = self.objects[(parent_obj_type, parent_obj_id)]
                 else:
                     msg = "Cannot find object of type '%s' with id '%s'" % \
@@ -121,7 +121,7 @@ class DBWorkflow(_DBWorkflow):
             else:
                 if parent_obj_type == 'abstractionRef':
                     parent_obj_type = 'module'
-                if self.objects.has_key((parent_obj_type, parent_obj_id)):
+                if (parent_obj_type, parent_obj_id) in self.objects:
                     parent_obj = self.objects[(parent_obj_type, parent_obj_id)]
                 else:
                     msg = "Cannot find object of type '%s' with id '%s'" % \
@@ -139,7 +139,7 @@ class DBWorkflow(_DBWorkflow):
             else:
                 if parent_obj_type == 'abstractionRef':
                     parent_obj_type = 'module'
-                if self.objects.has_key((parent_obj_type, parent_obj_id)):
+                if (parent_obj_type, parent_obj_id) in self.objects:
                     parent_obj = self.objects[(parent_obj_type, parent_obj_id)]
                 else:
                     msg = "Cannot find object of type '%s' with id '%s'" % \

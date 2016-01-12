@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
                                       DBWorkflow, DBLog, DBRegistry, \
@@ -48,7 +48,7 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
 from vistrails.db.services.vistrail import materializeWorkflow
 
 import os
-from itertools import izip
+
 from ast import literal_eval
 import unittest
 from xml.dom.minidom import parseString
@@ -64,7 +64,7 @@ def update_portSpec(old_obj, translate_dict):
             sigs.append(sig.split(':', 2))
     # not great to use eval...
     defaults = literal_eval(old_obj.db_defaults) if old_obj.db_defaults else []
-    if isinstance(defaults, basestring):
+    if isinstance(defaults, str):
         defaults = (defaults,)
     else:
         try:
@@ -73,7 +73,7 @@ def update_portSpec(old_obj, translate_dict):
             defaults = (defaults,)
     # not great to use eval...
     labels = literal_eval(old_obj.db_labels) if old_obj.db_labels else []
-    if isinstance(labels, basestring):
+    if isinstance(labels, str):
         labels = (labels,)
     else:
         try:
@@ -83,10 +83,10 @@ def update_portSpec(old_obj, translate_dict):
     new_obj = DBPortSpec.update_version(old_obj, translate_dict)
     total_len = len(sigs)
     if len(defaults) < total_len:
-        defaults.extend("" for i in xrange(total_len-len(defaults)))
+        defaults.extend("" for i in range(total_len-len(defaults)))
     if len(labels) < total_len:
-        labels.extend("" for i in xrange(total_len-len(labels)))
-    for i, (sig, default, label) in enumerate(izip(sigs, defaults, labels)):
+        labels.extend("" for i in range(total_len-len(labels)))
+    for i, (sig, default, label) in enumerate(zip(sigs, defaults, labels)):
         module = None
         package = None
         namespace = ''
@@ -134,7 +134,7 @@ def createParameterExploration(action_id, xmlString, vistrail):
     # Populate parameter exploration window with stored functions and aliases
     functions = []
     for f in xmlDoc.getElementsByTagName('function'):
-        f_id = long(f.attributes['id'].value)
+        f_id = int(f.attributes['id'].value)
         # we need to convert function id:s to (module_id, port_name)
         module_id = None
         f_name = None
@@ -149,7 +149,7 @@ def createParameterExploration(action_id, xmlString, vistrail):
         parameters = []
         for p in f.getElementsByTagName('param'):
             # we need to convert function id:s to (module_id, port_name)
-            p_id = long(p.attributes['id'].value)
+            p_id = int(p.attributes['id'].value)
             p_pos = None
             for m in pipeline.db_modules:
                 for _f in m.db_functions:
@@ -236,7 +236,7 @@ def translateVistrail(_vistrail):
         new_annotations = []
         for a in old_obj.db_annotations:
             if a.db_key == '__vistrail_vars__':
-                for name, data in dict(literal_eval(a.db_value)).iteritems():
+                for name, data in dict(literal_eval(a.db_value)).items():
                     uuid, identifier, value = data
                     package, module, namespace = identifier
                     var = DBVistrailVariable(name, uuid, package, module, 

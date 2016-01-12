@@ -35,9 +35,9 @@
 ###############################################################################
 """ Base classes for all Hadoop Modules """
 
-from __future__ import division
 
-from init import configuration
+
+from .init import configuration
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.gui.modules.python_source_configure import \
                                                 PythonSourceConfigurationWidget
@@ -48,10 +48,10 @@ from remoteq.core.stack import select_machine, end_machine, use_machine, \
                                                                 current_machine
 from remoteq.batch.commandline import Subshell
 from remoteq.batch.directories import CreateDirectory
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import xml.etree.cElementTree as ET
 
-from init import RQModule
+from .init import RQModule
 
 ################################################################################
 class HadoopBaseModule(RQModule):
@@ -146,7 +146,7 @@ class HadoopBaseModule(RQModule):
         self.is_cacheable = lambda *args, **kwargs: False
         config = self.get_hadoop_config(machine)
         argList = [config['hadoop']]
-        if type(arguments) in [str, unicode]:
+        if type(arguments) in [str, str]:
             argList += arguments.split(' ')
         elif type(arguments)==list:
             argList += arguments
@@ -187,7 +187,7 @@ class HadoopBaseModule(RQModule):
     def call_hdfs(self, arguments, machine):
         config = self.get_hadoop_config(machine)
         argList = [config['hdfs']]
-        if type(arguments) in [str, unicode]:
+        if type(arguments) in [str, str]:
             argList += arguments.split(' ')
         elif type(arguments)==list:
             argList += arguments
@@ -235,7 +235,7 @@ class PythonSourceToFile(Module):
 #            tempFile = file_pool.make_local_copy(inputFile.name)
             tempFile = inputFile
         else:
-            source = urllib.unquote(self.force_get_input('source', ''))
+            source = urllib.parse.unquote(self.force_get_input('source', ''))
             tempFile = self.interpreter.filePool.create_file()
             f = open(tempFile.name, 'w')
             f.write(source)

@@ -36,7 +36,7 @@
 """ This containing a subclassed QGraphicsView that allows View the
 pipeline in a specific way in the parameter exploration window
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
@@ -77,7 +77,7 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         if self.scene():
             painter = QtGui.QPainter(self.viewport())
             for mId, annotatedId in \
-                    self.inspector.annotated_modules.iteritems():
+                    self.inspector.annotated_modules.items():
                 if mId not in self.scene().modules:
                     # faulty annotated_modules entry
                     continue

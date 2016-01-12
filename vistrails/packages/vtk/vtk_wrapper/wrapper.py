@@ -36,7 +36,7 @@
 #import warnings
 
 
-from __future__ import division
+
 
 class VTKInstanceWrapper(object):
     def __init__(self, instance, module_id=None):

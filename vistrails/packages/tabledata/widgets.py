@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -195,7 +195,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         current_ports = dict(self.getCurrentPorts())
         add_ports = []
         delete_ports = []
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             widget = self._list_layout.itemAt(i).widget()
             is_table = isinstance(widget, TableEntry)
             name = widget.name
@@ -219,7 +219,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
                               sigstring, -1))
 
         delete_ports.extend(('input', unseen_port)
-                            for unseen_port in current_ports.iterkeys())
+                            for unseen_port in current_ports.keys())
 
         self.controller.update_ports(self.module.id, delete_ports, add_ports)
 
@@ -233,7 +233,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
                 self.add_item(ColumnEntry(name))
 
     def resetTriggered(self, checked = False):
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             self._list_layout.itemAt(i).widget().deleteLater()
 
         self.createEntries()

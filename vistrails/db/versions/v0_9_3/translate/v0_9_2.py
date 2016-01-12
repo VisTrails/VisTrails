@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBAction, DBTag, DBModule, \
@@ -78,7 +78,7 @@ def translateVistrail(_vistrail):
         if not session:
             session = None
         else:
-            session = long(_action.db_session)
+            session = int(_action.db_session)
 
         action = DBAction(id=_action.db_id,
                           prevId=_action.db_prevId,

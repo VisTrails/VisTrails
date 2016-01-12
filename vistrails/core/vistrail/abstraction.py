@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 
@@ -139,7 +139,7 @@ class Abstraction(DBAbstraction, Module):
             return
         latest_version = desc.module.vistrail.get_latest_version()
         self._is_latest_version = \
-            (long(latest_version) == long(self.internal_version))
+            (int(latest_version) == int(self.internal_version))
 
     def is_latest_version(self):
         return self._is_latest_version

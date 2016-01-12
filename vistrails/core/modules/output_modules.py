@@ -34,7 +34,7 @@
 ##
 ##############################################################################
 
-from __future__ import division
+
 
 from copy import copy
 import os
@@ -95,7 +95,7 @@ class OutputModeConfig(dict):
 
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
-        for k, v in self.iteritems():
+        for k, v in self.items():
             if not self.has_field(k):
                 raise ValueError('Field "%s" is not declared for class "%s"' %
                                  (k, self.__class__.__name__))
@@ -145,7 +145,7 @@ class OutputModeConfig(dict):
         field_dict = {}
         for fd in reversed(field_dicts):
             field_dict.update(fd)
-        fields = field_dict.values()
+        fields = list(field_dict.values())
         fields.sort()
         return fields
 
@@ -212,7 +212,7 @@ class OutputModeConfig(dict):
             return self.get_override(k)
         try:
             return dict.__getitem__(self, k)
-        except KeyError, e:
+        except KeyError as e:
             if self.has_global_setting(k):
                 return self.get_global_setting(k)
             else:
@@ -303,7 +303,7 @@ class OutputModule(NotCacheable, Module):
             mode_dict.update(c._output_modes_dict)
 
         # Iterator over (mode_cls, priority)
-        modes = mode_dict.itervalues()
+        modes = iter(mode_dict.values())
         # Drop if priority < 0
         modes = ((c, p) for (c, p) in modes if p >= 0)
         # Sort by descending priority
@@ -343,7 +343,7 @@ class OutputModule(NotCacheable, Module):
             mode_config_cls_list.reverse()
 
             for mode_config_cls in mode_config_cls_list:
-                for k, v in configuration.iteritems():
+                for k, v in configuration.items():
                     if k == mode_config_cls.mode_type:
                         mode_config_dict.update(v)
         mode_config = mode_config_cls(mode_config_dict)
@@ -564,13 +564,13 @@ class FileToFileMode(FileMode):
         if os.path.exists(full_path):
             try:
                 os.remove(full_path)
-            except OSError, e:
+            except OSError as e:
                 raise ModuleError(output_module, 
                                   ('Could not delete existing '
                                    'path "%s"' % full_path))
         try:
             vistrails.core.system.link_or_copy(old_fname, full_path)
-        except OSError, e:
+        except OSError as e:
             msg = "Could not create file '%s': %s" % (full_path, e)
             raise ModuleError(output_module, msg)
 
@@ -584,14 +584,14 @@ class FileToStdoutMode(StdoutMode):
 class GenericToStdoutMode(StdoutMode):
     def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
-        print >>sys.stdout, value
+        print(value, file=sys.stdout)
 
 class GenericToFileMode(FileMode):
     def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         filename = self.get_filename(configuration)
         with open(filename, 'w') as f:
-            print >>f, value
+            print(value, file=f)
 
 class GenericOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")

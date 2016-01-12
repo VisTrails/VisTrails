@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog, \
     DBAbstractionRef, DBAdd, DBChange, DBDelete, DBAbstractionRef, DBGroup, \
@@ -59,7 +59,7 @@ def translateVistrail(_vistrail):
     def update_operations(old_obj, trans_dict):
         def update_abstraction(old_obj, trans_dict):
             def get_version(old_obj, trans_dict):
-                return long(old_obj.db_internal_version)
+                return int(old_obj.db_internal_version)
             new_dict = {'DBAbstractionRef': {'version': get_version}}
             new_dict.update(trans_dict)
             return DBAbstractionRef.update_version(old_obj.db_data, new_dict)

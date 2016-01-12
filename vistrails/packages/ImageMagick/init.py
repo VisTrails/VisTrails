@@ -52,7 +52,7 @@
 #    Moved quiet to configuration
 #    Fixed bug with GaussianBlur
 
-from __future__ import division
+
 
 from vistrails.core import debug
 import vistrails.core.modules.basic_modules as basic

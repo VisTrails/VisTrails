@@ -41,7 +41,7 @@ resizer, etc.:
   CellResizerConfig
 """
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -64,8 +64,8 @@ class CellResizerConfig(object):
         self.size = size
         self.transparentColor = QtGui.QColor(QtCore.Qt.blue)
         self.image = QtGui.QImage(size,size,QtGui.QImage.Format_RGB32)
-        for i in xrange(size):
-            for j in xrange(size):
+        for i in range(size):
+            for j in range(size):
                 if i+j<size-1:
                     self.image.setPixel(i, j, self.transparentColor.rgb())
                 else:
@@ -201,7 +201,7 @@ class CellResizer(QtGui.QLabel):
                 # Resize the columns first
                 dS = int(hd // (self.col+1))
                 mS = hd % (self.col+1)
-                for i in xrange(self.sheet.columnCount()):
+                for i in range(self.sheet.columnCount()):
                     if i>self.col:
                         newValue = hSize+dS
                     else:
@@ -210,7 +210,7 @@ class CellResizer(QtGui.QLabel):
                 # Then resize the rows
                 dS = int(vd // (self.row+1))
                 mS = vd % (self.row+1)
-                for i in xrange(self.sheet.rowCount()):
+                for i in range(self.sheet.rowCount()):
                     if i>self.row:
                         newValue = vSize+dS
                     else:

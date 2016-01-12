@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.basic_modules import ListType
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -50,7 +50,7 @@ class BaseConverter(Table):
     def convert_to_table(self, obj):
         try:
             table = self.make_table(obj)
-        except InternalModuleError, e:
+        except InternalModuleError as e:
             e.raise_module_error(self)
         self.set_output('column_count', table.columns)
         if table.names is not None:
@@ -101,7 +101,7 @@ class BaseDictToTable(BaseConverter):
         if not isinstance(obj, dict):
             raise ModuleError(self, "JSON file is not an object")
         key_name = self.get_input('key_name', True)
-        iterator = obj.iteritems()
+        iterator = iter(obj.items())
         try:
             first_key, first_value = next(iterator)
         except StopIteration:
@@ -109,15 +109,15 @@ class BaseDictToTable(BaseConverter):
         count = 1
         if isinstance(first_value, ListType):
             keys = None
-            columns = [[] for i in xrange(1 + len(first_value))]
+            columns = [[] for i in range(1 + len(first_value))]
             self.add_list(columns, first_key, first_value)
             for key, value in iterator:
                 self.add_list(columns, key, value)
                 count += 1
         elif isinstance(first_value, dict):
-            keys = first_value.keys()
+            keys = list(first_value.keys())
             key_set = set(keys)
-            columns = [[] for i in xrange(1 + len(keys))]
+            columns = [[] for i in range(1 + len(keys))]
             self.add_dict(columns, keys, key_set, first_key, first_value)
             for key, value in iterator:
                 self.add_dict(columns, keys, key_set, key, value)
@@ -144,15 +144,15 @@ class BaseListToTable(BaseConverter):
         count = 1
         if isinstance(first, ListType):
             keys = None
-            columns = [[] for i in xrange(len(first))]
+            columns = [[] for i in range(len(first))]
             self.add_list(columns, None, first)
             for value in iterator:
                 self.add_list(columns, None, value)
                 count += 1
         elif isinstance(first, dict):
-            keys = first.keys()
+            keys = list(first.keys())
             key_set = set(keys)
-            columns = [[] for i in xrange(len(keys))]
+            columns = [[] for i in range(len(keys))]
             self.add_dict(columns, keys, key_set, None, first)
             for value in iterator:
                 self.add_dict(columns, keys, key_set, None, value)

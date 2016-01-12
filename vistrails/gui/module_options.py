@@ -39,7 +39,7 @@
 
 QModuleOptions
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
@@ -449,7 +449,7 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
 
     def loadNode(self, parent, node):
         # populate widget from json struct
-        if isinstance(node, basestring):
+        if isinstance(node, str):
             PortItem(node, parent)
         else:
             item = (DotItem(parent) if node[0] == 'pairwise'
@@ -463,7 +463,7 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
             return item.text(0)
         L = ['pairwise'] if item.type()==DOTITEM else ['cartesian']
         L.extend([self.saveNode(item.child(i))
-                  for i in xrange(item.childCount())])
+                  for i in range(item.childCount())])
         L = [i for i in L if i is not None]
         if len(L)<2:
             L = None
@@ -477,7 +477,7 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
     
     def getValue(self):
         nodes = [self.topLevelItem(i)
-                 for i in xrange(self.topLevelItemCount())]
+                 for i in range(self.topLevelItemCount())]
         L = ['cartesian'] # default
         L.extend([self.saveNode(node) for node in nodes])
         L = [i for i in L if i is not None]

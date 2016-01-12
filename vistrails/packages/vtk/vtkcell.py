@@ -38,7 +38,7 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
-from __future__ import division
+
 
 import vtk
 import os
@@ -52,14 +52,14 @@ from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from identifiers import identifier as vtk_pkg_identifier
+from .identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration):
         d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
-        for ren, m in d.iteritems():
+        for ren, m in d.items():
             ren.module_id = m.moduleInfo['moduleId']
         renderers = output_module.force_get_input('value') or []
         style = output_module.force_get_input('interactorStyle')
@@ -91,7 +91,7 @@ class VTKCell(SpreadsheetCell):
         # Set module_id on wrapped renderers
         if self.has_input('AddRenderer'):
             d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
-            for ren, m in d.iteritems():
+            for ren, m in d.items():
                 ren.module_id = m.moduleInfo['moduleId']
         renderers = self.force_get_input('AddRenderer', [])
         renderViews = self.force_get_input('SetRenderView', [])
@@ -294,7 +294,7 @@ class QVTKWidget(QCellWidget):
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
-        for i in xrange(len(self.iHandlers)):
+        for i in range(len(self.iHandlers)):
             iHandler = self.iHandlers[i]
             if hasattr(iHandler, 'vtkInstance'):
                 iHandler = iHandler.vtkInstance
@@ -506,7 +506,7 @@ class QVTKWidget(QCellWidget):
         epos = iren.GetEventPosition()
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
-        for i in xrange(rens.GetNumberOfItems()):
+        for i in range(rens.GetNumberOfItems()):
             ren = rens.GetNextItem()
             ren.SetInteractive(ren.IsInViewport(epos[0], epos[1]))
 
@@ -861,7 +861,7 @@ class QVTKWidget(QCellWidget):
         renWin = self.GetRenderWindow()
         renderers = renWin.GetRenderers()
         renderers.InitTraversal()
-        for i in xrange(renderers.GetNumberOfItems()):
+        for i in range(renderers.GetNumberOfItems()):
             result.append(renderers.GetNextItem())
         return result
 
@@ -875,7 +875,7 @@ class QVTKWidget(QCellWidget):
             epos[1] = -epos[1]
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
-        for i in xrange(rens.GetNumberOfItems()):
+        for i in range(rens.GetNumberOfItems()):
             ren = rens.GetNextItem()
             if ren.IsInViewport(epos[0], epos[1]):
                 return ren
@@ -1012,7 +1012,7 @@ class QVTKWidget(QCellWidget):
         ba = QtCore.QByteArray()
         buf = QtCore.QBuffer(ba)
         buf.open(QtCore.QIODevice.WriteOnly)
-        for i in xrange(uchar.GetNumberOfTuples()):
+        for i in range(uchar.GetNumberOfTuples()):
             c = uchar.GetValue(i)
             buf.putChar(chr(c))
         buf.close()
@@ -1061,7 +1061,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             camera = None
             rendererId = cellWidget.renderer_maps[id(ren)]
             renderer = pipeline.modules[rendererId]
-            for c in pipeline.connections.values():
+            for c in list(pipeline.connections.values()):
                 if c.destination.moduleId==rendererId:
                     if c.destination.name=='ActiveCamera':
                         camera = pipeline.modules[c.source.moduleId]

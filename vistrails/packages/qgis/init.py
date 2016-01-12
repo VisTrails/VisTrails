@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module
@@ -129,7 +129,7 @@ class QGISCellWidget(QCellWidget):
         canvas.enableAntiAliasing(True)
 
         for layer in itertools.chain(rasterLayers, vectorLayers):
-            print 'adding layer', layer.qgis_obj
+            print('adding layer', layer.qgis_obj)
             qgis.core.QgsMapLayerRegistry.instance().addMapLayer(layer.qgis_obj)
         
         canvas.setExtent(rasterLayers[0].qgis_obj.extent())

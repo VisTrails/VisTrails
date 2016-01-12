@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 def getActionChain(obj, version, start=0):
     result = []
@@ -76,9 +76,9 @@ def simplify_ops(ops):
                              data=op.db_data,
                              )
 
-    deletes = deleteDict.values()
+    deletes = list(deleteDict.values())
     deletes.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
-    adds = addDict.values()
+    adds = list(addDict.values())
     adds.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
     return deletes + adds
 
@@ -125,7 +125,7 @@ def getCurrentOperationDict(actions, currentOperations=None):
 
 def getCurrentOperations(actions):
     # sort the values left in the hash and return the list
-    sortedOperations = getCurrentOperationDict(actions).values()
+    sortedOperations = list(getCurrentOperationDict(actions).values())
     sortedOperations.sort(key=lambda x: x.db_id)
     return sortedOperations
 

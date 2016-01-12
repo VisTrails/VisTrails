@@ -41,7 +41,7 @@
 # uses emacs via subprocess call for python indentation
 # the emacs call is slow because it checks all of the indentation
 
-from __future__ import division
+
 
 from mako.template import Template
 
@@ -52,9 +52,9 @@ import subprocess
 import sys
 import tempfile
 import getopt
-from parser import AutoGenParser
-import xml_gen_objects
-import sql_gen_objects
+from .parser import AutoGenParser
+from . import xml_gen_objects
+from . import sql_gen_objects
 
 BASE_DIR = os.path.dirname(os.getcwd())
 
@@ -174,7 +174,7 @@ def usage(usageDict):
     usageStr = ''
     unrequired = ''
     required = ''
-    for (opt, info) in usageDict.iteritems():
+    for (opt, info) in usageDict.items():
         if info[1]:
             required += '-%s <%s> ' % (opt[0], info[2])
             usageStr += '    -%s <%s>  ' % (opt[0], info[2])
@@ -186,9 +186,9 @@ def usage(usageDict):
                 unrequired += '[-%s] ' % opt[0]
                 usageStr += '    -%s            ' % opt[0]
         usageStr += '%s\n' % info[0]
-    print 'Usage: python generate.py %s%s\n%s' % (required, 
+    print('Usage: python generate.py %s%s\n%s' % (required, 
                                                              unrequired, 
-                                                             usageStr)
+                                                             usageStr))
 
 def dirStructure(baseDir):
     dirs = {}
@@ -204,14 +204,14 @@ def dirStructure(baseDir):
     return dirs
 
 def makeAllDirs(dirs):
-    for (name, dir) in dirs.iteritems():
+    for (name, dir) in dirs.items():
         if not os.path.exists(dir):
-            print "creating directory '%s'" % dir
+            print("creating directory '%s'" % dir)
             os.makedirs(dir)
         if name not in set(['specs', 'schemas', 'xmlSchema', 'sqlSchema']):
             init_file = os.path.join(dir, '__init__.py')
             if not os.path.exists(init_file):
-                print "creating file '%s'" % init_file
+                print("creating file '%s'" % init_file)
                 f = open(init_file, 'w')
                 f.write(COPYRIGHT_NOTICE)
                 if name == 'domain':
@@ -237,9 +237,9 @@ def main(argv=None):
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}
 
-    optStr = ''.join(optionsUsage.keys())
+    optStr = ''.join(list(optionsUsage.keys()))
     optKeys = optStr.replace(':','')
-    for idx in xrange(len(optKeys)):
+    for idx in range(len(optKeys)):
         options[optKeys[idx]] = False
 
     try:
@@ -274,8 +274,8 @@ def main(argv=None):
     versionDir = os.path.join(versionsDir, versionName)
     versionDirs = dirStructure(versionDir)
 
-    print baseDirs
-    print versionDirs
+    print(baseDirs)
+    print(versionDirs)
 
     if options['m']:
         makeAllDirs(baseDirs)
@@ -291,19 +291,19 @@ def main(argv=None):
 
     if use_base_specs:
         # copy specs to version        
-        print "copying base specs to version directory..."
+        print("copying base specs to version directory...")
         for file in os.listdir(baseDirs['specs']):
             if file.endswith('.xml'):
-                print 'copying %s' % file
+                print('copying %s' % file)
                 filename = os.path.join(baseDirs['specs'], file)
                 toFile = os.path.join(versionDirs['specs'], file)
                 shutil.copyfile(filename, toFile)
     else:
-        print "using existing specs from version directory..."
+        print("using existing specs from version directory...")
 
     if options['p'] or options['a']:
         # generate python domain objects
-        print "generating python domain objects..."
+        print("generating python domain objects...")
         if objects is None:
             parser = AutoGenParser()
             objects = parser.parse(versionDirs['specs'])
@@ -321,7 +321,7 @@ def main(argv=None):
 
     if options['x'] or options['a']:
         # generate xml schema and dao objects
-        print "generating xml schema and dao objects..."
+        print("generating xml schema and dao objects...")
         if objects is None:
             parser = AutoGenParser()
             objects = parser.parse(versionDirs['specs'])
@@ -354,7 +354,7 @@ def main(argv=None):
 
     if options['s'] or options['a']:
         # generate sql schema and dao objects
-        print "generating sql schema and dao objects..."
+        print("generating sql schema and dao objects...")
         if objects is None:
             parser = AutoGenParser()
             objects = parser.parse(versionDirs['specs'])

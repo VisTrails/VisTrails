@@ -37,7 +37,7 @@
 
 QParameterExplorationTab
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from ast import literal_eval
@@ -134,7 +134,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.peWidget.table.label.getCounts()), str(self.virtualCell.getConfiguration()[2]), timestamp, timestamp)
-        for i in xrange(self.peWidget.table.layout().count()):
+        for i in range(self.peWidget.table.layout().count()):
             pEditor = self.peWidget.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 firstParam = True
@@ -183,13 +183,13 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
-            f_id = long(f.attributes['id'].value)
+            f_id = int(f.attributes['id'].value)
             f_is_alias = (str(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
-            for tidx in xrange(self.paramView.treeWidget.topLevelItemCount()):
+            for tidx in range(self.paramView.treeWidget.topLevelItemCount()):
                 moduleItem = self.paramView.treeWidget.topLevelItem(tidx)
-                for cidx in xrange(moduleItem.childCount()):
+                for cidx in range(moduleItem.childCount()):
                     paramInfo = moduleItem.child(cidx).parameter
                     name, params = paramInfo
                     if params[0].parent_id == f_id and params[0].is_alias == f_is_alias:
@@ -198,7 +198,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             if newEditor:
                 for p in f.getElementsByTagName('param'):
                     # Locate the param in the newly added param editor and set values
-                    p_id = long(p.attributes['id'].value)
+                    p_id = int(p.attributes['id'].value)
                     for paramWidget in newEditor.paramWidgets:
                         if paramWidget.param.id == p_id:
                             # Set Parameter Dimension (radio button)
@@ -309,7 +309,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
 
             QParameterExplorationTab.explorationId += 1
             interpreter = get_default_interpreter()
-            for pi in xrange(len(modifiedPipelines)):
+            for pi in range(len(modifiedPipelines)):
                 progress.setValue(mCount[pi])
                 QtCore.QCoreApplication.processEvents()
                 if progress.wasCanceled():

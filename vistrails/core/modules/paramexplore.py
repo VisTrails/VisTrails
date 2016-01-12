@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Color
@@ -56,7 +56,7 @@ class BaseLinearInterpolator(object):
         if size <= 1:
             return [begin]
         result = [cast(begin + ((end - begin) * i / cast(size - 1)))
-                  for i in xrange(size)]
+                  for i in range(size)]
         return result
 
 
@@ -83,7 +83,7 @@ class BaseColorInterpolator(object):
         if self.size <= 1:
             return [self.begin]
         result = [self._ifunc(self.begin, self.end, self.size, i)
-                  for i in xrange(self.size)]
+                  for i in range(self.size)]
         return result
 
 
@@ -136,7 +136,7 @@ class HSVColorInterpolator(BaseColorInterpolator):
                 hue_step = diff2
 
         colors = []
-        for i in xrange(self.size):
+        for i in range(self.size):
             u = i * size_fact
             hue = b_hsv[0] + u * hue_step
             if hue < 0.0:
@@ -165,8 +165,8 @@ class UserDefinedFunctionInterpolator(object):
             values = []
             d = {}
             try:
-                exec(self._code) in {}, d
-            except Exception, e:
+                exec((self._code), {}, d)
+            except Exception as e:
                 return [self._ptype.default_value] * self._steps
             def evaluate(i):
                 try:
@@ -174,9 +174,9 @@ class UserDefinedFunctionInterpolator(object):
                     if v is None:
                         return self._ptype.default_value
                     return v
-                except Exception, e:
+                except Exception as e:
                     return debug.format_exception(e)
-            return [evaluate(i) for i in xrange(self._steps)]
+            return [evaluate(i) for i in range(self._steps)]
         result = get()
 
         if not all(self._ptype.validate(x) for x in result):
@@ -199,7 +199,7 @@ import unittest
 class TestLinearInterpolator(unittest.TestCase):
     def test_int(self):
         x = BaseLinearInterpolator(int, 0, 999, 1000)
-        assert x.get_values() == range(1000)
+        assert x.get_values() == list(range(1000))
 
     def test_float(self):
         # test the property that differences in value must be linearly

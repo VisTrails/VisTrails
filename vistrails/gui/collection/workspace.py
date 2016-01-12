@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -80,7 +80,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
         # FIXME only uses top level items
         if items is None:
             items = [self.topLevelItem(i) 
-                     for i in xrange(self.topLevelItemCount())]
+                     for i in range(self.topLevelItemCount())]
         for item in items:
             if search.match(item.entity):
                 item.setHidden(False)
@@ -92,16 +92,16 @@ class QCollectionWidget(QtGui.QTreeWidget):
             else:
                 item.setHidden(True)
             self.run_search(search, [item.child(i) 
-                                     for i in xrange(item.childCount())])
+                                     for i in range(item.childCount())])
             
     def reset_search(self, items=None):
         if items is None:
             items = [self.topLevelItem(i) 
-                     for i in xrange(self.topLevelItemCount())]
+                     for i in range(self.topLevelItemCount())]
         for item in items:
             item.setHidden(False)
             self.reset_search([item.child(i) 
-                               for i in xrange(item.childCount())])
+                               for i in range(item.childCount())])
 
     def item_selected(self, widget_item, column):
         locator = widget_item.entity.locator()
@@ -192,7 +192,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
 
     def check_objects(self):
         items = [self.topLevelItem(i) 
-                 for i in xrange(self.topLevelItemCount())]
+                 for i in range(self.topLevelItemCount())]
         for item in items:
             item.entity.locator().update_from_gui(self)
             if not self.collection.urlExists(item.entity.url):
@@ -201,7 +201,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
 
     def remove_all(self):
         items = [self.topLevelItem(i) 
-                 for i in xrange(self.topLevelItemCount())]
+                 for i in range(self.topLevelItemCount())]
         for item in items:
             self.collection.del_from_workspace(item.entity) 
         self.collection.commit()
@@ -580,14 +580,14 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def viewAsList(self):
         """ Order workflow items as a flat list """
         self.open_list.isTreeView = False
-        for i in xrange(self.open_list.openFilesItem.childCount()):
+        for i in range(self.open_list.openFilesItem.childCount()):
             item = self.open_list.openFilesItem.child(i)
             self.open_list.make_list(item)
 
     def viewAsTree(self):
         """ Order workflow items as a history tree """
         self.open_list.isTreeView = True
-        for i in xrange(self.open_list.openFilesItem.childCount()):
+        for i in range(self.open_list.openFilesItem.childCount()):
             item = self.open_list.openFilesItem.child(i)
             self.open_list.make_tree(item)
 
@@ -600,7 +600,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.workspace_list.addItem('Default')
         if 'Default' == self.browser.collection.currentWorkspace:
             self.workspace_list.setCurrentIndex(self.workspace_list.count()-1)
-        locations = self.browser.collection.workspaces.keys()
+        locations = list(self.browser.collection.workspaces.keys())
         
         workspaces = [ l for l in locations \
                          if not l.startswith('file') and \
@@ -1055,20 +1055,20 @@ class QVistrailList(QtGui.QTreeWidget):
         self.updateHideExecutions()
         
     def updateHideExecutions(self):            
-        for i in xrange(self.openFilesItem.childCount()):
+        for i in range(self.openFilesItem.childCount()):
             vt = self.openFilesItem.child(i)
             if not hasattr(vt, 'tag_to_item'):
                 continue
-            for item in vt.tag_to_item.itervalues():
+            for item in vt.tag_to_item.values():
                 if not hasattr(item, 'executionList'):
                     continue
                 for exec_item in item.executionList:
                     exec_item.setHidden(self.executionsHidden)
-        for i in xrange(self.closedFilesItem.childCount()):
+        for i in range(self.closedFilesItem.childCount()):
             vt = self.closedFilesItem.child(i)
             if not hasattr(vt, 'tag_to_item'):
                 continue
-            for item in vt.tag_to_item.itervalues():
+            for item in vt.tag_to_item.values():
                 if not hasattr(item, 'executionList'):
                     continue
                 for exec_item in item.executionList:
@@ -1080,7 +1080,7 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(False)
         if not (hasattr(item, 'tag_to_item') or hasattr(item, 'mshp_to_item')): 
             return
-        for wf in item.tag_to_item.itervalues():
+        for wf in item.tag_to_item.values():
             index = wf.parent().indexOfChild(wf)
             wf = wf.parent().takeChild(index)
             item.workflowsItem.addChild(wf)
@@ -1095,11 +1095,11 @@ class QVistrailList(QtGui.QTreeWidget):
             return
         am = item.window.controller.vistrail.actionMap
         tm = item.window.controller.vistrail.get_tagMap()
-        vm = dict((v,k) for k, v in tm.iteritems())
+        vm = dict((v,k) for k, v in tm.items())
         # loop through tagged workflows and add to parent workflow
         if not hasattr(item, 'tag_to_item'):
             return
-        for tag, wf in item.tag_to_item.iteritems():
+        for tag, wf in item.tag_to_item.items():
             if tag not in vm:
                 continue
             # find parent
@@ -1235,7 +1235,7 @@ class QVistrailList(QtGui.QTreeWidget):
             entity_was_none = True
 
         # remove item from recent list
-        for i in xrange(self.closedFilesItem.childCount()):
+        for i in range(self.closedFilesItem.childCount()):
             recent = self.closedFilesItem.child(i)
             if entity and recent and recent.entity and \
                 recent.entity.url == entity.url:
@@ -1346,7 +1346,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
         def setBold(parent_item):
             """ """
-            for i in xrange(parent_item.childCount()):
+            for i in range(parent_item.childCount()):
                 item = parent_item.child(i)
                 font = item.font(0)
                 window = item.window if hasattr(item, 'window') else None

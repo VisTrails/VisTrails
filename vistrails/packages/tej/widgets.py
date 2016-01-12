@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -109,7 +109,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         current_ports = set(self.getCurrentPorts())
         add_ports = []
         delete_ports = []
-        for i in xrange(self._list.count()):
+        for i in range(self._list.count()):
             name = str(self._list.item(i).text())
 
             if name in seen_new_ports:
@@ -142,7 +142,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
             self._list.addItem(item)
 
     def resetTriggered(self, checked = False):
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             self._list_layout.itemAt(i).widget().deleteLater()
 
         self.createEntries()

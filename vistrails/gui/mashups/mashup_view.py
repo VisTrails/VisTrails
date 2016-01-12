@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot
@@ -142,7 +142,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                         self.disconnect(self.mshpController.vtController,
                                         QtCore.SIGNAL('vistrailChanged()'),
                                         self.mshpControllerVistrailChanged)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
             self.controller.flush_delayed_actions()
@@ -245,7 +245,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             self.updateIndexes(tab_idx, stack_idx)
         
     def updateIndexes(self, rm_tab_idx, rm_stack_idx):
-        for (b,tab_idx) in self.button_to_tab_idx.iteritems():
+        for (b,tab_idx) in self.button_to_tab_idx.items():
             if tab_idx > rm_tab_idx:
                 self.button_to_tab_idx[b] -= 1
         for idx in range(self.stack.count()):

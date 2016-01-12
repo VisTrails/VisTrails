@@ -45,7 +45,7 @@ QVersionThumbs
 QVersionMashups
 
 """
-from __future__ import division
+
 
 import re
 from PyQt4 import QtCore, QtGui
@@ -230,13 +230,13 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                     try:
                         custom_color = parse_custom_color(custom_color.value)
                         custom_color = QtGui.QColor(*custom_color)
-                    except ValueError, e:
+                    except ValueError as e:
                         debug.warning("Version %r has invalid color "
                                       "annotation (%s)" % (versionNumber, e))
                         custom_color = None
                 self.customColor.setColor(custom_color)
 
-            if vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in vistrail.actionMap:
                 # Follow upgrades forward to find tag
                 tag = vistrail.search_upgrade_versions(
                         versionNumber,
@@ -251,7 +251,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(tag)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
-                self.idEdit.setText(unicode(action.id))
+                self.idEdit.setText(str(action.id))
                 self.tagEdit.setEnabled(True)
                 return
             else:
@@ -329,7 +329,7 @@ class QVersionNotes(QtGui.QTextEdit):
             return
         self.versionNumber = versionNumber
         if self.controller:
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in self.controller.vistrail.actionMap:
                 # Follow upgrades forward to find notes
                 notes = self.controller.vistrail.search_upgrade_versions(
                         versionNumber,
@@ -516,7 +516,7 @@ class QVersionPropOverlay(QtGui.QFrame):
 
         self.notes_dialog.updateVersion(versionNumber)
         if self.controller:
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in self.controller.vistrail.actionMap:
                 vistrail = self.controller.vistrail
                 # Follow upgrades forward to find tag
                 tag = vistrail.search_upgrade_versions(
@@ -731,7 +731,7 @@ class QNotesDialog(QtGui.QDialog):
         """
         self.notes.updateVersion(versionNumber)
         if self.controller:
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in self.controller.vistrail.actionMap:
                 # Follow upgrades forward to find tag
                 tag = self.controller.vistrail.search_upgrade_versions(
                         versionNumber,
@@ -780,7 +780,7 @@ class QVersionThumbs(QtGui.QWidget):
         """
         if self.controller:
             vistrail = self.controller.vistrail
-            if versionNumber in vistrail.actionMap.keys():
+            if versionNumber in list(vistrail.actionMap.keys()):
                 # Follow upgrades forward to find a thumbnail
                 thumb_ver = self.controller.vistrail.search_upgrade_versions(
                         versionNumber,
@@ -844,7 +844,7 @@ class QVersionMashups(QtGui.QWidget):
         #             self.showList)
         
     def createMashupsMenu(self, tagMap):
-        tags = tagMap.keys()
+        tags = list(tagMap.keys())
         self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
         #latestversion = mtrail.getLatestVersion()
         mashupsMenu = QtGui.QMenu(self)
@@ -878,7 +878,7 @@ class QVersionMashups(QtGui.QWidget):
         getMshptrail = MashupsManager.getMashuptrailforVersionInVistrailController
         if self.controller:
             vistrail = self.controller.vistrail
-            if versionNumber in vistrail.actionMap.keys():
+            if versionNumber in list(vistrail.actionMap.keys()):
                 self.mtrail = getMshptrail(self.controller, versionNumber)
                 if self.mtrail:
                     tagMap = self.mtrail.getTagMap()
@@ -913,7 +913,7 @@ class QVersionMashups(QtGui.QWidget):
     def openMashup(self, version):
         from vistrails.gui.mashups.mashups_manager import MashupsManager
         item_key = (self.mtrail.id, version)
-        if self.apps.has_key(item_key):
+        if item_key in self.apps:
             app = self.apps[item_key]
             if app:
                 app.activateWindow()
@@ -928,6 +928,6 @@ class QVersionMashups(QtGui.QWidget):
         app.raise_()
                 
     def appWasClosed(self, app):
-        for (k, a) in self.apps.iteritems():
+        for (k, a) in self.apps.items():
             if a == app:
                 self.apps[k] = None

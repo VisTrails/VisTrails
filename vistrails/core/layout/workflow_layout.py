@@ -40,7 +40,7 @@ Originally written by Lauro D. Lins.
 
 ####################################################
 
-from __future__ import division
+
 
 def uniquify(seq, idfun=None): 
     # order preserving
@@ -141,8 +141,8 @@ class Module(object):
         self.shortname    = shortname
         self.name         = name
 
-        self.input_ports  = [ Port(self, INPUT_PORT,  i) for i in xrange(num_input_ports ) ]
-        self.output_ports = [ Port(self, OUTPUT_PORT, i) for i in xrange(num_output_ports) ]
+        self.input_ports  = [ Port(self, INPUT_PORT,  i) for i in range(num_input_ports ) ]
+        self.output_ports = [ Port(self, OUTPUT_PORT, i) for i in range(num_output_ports) ]
 
         self.layout_layer_number = UNDEFINED_LAYER
         self.layout_layer_index  = 0
@@ -293,7 +293,7 @@ class DFSIterator(object):
                 self.stack.append(ItemDFS(m,-1,m.cached_num_succ))
 
 
-    def next(self):
+    def __next__(self):
         
         while len(self.stack) > 0:
 
@@ -351,7 +351,7 @@ class Layers(object):
         # print "layers",self.layers
         
         if layer_number >= num_layers:
-            self.layers.extend([Layer(i) for i in xrange(num_layers,layer_number+1)])
+            self.layers.extend([Layer(i) for i in range(num_layers,layer_number+1)])
         
         layer = self.layers[layer_number]
         layer.addModule(module)
@@ -472,7 +472,7 @@ class WorkflowLayout(object):
         # topologically sorted permulation of the modules
         permutation = []
         while True:
-            mod = iterator.next()
+            mod = next(iterator)
             if mod is None:
                 break
             permutation.append(mod)
@@ -546,13 +546,13 @@ class WorkflowLayout(object):
         # sort modules by the current value of layout_layer_index
         for layer in layers.layers:
             layer.modules.sort(lambda a,b: a.layout_layer_index - b.layout_layer_index)
-            for i in xrange(len(layer.modules)):
+            for i in range(len(layer.modules)):
                 layer.modules[i].layout_layer_index = i
 
         #
         num_layers = len(layers.layers)
 
-        lastModified = [-1 for i in xrange(num_layers)]
+        lastModified = [-1 for i in range(num_layers)]
 
         #
         # sweep down and up reducing the number of crossings
@@ -576,7 +576,7 @@ class WorkflowLayout(object):
                 i0, i1 = (0,num_layers) if direction == DOWN else (num_layers-1,-1)
 
                 # sweep "direction"
-                for i in xrange(i0+delta,i1,direction):
+                for i in range(i0+delta,i1,direction):
                 # for i in xrange(2,4):
 
 
@@ -599,7 +599,7 @@ class WorkflowLayout(object):
 
                     # apply barycentric permutation to layer "i" using neighbors on layer "i + delta"
                     barycenters = [-1] * num_modules
-                    for j in xrange(num_modules):
+                    for j in range(num_modules):
 
                         module      = layer.modules[j]
                         connections = \
@@ -615,21 +615,21 @@ class WorkflowLayout(object):
                             value /= 1.0 * len(connections)
                             barycenters[j] = value
 
-                    for j in xrange(1,num_modules):
+                    for j in range(1,num_modules):
                         if barycenters[j] < 0:
                             barycenters[j] = barycenters[j-1] + 1e-5
 
                     # print "         barycenters: ", barycenters
 
 
-                    new_order = [(barycenters[j], layer.modules[j]) for j in xrange(num_modules)]
+                    new_order = [(barycenters[j], layer.modules[j]) for j in range(num_modules)]
                     new_order.sort()
 
                     # print "            indices before: ", [u.layout_layer_index for u in layer.modules]
                     # print "            indices after:  ", [aux[0] for aux in new_order]
                     # print "            names before =  ",[mod.name for mod in layer.modules]
 
-                    for j in xrange(num_modules):
+                    for j in range(num_modules):
                         module = new_order[j][1]
                         if module.layout_layer_index != j:
                             # print "            module indexed %d goes to index %d" % (module.layout_layer_index,j)
@@ -637,7 +637,7 @@ class WorkflowLayout(object):
                             updates += 1
 
                     if lastModified[i] == iteration:
-                        for j in xrange(num_modules):
+                        for j in range(num_modules):
                             module = new_order[j][1]
                             module.layout_layer_index = j
 
@@ -663,7 +663,7 @@ class WorkflowLayout(object):
             
                 #separate modules that have no previous x value
                 temp = []
-                for i in reversed(range(len(layer.modules))):
+                for i in reversed(list(range(len(layer.modules)))):
                     if layer.modules[i].prev_x is None:
                         temp.append((i,layer.modules.pop(i)))
                 
@@ -725,7 +725,7 @@ class WorkflowLayout(object):
             x = layer_min_x
 
             # set module positions
-            for i in xrange(layer_num_modules):
+            for i in range(layer_num_modules):
 
                 if (i > 0):
                     x += layer_x_separation

@@ -1,6 +1,6 @@
 # pragma: no testimport
 
-from __future__ import division
+
 
 import sys
 

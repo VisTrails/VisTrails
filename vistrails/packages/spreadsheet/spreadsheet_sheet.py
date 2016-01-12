@@ -41,7 +41,7 @@ others:
   StandardWidgetSheet
 """
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -87,7 +87,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         if (self.section_sizes is None or
                 len(self.section_sizes) != self.count()):
             self.section_sizes = [float(self.sectionSize(self.logicalIndex(i)))
-                                  for i in xrange(self.count())]
+                                  for i in range(self.count())]
 
     _resizing = False
 
@@ -136,7 +136,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         # Can't take other cells below minimum size
         if new_size > old_size:
             min_right = 0
-            for i in xrange(vis_index + 1, self.count()):
+            for i in range(vis_index + 1, self.count()):
                 if not self.isSectionHidden(self.logicalIndex(i)):
                     min_right += self.MINIMUM_SIZE
             pos = self.sectionPosition(log_index)
@@ -369,7 +369,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         vLabels = []
         vIdx = self.verticalHeader().visualIndex
-        for i in xrange(newCount):
+        for i in range(newCount):
             vLabels.append(str(vIdx(i)+1))
         self.setVerticalHeaderLabels(vLabels)
         self.updateHeaderStatus()
@@ -388,7 +388,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         hLabels = []
         vIdx = self.horizontalHeader().visualIndex
-        for i in xrange(newCount):
+        for i in range(newCount):
             hLabels.append(chr(vIdx(i)+ord('A')))
         self.setHorizontalHeaderLabels(hLabels)
         self.updateHeaderStatus()
@@ -483,18 +483,18 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             row = self.verticalHeader().logicalIndex(vRow)
             col = self.horizontalHeader().logicalIndex(vCol)
         cellSet = set()
-        for r in xrange(self.rowCount()):
-            for c in xrange(self.columnCount()):
+        for r in range(self.rowCount()):
+            for c in range(self.columnCount()):
                 cellSet.add((r, c))
-        for r in xrange(self.rowCount()):
-            for c in xrange(self.columnCount()):
+        for r in range(self.rowCount()):
+            for c in range(self.columnCount()):
                 if (r, c) not in cellSet:
                     continue
                 rect = self.visualRect(self.model().index(r, c))
                 rSpan = self.rowSpan(r, c)
                 cSpan = self.columnSpan(r, c)
-                for rs in xrange(rSpan):
-                    for cs in xrange(cSpan):
+                for rs in range(rSpan):
+                    for cs in range(cSpan):
                         if (row==r+rs) and (col==c+cs):
                             return (r, c)
                         if (r+rs, c+cs) in cellSet:

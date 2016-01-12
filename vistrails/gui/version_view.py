@@ -45,7 +45,7 @@ QGraphicsVersionItem
 QVersionTreeScene
 QVersionTreeView
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
@@ -115,7 +115,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Set this link to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             if ghosted:
                 self.linkPen = CurrentTheme.GHOSTED_LINK_PEN
@@ -318,7 +318,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         Change the position and text label from outside the editor
 
         """
-        if self.centerX <> x or self.centerY <> y or self.label <> label:
+        if self.centerX != x or self.centerY != y or self.label != label:
             self.centerX = x
             self.centerY = y
             self.label = label
@@ -469,7 +469,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Set this version to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             self.text.setGhosted(ghosted)
             if ghosted:
@@ -710,7 +710,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         analogy_name = str(sender.text())
         # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
-        print "calling perform analogy", analogy_name, self.id
+        print("calling perform analogy", analogy_name, self.id)
         # for item in selectedItems:
         controller.perform_analogy(analogy_name, self.id)
 
@@ -859,7 +859,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 else:
                     ranks[nodeId] = otherMaxRank
                     otherMaxRank += 1
-        for (nodeId, item) in self.versions.iteritems():
+        for (nodeId, item) in self.versions.items():
             if nodeId == 0:
                 item.setGhosted(True)
                 continue
@@ -885,7 +885,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 if custom_color is not None:
                     try:
                         custom_color = parse_custom_color(custom_color.value)
-                    except ValueError, e:
+                    except ValueError as e:
                         debug.warning("Version %r has invalid color annotation "
                                       "(%s)" % (nodeId, e))
                         custom_color = None
@@ -895,7 +895,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
                               max_rank, ghosted, custom_color)
-        for (version_from, version_to), link in self.edges.iteritems():
+        for (version_from, version_to), link in self.edges.items():
             if self.versions[version_from].ghosted and \
                     self.versions[version_to].ghosted:
                 link.setGhosted(True)
@@ -984,7 +984,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
         self.emit_selection = False
-        for node in layout.nodes.itervalues():
+        for node in layout.nodes.values():
             # version id
             v = node.id
 
@@ -1017,12 +1017,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.adjust_version_colors(controller)
 
         # Add or update links
-        for source, source_tag in tree.vertices.iteritems():
+        for source, source_tag in tree.vertices.items():
             eFrom = tree.edges_from(source)
             for target, (expand, collapse) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
-                if self.edges.has_key((source,target)):
+                if (source,target) in self.edges:
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,
                                         expand, collapse)

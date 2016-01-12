@@ -43,7 +43,7 @@ should also consult the documentation in the User's Guide and in
 core/modules/vistrails_module.py.
 """
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.pythoncalcqt'
 name = 'PythonCalcQt'

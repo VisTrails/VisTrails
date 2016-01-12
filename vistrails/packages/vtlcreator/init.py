@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import base64
 import os
@@ -124,7 +124,7 @@ class VtlFileCreator(NotCacheable, Module):
             for connection in pipeline.connection_list:
                 action_list.append(('add', connection))
             action = vistrails.core.db.action.create_action(action_list)
-            vistrail.add_action(action, 0L)
+            vistrail.add_action(action, 0)
             vistrail.addTag("Imported workflow", action.id)
             if not forceDB:
                 node.set('version', str(action.id))

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import re
@@ -120,7 +120,7 @@ def link_or_copy(src, dst):
     # Links if possible, but we're across devices, we need to copy.
     try:
         os.link(src, dst)
-    except OSError, e:
+    except OSError as e:
         if e.errno == 18:
             # Across-device linking is not possible. Let's copy.
             shutil.copyfile(src, dst)
@@ -184,7 +184,7 @@ class TestLinux(unittest.TestCase):
     def test1(self):
         """ Test if guess_total_memory() is returning an int >= 0"""
         result = guess_total_memory()
-        assert isinstance(result, (int, long))
+        assert isinstance(result, int)
         assert result >= 0
 
     def test2(self):

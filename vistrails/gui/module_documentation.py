@@ -38,7 +38,7 @@ dialog, which displays the available documentation for a given VisTrails module.
 
 QModuleDocumentation
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.module_registry import ModuleRegistryException

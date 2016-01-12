@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtGui, QtCore
 
@@ -218,7 +218,7 @@ class QParamExpProperties(QtGui.QWidget):
                             self.controller.vistrail.parameter_explorations
                             if pe.action_id==self.pe.action_id])
             count = len(self.peDict)
-            ids = self.peDict.keys()
+            ids = list(self.peDict.keys())
             ids.sort()
             index = ids.index(self.pe.id) + 1
             
@@ -274,7 +274,7 @@ class QParamExpProperties(QtGui.QWidget):
         
     def goBack(self):
         """ Goes to the previous PE for this pipeline"""
-        ids = self.peDict.keys()
+        ids = list(self.peDict.keys())
         ids.sort()
         index = ids.index(self.pe.id)
         if index>0:
@@ -287,7 +287,7 @@ class QParamExpProperties(QtGui.QWidget):
     def goForward(self):
         """ Goes to the next PE for this pipeline"""
         count = len(self.peDict)
-        ids = self.peDict.keys()
+        ids = list(self.peDict.keys())
         ids.sort()
         index = ids.index(self.pe.id)
         if index<count-1:

@@ -44,7 +44,7 @@ a container of a sheet:
   StandardWidgetToolBar
 """
 
-from __future__ import division
+
 
 import os.path
 from PyQt4 import QtCore, QtGui
@@ -57,7 +57,7 @@ from .spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
 from .spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 from .spreadsheet_config import configuration
-import spreadsheet_rc
+from . import spreadsheet_rc
 
 
 class SizeSpinBox(QtGui.QSpinBox):
@@ -286,8 +286,8 @@ class StandardWidgetSheetTabInterface(object):
 
         """
         (rowCount, colCount) = self.getDimension()
-        for r in xrange(rowCount):
-            for c in xrange(colCount):
+        for r in range(rowCount):
+            for c in range(colCount):
                 w = self.getCell(r, c)
                 if w==None or (isinstance(w, QCellPresenter) and w.cellWidget==None):
                     return (r,c)
@@ -373,8 +373,8 @@ class StandardWidgetSheetTabInterface(object):
 
         """
         (rowCount, columnCount) = self.getDimension()
-        for r in xrange(rowCount):
-            for c in xrange(columnCount):
+        for r in range(rowCount):
+            for c in range(columnCount):
                 self.deleteCell(r, c)
 
     def takeCell(self, row, col):
@@ -428,8 +428,8 @@ class StandardWidgetSheetTabInterface(object):
         self.sheet.setActiveCell(-1, -1)
         # Go over all the cells and set the editing widget up
         (rowCount, colCount) = self.getDimension()
-        for r in xrange(rowCount):
-            for c in xrange(colCount):
+        for r in range(rowCount):
+            for c in range(colCount):
                 self.setCellEditingMode(r, c, editing)
         QtCore.QCoreApplication.processEvents()
 
@@ -519,16 +519,16 @@ class StandardWidgetSheetTabInterface(object):
         (rCount, cCount) = self.getDimension()
         if rCount<1 or cCount<1: return
         cellHeights = [self.getCellRect(r, 0).height()
-                       for r in xrange(rCount)]
+                       for r in range(rCount)]
         cellWidths = [self.getCellRect(0, c).width()
-                      for c in xrange(cCount)]
+                      for c in range(cCount)]
         finalImage = QtGui.QImage(sum(cellWidths), sum(cellHeights), QtGui.QImage.Format_ARGB32)
         finalImage.fill(0xFFFFFFFF)
         painter = QtGui.QPainter(finalImage)
         y = 0
-        for r in xrange(rCount):
+        for r in range(rCount):
             x = 0
-            for c in xrange(cCount):
+            for c in range(cCount):
                 widget = self.getCell(r, c)
                 if widget:
                     pix = widget.grabWindowPixmap()
@@ -553,8 +553,8 @@ class StandardWidgetSheetTabInterface(object):
 
         """
         (rCount, cCount) = self.getDimension()
-        for r in xrange(rCount):
-            for c in xrange(cCount):
+        for r in range(rCount):
+            for c in range(cCount):
                 widget = self.getCell(r, c)
                 if widget:
                     widget.grabWindowPixmap().save(dirPath+'/'+
@@ -775,8 +775,8 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         (curRowSpan, curColSpan) = self.getSpan(row, col)
         if rowSpan!=curRowSpan or colSpan!=curColSpan:
             # Need to remove all cell except the top-left
-            for r in xrange(rowSpan):
-                for c in xrange(colSpan):
+            for r in range(rowSpan):
+                for c in range(colSpan):
                     if r!=0 or c!=0:
                         self.deleteCell(row+r, col+c)
 
@@ -906,7 +906,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         """
         if self.tabRect(self.currentIndex()).contains(p):
             return self.currentIndex()
-        for i in xrange(self.count()):
+        for i in range(self.count()):
             if self.isTabEnabled(i) and self.tabRect(i).contains(p):
                 return i
         return -1
@@ -998,7 +998,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
 
         """
         p = self.mapFromGlobal(pos)
-        for i in xrange(self.count()):
+        for i in range(self.count()):
             r = self.tabRect(i)
             if self.isTabEnabled(i) and r.contains(p):
                 if p.x() < (r.x()+r.width()//2):

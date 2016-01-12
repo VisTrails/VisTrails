@@ -37,7 +37,7 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui, QtWebKit
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell

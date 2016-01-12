@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import itertools
 
@@ -60,9 +60,9 @@ class ElementwiseProduct(Module):
 
         numerical = self.get_input('NumericalProduct')
         if numerical:
-            result = [a*b for a, b in itertools.izip(list1, list2)]
+            result = [a*b for a, b in zip(list1, list2)]
         else:
-            result = zip(list1, list2)
+            result = list(zip(list1, list2))
 
         self.set_output('Result', result)
 
@@ -76,7 +76,7 @@ class Dot(Module):
         if len(list1) != len(list2):
             raise ModuleError(self, 'Both lists must have the same size.')
 
-        result = sum(a*b for a, b in itertools.izip(list1, list2))
+        result = sum(a*b for a, b in zip(list1, list2))
 
         self.set_output("Result", result)
 

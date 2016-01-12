@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.vistrail.location import Location
 import vistrails.db.services.action
@@ -64,10 +64,10 @@ def create_paste_action(pipeline, id_scope, id_remap=None):
     action_list = []
     if id_remap is None:
         id_remap = {}
-    for module in pipeline.modules.itervalues():
+    for module in pipeline.modules.values():
         module = module.do_copy(True, id_scope, id_remap)
         action_list.append(('add', module))
-    for connection in pipeline.connections.itervalues():
+    for connection in pipeline.connections.values():
         connection = connection.do_copy(True, id_scope, id_remap)
         action_list.append(('add', connection))
     action = create_action(action_list)

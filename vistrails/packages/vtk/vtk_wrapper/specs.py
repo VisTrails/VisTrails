@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import ast
 from xml.etree import cElementTree as ET
@@ -115,7 +115,7 @@ class PortSpec(object):
         self.port_types = []
 
     def set_defaults(self, **kwargs):
-        for attr, props in self.attrs.iteritems():
+        for attr, props in self.attrs.items():
             if isinstance(props, tuple):
                 default_val = props[0]
             else:
@@ -128,7 +128,7 @@ class PortSpec(object):
     def to_xml(self, elt=None):
         if elt is None:
             elt = ET.Element(self.xml_name)
-        for attr, props in self.attrs.iteritems():
+        for attr, props in self.attrs.items():
             attr_val = getattr(self, attr)
             is_subelt = False
             if isinstance(props, tuple):
@@ -141,10 +141,10 @@ class PortSpec(object):
             if default_val != attr_val:
                 if is_subelt:
                     subelt = ET.Element(attr)
-                    subelt.text = unicode(getattr(self, attr))
+                    subelt.text = str(getattr(self, attr))
                     elt.append(subelt)
                 else:
-                    elt.set(attr, unicode(attr_val))
+                    elt.set(attr, str(attr_val))
         return elt
 
     @classmethod
@@ -161,7 +161,7 @@ class PortSpec(object):
             child_elts[child.tag].append(child)
 
         kwargs = {}
-        for attr, props in obj.attrs.iteritems():
+        for attr, props in obj.attrs.items():
             is_subelt = False
             run_eval = False
             if isinstance(props, tuple):
@@ -255,13 +255,13 @@ class InputPortSpec(PortSpec):
         if self.depth:
             attrs["depth"] = self.depth
         if self.values:
-            attrs["values"] = unicode(self.values)
+            attrs["values"] = str(self.values)
         if self.labels:
-            attrs["labels"] = unicode(self.labels)
+            attrs["labels"] = str(self.labels)
         if self.entry_types:
-            attrs["entry_types"] = unicode(self.entry_types)
+            attrs["entry_types"] = str(self.entry_types)
         if self.defaults:
-            attrs["defaults"] = unicode(self.defaults)
+            attrs["defaults"] = str(self.defaults)
         if self.docstring:
             attrs["docstring"] = self.docstring
         if self.min_conns:
@@ -363,7 +363,7 @@ class ModuleSpec(object):
         elt.set("superklass", self.superklass)
         elt.set("code_ref", self.code_ref)
         subelt = ET.Element("docstring")
-        subelt.text = unicode(self.docstring)
+        subelt.text = str(self.docstring)
         elt.append(subelt)
         if self.callback is not None:
             elt.set("callback", self.callback)
@@ -535,7 +535,7 @@ class ClassSpec(ModuleSpec):
         if elt is None:
             elt = ET.Element(self.xml_name)
         if self.methods_last is not False:
-            elt.set("methods_last", unicode(self.methods_last))
+            elt.set("methods_last", str(self.methods_last))
         if self.compute is not None:
             elt.set("compute", self.compute)
         if self.cleanup is not None:

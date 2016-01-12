@@ -34,12 +34,12 @@
 ##
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 ################################################################################
 class HandlerConfigurationWidget(SourceConfigurationWidget):
@@ -164,7 +164,7 @@ class vtkInteractionHandler(NotCacheable, Module):
         if len(self.shareddata)==1:
             self.shareddata = self.shareddata[0]
         if self.observer:
-            source = urllib.unquote(self.handler)
+            source = urllib.parse.unquote(self.handler)
             observer = self.observer.vtkInstance
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
@@ -183,13 +183,13 @@ class vtkInteractionHandler(NotCacheable, Module):
         
         """
         if self.handler!='':
-            source = urllib.unquote(self.handler)
+            source = urllib.parse.unquote(self.handler)
             f = event[0].lower() + event[1:]
             f = f.replace('Event', 'Handler')
             myGlobals = globals()
             myGlobals.update({'self':self})
-            exec(source + ('\nif locals().has_key("%s"):\n' % f)+
-                 ('\t%s(obj, self.shareddata)' % f)) in myGlobals, locals()
+            exec((source + ('\nif locals().has_key("%s"):\n' % f)+
+                 ('\t%s(obj, self.shareddata)' % f)), myGlobals, locals())
 
     def clear(self):
         """ clear() -> None

@@ -36,7 +36,7 @@
 
 ##############################################################################
 # Transfer Function Widget for VTK
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module
@@ -49,7 +49,7 @@ import vtk
 import math
 import pickle
 import copy
-import StringIO
+import io
 import unittest
 ElementTree = get_elementtree_library()
 
@@ -192,7 +192,7 @@ class TransferFunction(object):
                     if module == 'packages.vtk.tf_widget':
                         module = 'vistrails.packages.vtk.tf_widget'
                     return pickle.Unpickler.find_class(self, module, name)
-            tf = FixUnpickler(StringIO.StringIO(strNode.decode('hex'))).load()
+            tf = FixUnpickler(io.StringIO(strNode.decode('hex'))).load()
             tf._pts.sort()
             return tf
         
@@ -531,7 +531,7 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         polygon = QtGui.QGraphicsPolygonItem(QtGui.QPolygonF(ps), self)
         polygon.setPen(pen)
 
-        for i in xrange(51):
+        for i in range(51):
             u = GLOBAL_SCALE * float(i) / 50.0
 
             line = QtGui.QGraphicsLineItem(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), self)

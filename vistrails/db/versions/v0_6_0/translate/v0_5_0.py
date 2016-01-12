@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.db.versions.v0_6_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
@@ -44,7 +44,7 @@ def translateVistrail(_vistrail):
     # FIXME should this be a deepcopy?
     vistrail = DBVistrail()
 
-    for _action in _vistrail.db_actions.itervalues():
+    for _action in _vistrail.db_actions.values():
         ops = []
         for op in _action.db_operations:
             if op.vtType == 'add':
@@ -77,7 +77,7 @@ def translateVistrail(_vistrail):
                           operations=ops)
         vistrail.db_add_action(action)
 
-    for _tag in _vistrail.db_tags.itervalues():
+    for _tag in _vistrail.db_tags.values():
         tag = DBTag(id=_tag.db_time,
                     name=_tag.db_name)
         vistrail.db_add_tag(tag)

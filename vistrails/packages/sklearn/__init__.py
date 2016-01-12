@@ -32,7 +32,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.requirements import require_python_module
 

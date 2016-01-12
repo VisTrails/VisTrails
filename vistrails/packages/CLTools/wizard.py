@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 if __name__ == '__main__':
     import sip
@@ -110,7 +110,7 @@ class Command(object):
         if 'stderr' not in kwargs:
             kwargs['stderr'] = subprocess.PIPE
         # thread
-        print "calling with kwargs", target, kwargs
+        print("calling with kwargs", target, kwargs)
         thread = threading.Thread(target=target, kwargs=kwargs)
         thread.start()
         thread.join(timeout)
@@ -383,7 +383,7 @@ class QCLToolsWizard(QtGui.QWidget):
         try:
             conf = json.load(open(fileName))
         except  ValueError as exc:
-            print "Error opening Wrapper '%s': %s" % (fileName, exc)
+            print("Error opening Wrapper '%s': %s" % (fileName, exc))
             return
         self.newFile()
         self.file = fileName
@@ -434,7 +434,7 @@ class QCLToolsWizard(QtGui.QWidget):
         if self.stderrGroup.isVisible():
             conf['stderr'] = self.stderrWidget.toList()
         args = []
-        for row in xrange(self.argList.count()):
+        for row in range(self.argList.count()):
             arg = self.argList.itemWidget(self.argList.item(row))
             args.append(arg.toList())
         conf['args'] = args
@@ -584,9 +584,9 @@ class QCLToolsWizard(QtGui.QWidget):
                 outtext.append("%s: %s%s" % (name, 'File', optional))
         
         intext = ''.join(['Input %s. %s\n' % (i+1, t)
-                          for i, t in zip(xrange(len(intext)), intext)])
+                          for i, t in zip(range(len(intext)), intext)])
         outtext = ''.join(['Output %s. %s\n' % (i+1, t)
-                            for i, t in zip(xrange(len(outtext)), outtext)])
+                            for i, t in zip(range(len(outtext)), outtext)])
         
         self.helppageView = QManpageDialog("Module Ports for this Wrapper",
                                      intext + "\n" + outtext, self)
@@ -833,7 +833,7 @@ class QArgWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.stdTypes = ['stdin', 'stdout', 'stderr']
         self.stdLabels = ['Standard input', 'Standard output', 'Standard error']
-        self.stdDict = dict(zip(self.stdTypes, self.stdLabels))
+        self.stdDict = dict(list(zip(self.stdTypes, self.stdLabels)))
 
         self.argtype = argtype.lower()
         self.name = name
@@ -929,8 +929,8 @@ class QArgWidget(QtGui.QWidget):
         
         # subtype
         self.subList = ['String', 'Integer', 'Float', 'File', 'Directory', 'Path']
-        self.subDict = dict(zip(self.subList, xrange(len(self.subList))))
-        self.subDict.update(dict(zip([s.lower() for s in self.subList], xrange(len(self.subList)))))
+        self.subDict = dict(list(zip(self.subList, list(range(len(self.subList))))))
+        self.subDict.update(dict(list(zip([s.lower() for s in self.subList], list(range(len(self.subList)))))))
         self.subtype = QtGui.QComboBox()
         self.subtype.addItems(self.subList)
         self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
@@ -1143,12 +1143,12 @@ class QManpageImport(QtGui.QDialog):
         self.resize(800,600)
 
     def selectAll(self):
-        for i in xrange(self.argLayout.count()):
+        for i in range(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)
             w.layout().itemAt(0).widget().setChecked(True)
 
     def selectNone(self):
-        for i in xrange(self.argLayout.count()):
+        for i in range(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)
             w.layout().itemAt(0).widget().setChecked(False)
 
@@ -1156,7 +1156,7 @@ class QManpageImport(QtGui.QDialog):
         # collect selected arguments and send through signal
         args = []
         remove_list = []
-        for i in xrange(self.argLayout.count()):
+        for i in range(self.argLayout.count()):
             w = self.argLayout.layout().itemAt(i)
             if w.layout().itemAt(0).widget().isChecked():
                 remove_list.append(w)

@@ -38,7 +38,7 @@
 StandardWidgetTabController
 """
 
-from __future__ import division
+
 
 from ast import literal_eval
 import copy
@@ -320,8 +320,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """ removeSheetReference(sheet: StandardWidgetSheetTab) -> None
         Remove references of a sheet from the spreadsheet
         """
-        for (code, locations) in self.monitoredPipelines.iteritems():
-            for lid in reversed(xrange(len(locations))):
+        for (code, locations) in self.monitoredPipelines.items():
+            for lid in reversed(range(len(locations))):
                 if sheet==locations[lid][0]:
                     del locations[lid]
 
@@ -348,7 +348,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.executedPipelines = [[], {}, {}]
         while self.count()>0:
             self.deleteSheetActionTriggered()
-        for i in reversed(range(len(self.tabWidgets))):
+        for i in reversed(list(range(len(self.tabWidgets)))):
             t = self.tabWidgets[i]
             del self.tabWidgets[i]
             self.removeSheetReference(t)
@@ -377,7 +377,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         if not sheetReference:
             return None
         sheetReference.clearCandidate()
-        for idx in xrange(len(self.tabWidgets)):
+        for idx in range(len(self.tabWidgets)):
             tabWidget = self.tabWidgets[idx]
             tabLabel = tabWidget.windowTitle()
             sheetReference.checkCandidate(tabWidget, tabLabel, idx,
@@ -482,7 +482,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if fs:
             idx = self.currentIndex()
-            for i in xrange(self.count()):
+            for i in range(self.count()):
                 widget = self.widget(0)
                 self.removeTab(0)
                 self.tabTrueParent = widget.parent()
@@ -492,7 +492,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.operatingWidget = stackedWidget
         else:
             idx = stackedWidget.currentIndex()
-            for i in xrange(stackedWidget.count()):
+            for i in range(stackedWidget.count()):
                 widget = stackedWidget.widget(0)
                 stackedWidget.removeWidget(widget)
                 widget.setParent(self.tabTrueParent)
@@ -531,7 +531,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.showPrevTabAction().setEnabled(en)
         menu.addAction(self.showPrevTabAction())
         menu.addSeparator()
-        for idx in xrange(self.operatingWidget.count()):
+        for idx in range(self.operatingWidget.count()):
             t = self.operatingWidget.widget(idx)
             action = menu.addAction(t.windowTitle())
             action.setData(idx)
@@ -642,8 +642,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             need_save_vt = False
             for t in self.tabWidgets:
                 dim = t.getDimension()
-                for r in xrange(dim[0]):
-                    for c in xrange(dim[1]):
+                for r in range(dim[0]):
+                    for c in range(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
                             controller = info[0]['controller']
@@ -669,8 +669,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 indexFile.write('%s\n'%str((str(t.windowTitle()),
                                             sheet,
                                             dim[0], dim[1])))
-                for r in xrange(dim[0]):
-                    for c in xrange(dim[1]):
+                for r in range(dim[0]):
+                    for c in range(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
                             newinfo0 = copy.copy(info[0])
@@ -738,7 +738,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         lines = contents.split('\n')
         tabCount = int(lines[lidx])
         lidx += 1
-        for tabIdx in xrange(tabCount):
+        for tabIdx in range(tabCount):
             # FIXME: eval should pretty much never be used
             tabInfo = literal_eval(lines[lidx])
             lidx += 1
@@ -748,7 +748,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             while lines[lidx]!='---':
                 (r, c, vistrail, pid, cid) = literal_eval(lines[lidx])
                 locator = vistrail['locator']
-                if locators.has_key(locator):
+                if locator in locators:
                     vistrail['locator'] = locators[locator]
                 else:
                     locators[locator] = parse_locator(vistrail['locator'])
@@ -766,7 +766,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          QtCore.Qt.WindowStaysOnTopHint
                                          )
         progress.show()
-        for pipelineIdx in xrange(pipelineCount):
+        for pipelineIdx in range(pipelineCount):
             # FIXME: eval should pretty much never be used
             (serializedLocator, version) = literal_eval(lines[lidx])
             try:

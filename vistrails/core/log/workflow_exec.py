@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.log.machine import Machine
 from vistrails.core.log.module_exec import ModuleExec

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import copy
 
@@ -52,7 +52,7 @@ class Bidict(dict):
 
         dict.__init__(self, *args, **kwargs)
         self.inverse = {}
-        for (k, v) in self.iteritems():
+        for (k, v) in self.items():
             self.inverse[v] = k
 
     def __setitem__(self, key, value):
@@ -74,7 +74,7 @@ class Bidict(dict):
 
     def update(self, other):
         if hasattr(other, 'iterkeys'):
-            for i in other.iterkeys():
+            for i in other.keys():
                 self[i] = other[i]
         else:
             for (k,v) in other:
@@ -88,9 +88,9 @@ class TestBidict(unittest.TestCase):
 
     def test1(self):
         x = Bidict()
-        for i in xrange(10):
+        for i in range(10):
             x[i] = 9-i
-        for i in xrange(10):
+        for i in range(10):
             self.assertEquals(x[i], 9-i)
             self.assertEquals(x.inverse[i], 9-i)
         del x[1]

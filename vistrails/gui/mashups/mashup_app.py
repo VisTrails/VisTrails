@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 from PyQt4 import QtCore, QtGui
@@ -244,9 +244,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 cellEvents = spreadsheetController.getEchoCellEvents()
             else:
                 return [], True
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
-            print "Executing pipeline failed:", debug.format_exc()
+            print("Executing pipeline failed:", debug.format_exc())
         finally:
             spreadsheetController.setEchoMode(False)
 
@@ -274,7 +274,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if cellEvents:
                 self.initCells(cellEvents)
         #self.SaveCamera()
-        for i in xrange(self.numberOfCells):
+        for i in range(self.numberOfCells):
             camera = []
             if (hasattr(self.cellWidgets[i],"getRendererList") and
                 self.cb_keep_camera.isChecked()):
@@ -296,12 +296,12 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 if slider.value() < len(self.steps):
                     self.updateRenderedCells(slider.value())
             else:
-                for i in xrange(self.numberOfCells):
+                for i in range(self.numberOfCells):
                     self.cellWidgets[i].setPlayerFrame(slider.value())
             return
 
         if not interactive:
-            for i in xrange(self.numberOfCells):
+            for i in range(self.numberOfCells):
                 self.cellWidgets[i].clearHistory()
 
         self.is_executing = True
@@ -330,7 +330,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 self.steps.append([])
             else:
                 self.steps = [[]]
-            for i in xrange(self.numberOfCells):
+            for i in range(self.numberOfCells):
                 self.steps[-1].append(cellEvents[i].inputPorts)
 
             # show the result
@@ -349,7 +349,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         """ Show the cell specified by slider info
         """
         self.is_executing = True
-        for i in xrange(self.numberOfCells):
+        for i in range(self.numberOfCells):
             camera = []
             if (hasattr(self.cellWidgets[i],"getRendererList") and
                 self.cb_keep_camera.isChecked()):
@@ -399,17 +399,17 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 self.loopButton.setChecked(False)
                 return
 
-            for i in xrange(self.numberOfCells):
+            for i in range(self.numberOfCells):
                 self.cellWidgets[i].setAnimationEnabled(False)
 
             self.updateRenderedCells(stepper.value())
 
-            for i in xrange(self.numberOfCells):
+            for i in range(self.numberOfCells):
                 self.cellWidgets[i].setAnimationEnabled(True)
 
     def toggleEditingMode(self):
         if len(self.controlDocks) > 0:
-            for dock in self.controlDocks.itervalues():
+            for dock in self.controlDocks.values():
                 dock.toggleTitleBar()
             self.editing = not self.editing
         if not self.editing:
@@ -438,7 +438,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.cb_loop_sequence.setEnabled(True)
             self.loopButton.setEnabled(True)
             if self.cb_loop_sequence.isChecked() and not self.cb_loop_int.isChecked():
-                for i in xrange(self.numberOfCells):
+                for i in range(self.numberOfCells):
                     cell = self.cellWidgets[i]
                     cell._player.hide()
                     cell.show()
@@ -449,7 +449,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.cb_loop_sequence.setEnabled(False)
             self.loopButton.setEnabled(False)
             if self.cb_loop_sequence.isChecked() and not self.cb_loop_int.isChecked():
-                for i in xrange(self.numberOfCells):
+                for i in range(self.numberOfCells):
                     cell = self.cellWidgets[i]
                     cell._player.setParent(cell.parent())
                     cell._player.setGeometry(cell.geometry())
@@ -579,7 +579,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 params.append((alias.component.vttype, alias.component.vtid,
                               alias.component.val))
         else:
-            for (aliasName, edit) in self.cellControls.iteritems():
+            for (aliasName, edit) in self.cellControls.items():
                 alias = self.currentMashup.getAliasByName(aliasName)
                 if hasattr(edit, 'contents'):
                     val = str(edit.contents())
@@ -599,7 +599,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         job_id = 'Mashup %s %s' % (self.currentMashup.version, self.currentMashup.id)
         current_workflow = None
-        for wf in self.view.controller.jobMonitor.workflows.itervalues():
+        for wf in self.view.controller.jobMonitor.workflows.values():
             if job_id == wf.version:
                 current_workflow = wf
                 self.view.controller.jobMonitor.startWorkflow(wf)
@@ -625,8 +625,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
           result.objects, result.errors, result.executed, result.suspended
 
         if len(errors) > 0:
-            print '=== ERROR EXECUTING PIPELINE ==='
-            print errors
+            print('=== ERROR EXECUTING PIPELINE ===')
+            print(errors)
             return (False, errors)
         return (not suspended, [])
 

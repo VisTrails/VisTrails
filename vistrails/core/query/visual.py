@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core import query
 from vistrails.core.modules.module_registry import get_module_registry
@@ -94,11 +94,11 @@ class VisualQuery(query.Query):
             p = vistrail.getPipeline(version)
             matches = set()
             queryModuleNameIndex = {}
-            for moduleId, module in p.modules.iteritems():
+            for moduleId, module in p.modules.items():
                 append_to_dict_of_lists(queryModuleNameIndex, module.name, moduleId)
             for querySourceId in self.queryPipeline.graph.sources():
                 querySourceName = self.queryPipeline.modules[querySourceId].name
-                if not queryModuleNameIndex.has_key(querySourceName):
+                if querySourceName not in queryModuleNameIndex:
                     # need to reset matches here!
                     matches = set()
                     continue
@@ -147,7 +147,7 @@ class VisualQuery(query.Query):
         if target.getNumFunctions()>template.getNumFunctions():
             return False
         candidateFunctions = {}
-        for fid in xrange(template.getNumFunctions()):
+        for fid in range(template.getNumFunctions()):
             f = template.functions[fid]
             append_to_dict_of_lists(candidateFunctions, f.name, f)
 
@@ -160,7 +160,7 @@ class VisualQuery(query.Query):
                 if len(cf.params)!=len(f.params):
                     continue
                 pMatch = True
-                for pid in xrange(len(cf.params)):
+                for pid in range(len(cf.params)):
                     cp = cf.params[pid]
                     p = f.params[pid]                    
                     if not self.matchQueryParam(p, cp):

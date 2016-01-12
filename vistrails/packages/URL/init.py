@@ -44,15 +44,15 @@ way, files that haven't been changed do not need to be downloaded again. The
 check is performed efficiently using HTTP headers.
 """
 
-from __future__ import division
+
 
 from datetime import datetime
 import email.utils
 import hashlib
 import os
 import re
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.configuration import get_vistrails_persistent_configuration
@@ -91,7 +91,7 @@ class Downloader(object):
         Returns the path to the local file.
         """
         self.local_filename = os.path.join(package_directory,
-                                           urllib.quote_plus(self.url))
+                                           urllib.parse.quote_plus(self.url))
 
         # Before download
         self.pre_download()
@@ -99,7 +99,7 @@ class Downloader(object):
         # Send request
         try:
             response = self.send_request()
-        except urllib2.URLError, e:
+        except urllib.error.URLError as e:
             if self.is_in_local_cache:
                 debug.warning("A network error occurred. DownloadFile will "
                               "use a cached version of the file")
@@ -151,7 +151,7 @@ class Downloader(object):
             f2.close()
             response.close()
 
-        except Exception, e:
+        except Exception as e:
             try:
                 os.unlink(self.local_filename)
             except OSError:
@@ -179,7 +179,7 @@ class HTTPDownloader(Downloader):
 
     def send_request(self):
         try:
-            request = urllib2.Request(self.url)
+            request = urllib.request.Request(self.url)
             if self.etag is not None:
                 request.add_header(
                     'If-None-Match',
@@ -194,7 +194,7 @@ class HTTPDownloader(Downloader):
             except OSError:
                 pass
             return self.opener.open(request)
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             if e.code == 304:
                 # Not modified
                 return None
@@ -298,8 +298,8 @@ class SSHDownloader(object):
                 raise ModuleError(self.module,
                                   "SSH error: invalid URL %r" % self.url)
             username, password, hostname, portnum, path = m.groups()
-            password = urllib.unquote_plus(password)
-            path = urllib.unquote_plus(path)
+            password = urllib.parse.unquote_plus(password)
+            path = urllib.parse.unquote_plus(path)
         elif self.url.startswith('scp:'):
             m = self.SCP_FORMAT.match(self.url)
             if m is None:
@@ -325,14 +325,14 @@ class SSHDownloader(object):
                 'pip': 'scp'})
 
         local_filename = os.path.join(package_directory,
-                                      urllib.quote_plus(self.url))
+                                      urllib.parse.quote_plus(self.url))
 
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
         try:
             ssh.connect(hostname, port=portnum,
                         username=username, password=password)
-        except paramiko.SSHException, e:
+        except paramiko.SSHException as e:
             raise ModuleError(self.module, debug.format_exception(e))
         client = scp.SCPClient(ssh.get_transport())
 
@@ -386,7 +386,7 @@ class DownloadFile(Module):
 
         Returns the path to the local file.
         """
-        scheme = urllib2.splittype(url)[0]
+        scheme = urllib.parse.splittype(url)[0]
         DL = downloaders.get(scheme, Downloader)
         return DL(url, self, insecure).execute()
 
@@ -461,11 +461,11 @@ class RepoSync(Module):
                                                    self.checksum)
         self.on_server = False
         try:
-            check_dataset_on_repo = urllib2.urlopen(url=checksum_url)
+            check_dataset_on_repo = urllib.request.urlopen(url=checksum_url)
             self.up_to_date = True if \
                     check_dataset_on_repo.read() == 'uptodate' else False
             self.on_server = True
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             self.up_to_date = True
 
     def data_sync(self):
@@ -486,9 +486,9 @@ class RepoSync(Module):
                 upload_url = "%s/datasets/upload/" % self.base_url
 
                 datagen, headers = multipart_encode(params)
-                request = urllib2.Request(upload_url, datagen, headers)
+                request = urllib.request.Request(upload_url, datagen, headers)
                 try:
-                    result = urllib2.urlopen(request)
+                    result = urllib.request.urlopen(request)
                     if result.code != 200:
                         show_warning("Upload Failure",
                                      "Data failed to upload to repository")
@@ -498,7 +498,7 @@ class RepoSync(Module):
                         debug.warning("Push to repository was successful")
                         # make sure module caches
                         self.is_cacheable = self.validate_cache
-                except Exception, e:
+                except Exception as e:
                     show_warning("Upload Failure",
                                  "Data failed to upload to repository")
                     # make temporarily uncachable
@@ -523,12 +523,12 @@ class RepoSync(Module):
                 self.url = "%s/datasets/download/%s" % (self.base_url,
                                                        self.checksum)
                 local_filename = package_directory + '/' + \
-                        urllib.quote_plus(self.url)
+                        urllib.parse.quote_plus(self.url)
                 if not self._file_is_in_local_cache(local_filename):
                     # file not in cache, download.
                     try:
-                        urllib.urlretrieve(self.url, local_filename)
-                    except IOError, e:
+                        urllib.request.urlretrieve(self.url, local_filename)
+                    except IOError as e:
                         raise ModuleError(self, ("Invalid URL: %s" % e))
                 out_file = PathObject(local_filename)
                 debug.warning('RepoSync is using repository data')
@@ -542,7 +542,7 @@ class RepoSync(Module):
             self.checksum = self.get_input("checksum")
             # get file path
             path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
-            dataset_path_request = urllib2.urlopen(url=path_url)
+            dataset_path_request = urllib.request.urlopen(url=path_url)
             dataset_path = dataset_path_request.read()
 
             if os.path.isfile(dataset_path):
@@ -589,13 +589,13 @@ class RepoSync(Module):
 class URLEncode(Module):
     def compute(self):
         value = self.get_input('string')
-        self.set_output('encoded', urllib.quote_plus(value))
+        self.set_output('encoded', urllib.parse.quote_plus(value))
 
 
 class URLDecode(Module):
     def compute(self):
         encoded = self.get_input('encoded')
-        self.set_output('string', urllib.unquote_plus(encoded))
+        self.set_output('string', urllib.parse.unquote_plus(encoded))
 
 
 def initialize(*args, **keywords):
@@ -647,7 +647,7 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating HTTP package directory: %s" % package_directory)
             os.mkdir(package_directory)
-        except Exception, e:
+        except Exception as e:
             raise RuntimeError("Failed to create cache directory: %s" %
                                package_directory, e)
 

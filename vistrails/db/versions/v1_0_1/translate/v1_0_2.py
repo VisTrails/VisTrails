@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.db.versions.v1_0_1.domain import DBVistrail, DBWorkflow, DBLog, \
@@ -69,7 +69,7 @@ def translateVistrail(_vistrail):
 
     def update_tags(old_obj, translate_dict):
         new_tags = []
-        for (id, (_, tag, is_new, is_dirty)) in tag_annotations.iteritems():
+        for (id, (_, tag, is_new, is_dirty)) in tag_annotations.items():
             new_tag = DBTag(id=id, name=tag)
             new_tag.is_new = is_new
             new_tag.is_dirty = is_dirty
@@ -166,7 +166,7 @@ def translateVistrail(_vistrail):
                       'DBAction': {'annotations': update_annotations,
                                    'prune': update_prune}}
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
-    for (id, (_, tag, is_new, is_dirty)) in del_tag_annotations.iteritems():
+    for (id, (_, tag, is_new, is_dirty)) in del_tag_annotations.items():
         new_tag = DBTag(id=id, name=tag)
         new_tag.is_new = is_new
         new_tag.is_dirty = is_dirty

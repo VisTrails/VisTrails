@@ -36,7 +36,7 @@
 ################################################################################
 # Richtext widgets implementation
 ################################################################################
-from __future__ import division
+
 
 import os
 from PyQt4 import QtCore, QtGui
@@ -139,7 +139,7 @@ class RichTextCellWidget(QCellWidget):
 
         """
         (self.html,) = inputPorts
-        if isinstance(self.html, unicode):
+        if isinstance(self.html, str):
             html = self.html
         else:
             codec = QtCore.QTextCodec.codecForHtml(self.html)

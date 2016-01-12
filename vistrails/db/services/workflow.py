@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 def update_id_scope(workflow):
     if hasattr(workflow, 'update_id_scope'):

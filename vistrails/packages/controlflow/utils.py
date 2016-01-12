@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from fold import Fold, FoldWithModule
+from .fold import Fold, FoldWithModule
 
 #################################################################################
 ## Some useful loop structures
@@ -122,14 +122,14 @@ class Or(Fold):
 ###############################################################################
 
 import unittest
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from vistrails.tests.utils import intercept_result, execute
 
 
 class TestMap(unittest.TestCase):
     def test_simple(self):
-        src = urllib2.quote('o = i + 1')
+        src = urllib.parse.quote('o = i + 1')
         with intercept_result(Map, 'Result') as results:
             self.assertFalse(execute([
                     ('PythonSource', 'org.vistrails.vistrails.basic', [
@@ -153,7 +153,7 @@ class TestMap(unittest.TestCase):
         self.assertEqual(results, [[2, 3, 9, 10.1]])
 
     def test_tuple(self):
-        src = urllib2.quote('o = len(i[0]) + i[1]')
+        src = urllib.parse.quote('o = len(i[0]) + i[1]')
         with intercept_result(Map, 'Result') as results:
             self.assertFalse(execute([
                     ('PythonSource', 'org.vistrails.vistrails.basic', [
@@ -178,7 +178,7 @@ class TestMap(unittest.TestCase):
         self.assertEqual(results, [[3, 8, 5]])
 
     def test_multiple(self):
-        src = urllib2.quote('o = i + j')
+        src = urllib.parse.quote('o = i + j')
         with intercept_result(Map, 'Result') as results:
             self.assertFalse(execute([
                     ('PythonSource', 'org.vistrails.vistrails.basic', [
@@ -207,7 +207,7 @@ class TestMap(unittest.TestCase):
 
 class TestUtils(unittest.TestCase):
     def test_filter(self):
-        src = urllib2.quote('o = bool(i)')
+        src = urllib.parse.quote('o = bool(i)')
         with intercept_result(Filter, 'Result') as results:
             self.assertFalse(execute([
                     ('PythonSource', 'org.vistrails.vistrails.basic', [

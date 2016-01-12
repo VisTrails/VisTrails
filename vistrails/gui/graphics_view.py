@@ -40,7 +40,7 @@ QInteractiveGraphicsScene
 QInteractiveGraphicsView
 QPIPGraphicsView
 """
-from __future__ import division
+
 
 from vistrails.core import debug
 from PyQt4 import QtCore, QtGui
@@ -103,7 +103,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         
         """
         self.sceneBoundingRect = QtCore.QRectF()
-        for item in self.items():
+        for item in list(self.items()):
             rect = item.sceneBoundingRect()
             self.sceneBoundingRect = self.sceneBoundingRect.united(rect)
 
@@ -168,7 +168,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         Remove and delete all items belonging to this scene
         
         """
-        self.removeItems(self.items())
+        self.removeItems(list(self.items()))
 
     def removeItems(self, itemList):
         """ removeItems(itemList: sequence of [QGraphicsItem]) -> None
@@ -215,7 +215,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
                 pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
-        except Exception, e:
+        except Exception as e:
             debug.critical("Exception saving to PNG", e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
@@ -380,7 +380,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             state2Button = {0: QtCore.Qt.LeftButton,
                             1: QtCore.Qt.MidButton,
                             2: QtCore.Qt.RightButton}
-            if state2Button.has_key(state):
+            if state in state2Button:
                 return state2Button[state]
         return event.buttons()
 

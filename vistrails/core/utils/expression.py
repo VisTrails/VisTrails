@@ -35,7 +35,7 @@
 ###############################################################################
 """ Helper functions for parsing and evaluating expressions """
 
-from __future__ import division
+
 
 ################################################################################
 
@@ -49,7 +49,7 @@ def evaluate_expressions(expressions):
     (base, exps) = parse_expression(str(expressions))
     for e in exps:
         try:
-            base = base[:e[0]] + unicode(eval(e[1], None, None)) + base[e[0]:]
+            base = base[:e[0]] + str(eval(e[1], None, None)) + base[e[0]:]
         except Exception:
             base = base[:e[0]] + '$' + e[1] + '$' + base[e[0]:]
     return base

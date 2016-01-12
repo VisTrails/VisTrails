@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import vistrails.core.db.action
 from vistrails.core.db.locator import XMLFileLocator
@@ -61,7 +61,7 @@ import vistrails.db.versions
 
 import copy
 import inspect
-from itertools import izip
+
 import os
 import re
 import sys
@@ -113,7 +113,7 @@ def execute_wf(wf, output_port):
             action_list.append(('add', connection))
         action = vistrails.core.db.action.create_action(action_list)
 
-        vistrail.add_action(action, 0L)
+        vistrail.add_action(action, 0)
         vistrail.update_id_scope()
         tag = 'parallel flow'
         vistrail.addTag(tag, action.id)
@@ -196,14 +196,14 @@ class Map(Module):
 
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
-        for port_name, connector_list in self.inputPorts.iteritems():
+        for port_name, connector_list in self.inputPorts.items():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
                     connector.obj.update_upstream()
             else:
                 for connector in connector_list:
                     connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+        for port_name, connectorList in copy.copy(list(self.inputPorts.items())):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
@@ -303,8 +303,8 @@ class Map(Module):
 
                 # adding function and parameter to module in pipeline
                 # TODO: 'pos' should not be always 0 here
-                id_scope = IdScope(beginId=long(high_id+1))
-                for elementValue, inputPort in izip(element, nameInput):
+                id_scope = IdScope(beginId=int(high_id+1))
+                for elementValue, inputPort in zip(element, nameInput):
 
                     p_spec = pipeline_db_module.get_port_spec(inputPort, 'input')
                     descrs = p_spec.descriptors()
@@ -321,7 +321,7 @@ class Map(Module):
                     mod_function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
                                                   pos=0,
                                                   name=inputPort)
-                    mod_param = ModuleParam(id=0L,
+                    mod_param = ModuleParam(id=0,
                                             pos=0,
                                             type=type,
                                             val=elementValue)
@@ -339,7 +339,7 @@ class Map(Module):
         # IPython stuff
         try:
             rc = get_client()
-        except Exception, error:
+        except Exception as error:
             raise ModuleError(self, "Exception while loading IPython: %s" %
                               debug.format_exception(error))
         if rc is None:
@@ -386,7 +386,7 @@ class Map(Module):
                         '        {"spawned": True},'
                         '        args=[])',
                         block=True)
-            except CompositeError, e:
+            except CompositeError as e:
                 self.print_compositeerror(e)
                 raise ModuleError(self, "Error initializing application on "
                                   "IPython engines:\n"
@@ -402,7 +402,7 @@ class Map(Module):
         try:
             ldview = rc.load_balanced_view()
             map_result = ldview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
-        except CompositeError, e:
+        except CompositeError as e:
             self.print_compositeerror(e)
             raise ModuleError(self, "Error from IPython engines:\n"
                               "%s" % self.list_exceptions(e))
@@ -537,7 +537,7 @@ def get_module(value, signature):
         return List
     elif isinstance(value, tuple):
         v_modules = ()
-        for element in xrange(len(value)):
+        for element in range(len(value)):
             v_modules += (get_module(value[element], signature[element]))
         return v_modules
     else:

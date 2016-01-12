@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
@@ -539,9 +539,9 @@ def initialize():
     global _modules
     _modules = [Machine, RQModule, RunPBSScript, RunCommand, RunJob,
                 SyncDirectories, CopyFile]
-    import base
-    import hdfs
-    import streaming
+    from . import base
+    from . import hdfs
+    from . import streaming
     _modules.extend(base.register())
     _modules.extend(hdfs.register())
     _modules.extend(streaming.register())

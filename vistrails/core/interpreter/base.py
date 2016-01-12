@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core import debug
 
@@ -91,7 +91,7 @@ class BaseInterpreter(object):
         if customAliases:
             #customAliases can be only a subset of the aliases
             #so we need to build the Alias Dictionary always
-            for k,v in customAliases.iteritems():
+            for k,v in customAliases.items():
                 aliases[k] = v
             # no support for expression evaluation. The code that does that is
             # ugly and dangerous.
@@ -118,7 +118,7 @@ class BaseInterpreter(object):
                 try:
                     param = pipeline.db_get_object(vttype,oId)
                     param.strValue = str(strval)
-                except Exception, e:
+                except Exception as e:
                     debug.debug("Problem when updating params", e)
 
     def resolve_variables(self, vistrail_variables, pipeline):

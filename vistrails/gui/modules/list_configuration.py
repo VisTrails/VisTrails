@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -143,7 +143,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         if requested > current:
             sigstring = '(%s:Variant)' % get_vistrails_basic_pkg_id()
             add_ports = [('input', 'item%d' % i, sigstring, -1)
-                           for i in xrange(current, requested)]
+                           for i in range(current, requested)]
             self.controller.update_ports(self.module.id, [], add_ports)
         elif requested < current:
             delete_ports = [('input', p.name) for p in self.module.input_port_specs[requested-current:]]

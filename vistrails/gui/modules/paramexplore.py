@@ -38,7 +38,7 @@ exploration. This allows user-defined constants to be used as dimensions
 in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.basic_modules import Color
@@ -146,7 +146,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
         
-        self.setText(unichr(0x25bc)) # Down triangle
+        self.setText(chr(0x25bc)) # Down triangle
 
         self.actionGroup = QtGui.QActionGroup(self)
 
@@ -496,7 +496,7 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         result = []
-        for i in xrange(self.table.rowCount()):
+        for i in range(self.table.rowCount()):
             logicalIndex = self.table.verticalHeader().logicalIndex(i)
             value = self.table.item(logicalIndex, 0).text()            
             result.append(str(value))
@@ -509,7 +509,7 @@ class QListEditDialog(QtGui.QDialog):
         """
         vHeader = self.table.verticalHeader()
         labels = []        
-        for i in xrange(self.table.rowCount()):
+        for i in range(self.table.rowCount()):
             labels.append(str(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
@@ -671,8 +671,8 @@ class QUserFunctionEditor(QtGui.QFrame):
             values = []
             d = {}
             try:
-                exec(self.function) in {}, d
-            except Exception, e:
+                exec((self.function), {}, d)
+            except Exception as e:
                 return [module.default_value] * count
             def evaluate(i):
                 try:
@@ -680,10 +680,10 @@ class QUserFunctionEditor(QtGui.QFrame):
                     if v is None:
                         return module.default_value
                     return v
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     return debug.format_exception(e)
-            return [evaluate(i) for i in xrange(self.size)]
+            return [evaluate(i) for i in range(self.size)]
         result = get()
         
         if not all(module.validate(x) for x in result):

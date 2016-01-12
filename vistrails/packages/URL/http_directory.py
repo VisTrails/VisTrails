@@ -36,9 +36,9 @@
 
 # https://gist.github.com/remram44/6540454
 
-from __future__ import division
 
-from HTMLParser import HTMLParser
+
+from html.parser import HTMLParser
 import os
 import re
 

@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 try:
     import simplejson as json
@@ -208,7 +208,7 @@ class TestJSON(unittest.TestCase):
             else:
                 self.assertEqual(names, [])
                 self.assertIsNone(table.names)
-                self.assertEqual([table.get_column(col) for col in xrange(3)],
+                self.assertEqual([table.get_column(col) for col in range(3)],
                                  [[2, 9, 4],
                                   [7, 5, 3],
                                   [6, 1, 8]])

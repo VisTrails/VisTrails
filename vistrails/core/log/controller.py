@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import copy
 
@@ -51,7 +51,6 @@ from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.core.system
 
 
-@apply
 class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
@@ -70,6 +69,7 @@ class DummyLogController(object):
     def add_machine(self, *args, **kwargs): return -1
     def get_iteration_from_module(self, *args, **kwargs): return None
     def __call__(self): return self
+DummyLogController = DummyLogController()
 
 
 class LogController(object):
@@ -317,7 +317,7 @@ class LogWorkflowController(LogController):
     def insert_module_annotations(self, module, a_dict):
         """Adds an annotation on the execution object for this module.
         """
-        for k, v in a_dict.iteritems():
+        for k, v in a_dict.items():
             a_id = self.log.id_scope.getNewId(Annotation.vtType)
             annotation = Annotation(id=a_id,
                                     key=k,
@@ -331,7 +331,7 @@ class LogWorkflowController(LogController):
         module but of the whole pipeline.
         """
         if self.workflow_exec:
-            for k, v in a_dict.iteritems():
+            for k, v in a_dict.items():
                 a_id = self.log.id_scope.getNewId(Annotation.vtType)
                 annotation = Annotation(id=a_id,
                                         key=k,

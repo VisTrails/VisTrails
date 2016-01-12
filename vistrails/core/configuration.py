@@ -37,7 +37,7 @@
 """Configuration variables for controlling specific things in VisTrails.
 """
 
-from __future__ import division
+
 
 import argparse
 import ast
@@ -596,7 +596,7 @@ class ConfigField(object):
             return self.val_type.from_string(str_val)
         if not str_val:
             return None
-        if issubclass(self.val_type, basestring):
+        if issubclass(self.val_type, str):
             return str_val
         val = ast.literal_eval(str_val)
         if not isinstance(val, self.val_type):
@@ -609,7 +609,7 @@ class ConfigField(object):
             return self.val_type.to_string(val)
         elif val is None:
             return ""
-        return unicode(val)
+        return str(val)
 
 class ConfigFieldParent(object):
     def __init__(self, name, sub_fields):
@@ -775,7 +775,7 @@ all_configs = [base_config, mac_config, win_config, linux_config]
 
 def build_config_obj(d):
     new_d = {}
-    for category, fields in d.iteritems():
+    for category, fields in d.items():
         for field in fields:
             if isinstance(field, ConfigFieldParent):
                 new_d[field.name] = build_config_obj({category:
@@ -789,7 +789,7 @@ def build_config_obj(d):
                     val_type = field.val_type
                     if (field.val_type == ConfigPath or
                         field.val_type == ConfigURL):
-                        val_type = basestring
+                        val_type = str
                     new_d[field.name] = (v, val_type)
                 else:
                     new_d[field.name] = v
@@ -797,7 +797,7 @@ def build_config_obj(d):
 
 def get_system_config():
     config = {}
-    config.update((k, copy.copy(v)) for k, v in base_config.iteritems())
+    config.update((k, copy.copy(v)) for k, v in base_config.items())
     if system.systemType in ['Windows', 'Microsoft']:
         sys_config = win_config
     elif system.systemType in ['Linux']:
@@ -806,7 +806,7 @@ def get_system_config():
         sys_config = mac_config
     else:
         return config
-    for category, fields in sys_config.iteritems():
+    for category, fields in sys_config.items():
         if category not in base_config:
             config[category] = fields
         else:
@@ -820,13 +820,13 @@ def default():
 
 def parse_documentation():
     line_iter = iter(_documentation.splitlines())
-    line_iter.next()
+    next(line_iter)
     for line in line_iter:
         arg_path, arg_type = line.strip().split(':', 1)
         doc_lines = []
-        line = line_iter.next()
+        line = next(line_iter)
         while True:
-            line = line_iter.next()
+            line = next(line_iter)
             if not line.strip():
                 break
             doc_lines.append(line.strip())
@@ -834,7 +834,7 @@ def parse_documentation():
 
 def parse_simple_docs():
     line_iter = iter(_simple_documentation.splitlines())
-    line = line_iter.next()
+    line = next(line_iter)
     for line in line_iter:
         (arg, doc) = line.strip().split(':', 1)
         _simple_docs[arg] = doc.strip()
@@ -867,7 +867,7 @@ def set_field_labels(fields, prefix=""):
                 field.widget_options['label'] = label
 
 for config in all_configs:
-    for field_list in config.itervalues():
+    for field_list in config.values():
         set_field_labels(field_list)
 
 class VisTrailsHelpFormatter(argparse.HelpFormatter):
@@ -962,7 +962,7 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     if prefix:
         prefix_dashes = camel_to_dashes(prefix.replace('.', '-'))
 
-    for category, fields in d.iteritems():
+    for category, fields in d.items():
         if category == "Internal":
             # don't deal with these
             continue
@@ -1070,7 +1070,7 @@ class ConfigValue(object):
     def create(value):
         if isinstance(value, bool):
             obj = ConfigBool()
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             obj = ConfigStr()
         elif isinstance(value, int):
             obj = ConfigInt()
@@ -1111,7 +1111,7 @@ class ConfigBool(DBConfigBool, ConfigValue):
         return self.db_value.lower() == "true"
 
     def set_value(self, val):
-        self.db_value = unicode(val)
+        self.db_value = str(val)
 
 class ConfigInt(DBConfigInt, ConfigValue):
     def __copy__(self):
@@ -1169,7 +1169,7 @@ class ConfigList(DBConfigStr, ConfigValue):
         return ast.literal_eval(self.db_value)
 
     def set_value(self, val):
-        self.db_value = unicode(val)
+        self.db_value = str(val)
 
 class ConfigKey(DBConfigKey):
     def __init__(self, name, value):
@@ -1218,8 +1218,8 @@ class ConfigKey(DBConfigKey):
     value = property(_get_value, _set_value)
 
     def set_type(self, t):
-        if issubclass(t, basestring):
-            t = basestring
+        if issubclass(t, str):
+            t = str
         self._type = t
 
     def check_type(self, val):
@@ -1240,7 +1240,7 @@ class ConfigurationObject(DBConfiguration):
         self._unset_keys = {}
         DBConfiguration.__init__(self)
         self._in_init = False
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if type(v) == tuple:
                 self._unset_keys[k] = v
             else:
@@ -1282,7 +1282,7 @@ class ConfigurationObject(DBConfiguration):
 
     def matches_type(self, value, t):
         if t == str:
-            t = basestring
+            t = str
         return isinstance(value, t)
 
     def __getattr__(self, name):
@@ -1334,11 +1334,11 @@ class ConfigurationObject(DBConfiguration):
         if type(self) != type(other):
             return False
         seen_keys = set()
-        for name in self.keys():
+        for name in list(self.keys()):
             if self.is_unset(name):
                 continue
             seen_keys.add(name)
-            if name not in other.keys():
+            if name not in list(other.keys()):
                 return False
             val1 = getattr(self, name)
             val2 = getattr(other, name)
@@ -1346,7 +1346,7 @@ class ConfigurationObject(DBConfiguration):
                 return False
             if val1 != val2:
                 return False
-        for name in other.keys():
+        for name in list(other.keys()):
             if other.is_unset(name):
                 continue
             if name not in seen_keys:
@@ -1366,7 +1366,7 @@ class ConfigurationObject(DBConfiguration):
         return self.__setattr__(k, v)
 
     def update(self, other):
-        for name, other_key in other.db_config_keys_name_index.iteritems():
+        for name, other_key in other.db_config_keys_name_index.items():
             if (isinstance(other_key.value, ConfigurationObject) and
                     self.has(name)):
                 self.get(name).update(other_key.value)
@@ -1445,7 +1445,7 @@ class ConfigurationObject(DBConfiguration):
     def allkeys(self):
         """Returns all options stored in this object.
         """
-        return self.db_config_keys_name_index.keys() + self._unset_keys.keys()
+        return list(self.db_config_keys_name_index.keys()) + list(self._unset_keys.keys())
 
     def keys(self):
         """Returns all public options stored in this object.
@@ -1547,7 +1547,7 @@ class TestConfiguration(unittest.TestCase):
     def test_unset_params(self):
         conf = ConfigurationObject(test_field=(None, str))
         self.assertTrue(conf.is_unset("test_field"))
-        self.assertIn("test_field", conf.keys())
+        self.assertIn("test_field", list(conf.keys()))
 
     def test_type_mismatch(self):
         conf = default()
@@ -1577,8 +1577,8 @@ class TestConfiguration(unittest.TestCase):
         conf1 = default()
         conf2 = copy.copy(conf1)
         self.assertEqual(conf1, conf2)
-        self.assertItemsEqual(conf1._unset_keys.keys(),
-                              conf2._unset_keys.keys())
+        self.assertItemsEqual(list(conf1._unset_keys.keys()),
+                              list(conf2._unset_keys.keys()))
 
     def test_parser(self):
         if sys.version_info < (2, 7):

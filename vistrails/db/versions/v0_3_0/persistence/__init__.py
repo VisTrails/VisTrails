@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from xml.auto_gen import XMLDAOListBase
-import xml.io
+
+from .xml.auto_gen import XMLDAOListBase
+from . import xml.io
 
 class DAOList(dict):
     def __init__(self):

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 # Utilities for user-defined Modules
-from __future__ import division
+
 
 import os
 import tempfile
@@ -85,7 +85,7 @@ class FilePool(object):
                 for name in dirs:
                     os.rmdir(os.path.join(root, name))
             os.rmdir(self.directory)
-        except OSError, e:
+        except OSError as e:
             debug.unexpected_exception(e)
             raise VistrailsInternalError("Can't remove %s: %s" %
                                          (self.directory,

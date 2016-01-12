@@ -40,7 +40,7 @@ vistrails.gui.modules.module_configure.StandardModuleConfigurationWidget,
 which is also a QWidget.
 
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core import debug
@@ -132,7 +132,7 @@ class PortTable(QtGui.QTableWidget):
     def getPorts(self):
         ports = []
         model = self.model()
-        for i in xrange(self.rowCount()):
+        for i in range(self.rowCount()):
             name = model.data(model.index(i, 0), QtCore.Qt.DisplayRole)
             sigstring = model.data(model.index(i, 1), QtCore.Qt.UserRole)
             depth = model.data(model.index(i, 2), QtCore.Qt.DisplayRole) or 0
@@ -188,7 +188,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
             # FIXME just use descriptors here!!
             variant_desc = registry.get_descriptor_by_name(
                 get_vistrails_basic_pkg_id(), 'Variant')
-            for _, pkg in sorted(registry.packages.iteritems()):
+            for _, pkg in sorted(registry.packages.items()):
                 pkg_item = QtGui.QStandardItem("----- %s -----" % pkg.name)
                 pkg_item.setData('', QtCore.Qt.UserRole)
                 pkg_item.setFlags(pkg_item.flags() & ~(
@@ -197,7 +197,7 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                 font.setBold(True)
                 pkg_item.setFont(font)
                 combo.model().appendRow(pkg_item)
-                for _, descriptor in sorted(pkg.descriptors.iteritems()):
+                for _, descriptor in sorted(pkg.descriptors.items()):
                     if descriptor is variant_desc:
                         variant_index = combo.count()
                     combo.addItem("%s (%s)" % (descriptor.name,
@@ -455,7 +455,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         try:
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
-        except PortAlreadyExists, e:
+        except PortAlreadyExists as e:
             debug.critical('Port Already Exists %s' % str(e))
             return False
         return True            
@@ -558,7 +558,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         try:
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
-        except PortAlreadyExists, e:
+        except PortAlreadyExists as e:
             debug.critical('Port Already Exists %s' % e)
             return False
         return True

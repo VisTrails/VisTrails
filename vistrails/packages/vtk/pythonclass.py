@@ -33,9 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from itertools import izip
+
+
 
 from vistrails.core.debug import format_exc
 from vistrails.core.modules.vistrails_module import Module, ModuleError
@@ -81,7 +81,7 @@ class BaseClassModule(Module):
         method = getattr(instance, method_name)
         try:
             method(*(prepend_params + params))
-        except Exception, e:
+        except Exception as e:
             raise
 
     def call_get_method(self, instance, port):
@@ -91,13 +91,13 @@ class BaseClassModule(Module):
             value = method(*(port.get_prepend_params()))
             # convert params
             return convert_output(value, self.output_specs[port.name].signature)
-        except Exception, e:
+        except Exception as e:
             raise
 
     def call_inputs(self, instance):
         # compute input methods and connections
         # We need to preserve the order of the inputs
-        methods = self.is_method.values()
+        methods = list(self.is_method.values())
         methods.sort()
         methods_to_call = []
         for value in methods:
@@ -111,9 +111,9 @@ class BaseClassModule(Module):
                 depth += 1
             methods_to_call.append([port, p])
         connections_to_call = []
-        for (function, connector_list) in self.inputPorts.iteritems():
+        for (function, connector_list) in self.inputPorts.items():
             paramList = self.force_get_input_list(function)
-            for p,connector in izip(paramList, connector_list):
+            for p,connector in zip(paramList, connector_list):
                 # Don't call method
                 if connector in self.is_method:
                     continue

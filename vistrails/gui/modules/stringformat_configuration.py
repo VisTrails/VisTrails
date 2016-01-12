@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -94,7 +94,7 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
             self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
 
     def get_format(self):
-        for i in xrange(self.module.getNumFunctions()):
+        for i in range(self.module.getNumFunctions()):
             func = self.module.functions[i]
             if func.name == 'format':
                 return func.params[0].strValue
@@ -108,7 +108,7 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
         """
         from vistrails.core.modules.basic_modules import StringFormat
         args, kwargs = StringFormat.list_placeholders(self.get_format())
-        wanted_ports = set('_%d' % n for n in xrange(args)) | kwargs
+        wanted_ports = set('_%d' % n for n in range(args)) | kwargs
 
         current_ports = set(port_spec.name
                             for port_spec in self.module.input_port_specs)

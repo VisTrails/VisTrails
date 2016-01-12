@@ -37,7 +37,7 @@
 Dialog for web repository options
 Includes login and upload tabs
 """
-from __future__ import division
+
 
 from PyQt4 import QtGui, QtCore
 from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
@@ -47,7 +47,7 @@ from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.db.locator import ZIPFileLocator, FileLocator
 from vistrails.core.db.io import load_vistrail
 from vistrails.core import debug
-import urllib, urllib2, cookielib
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, http.cookiejar
 import os
 import tempfile
 import vistrails.api
@@ -178,7 +178,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
         # populate table
         count = 0
-        for wf in self._unrunnable_wfs.keys():
+        for wf in list(self._unrunnable_wfs.keys()):
             details = \
                     QtGui.QTableWidgetItem(', '.join(self._unrunnable_wfs[wf]))
             details.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -221,9 +221,9 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     self.config.webRepositoryURL
             register_openers(cookiejar=self.dialog.cookiejar)
             try:
-                request = urllib2.Request(server_url)
-                get_servers = urllib2.urlopen(request)
-            except urllib2.HTTPError, e:
+                request = urllib.request.Request(server_url)
+                get_servers = urllib.request.urlopen(request)
+            except urllib.error.HTTPError as e:
                 self._repository_status['support_status'] = ""
                 self._repository_status['details'] = ""
                 if e.code == 500:
@@ -271,8 +271,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
 
             try:
-                get_supported_packages = urllib2.urlopen(url=packages_url)
-            except urllib2.HTTPError, e:
+                get_supported_packages = urllib.request.urlopen(url=packages_url)
+            except urllib.error.HTTPError as e:
                 self._repository_status['support_status'] = ""
                 self._repository_status['details'] = ""
                 if e.code == 500:
@@ -313,13 +313,13 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                 on_repo = True
 
                         if not on_repo:
-                            if tag not in self._unrunnable_wfs.keys():
+                            if tag not in list(self._unrunnable_wfs.keys()):
                                 self._unrunnable_wfs[tag] = []
                             self._unrunnable_wfs[tag].append(module.name)
                             self.unavailable_data.add(module.name)
 
                     if module.name == "PythonSource":
-                        if tag not in self._unrunnable_wfs.keys():
+                        if tag not in list(self._unrunnable_wfs.keys()):
                             self._unrunnable_wfs[tag] = []
                         self._unrunnable_wfs[tag].append(module.name)
                         has_python_source = True
@@ -329,11 +329,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
                         workflow_packages.append(module.package)
 
                 # find unsupported packages
-                wf_unsupported_packages = filter((lambda p: p not in \
+                wf_unsupported_packages = list(filter((lambda p: p not in \
                                                   server_packages),
-                                                 workflow_packages)
+                                                 workflow_packages))
                 if wf_unsupported_packages:
-                    if tag not in self._unrunnable_wfs.keys():
+                    if tag not in list(self._unrunnable_wfs.keys()):
                         self._unrunnable_wfs[tag] = []
                     for package in wf_unsupported_packages:
                         self._unrunnable_wfs[tag].append(package)
@@ -371,7 +371,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                         (self.config.webRepositoryURL,
                          controller.vistrail.get_annotation('repository_vt_id').value)
                 try:
-                    request = urllib2.urlopen(url=vt_url)
+                    request = urllib.request.urlopen(url=vt_url)
                     # TODO: check project that vistrail is part of and notify user
                     # that branching will add it to a different project
                     if request.code == 200:
@@ -391,7 +391,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                                  "<a href='%s'>%s</a>. This will possibly update your local version with changes from the web repository<br><br>") % \
                                 (vistrail_link, vistrail_link)
 
-                except urllib2.HTTPError:
+                except urllib.error.HTTPError:
                     # the vistrail has *probably* been deleted or doesn't exist
                     # remove repository_vt_id annotation
                     repo_annotation = controller.vistrail.get_annotation('repository_vt_id')
@@ -461,8 +461,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     self.config.webRepositoryURL
 
             datagen, headers = multipart_encode(params)
-            request = urllib2.Request(upload_url, datagen, headers)
-            result = urllib2.urlopen(request)
+            request = urllib.request.Request(upload_url, datagen, headers)
+            result = urllib.request.urlopen(request)
             updated_response = result.read()
 
             os.unlink(filename)
@@ -494,8 +494,8 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     download_url = "%s/vistrails/download/%s/" % \
                             (self.config.webRepositoryURL, updated_response)
 
-                    request = urllib2.Request(download_url)
-                    result = urllib2.urlopen(request)
+                    request = urllib.request.Request(download_url)
+                    result = urllib.request.urlopen(request)
                     updated_file = result.read()
 
                     # create temp file of updated vistrail
@@ -530,7 +530,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     self._repository_status['details'] = \
                             "Update to repository was successful"
 
-        except Exception, e:
+        except Exception as e:
             debug.critical("An error occurred", e)
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
@@ -642,18 +642,18 @@ class QRepositoryLoginPopup(QtGui.QDialog):
         from vistrails.gui.application import get_vistrails_application
 
         self.dialog.loginUser = self.loginUser.text()
-        params = urllib.urlencode({'username':self.dialog.loginUser,
+        params = urllib.parse.urlencode({'username':self.dialog.loginUser,
                                    'password':self.loginPassword.text()})
-        self.dialog.cookiejar = cookielib.CookieJar()
+        self.dialog.cookiejar = http.cookiejar.CookieJar()
 
         # set base url used for cookie
         self.dialog.cookie_url = self.config.webRepositoryURL
 
-        self.loginOpener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.dialog.cookiejar))
+        self.loginOpener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.dialog.cookiejar))
 
         # FIXME doesn't use https
         login_url = "%s/account/login/" % self.config.webRepositoryURL
-        request = urllib2.Request(login_url, params)
+        request = urllib.request.Request(login_url, params)
         url = self.loginOpener.open(request)
 
         # login failed

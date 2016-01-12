@@ -34,21 +34,21 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import sys
 import os.path
-import httplib
-import urllib
+import http.client
+import urllib.request, urllib.parse, urllib.error
 
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 import vistrails.core.system
-import enumeration_widget
+from . import enumeration_widget
 
-import cPickle
+import pickle
 
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule
@@ -168,13 +168,13 @@ def webServiceTypesDict(WBobj):
         else:
             #Check if it is a request type
             modbyname = reg.get_module_by_name(identifier = identifier, name = WBobj.name, namespace = WBobj.namespace)
-            porttype = str(modbyname.server._wsdl.portTypes.keys()[0][0][1])
-            listoperations = modbyname.server._wsdl.portTypes[porttype].operations.values()
+            porttype = str(list(modbyname.server._wsdl.portTypes.keys())[0][0][1])
+            listoperations = list(modbyname.server._wsdl.portTypes[porttype].operations.values())
             isrequest = False
             requestname = ''
             modname = WBobj.name
             for element in listoperations:
-                parts = modbyname.server._wsdl.messages[element.input.getMessage().name].parts.values()
+                parts = list(modbyname.server._wsdl.messages[element.input.getMessage().name].parts.values())
                 for part in parts:
                     if str(part.element[1]).strip() == modname.strip():
                         requestname = element.input.getMessage().name
@@ -186,7 +186,7 @@ def webServiceTypesDict(WBobj):
                 try:
                     req = getattr(self.modclient,requestname)()
                 except:
-                    print "sys.exc_value: ", sys.exc_value
+                    print("sys.exc_value: ", sys.exc_info()[1])
                 #Set the values of the input ports in the resquest object
                 for types in WBobj.ports:
                     nameport = str(types[0])
@@ -431,8 +431,8 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
             if isArray(Type):
                 Type = 'Array'
             Type = wsdlTypesDict[Type]
-            porttype = server._wsdl.portTypes.keys()[0][0][1]
-            listoperations = server._wsdl.portTypes[porttype].operations.values()
+            porttype = list(server._wsdl.portTypes.keys())[0][0][1]
+            listoperations = list(server._wsdl.portTypes[porttype].operations.values())
             for element in listoperations: #list of operations instances
                 if str(element.name) == str(name):
                     #get the request method name
@@ -451,8 +451,8 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
             try:
                 resp = getattr(port,name)(req)
             except:
-                print "sys.exc_value: ", sys.exc_value
-                raise ModuleError(self, str(sys.exc_value))
+                print("sys.exc_value: ", sys.exc_info()[1])
+                raise ModuleError(self, str(sys.exc_info()[1]))
             namemethod = "get_element_" + outparams[0].name
 
             try:
@@ -470,8 +470,8 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 try:
                     resp = getattr(port,name)(request)
                 except:
-                    print "sys.exc_value: ", sys.exc_value
-                    raise ModuleError(self, str(sys.exc_value))
+                    print("sys.exc_value: ", sys.exc_info()[1])
+                    raise ModuleError(self, str(sys.exc_info()[1]))
                 #Wrap the ZSI attributes into the vistrails module attributes
                 nameclass = str(outparams[0].type[1])
                 dictkey = self.webservice + "|Types"
@@ -501,7 +501,7 @@ def processArray(complexschema,w):
     try:
         contentschema =  complexschema.content.content.attr_content
     except AttributeError:
-        print "warning: type is not an array..."
+        print("warning: type is not an array...")
         processType(complexschema,w)
         return
     
@@ -619,16 +619,16 @@ def addExtensionsModules(w, server, extensionbase):
         dictkey = w + "." + extensionbase
         extensionobj = complexsdict[dictkey]
     except KeyError:
-        for schematypes in server._wsdl.types.keys():
+        for schematypes in list(server._wsdl.types.keys()):
             schema = server._wsdl.types[str(schematypes)]
-            if len(schema.types.keys()) != 0:
+            if len(list(schema.types.keys())) != 0:
                 try:
                     extensionbasestr = str(extensionbase)
                     complex1 = schema.types[extensionbasestr]
                     processType(complex1,w)
                 except KeyError:
                     pass        
-            if len(schema.elements.keys()) != 0:
+            if len(list(schema.elements.keys())) != 0:
                 try:
                     extensionbasestr = str(extensionbase)
                     complex1 = schema.elements[str(extensionbasestr)]
@@ -639,7 +639,7 @@ def addExtensionsModules(w, server, extensionbase):
 def processExtension(w, server):
     dictkey = w + "|Types"
     complexsdict = webServicesmodulesDict[dictkey]
-    keys = complexsdict.keys()
+    keys = list(complexsdict.keys())
     keys.sort()
     for types in keys:
         obj = complexsdict[types]
@@ -647,7 +647,7 @@ def processExtension(w, server):
             #Add extensions to modulesDict dictionary
             extensionbase = obj.ExtensionBase
             addExtensionsModules(w, server, extensionbase)
-            keys2 = complexsdict.keys()
+            keys2 = list(complexsdict.keys())
             keys2.sort()
             for types2 in keys2:
                 obj2 = complexsdict[types2]
@@ -721,7 +721,7 @@ def addTypesModules(w,modclient,server):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     namespace = w + "|Types"
     complexsdict = webServicesmodulesDict[namespace]
-    keys = complexsdict.keys()
+    keys = list(complexsdict.keys())
     keys.sort()
     for dictkey in keys:
         obj = complexsdict[dictkey]
@@ -750,7 +750,7 @@ def addMethodsModules(w,modclient,server):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     namespace = w + "|Methods"
     complexsdict = webServicesmodulesDict[namespace]
-    keys = complexsdict.keys()
+    keys = list(complexsdict.keys())
     keys.sort()
     for dictkey in keys:
         obj = complexsdict[dictkey]
@@ -772,7 +772,7 @@ def addPortsToTypes(w):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     dictkey = w + "|Types"
     complexsdict = webServicesmodulesDict[dictkey]
-    keys = complexsdict.keys()
+    keys = list(complexsdict.keys())
     for dictkey in keys:
         #Add the Ports that are of the module type
         obj = complexsdict[dictkey]
@@ -830,7 +830,7 @@ def addPortsToMethods(w):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     dictkey = w + "|Methods"
     complexsdict = webServicesmodulesDict[dictkey]
-    keys = complexsdict.keys()
+    keys = list(complexsdict.keys())
     for dictkey in keys:
         obj = complexsdict[dictkey]
         objtype = reg.get_module_by_name(identifier = identifier, name = obj.name, namespace = obj.namespace)
@@ -953,8 +953,8 @@ def load_wsdl_no_config(wsdlList):
                 numtimes = numtimes + 1
         if numtimes > 1:
             # as this is not a big problem, let's just print on the console
-            print "Warning: Web service '%s' is repeated in the list and won't \
-be loaded again." % w
+            print("Warning: Web service '%s' is repeated in the list and won't \
+be loaded again." % w)
             # this is not a problem, we will just ignore it
             continue
         try:
@@ -970,7 +970,7 @@ be loaded again." % w
             reader = WSDLTools.WSDLReader()
             wsdl = reader.loadFromURL(location)
             
-        except Exception, e:
+        except Exception as e:
             # we will not show this every time. Just in the end
             # so we can show a single message for everybody
             not_loaded.append((w,str(e)))
@@ -981,7 +981,7 @@ be loaded again." % w
         package_directory = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                          "webServices")
         sys.path.append(package_directory)
-        directoryname = urllib.quote_plus(w)
+        directoryname = urllib.parse.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
@@ -993,7 +993,7 @@ be loaded again." % w
             importpackage = __import__(directoryname)
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
-        except Exception, e:
+        except Exception as e:
             msg =  "Couldn't load generated stub file: %s"%str(e)
             not_loaded.append((w,msg))
             result = False
@@ -1032,8 +1032,8 @@ def load_wsdl_with_config(wsdlList):
             if w == element.strip():
                 numtimes = numtimes + 1
         if numtimes > 1:
-            print "The following web service is repeated in the list and won't \
-be loaded again: %s"% w
+            print("The following web service is repeated in the list and won't \
+be loaded again: %s"% w)
             continue
           
         #Create the stub files for the webservices that have been
@@ -1056,7 +1056,7 @@ be loaded again: %s"% w
                 wsdl = reader.loadFromURL(location)
                 ok = 4
                 failed = False
-            except Exception, e:
+            except Exception as e:
                 ok += 1
                 failed = True
                 msg = str(e)
@@ -1066,7 +1066,7 @@ be loaded again: %s"% w
             result = False
             continue
         #create a directory for each webservice if it does not exist
-        directoryname = urllib.quote_plus(w)
+        directoryname = urllib.parse.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
@@ -1084,19 +1084,19 @@ be loaded again: %s"% w
         types_file = os.path.join(package_subdirectory, '%s.py' %types_mod)
         filename = '__init__'
         init_file = os.path.join(package_subdirectory, '%s.py' %filename)
-        conn = httplib.HTTPConnection(host)
+        conn = http.client.HTTPConnection(host)
         filename = '/' + '/'.join(s[3:])
         request = conn.request("GET", filename)
         response = conn.getresponse()
         if not os.path.isdir(package_subdirectory):
             try:
-                print "Creating package subdirectory...",
+                print("Creating package subdirectory...", end=' ')
                 os.mkdir(package_subdirectory)
-                print "done."
+                print("done.")
             except:
                 msg = "\nCould not create package subdirectory. Make sure \
 '%s' does not exist and parent directory is writable." % package_subdirectory
-                print "Skipping '%s'" % w
+                print("Skipping '%s'" % w)
                 # We don't need to exit here. Continuing try to load
                 # the other files
                 not_loaded.append((w,msg))
@@ -1129,7 +1129,7 @@ be loaded again: %s"% w
             content = 'import ' + client_mod
             fd.write(content)
             fd.close()
-        except Exception, e:
+        except Exception as e:
             msg = "Couldn't generate stub file: %s"% str(e)
             not_loaded.append((w,msg))
             result = False
@@ -1139,17 +1139,17 @@ be loaded again: %s"% w
             importpackage = __import__(directoryname)
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
-        except Exception, e:
+        except Exception as e:
             msg = "Problem importing the generated stub files: %s", str(e)
             not_loaded.append((w,msg))
             result = False
             continue
 
         #Set up the dictionary with all the complex types modules and their ports.
-        for schematypes in server._wsdl.types.keys():
+        for schematypes in list(server._wsdl.types.keys()):
             schema = server._wsdl.types[str(schematypes)]
-            if len(schema.types.keys()) != 0:
-                for schematype in schema.types.keys():
+            if len(list(schema.types.keys())) != 0:
+                for schematype in list(schema.types.keys()):
                     try:
                         complex1 = schema.types[str(schematype)]
                         modulename = str(complex1.attributes['name'])
@@ -1167,8 +1167,8 @@ be loaded again: %s"% w
                                 processType(complex1,w)
                     except KeyError:
                         pass
-            if len(schema.elements.keys()) != 0:
-                for schematype in schema.elements.keys():
+            if len(list(schema.elements.keys())) != 0:
+                for schematype in list(schema.elements.keys()):
                     try:
                         complex1 = schema.elements[str(schematype)]
                         modulename = str(complex1.attributes['name'])
@@ -1203,7 +1203,7 @@ be loaded again: %s"% w
 
         #Open the file with methods
         #Add the Methods
-        keys = server._methods.keys()
+        keys = list(server._methods.keys())
         keys.sort()
         
         for kw in keys:
@@ -1284,9 +1284,9 @@ be loaded again: %s"% w
                             'modules.conf')    
     try:
         ouf = open(namefile, 'w')
-        cPickle.dump(webServicesmodulesDict,ouf)
+        pickle.dump(webServicesmodulesDict,ouf)
         ouf.close()
-    except Exception, e:
+    except Exception as e:
         msg = "Error generating web services configuration file %s"%str(e)
         raise RuntimeError(msg)
 
@@ -1318,11 +1318,11 @@ def verify_wsdl(wsdlList):
         load = reader.loadFromURL
         try:
             wsdl = load(location)
-        except Exception, e:
+        except Exception as e:
             msg = "Couldn't load wsdl from the web: %s."%str(e)
             error_list.append((w,msg))
             continue
-        directoryname = urllib.quote_plus(w)
+        directoryname = urllib.parse.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
@@ -1332,7 +1332,7 @@ def verify_wsdl(wsdlList):
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
         client_file = os.path.join(package_subdirectory, '%s.py' %client_mod)
-        conn = httplib.HTTPConnection(host)
+        conn = http.client.HTTPConnection(host)
         filename = '/' + '/'.join(s[3:])
         request = conn.request("GET", filename)
         response = conn.getresponse()
@@ -1346,7 +1346,7 @@ def verify_wsdl(wsdlList):
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:
-                print "File doesn't exist"
+                print("File doesn't exist")
                 isoutdated = True
         if isoutdated or remoteHeader is None:
             outdated_list.append(w)
@@ -1378,11 +1378,11 @@ def initialize(*args, **keywords):
                                      "webServices")
     if not os.path.isdir(package_directory):
         try:
-            print "Creating package directory..."
+            print("Creating package directory...")
             os.mkdir(package_directory)
         except:
-            print "Could not create package directory. Make sure"
-            print "'%s' does not exist and parent directory is writable"
+            print("Could not create package directory. Make sure")
+            print("'%s' does not exist and parent directory is writable")
             sys.exit(1)
 
     pathfile = os.path.join(vistrails.core.system.current_dot_vistrails(),
@@ -1409,9 +1409,9 @@ def initialize(*args, **keywords):
     if os.path.isfile(pathfile):
         try: 
             inf = open(pathfile)
-            webServicesmodulesDict = cPickle.load(inf)
+            webServicesmodulesDict = pickle.load(inf)
             inf.close()
-        except Exception, e:
+        except Exception as e:
             msg = "Error loading configuration file: ", pathfile
             raise IOError(msg)
     
@@ -1422,8 +1422,8 @@ def initialize(*args, **keywords):
         # let's try creating them again
         for (w,e) in not_loaded:
             outdated_list.append(w)
-        print "There were problems loading the webservices %s" % not_loaded
-        print "We will try to load them again..."
+        print("There were problems loading the webservices %s" % not_loaded)
+        print("We will try to load them again...")
     (res, not_loaded) = load_wsdl_with_config(outdated_list)
     if not res or len(error_list) > 0:
         msg = """ There were problems loading the webservices.
@@ -1446,7 +1446,7 @@ def handle_missing_module(*args, **kwargs):
             wsdl = m_namespace.split("|")
             return wsdl[0]
         except:
-            print "invalid namespace"
+            print("invalid namespace")
             return None
     m = pipeline.modules[m_id]
     m_namespace = m.namespace
@@ -1456,7 +1456,7 @@ def handle_missing_module(*args, **kwargs):
         outdated_list = []
         updated_list = []
         error_list = []
-        print "Downloading %s and adding to the Module list..."%wsdl
+        print("Downloading %s and adding to the Module list..."%wsdl)
         pathfile = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "webServices",
                                 "modules.conf")
@@ -1479,10 +1479,10 @@ def handle_missing_module(*args, **kwargs):
         if os.path.isfile(pathfile):
             try: 
                 inf = open(pathfile)
-                webServicesmodulesDict = cPickle.load(inf)
+                webServicesmodulesDict = pickle.load(inf)
                 inf.close()
             except:
-                print "Error loading configuration file"
+                print("Error loading configuration file")
                 return False
         try:
             (res,not_loaded) = load_wsdl_no_config(updated_list)
@@ -1501,7 +1501,7 @@ def handle_missing_module(*args, **kwargs):
                     wsdlList.append(wsdl)    
                 swsdlList = ";".join(wsdlList)
                 configuration.wsdlList = swsdlList
-                print "done."
+                print("done.")
                 return True
             else:
                 msg = """ There were problems loading the webservice.
@@ -1510,9 +1510,9 @@ The following could not be loaded:\n"""
                 for (w,e) in error_list:
                     msg += "Url: '%s', error: '%s'\n"%(w,e)
                     pm.show_error_message(pm.get_package(identifier),msg)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             import traceback
             traceback.print_stack()
-    print "An error occurred. Could not add missing wsdl."
+    print("An error occurred. Could not add missing wsdl.")
     return False

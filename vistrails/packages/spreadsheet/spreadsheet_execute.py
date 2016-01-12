@@ -40,7 +40,7 @@ spreadsheet:
   executePipelineWithProgress
 """
 
-from __future__ import division
+
 
 import copy
 from PyQt4 import QtCore, QtGui
@@ -192,7 +192,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
         cell_pipeline = pipeline
 
         # find at which depth we need to be working
-        if isinstance(id_list, (int, long)):
+        if isinstance(id_list, int):
             mId = id_list
             m = cell_pipeline.modules[mId]
         else:
@@ -243,7 +243,7 @@ def executePipelineWithProgress(pipeline,
         else:
             withoutCancel = False
     interpreter = get_default_interpreter()
-    if kwargs.has_key('module_executed_hook'):
+    if 'module_executed_hook' in kwargs:
         kwargs['module_executed_hook'].append(moduleExecuted)
     else:
         kwargs['module_executed_hook'] = [moduleExecuted]

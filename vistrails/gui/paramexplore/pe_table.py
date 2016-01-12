@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from getpass import getuser
 
@@ -137,7 +137,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         palette = self.get_palette()
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
-        for i in xrange(self.table.layout().count()):
+        for i in range(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 firstParam = True
@@ -175,7 +175,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         palette = self.get_palette()
         id_scope = self.controller.id_scope
         functions = []
-        for i in xrange(self.table.layout().count()):
+        for i in range(self.table.layout().count()):
             pEditor = self.table.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 function = None
@@ -238,9 +238,9 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         for f in pe.functions:
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
-            for tidx in xrange(paramView.treeWidget.topLevelItemCount()):
+            for tidx in range(paramView.treeWidget.topLevelItemCount()):
                 moduleItem = paramView.treeWidget.topLevelItem(tidx)
-                for cidx in xrange(moduleItem.childCount()):
+                for cidx in range(moduleItem.childCount()):
                     paramInfo = moduleItem.child(cidx).parameter
                     name, params = paramInfo
                     if params[0].module_id == f.module_id and \
@@ -305,7 +305,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
@@ -321,13 +321,13 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
-            f_id = long(f.attributes['id'].value)
+            f_id = int(f.attributes['id'].value)
             f_is_alias = (str(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
-            for tidx in xrange(paramView.treeWidget.topLevelItemCount()):
+            for tidx in range(paramView.treeWidget.topLevelItemCount()):
                 moduleItem = paramView.treeWidget.topLevelItem(tidx)
-                for cidx in xrange(moduleItem.childCount()):
+                for cidx in range(moduleItem.childCount()):
                     paramInfo = moduleItem.child(cidx).parameter
                     name, params = paramInfo
                     if params[0].parent_id == f_id and params[0].is_alias == f_is_alias:
@@ -336,7 +336,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
             if newEditor:
                 for p in f.getElementsByTagName('param'):
                     # Locate the param in the newly added param editor and set values
-                    p_id = long(p.attributes['id'].value)
+                    p_id = int(p.attributes['id'].value)
                     for paramWidget in newEditor.paramWidgets:
                         if paramWidget.param.id == p_id:
                             # Set Parameter Dimension (radio button)
@@ -419,7 +419,7 @@ class QParameterExplorationTable(QPromptWidget):
                          self.updateWidgets)
         vLayout.addWidget(self.label)
 
-        for i in xrange(2):
+        for i in range(2):
             hBar = QtGui.QFrame()
             hBar.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
             vLayout.addWidget(hBar)
@@ -433,7 +433,7 @@ class QParameterExplorationTable(QPromptWidget):
         """
         # Check to see paramInfo is not a subset of some other parameter set
         params = paramInfo[1]
-        for i in xrange(self.layout().count()):
+        for i in range(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 subset = True
@@ -450,8 +450,8 @@ class QParameterExplorationTable(QPromptWidget):
         newEditor = QParameterSetEditor(paramInfo, self)
 
         # Make sure to disable all duplicated parameter
-        for p in xrange(len(params)):
-            for i in xrange(self.layout().count()):
+        for p in range(len(params)):
+            for i in range(self.layout().count()):
                 pEditor = self.layout().itemAt(i).widget()
                 if pEditor and isinstance(pEditor, QParameterSetEditor):
                     if params[p] in pEditor.info[1]:
@@ -474,10 +474,10 @@ class QParameterExplorationTable(QPromptWidget):
         """
         self.layout().removeWidget(ps)
         # Restore disabled parameter
-        for i in xrange(self.layout().count()):
+        for i in range(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
-                for p in xrange(len(pEditor.info[1])):
+                for p in range(len(pEditor.info[1])):
                     param = pEditor.info[1][p]
                     widget = pEditor.paramWidgets[p]                    
                     if param in ps.info[1] and not widget.isEnabled():
@@ -495,7 +495,7 @@ class QParameterExplorationTable(QPromptWidget):
         """
         # Go through all possible parameter widgets
         counts = self.label.getCounts()
-        for wdg in xrange(self.layout().count()):
+        for wdg in range(self.layout().count()):
             pEditor = self.layout().itemAt(wdg).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for paramWidget in pEditor.paramWidgets:
@@ -503,7 +503,7 @@ class QParameterExplorationTable(QPromptWidget):
                     if dim in [0, 1, 2, 3]:
                         stackedEditors = paramWidget.editor.stackedEditors
                         # Notifies editor widgets of size update 
-                        for edit in xrange(stackedEditors.count()):
+                        for edit in range(stackedEditors.count()):
                             wd = stackedEditors.widget(edit)
                             if hasattr(wd, 'size_was_updated'):
                                 wd.size_was_updated(counts[dim])
@@ -513,7 +513,7 @@ class QParameterExplorationTable(QPromptWidget):
         Clear all widgets
         
         """
-        for i in reversed(range(self.layout().count())):
+        for i in reversed(list(range(self.layout().count()))):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 pEditor.table = None
@@ -531,7 +531,7 @@ class QParameterExplorationTable(QPromptWidget):
         """
         if pipeline:
             to_be_deleted = []
-            for i in xrange(self.layout().count()):
+            for i in range(self.layout().count()):
                 pEditor = self.layout().itemAt(i).widget()
                 if pEditor and isinstance(pEditor, QParameterSetEditor):
                     for param in pEditor.info[1]:
@@ -558,7 +558,7 @@ class QParameterExplorationTable(QPromptWidget):
         reg = get_module_registry()
         parameterValues = [[], [], [], []]
         counts = self.label.getCounts()
-        for i in xrange(self.layout().count()):
+        for i in range(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for paramWidget in pEditor.paramWidgets:
@@ -582,7 +582,7 @@ class QParameterExplorationTable(QPromptWidget):
                         pAlias = old_param.alias
                         pIdentifier = old_param.identifier
                         actions = []
-                        tmp_id = -1L
+                        tmp_id = -1
                         for v in values:
                             getter = reg.get_descriptor_by_name
                             desc = getter(paramInfo.identifier,
@@ -606,7 +606,7 @@ class QParameterExplorationTable(QPromptWidget):
                             actions.append(action)
                         parameterValues[dim].append(actions)
                         tmp_id -= 1
-        return [zip(*p) for p in parameterValues]
+        return [list(zip(*p)) for p in parameterValues]
 
 class QDimensionLabel(QtGui.QWidget):
     """
@@ -666,7 +666,7 @@ class QDimensionLabel(QtGui.QWidget):
         dim = len(self.getCounts())
         if len(counts) != dim:
             return
-        for i in xrange(0, dim):
+        for i in range(0, dim):
             self.labelIcons[i].countWidget.setValue(counts[i])
 
     def resetCounts(self):
@@ -910,7 +910,7 @@ class QParameterWidget(QtGui.QWidget):
         return -1
         
         """
-        for i in xrange(5):
+        for i in range(5):
             if self.selector.radioButtons[i].isChecked():
                 return i
         return -1
@@ -928,7 +928,7 @@ class QParameterWidget(QtGui.QWidget):
         Select a dimension for this parameter
         
         """
-        if dim in xrange(5):
+        if dim in range(5):
             self.selector.radioButtons[dim].setChecked(True)
 
     def setDuplicate(self, duplicate):
@@ -964,7 +964,7 @@ class QDimensionSelector(QtGui.QWidget):
         self.setLayout(hLayout)
 
         self.radioButtons = []
-        for i in xrange(5):
+        for i in range(5):
             hLayout.addSpacing(2)
             button = QDimensionRadioButton()
             self.radioButtons.append(button)

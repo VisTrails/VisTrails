@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 """ Module used when running  vistrails uninteractively """
-from __future__ import absolute_import, division
+
 import os.path
 import unittest
 
@@ -76,9 +76,9 @@ def run_and_get_results(w_list, parameters='',
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
         controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
-        if isinstance(workflow, basestring):
+        if isinstance(workflow, str):
             version = v.get_version_number(workflow)
-        elif isinstance(workflow, (int, long)):
+        elif isinstance(workflow, int):
             version = workflow
         elif workflow is None:
             version = controller.get_latest_version_in_graph()
@@ -111,7 +111,7 @@ def run_and_get_results(w_list, parameters='',
         jobMonitor = controller.jobMonitor
         current_workflow = jobMonitor.currentWorkflow()
         if not current_workflow:
-            for job in jobMonitor.workflows.itervalues():
+            for job in jobMonitor.workflows.values():
                 try:
                     job_version = int(job.version)
                 except ValueError:
@@ -152,10 +152,10 @@ def run_and_get_results(w_list, parameters='',
                 run.job = "COMPLETED"
             else:
                 run.job = "RUNNING: %s" % current_workflow.id
-                for job in current_workflow.jobs.itervalues():
+                for job in current_workflow.jobs.values():
                     if not job.finished:
                         run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
-            print run.job
+            print(run.job)
     return result
 
 ################################################################################
@@ -180,9 +180,9 @@ def get_wf_graph(w_list, output_dir, pdf=False):
                 controller.current_pipeline_view.set_controller(controller)
 
                 version = None
-                if isinstance(workflow, basestring):
+                if isinstance(workflow, str):
                     version = v.get_version_number(workflow)
-                elif isinstance(workflow, (int, long)):
+                elif isinstance(workflow, int):
                     version = workflow
                 elif workflow is None:
                     version = controller.get_latest_version_in_graph()
@@ -205,7 +205,7 @@ def get_wf_graph(w_list, output_dir, pdf=False):
                         filename = os.path.join(output_dir, base_fname)
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
-            except Exception, e:
+            except Exception as e:
                 result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save pipeline figure when not " \
@@ -244,7 +244,7 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                         version_view.scene().saveToPNG(filename)
                     del version_view
                     result.append((True, ""))
-            except Exception, e:
+            except Exception as e:
                 result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save version tree figure when not " \
@@ -267,7 +267,7 @@ def run(w_list, parameters='', update_vistrail=True,
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)
-        for err in sorted(errors.iteritems()):
+        for err in sorted(errors.items()):
             all_errors.append(result.workflow_info + err)
     return all_errors
 
@@ -295,7 +295,7 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
             controller.change_selected_version(pe.action_id)
             controller.executeParameterExploration(pe, extra_info=extra_info,
                                                    showProgress=False)
-        except Exception, e:
+        except Exception as e:
             return (locator, pe_id,
                     debug.format_exception(e), debug.format_exc())
 
@@ -389,7 +389,7 @@ class TestConsoleMode(unittest.TestCase):
 
         interpreter.execute(p,
                             locator=XMLFileLocator('foo'),
-                            current_version=1L,
+                            current_version=1,
                             view=v)
 
     def test_python_source(self):

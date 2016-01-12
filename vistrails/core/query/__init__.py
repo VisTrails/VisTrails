@@ -139,7 +139,7 @@
 #             result = result.union(query.run(pipeline, module_ids))
 
 ################################################################################
-from __future__ import division
+
 
 import xml.sax.saxutils
 
@@ -162,7 +162,7 @@ def extract_text(escaped_html_str):
 class Query(object):
 
     def upstream(self, graph, id):
-        return graph.bfs(id).keys()
+        return list(graph.bfs(id).keys())
 
     weekdayMap = {'mo':0, 'tu':1, 'we':2, 'th':3, 'fr':4, 'sa':5, 'su':6}
 
@@ -179,15 +179,15 @@ class Query(object):
                 self.versionDict[v] = {}
         elif len(self.queryResult[0]) == 2:
             for (v, m) in self.queryResult:
-                if not self.versionDict.has_key(v):
+                if v not in self.versionDict:
                     self.versionDict[v] = {m: []}
                 self.versionDict[v][m] = {}
         else:
             assert len(self.queryResult[0]) == 3
             for (v, m, e) in self.queryResult:
-                if not self.versionDict.has_key(v):
+                if v not in self.versionDict:
                     self.versionDict[v] = {m: [e]}
-                elif not self.versionDict[v].has_key(m):
+                elif m not in self.versionDict[v]:
                     self.versionDict[v][m] = [e]
                 else:
                     self.versionDict[v][m].append(e)
@@ -203,7 +203,7 @@ class Query(object):
     def executionInstances(self, version_id, module_id):
         versionDict = self.versionDict
         assert self.tupleLength == 3
-        if versionDict[version_id].has_key(module_id):
+        if module_id in versionDict[version_id]:
             return versionDict[version_id][module_id]
         else:
             return None
@@ -212,10 +212,10 @@ class Query1a(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.get_tagMap().itervalues()
+        versions = iter(vistrail.get_tagMap().values())
         for version in versions:
             p = vistrail.getPipeline(version)
-            for module_id, module in p.modules.iteritems():
+            for module_id, module in p.modules.items():
                 if module.name == 'FileSink':
                     for f in module.functions:
                         if (f.name == 'outputName' and
@@ -232,11 +232,11 @@ class Query1b(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.get_tagMap().itervalues()
+        versions = iter(vistrail.get_tagMap().values())
         for version in versions:
             p = vistrail.getPipeline(version)
             ms = []
-            for module_id, module in p.modules.iteritems():
+            for module_id, module in p.modules.items():
                 if module.name == 'FileSink':
                     for f in module.functions:
                         if (f.name == 'outputName' and
@@ -246,7 +246,7 @@ class Query1b(Query):
             s = set()
             inv_graph = p.graph.inverse()
             for m in ms:
-                s = s.union(set(inv_graph.bfs(m).keys() + [m]))
+                s = s.union(set(list(inv_graph.bfs(m).keys()) + [m]))
             for m in s:
                 result.append((version, m))
         self.queryResult = result
@@ -274,7 +274,7 @@ class Query1c(Query):
         for version in versions:
             p = vistrail.getPipeline(int(version))
             ms = []
-            for module_id, module in p.modules.iteritems():
+            for module_id, module in p.modules.items():
                 if (module_id, version) not in executions:
                     continue
                 if module.name == 'FileSink':
@@ -286,7 +286,7 @@ class Query1c(Query):
             s = set()
             inv_graph = p.graph.inverse()
             for m in ms:
-                s = s.union(set(inv_graph.bfs(m).keys() + [m]))
+                s = s.union(set(list(inv_graph.bfs(m).keys()) + [m]))
             for m in s:
                 result.append((int(version), m))
         self.queryResult = result
@@ -314,7 +314,7 @@ class Query3(Query):
         for version in versions:
             p = vistrail.getPipeline(int(version))
             ms = []
-            for module_id, module in p.modules.iteritems():
+            for module_id, module in p.modules.items():
                 if (module_id, version) not in executions:
                     continue
                 if module.name == 'FileSink':
@@ -326,7 +326,7 @@ class Query3(Query):
             s = set()
             inv_graph = p.graph.inverse()
             for m in ms:
-                s = s.union(set(inv_graph.bfs(m).keys() + [m]))
+                s = s.union(set(list(inv_graph.bfs(m).keys()) + [m]))
             for m in s:
                 if (p.modules[m].has_annotation_with_key('stage') and
                     p.modules[m].get_annotation_by_key('stage').value in \
@@ -402,12 +402,12 @@ class Query5(Query):
             else:
                 version_module[wf_version].add(module_id)
         #print vistrail.get_tagMap()
-        for wf_version, module_ids in version_module.iteritems():
+        for wf_version, module_ids in version_module.items():
             #print wf_version
             p = self.pipeline(vistrail, int(wf_version))
             inv_graph = p.graph.inverse()
             s = set()
-            for m_id, module in p.modules.iteritems():
+            for m_id, module in p.modules.items():
                 if module.name == 'FileSink':
                     for f in module.functions:
                         if (f.name == 'outputName' and
@@ -471,12 +471,12 @@ class Query8(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.get_tagMap().itervalues()
+        versions = iter(vistrail.get_tagMap().values())
         for version in versions:
             s = set()
             p = vistrail.getPipeline(version)
             inv_graph = p.graph.inverse()
-            for module_id, module in p.modules.iteritems():
+            for module_id, module in p.modules.items():
                 if module.name == 'AlignWarp':
                     found = False
                     u_ids = self.upstream(inv_graph, module_id)
@@ -500,12 +500,12 @@ class Query9(Query):
 
     def run(self, vistrail, name):
         result = []
-        versions = vistrail.get_tagMap().itervalues()
+        versions = iter(vistrail.get_tagMap().values())
         for version in versions:
             s = set()
             p = vistrail.getPipeline(version)
             inv_graph = p.graph.inverse()
-            for module_id, module in p.modules.iteritems():
+            for module_id, module in p.modules.items():
                 annot = module.annotations
                 if (module.has_annotation_with_key('studyModality')
                     and module.get_annotation_by_key('studyModality') in \

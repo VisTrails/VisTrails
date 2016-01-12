@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import sys
 import os.path
@@ -139,7 +139,7 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating SUDS cache directory...")
             os.mkdir(location)
-        except OSError, e:
+        except OSError as e:
             debug.critical(
 """Could not create SUDS cache directory. Make sure
 '%s' does not exist and parent directory is writable""" % location, e)
@@ -174,7 +174,7 @@ def initialize(*args, **keywords):
 def finalize():
     # unload service packages
     reg = vistrails.core.modules.module_registry.get_module_registry()
-    for s in webServicesDict.itervalues():
+    for s in webServicesDict.values():
         if s.package:
             reg.remove_package(s.package)
 
@@ -472,7 +472,7 @@ class Service(object):
         # first create classes
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.typeClasses = {}
-        for t in self.wstypes.itervalues():
+        for t in self.wstypes.values():
             def compute(self):
                 """ 1. use type input as object or create new
                     2. add other inputs to obj
@@ -503,7 +503,7 @@ class Service(object):
                         obj = self.service.service.factory.create(s)
                     except (suds.TypeNotFound, suds.BuildError):
                         raise ModuleError("Type not found: %s" % s)
-                for part in self.wstype.parts.itervalues():
+                for part in self.wstype.parts.values():
                     # 
                     if obj.__class__.__name__ == 'UberClass':
                         # UberClass is a placeholder and its value is assumed
@@ -528,7 +528,7 @@ class Service(object):
                 self.set_output(self.wstype.qname[0], obj)
 
             # create docstring
-            parts = ", ".join([i.type[0]+' '+i.name for i in t.parts.itervalues()])
+            parts = ", ".join([i.type[0]+' '+i.name for i in t.parts.values()])
             d = """This module was created using a wrapper for SUDS (fedorahosted.org/suds/)
 from the WSDL spec at:
    %s
@@ -581,7 +581,7 @@ It is a WSDL type with signature:
         # register modules
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.methodClasses = {}
-        for m in self.wsmethods.itervalues():
+        for m in self.wsmethods.values():
             def compute(self):
                 # create dict of inputs
                 cacheable = False
@@ -607,11 +607,11 @@ It is a WSDL type with signature:
                     #print "result:", str(result)[:400]
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
                             mname, debug.format_exception(e)))
-                for name, qtype in self.wsmethod.outputs.iteritems():
+                for name, qtype in self.wsmethod.outputs.items():
                     if isinstance(result, list):
                         # if result is a list just set the output
                         self.set_output(name, result)
@@ -637,8 +637,8 @@ It is a WSDL type with signature:
                         self.set_output(name, UberClass(result))
 
             # create docstring
-            inputs = ", ".join([t[0]+' '+i for i,t in m.inputs.iteritems()])
-            outputs = ", ".join([t[0]+' '+o for o,t in m.outputs.iteritems()])
+            inputs = ", ".join([t[0]+' '+i for i,t in m.inputs.items()])
+            outputs = ", ".join([t[0]+' '+o for o,t in m.outputs.items()])
             d = """This module was created using a wrapper for SUDS (fedorahosted.org/suds/)
 from the WSDL spec at:
    %s
@@ -660,7 +660,7 @@ Outputs:
                                wsdlTypesDict['boolean'], optional=True)
 
             # add ports
-            for p, ptype in m.inputs.iteritems():
+            for p, ptype in m.inputs.items():
                 if ptype[1] in wsdlSchemas:
                     c = wsdlTypesDict[ptype[0]]
                 elif ptype in self.typeClasses:
@@ -669,7 +669,7 @@ Outputs:
                     # use string as default
                     c = wsdlTypesDict['string']
                 reg.add_input_port(M, p, c)
-            for p, ptype in m.outputs.iteritems():
+            for p, ptype in m.outputs.items():
                 if ptype[1] in wsdlSchemas:
                     c = wsdlTypesDict[ptype[0]]
                 elif ptype in self.typeClasses:
@@ -688,7 +688,7 @@ def load_from_signature(signature):
     if not wsdl in wsdlList:
         try:
             service = Service(wsdl)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             return False
         if not service.service:
@@ -730,7 +730,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         try:
             return UpgradeWorkflowHandler.replace_module(controller, pipeline,
                                                     module_id, new_descriptor)
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             raise
@@ -747,7 +747,7 @@ def handle_missing_module(controller, module_id, pipeline):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             return None
     

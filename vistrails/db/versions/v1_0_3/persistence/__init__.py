@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from xml.auto_gen import XMLDAOListBase
-from sql.auto_gen import SQLDAOListBase
+
+from .xml.auto_gen import XMLDAOListBase
+from .sql.auto_gen import SQLDAOListBase
 from vistrails.core.system import get_elementtree_library
 
 from vistrails.db import VistrailsDBException
@@ -99,7 +99,7 @@ class DAOList(dict):
         if version is None:
             version = my_version
         root.set('version', version)
-        for k, v in tags.iteritems():
+        for k, v in tags.items():
             root.set(k, v)
         tree = ElementTree.ElementTree(root)
         self.write_xml_file(filename, tree)
@@ -125,7 +125,7 @@ class DAOList(dict):
                                            (vtType, id))
         
         all_objects.update(res_objects)
-        res = res_objects.values()[0]
+        res = list(res_objects.values())[0]
         global_props = {'entity_id': res.db_id,
                         'entity_type': res.vtType}
 
@@ -136,7 +136,7 @@ class DAOList(dict):
         dbCommandList = []
         
         # generate SELECT statements
-        for dao_type, dao in self['sql'].iteritems():
+        for dao_type, dao in self['sql'].items():
             if dao_type in root_set:
                 continue
 
@@ -149,7 +149,7 @@ class DAOList(dict):
                                                       dbCommandList, True)
 
         # add result to correct dao
-        for i in xrange(len(daoList)):
+        for i in range(len(daoList)):
             daoList[i][2] = results[i]
         
         # process results
@@ -158,7 +158,7 @@ class DAOList(dict):
             all_objects.update(current_objs)
 
             if dao_type == DBGroup.vtType:
-                for key, obj in current_objs.iteritems():
+                for key, obj in current_objs.items():
                     new_props = {'parent_id': key[1],
                                  'entity_id': global_props['entity_id'],
                                  'entity_type': global_props['entity_type']}
@@ -169,11 +169,11 @@ class DAOList(dict):
                     res_dict[(res_obj.vtType, res_obj.db_id)] = res_obj
                     all_objects.update(res_dict)
 
-        for key, obj in all_objects.iteritems():
+        for key, obj in all_objects.items():
             if key[0] == vtType and key[1] == id:
                 continue
             self['sql'][obj.vtType].from_sql_fast(obj, all_objects)
-        for obj in all_objects.itervalues():
+        for obj in all_objects.values():
             obj.is_dirty = False
             obj.is_new = False
 
@@ -216,11 +216,11 @@ class DAOList(dict):
             all_objects = {}
             all_objects_dict[id] = all_objects
             all_objects.update(res_objects)
-            objects.append(res_objects.values()[0])
+            objects.append(list(res_objects.values())[0])
             # collect all commands so that they can be executed together
         
             # generate SELECT statements for children
-            for dao_type, dao in self['sql'].iteritems():
+            for dao_type, dao in self['sql'].items():
                 if dao_type in root_set:
                     continue
     
@@ -231,7 +231,7 @@ class DAOList(dict):
         # Execute all child select statements
         results = self['sql'][vtType].executeSQLGroup(db_connection,
                                                       selects, True)
-        for i in xrange(len(daoList)):
+        for i in range(len(daoList)):
             daoList[i][3] = results[i]
 
         # process results
@@ -241,7 +241,7 @@ class DAOList(dict):
             all_objects.update(current_objs)
 
             if dao_type == DBGroup.vtType:
-                for key, obj in current_objs.iteritems():
+                for key, obj in current_objs.items():
                     new_props = {'parent_id': key[1],
                                  'entity_id': global_props['entity_id'],
                                  'entity_type': global_props['entity_type']}
@@ -253,14 +253,14 @@ class DAOList(dict):
                     all_objects.update(res_dict)
 
         
-        for id, all_objects in all_objects_dict.iteritems():
-            for key, obj in all_objects.iteritems():
+        for id, all_objects in all_objects_dict.items():
+            for key, obj in all_objects.items():
                 if key[0] == vtType and key[1] == id:
                     continue
                 self['sql'][obj.vtType].from_sql_fast(obj, all_objects)
         for id, dao_type, dao, data in daoList:
             all_objects = all_objects_dict[id]
-            for obj in all_objects.itervalues():
+            for obj in all_objects.values():
                 obj.is_dirty = False
                 obj.is_new = False
     
@@ -321,7 +321,7 @@ class DAOList(dict):
         results = self['sql'][children[0][0].vtType].executeSQLGroup(
                                                     db_connection,
                                                     dbCommandList, False)
-        resultDict = dict(zip(writtenChildren, results))
+        resultDict = dict(list(zip(writtenChildren, results)))
         # process remaining children
         for (child, _, _) in children:
             if child in resultDict:
@@ -372,10 +372,10 @@ class DAOList(dict):
         results = self['sql'][children[0][0].vtType].executeSQLGroup(
                                                     db_connection,
                                                     dbCommandList, False)
-        resultDict = dict(zip(writtenChildren, results))
+        resultDict = dict(list(zip(writtenChildren, results)))
         dbCommandList = []
         writtenChildren = []
-        for child, children in childrenDict.iteritems():
+        for child, children in childrenDict.items():
             # process objects
             if child in resultDict:
                 lastId = resultDict[child]
@@ -412,9 +412,9 @@ class DAOList(dict):
         results = self['sql'][children[0][0].vtType].executeSQLGroup(
                                                         db_connection,
                                                         dbCommandList, False)
-        resultDict = dict(zip(writtenChildren, results))
+        resultDict = dict(list(zip(writtenChildren, results)))
 
-        for child, children in childrenDict.iteritems():
+        for child, children in childrenDict.items():
             global_props = global_propsDict[child]
             # process remaining children
             for (child, _, _) in children:
@@ -441,7 +441,7 @@ class DAOList(dict):
                                            % type)
 
         id_str = str(obj_id)
-        for (dao_type, dao) in self['sql'].iteritems():
+        for (dao_type, dao) in self['sql'].items():
             if dao_type not in root_set:
                 db_cmd = \
                     self['sql'][type].createSQLDelete(dao.table,
@@ -469,7 +469,7 @@ class DAOList(dict):
             obj = self.read_xml_object(obj_type, root)
             set_dirty(obj)
             return obj
-        except SyntaxError, e:
+        except SyntaxError as e:
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)
             return None

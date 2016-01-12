@@ -33,9 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from itertools import izip, chain
+
+from itertools import chain
 from ast import literal_eval
 import collections
 import copy
@@ -548,7 +548,7 @@ class ModuleRegistry(DBRegistry):
         self.package_versions = self.db_packages_identifier_index
         self.packages = {}
         self._module_key_map = {}
-        for pkg in self.package_versions.itervalues():
+        for pkg in self.package_versions.values():
             for key in chain(pkg.old_identifiers, [pkg.identifier]):
                 if key in self.packages:
                     old_pkg = self.packages[key]
@@ -562,7 +562,7 @@ class ModuleRegistry(DBRegistry):
                      descriptor.namespace, pkg.version, descriptor.version)
                 if descriptor.module is not None:
                     self._module_key_map[descriptor.module] = k
-        for descriptor in self.descriptors_by_id.itervalues():
+        for descriptor in self.descriptors_by_id.values():
             if descriptor.base_descriptor_id in self.descriptors_by_id:
                 base_descriptor = \
                     self.descriptors_by_id[descriptor.base_descriptor_id]
@@ -803,7 +803,7 @@ class ModuleRegistry(DBRegistry):
         ports = {}
         for desc in reversed(self.get_module_hierarchy(descriptor)):
             ports.update(self.module_ports('output', desc))
-        all_ports = ports.values()
+        all_ports = list(ports.values())
         if do_sort:
             all_ports.sort(key=lambda x: (x.sort_key, x.id))
         return all_ports
@@ -818,7 +818,7 @@ class ModuleRegistry(DBRegistry):
         ports = {}
         for desc in reversed(self.get_module_hierarchy(descriptor)):
             ports.update(self.module_ports('input', desc))
-        all_ports = ports.values()
+        all_ports = list(ports.values())
         if do_sort:
             all_ports.sort(key=lambda x: (x.sort_key, x.id))
         return all_ports
@@ -846,7 +846,7 @@ class ModuleRegistry(DBRegistry):
         """
         matches = []
         for pkg in self.package_list:
-            matches.extend((pkg, key) for key in pkg.descriptors.iterkeys()
+            matches.extend((pkg, key) for key in pkg.descriptors.keys()
                            if key[0] == name)
         if len(matches) == 0:
             raise MissingModule("<unknown package>", name, None)
@@ -941,7 +941,7 @@ class ModuleRegistry(DBRegistry):
                 desc = self.get_descriptor_by_name(*sig)
             else:
                 desc = self.get_descriptor(cls)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             raise VistrailsInternalError("Cannot convert value %r due to "
                                          "missing descriptor for port" % val)
@@ -951,12 +951,12 @@ class ModuleRegistry(DBRegistry):
         if desc.module is None:
             return None
 
-        if not isinstance(val, basestring):
+        if not isinstance(val, str):
             retval = desc.module.translate_to_string(val)
         else:
             checkval = desc.module.translate_to_python(val)
             retval = desc.module.translate_to_string(checkval)
-            if isinstance(checkval, basestring) and retval != val:
+            if isinstance(checkval, str) and retval != val:
                 # we have a string -> string conversion that doesn't
                 # match
                 retval = desc.module.translate_to_string(val)
@@ -1001,7 +1001,7 @@ class ModuleRegistry(DBRegistry):
                 entry_types = []
                 for item in port_info.items:
                     if not isinstance(item.signature,
-                                      basestring):
+                                      str):
                         d = self.get_descriptor(item.signature)
                         sig_items.append(create_port_spec_item_string(
                             d.package, d.name, d.namespace))
@@ -1045,7 +1045,7 @@ class ModuleRegistry(DBRegistry):
                 try:
                     name, sig, kwargs = self.decode_input_port(port_info)
                     self.add_input_port(module, name, sig, **kwargs)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.critical(
                             "Failed to add input port %s to module '%s'" % (
@@ -1060,7 +1060,7 @@ class ModuleRegistry(DBRegistry):
                 try:
                     name, sig, kwargs = self.decode_output_port(port_info)
                     self.add_output_port(module, name, sig, **kwargs)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.critical(
                              "Failed to add output port %s to module '%s'" % (
@@ -1109,7 +1109,7 @@ class ModuleRegistry(DBRegistry):
                      'moduleRightFringe': 'right_fringe',
                      'is_abstract': 'abstract'}
             remapped_d = {}
-            for k, v in d.iteritems():
+            for k, v in d.items():
                 if k in remap:
                     remapped_d[remap[k]] = v
                 else:
@@ -1292,7 +1292,7 @@ class ModuleRegistry(DBRegistry):
         if 'version' in kwargs:
             version = kwargs['version']
         else:
-            version = -1L
+            version = -1
         if 'name' in kwargs:
             name = kwargs['name']
         else:
@@ -1314,7 +1314,7 @@ class ModuleRegistry(DBRegistry):
         is_upgraded_abstraction = False
         try:
             module = new_abstraction(name, vistrail, vt_fname, version)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             # This import MUST be delayed until this point or it will fail
             import vistrails.core.vistrail.controller
             from vistrails.core.db.io import save_vistrail_to_xml
@@ -1322,10 +1322,10 @@ class ModuleRegistry(DBRegistry):
                 abstraction_pkg, version as abstraction_ver
             # Use a "dummy" controller to handle the upgrade
             controller = vistrails.core.vistrail.controller.VistrailController(vistrail)
-            if version == -1L:
+            if version == -1:
                 version = vistrail.get_latest_version()
             (new_version, new_pipeline) = \
-                controller.handle_invalid_pipeline(e, long(version), vistrail,
+                controller.handle_invalid_pipeline(e, int(version), vistrail,
                                                    False, True)
             del controller
             vistrail.set_annotation('__abstraction_descriptor_info__',
@@ -1417,7 +1417,7 @@ class ModuleRegistry(DBRegistry):
                     sigstrings = [None,]
             if defaults is not None:
                 new_defaults = []
-                if isinstance(defaults, basestring):
+                if isinstance(defaults, str):
                     defaults = literal_eval(defaults)
                 if not isinstance(defaults, list):
                     raise ValueError('Defaults for port "%s" must be a list' %
@@ -1436,13 +1436,13 @@ class ModuleRegistry(DBRegistry):
                 defaults = new_defaults
             if values is not None:
                 new_values = []
-                if isinstance(values, basestring):
+                if isinstance(values, str):
                     values = literal_eval(values)
                 if not isinstance(values, list):
                     raise ValueError('Values for port "%s" must be a list '
                                      'of lists' % name)
                 for i, values_list in enumerate(values):
-                    if isinstance(values_list, basestring):
+                    if isinstance(values_list, str):
                         values_list = literal_eval(values_list)
                     if values_list is not None:
                         if not isinstance(values_list, list):
@@ -1487,7 +1487,7 @@ class ModuleRegistry(DBRegistry):
         # check if the spec is valid
         try:
             spec.descriptors()
-        except ModuleRegistryException, e:
+        except ModuleRegistryException as e:
             raise InvalidPortSpec(descriptor, spec.name, spec.type, e)
 
         descriptor.add_port_spec(spec)
@@ -1559,7 +1559,7 @@ class ModuleRegistry(DBRegistry):
         :type depth: int
         """
         descriptor = self.get_descriptor(module)
-        if isinstance(portSignature, basestring):
+        if isinstance(portSignature, str):
             self.add_port(descriptor, portName, 'input', None, portSignature,
                           optional, sort_key, labels, defaults, values,
                           entry_types, docstring, shape, min_conns, max_conns,
@@ -1588,7 +1588,7 @@ class ModuleRegistry(DBRegistry):
         :type depth: int
         """
         descriptor = self.get_descriptor(module)
-        if isinstance(portSignature, basestring):
+        if isinstance(portSignature, str):
             self.add_port(descriptor, portName, 'output', None, portSignature,
                           optional, sort_key, None, None, None, None,
                           docstring, shape, min_conns, max_conns, depth)
@@ -1621,7 +1621,7 @@ class ModuleRegistry(DBRegistry):
                 modules = package.module._modules
                 if isinstance(modules, dict):
                     module_list = []
-                    for namespace, m_list in modules.iteritems():
+                    for namespace, m_list in modules.items():
                         for module in m_list:
                             m_dict = {'namespace': namespace}
                             if isinstance(module, tuple):
@@ -1662,7 +1662,7 @@ class ModuleRegistry(DBRegistry):
                         added_descriptors.add(descriptor)
         except MissingRequirement:
             raise
-        except Exception, e:
+        except Exception as e:
             raise package.InitializationFailed(package,
                                                [traceback.format_exc()])
         finally:
@@ -1718,8 +1718,8 @@ class ModuleRegistry(DBRegistry):
                 *vistrails.core.modules.utils.parse_descriptor_string(sigstring))
 
         # Remove upgraded package subworkflows from registry
-        for key, version_dict in package._abs_pkg_upgrades.iteritems():
-            for version, descriptor in version_dict.iteritems():
+        for key, version_dict in package._abs_pkg_upgrades.items():
+            for version, descriptor in version_dict.items():
                 self.delete_module(descriptor.identifier, descriptor.name,
                                    descriptor.namespace)
         package._abs_pkg_upgrades.clear()
@@ -1872,7 +1872,7 @@ class ModuleRegistry(DBRegistry):
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         module_desc = self.get_descriptor_by_name(basic_pkg, 'Module')
 
-        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+        for (sub_desc, super_desc) in zip(sub_descs, super_descs):
             if sub_desc == variant_desc or super_desc == variant_desc:
                 continue
             if super_desc == module_desc and sub_desc != module_desc:
@@ -1958,7 +1958,7 @@ class ModuleRegistry(DBRegistry):
         """Finds descriptors that subclass the given descriptor.
         """
         sub_list = []
-        for pkg in self.package_versions.itervalues():
+        for pkg in self.package_versions.values():
             for d in pkg.descriptor_list:
                 if self.is_descriptor_subclass(d, descriptor):
                     sub_list.append(d)
@@ -2043,7 +2043,7 @@ class ModuleRegistry(DBRegistry):
         widgets = {}
         for desc in reversed(self.get_module_hierarchy(descriptor)):
             widgets.update(desc.get_all_constant_config_widgets(widget_use))
-        return widgets.values()
+        return list(widgets.values())
 
     def set_constant_config_widget(self, descriptor, widget_class,
                                    widget_type=None, widget_use=None):

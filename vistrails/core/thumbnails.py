@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import itertools
 
@@ -88,7 +88,7 @@ class ThumbnailCache(object):
 
     def destroy(self):
         if self._temp_directory is not None:
-            print "removing thumbnail directory"
+            print("removing thumbnail directory")
             shutil.rmtree(self._temp_directory)
         
     def get_directory(self):
@@ -122,15 +122,15 @@ class ThumbnailCache(object):
         """
         try:
             return self.elements[name].abs_name
-        except KeyError, e:
+        except KeyError as e:
             try:
                 return self.vtelements[name].abs_name
-            except KeyError, e:
+            except KeyError as e:
                 return None
         
     def size(self):
         size = 0
-        for entry in self.elements.itervalues():
+        for entry in self.elements.values():
             size += entry.size
         return size
 
@@ -140,20 +140,20 @@ class ThumbnailCache(object):
         
         """
         if os.path.exists(destdir):
-            for entry in self.elements.itervalues():
+            for entry in self.elements.values():
                 try:
                     srcname = entry.abs_name
                     dstname = os.path.join(destdir,entry.name)
                     shutil.move(srcname,dstname)
                     entry.abs_name = dstname
                         
-                except shutil.Error, e:
+                except shutil.Error as e:
                     debug.warning("Could not move thumbnail from %s to %s" % (
                                   sourcedir, destdir),
                                   e)
                     
     def remove_lru(self,n=1):
-        elements = self.elements.values()
+        elements = list(self.elements.values())
         elements.sort(key=lambda obj: obj.time)
         num = min(n,len(elements))
         debug.debug("Will remove %s elements from cache..."%num)
@@ -163,15 +163,15 @@ class ThumbnailCache(object):
             try:
                 del self.elements[elem.name]
                 os.unlink(elem.abs_name)
-            except os.error, e:
+            except os.error as e:
                 debug.warning("Could not remove file %s" % elem.abs_name, e)
 
     def remove(self,key):
-        if key in self.elements.keys():
+        if key in list(self.elements.keys()):
             entry = self.elements[key]
             del self.elements[key]
             os.unlink(entry.abs_name)
-        elif key in self.vtelements.keys():
+        elif key in list(self.vtelements.keys()):
             entry = self.vtelements[key]
             del self.vtelements[key]
             os.unlink(entry.abs_name)
@@ -237,7 +237,7 @@ class ThumbnailCache(object):
                 for fname in files:
                     os.unlink(os.path.join(root,fname))
                     
-        except OSError, e:
+        except OSError as e:
             debug.warning("Error when removing thumbnails", e)
     
     @staticmethod

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 import pydoc
@@ -170,7 +170,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._widget_item = other._widget_item
             self.is_hidden = other.is_hidden
             self._widget_classes = dict((k,copy.copy(v)) for k, v in \
-                                         other._widget_classes.iteritems())
+                                         other._widget_classes.items())
             self.namespace_hidden = other.namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
@@ -310,7 +310,7 @@ class ModuleDescriptor(DBModuleDescriptor):
         if hasattr(self.module, 'get_documentation'):
             try:
                 doc = self.module.get_documentation(doc, module)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Exception calling get_documentation on %r" %
                                self.module,
                                e)

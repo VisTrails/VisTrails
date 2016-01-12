@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -128,7 +128,7 @@ class VistrailsViewerWindow(StoreViewerWindow):
             from vistrails.gui.pipeline_view import QGraphicsModuleItem
 
             scene = view.controller.current_pipeline_view.scene()
-            for module_item in (i for i in scene.items()
+            for module_item in (i for i in list(scene.items())
                                   if isinstance(i, QGraphicsModuleItem)):
                 if module_item.module.id == module_id:
                     module_item.setSelected(True)

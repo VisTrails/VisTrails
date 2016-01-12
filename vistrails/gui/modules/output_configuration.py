@@ -38,7 +38,7 @@ its subclasses.
 
 """
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -81,7 +81,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
             mode_layouts.append(mode_w.layout())
             self.found_modes.add(mode.mode_type)
             
-        for mode_type, mode_config in config.iteritems():
+        for mode_type, mode_config in config.items():
             if mode_type not in self.found_modes:
                 mode_w = self.build_mode_config(layout, None, mode_config, 
                                                 title=mode_type)
@@ -90,7 +90,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 
         width = 0
         for mode_layout in mode_layouts:
-            for row in xrange(mode_layout.rowCount()):
+            for row in range(mode_layout.rowCount()):
                 item = mode_layout.itemAtPosition(row, 0)
                 if item and item.widget():
                     width = max(width, item.widget().sizeHint().width())
@@ -153,7 +153,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def reset_triggered(self):
         config = self.get_configuration()
         for mode_widget in self.mode_widgets:
-            for config_key, field in mode_widget._changed_fields.iteritems():
+            for config_key, field in mode_widget._changed_fields.items():
                 widget = mode_widget.field_widgets[config_key]
                 mode_type = config_key[0]
                 mode_config = None
@@ -191,7 +191,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         group_layout.setColumnStretch(1,1)
 
         if mode is None:
-            for k, v in mode_config.iteritems():
+            for k, v in mode_config.items():
                 dummy_field = ConfigField(k, None, str)
                 self.add_field(group_layout, dummy_field, mode_config,
                                         k)
@@ -303,7 +303,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
     def set_line_edit_value(self, line_edit, config_val):
         if config_val is None:
             config_val = ""
-        line_edit.setText(unicode(config_val))
+        line_edit.setText(str(config_val))
 
     def add_path_edit(self, layout, field, config_key, config_desc, config_val):
         options = {}
@@ -325,7 +325,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         line_edit = QtGui.QLineEdit()
         if config_val is None:
             config_val = ""
-        line_edit.setText(unicode(config_val))
+        line_edit.setText(str(config_val))
         sub_layout.addWidget(line_edit)
         path_edit.line_edit = line_edit
 
@@ -347,7 +347,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
     def set_path_edit_value(self, path_edit, config_val):
         if config_val is None:
             config_val = ""
-        path_edit.line_edit.setText(unicode(config_val))
+        path_edit.line_edit.setText(str(config_val))
 
     def add_combo(self, layout, field, config_key, config_desc, config_val):
         options = {}
@@ -368,7 +368,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             values = options["allowed_values"]
             if "remap" in options:
                 remap = options["remap"]
-                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
+                inv_remap = dict((v, k) for (k, v) in remap.items())
                 entries = [remap[v] for v in values]
             else:
                 entries = values
@@ -381,7 +381,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             if inv_remap is not None:
                 val = inv_remap[val]
             self.field_changed(config_key, field, val, config_val)
-        combo.currentIndexChanged[unicode].connect(call_field_changed)
+        combo.currentIndexChanged[str].connect(call_field_changed)
         return combo
 
     def set_combo_value(self, combo, config_val, field):

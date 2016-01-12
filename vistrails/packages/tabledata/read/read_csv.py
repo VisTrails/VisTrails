@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import csv
 import operator
@@ -80,11 +80,11 @@ class CSVTable(TableObject):
                 if use_sniffer:
                     first_lines = ""
                     line = fp.readline()
-                    for i in xrange(skip_lines):
+                    for i in range(skip_lines):
                         if not line:
                             break
                         line = fp.readline()
-                    for i in xrange(5):
+                    for i in range(5):
                         if not line:
                             break
                         first_lines += line
@@ -98,7 +98,7 @@ class CSVTable(TableObject):
                         if header_present is None:
                             header_present = sniffer.has_header(first_lines)
 
-                for i in xrange(skip_lines):
+                for i in range(skip_lines):
                     line = fp.readline()
                     if not line:
                         raise InternalModuleError("skip_lines greater than "
@@ -109,7 +109,7 @@ class CSVTable(TableObject):
                     reader = csv.reader(fp, dialect=dialect)
                 else:
                     reader = csv.reader(fp, delimiter=delimiter)
-                result = reader.next()
+                result = next(reader)
                 column_count = len(result)
 
                 if header_present:
@@ -136,7 +136,7 @@ class CSVTable(TableObject):
                     usecols=[index])
         else:
             with open(self.filename, 'rb') as fp:
-                for i in xrange(self.skip_lines):
+                for i in range(self.skip_lines):
                     line = fp.readline()
                     if not line:
                         raise ValueError("skip_lines greater than the number "
@@ -207,7 +207,7 @@ class CSVFile(Table):
         try:
             table = CSVTable(csv_file, header_present, delimiter, skip_lines,
                              dialect, sniff_header)
-        except InternalModuleError, e:
+        except InternalModuleError as e:
             e.raise_module_error(self)
 
         self.set_output('column_count', table.columns)
@@ -220,7 +220,7 @@ _modules = [CSVFile]
 
 ###############################################################################
 
-from StringIO import StringIO
+from io import StringIO
 import unittest
 from vistrails.tests.utils import execute, intercept_result
 from ..identifiers import identifier

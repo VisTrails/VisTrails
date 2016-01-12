@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Describes the start-up process of VisTrails"""
-from __future__ import division
+
 
 from vistrails.core import debug
 from vistrails.core import system
@@ -214,7 +214,7 @@ class VistrailsStartup(DBStartup):
             if len(self_pkgs.db_packages) != len(other_pkgs.db_packages):
                 return False
             for (p_name, pkg1) in \
-                    self_pkgs.db_packages_name_index.iteritems():
+                    self_pkgs.db_packages_name_index.items():
                 if p_name not in other_pkgs.db_packages_name_index:
                     return False
                 else:
@@ -282,7 +282,7 @@ class VistrailsStartup(DBStartup):
             try:
                 os.mkdir(dir_name)
                 return True
-            except Exception, e:
+            except Exception as e:
                 msg = ("Failed to create directory: '%s'."
                        "This could be an indication of a permissions problem."
                        "Make sure directory '%s' in writable." %

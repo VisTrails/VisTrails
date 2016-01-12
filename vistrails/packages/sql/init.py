@@ -34,12 +34,12 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.exc import SQLAlchemyError
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from vistrails.core.db.action import create_action
 from vistrails.core.bundles.installbundle import install
@@ -81,7 +81,7 @@ class DBConnection(Module):
 
         try:
             engine = create_engine(url)
-        except ImportError, e:
+        except ImportError as e:
             driver = url.drivername
             installed = False
             if driver == 'sqlite':
@@ -123,7 +123,7 @@ class DBConnection(Module):
                                   "Failed to install required driver")
             try:
                 engine = create_engine(url)
-            except Exception, e:
+            except Exception as e:
                 raise ModuleError(self,
                                   "Couldn't connect to the database: %s" %
                                   debug.format_exception(e))
@@ -156,9 +156,9 @@ class SQLSource(Module):
             cached = self.get_input('cacheResults')
             self.is_cacheable = lambda: cached
         connection = self.get_input('connection')
-        inputs = dict((k, self.get_input(k)) for k in self.inputPorts.iterkeys()
+        inputs = dict((k, self.get_input(k)) for k in self.inputPorts.keys()
                   if k not in ('source', 'connection', 'cacheResults'))
-        s = urllib.unquote(str(self.get_input('source')))
+        s = urllib.parse.unquote(str(self.get_input('source')))
 
         try:
             transaction = connection.begin()
@@ -172,11 +172,11 @@ class SQLSource(Module):
                 # results.returns_rows is True
                 # We don't use 'if return_rows' because this attribute didn't
                 # use to exist
-                table = TableObject.from_dicts(rows, results.keys())
+                table = TableObject.from_dicts(rows, list(results.keys()))
                 self.set_output('result', table)
                 self.set_output('resultSet', rows)
             transaction.commit()
-        except SQLAlchemyError, e:
+        except SQLAlchemyError as e:
             raise ModuleError(self, debug.format_exception(e))
 
 
@@ -241,7 +241,7 @@ class TestSQL(unittest.TestCase):
         import os
         import sqlite3
         import tempfile
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         from vistrails.tests.utils import execute, intercept_results
         identifier = 'org.vistrails.vistrails.sql'
 
@@ -276,7 +276,7 @@ class TestSQL(unittest.TestCase):
                             ('db_name', [('String', test_db)]),
                         ]),
                         ('SQLSource', identifier, [
-                            ('source', [('String', urllib2.quote(source))]),
+                            ('source', [('String', urllib.parse.quote(source))]),
                             ('name', [('String', 'Michael')]),
                             ('lastname', [('String', 'Buck')]),
                             ('age', [('Integer', '78')]),
@@ -308,7 +308,7 @@ class TestSQL(unittest.TestCase):
                             ('db_name', [('String', test_db)]),
                         ]),
                         ('SQLSource', identifier, [
-                            ('source', [('String', urllib2.quote(source))]),
+                            ('source', [('String', urllib.parse.quote(source))]),
                             ('age', [('Integer', '22')]),
                         ]),
                     ],

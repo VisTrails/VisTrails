@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 class MplCorrBaseMixin(object):
     def compute_after():
@@ -96,5 +96,5 @@ class MplSpyMixin(object):
 
 class MplBarMixin(object):
     def compute_before(self):
-        if not kwargs.has_key('left'):
-            kwargs['left'] = range(len(kwargs['height']))
+        if 'left' not in kwargs:
+            kwargs['left'] = list(range(len(kwargs['height'])))

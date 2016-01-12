@@ -36,7 +36,7 @@
 
 """generated automatically by auto_dao.py"""
 
-from __future__ import division
+
 
 import copy
 
@@ -516,7 +516,7 @@ class DBOpmAccounts(object):
     def db_change_account(self, account):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_accounts)):
+        for i in range(len(self._db_accounts)):
             if self._db_accounts[i].db_id == account.db_id:
                 self._db_accounts[i] = account
                 found = True
@@ -526,7 +526,7 @@ class DBOpmAccounts(object):
         self.db_accounts_id_index[account.db_id] = account
     def db_delete_account(self, account):
         self.is_dirty = True
-        for i in xrange(len(self._db_accounts)):
+        for i in range(len(self._db_accounts)):
             if self._db_accounts[i].db_id == account.db_id:
                 if not self._db_accounts[i].is_new:
                     self.db_deleted_accounts.append(self._db_accounts[i])
@@ -534,7 +534,7 @@ class DBOpmAccounts(object):
                 break
         del self.db_accounts_id_index[account.db_id]
     def db_get_account(self, key):
-        for i in xrange(len(self._db_accounts)):
+        for i in range(len(self._db_accounts)):
             if self._db_accounts[i].db_id == key:
                 return self._db_accounts[i]
         return None
@@ -1093,7 +1093,7 @@ class DBModule(object):
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == function.db_id:
                 self._db_functions[i] = function
                 found = True
@@ -1103,7 +1103,7 @@ class DBModule(object):
         self.db_functions_id_index[function.db_id] = function
     def db_delete_function(self, function):
         self.is_dirty = True
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == function.db_id:
                 if not self._db_functions[i].is_new:
                     self.db_deleted_functions.append(self._db_functions[i])
@@ -1111,7 +1111,7 @@ class DBModule(object):
                 break
         del self.db_functions_id_index[function.db_id]
     def db_get_function(self, key):
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
@@ -1136,7 +1136,7 @@ class DBModule(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -1147,7 +1147,7 @@ class DBModule(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -1156,7 +1156,7 @@ class DBModule(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -1185,7 +1185,7 @@ class DBModule(object):
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_portSpecs)):
+        for i in range(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == portSpec.db_id:
                 self._db_portSpecs[i] = portSpec
                 found = True
@@ -1196,7 +1196,7 @@ class DBModule(object):
         self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
-        for i in xrange(len(self._db_portSpecs)):
+        for i in range(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == portSpec.db_id:
                 if not self._db_portSpecs[i].is_new:
                     self.db_deleted_portSpecs.append(self._db_portSpecs[i])
@@ -1205,7 +1205,7 @@ class DBModule(object):
         del self.db_portSpecs_id_index[portSpec.db_id]
         del self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)]
     def db_get_portSpec(self, key):
-        for i in xrange(len(self._db_portSpecs)):
+        for i in range(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == key:
                 return self._db_portSpecs[i]
         return None
@@ -1449,7 +1449,7 @@ class DBModuleDescriptor(object):
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_portSpecs)):
+        for i in range(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == portSpec.db_id:
                 self._db_portSpecs[i] = portSpec
                 found = True
@@ -1460,7 +1460,7 @@ class DBModuleDescriptor(object):
         self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
-        for i in xrange(len(self._db_portSpecs)):
+        for i in range(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == portSpec.db_id:
                 if not self._db_portSpecs[i].is_new:
                     self.db_deleted_portSpecs.append(self._db_portSpecs[i])
@@ -1469,7 +1469,7 @@ class DBModuleDescriptor(object):
         del self.db_portSpecs_id_index[portSpec.db_id]
         del self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)]
     def db_get_portSpec(self, key):
-        for i in xrange(len(self._db_portSpecs)):
+        for i in range(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == key:
                 return self._db_portSpecs[i]
         return None
@@ -1751,7 +1751,7 @@ class DBOpmProcesses(object):
     def db_change_process(self, process):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_processs)):
+        for i in range(len(self._db_processs)):
             if self._db_processs[i].db_id == process.db_id:
                 self._db_processs[i] = process
                 found = True
@@ -1761,7 +1761,7 @@ class DBOpmProcesses(object):
         self.db_processs_id_index[process.db_id] = process
     def db_delete_process(self, process):
         self.is_dirty = True
-        for i in xrange(len(self._db_processs)):
+        for i in range(len(self._db_processs)):
             if self._db_processs[i].db_id == process.db_id:
                 if not self._db_processs[i].is_new:
                     self.db_deleted_processs.append(self._db_processs[i])
@@ -1769,7 +1769,7 @@ class DBOpmProcesses(object):
                 break
         del self.db_processs_id_index[process.db_id]
     def db_get_process(self, key):
-        for i in xrange(len(self._db_processs)):
+        for i in range(len(self._db_processs)):
             if self._db_processs[i].db_id == key:
                 return self._db_processs[i]
         return None
@@ -2539,7 +2539,7 @@ class DBGroup(object):
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == function.db_id:
                 self._db_functions[i] = function
                 found = True
@@ -2549,7 +2549,7 @@ class DBGroup(object):
         self.db_functions_id_index[function.db_id] = function
     def db_delete_function(self, function):
         self.is_dirty = True
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == function.db_id:
                 if not self._db_functions[i].is_new:
                     self.db_deleted_functions.append(self._db_functions[i])
@@ -2557,7 +2557,7 @@ class DBGroup(object):
                 break
         del self.db_functions_id_index[function.db_id]
     def db_get_function(self, key):
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
@@ -2582,7 +2582,7 @@ class DBGroup(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -2593,7 +2593,7 @@ class DBGroup(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -2602,7 +2602,7 @@ class DBGroup(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -2865,7 +2865,7 @@ class DBLog(object):
     def db_change_workflow_exec(self, workflow_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_workflow_execs)):
+        for i in range(len(self._db_workflow_execs)):
             if self._db_workflow_execs[i].db_id == workflow_exec.db_id:
                 self._db_workflow_execs[i] = workflow_exec
                 found = True
@@ -2875,7 +2875,7 @@ class DBLog(object):
         self.db_workflow_execs_id_index[workflow_exec.db_id] = workflow_exec
     def db_delete_workflow_exec(self, workflow_exec):
         self.is_dirty = True
-        for i in xrange(len(self._db_workflow_execs)):
+        for i in range(len(self._db_workflow_execs)):
             if self._db_workflow_execs[i].db_id == workflow_exec.db_id:
                 if not self._db_workflow_execs[i].is_new:
                     self.db_deleted_workflow_execs.append(self._db_workflow_execs[i])
@@ -2883,7 +2883,7 @@ class DBLog(object):
                 break
         del self.db_workflow_execs_id_index[workflow_exec.db_id]
     def db_get_workflow_exec(self, key):
-        for i in xrange(len(self._db_workflow_execs)):
+        for i in range(len(self._db_workflow_execs)):
             if self._db_workflow_execs[i].db_id == key:
                 return self._db_workflow_execs[i]
         return None
@@ -2907,7 +2907,7 @@ class DBLog(object):
     def db_change_machine(self, machine):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_machines)):
+        for i in range(len(self._db_machines)):
             if self._db_machines[i].db_id == machine.db_id:
                 self._db_machines[i] = machine
                 found = True
@@ -2917,7 +2917,7 @@ class DBLog(object):
         self.db_machines_id_index[machine.db_id] = machine
     def db_delete_machine(self, machine):
         self.is_dirty = True
-        for i in xrange(len(self._db_machines)):
+        for i in range(len(self._db_machines)):
             if self._db_machines[i].db_id == machine.db_id:
                 if not self._db_machines[i].is_new:
                     self.db_deleted_machines.append(self._db_machines[i])
@@ -2925,7 +2925,7 @@ class DBLog(object):
                 break
         del self.db_machines_id_index[machine.db_id]
     def db_get_machine(self, key):
-        for i in xrange(len(self._db_machines)):
+        for i in range(len(self._db_machines)):
             if self._db_machines[i].db_id == key:
                 return self._db_machines[i]
         return None
@@ -3053,7 +3053,7 @@ class DBOpmAgents(object):
     def db_change_agent(self, agent):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_agents)):
+        for i in range(len(self._db_agents)):
             if self._db_agents[i].db_id == agent.db_id:
                 self._db_agents[i] = agent
                 found = True
@@ -3063,7 +3063,7 @@ class DBOpmAgents(object):
         self.db_agents_id_index[agent.db_id] = agent
     def db_delete_agent(self, agent):
         self.is_dirty = True
-        for i in xrange(len(self._db_agents)):
+        for i in range(len(self._db_agents)):
             if self._db_agents[i].db_id == agent.db_id:
                 if not self._db_agents[i].is_new:
                     self.db_deleted_agents.append(self._db_agents[i])
@@ -3071,7 +3071,7 @@ class DBOpmAgents(object):
                 break
         del self.db_agents_id_index[agent.db_id]
     def db_get_agent(self, key):
-        for i in xrange(len(self._db_agents)):
+        for i in range(len(self._db_agents)):
             if self._db_agents[i].db_id == key:
                 return self._db_agents[i]
         return None
@@ -4010,7 +4010,7 @@ class DBOpmArtifacts(object):
     def db_change_artifact(self, artifact):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_artifacts)):
+        for i in range(len(self._db_artifacts)):
             if self._db_artifacts[i].db_id == artifact.db_id:
                 self._db_artifacts[i] = artifact
                 found = True
@@ -4020,7 +4020,7 @@ class DBOpmArtifacts(object):
         self.db_artifacts_id_index[artifact.db_id] = artifact
     def db_delete_artifact(self, artifact):
         self.is_dirty = True
-        for i in xrange(len(self._db_artifacts)):
+        for i in range(len(self._db_artifacts)):
             if self._db_artifacts[i].db_id == artifact.db_id:
                 if not self._db_artifacts[i].is_new:
                     self.db_deleted_artifacts.append(self._db_artifacts[i])
@@ -4028,7 +4028,7 @@ class DBOpmArtifacts(object):
                 break
         del self.db_artifacts_id_index[artifact.db_id]
     def db_get_artifact(self, key):
-        for i in xrange(len(self._db_artifacts)):
+        for i in range(len(self._db_artifacts)):
             if self._db_artifacts[i].db_id == key:
                 return self._db_artifacts[i]
         return None
@@ -4860,7 +4860,7 @@ class DBFunction(object):
     def db_change_parameter(self, parameter):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_parameters)):
+        for i in range(len(self._db_parameters)):
             if self._db_parameters[i].db_id == parameter.db_id:
                 self._db_parameters[i] = parameter
                 found = True
@@ -4870,7 +4870,7 @@ class DBFunction(object):
         self.db_parameters_id_index[parameter.db_id] = parameter
     def db_delete_parameter(self, parameter):
         self.is_dirty = True
-        for i in xrange(len(self._db_parameters)):
+        for i in range(len(self._db_parameters)):
             if self._db_parameters[i].db_id == parameter.db_id:
                 if not self._db_parameters[i].is_new:
                     self.db_deleted_parameters.append(self._db_parameters[i])
@@ -4878,7 +4878,7 @@ class DBFunction(object):
                 break
         del self.db_parameters_id_index[parameter.db_id]
     def db_get_parameter(self, key):
-        for i in xrange(len(self._db_parameters)):
+        for i in range(len(self._db_parameters)):
             if self._db_parameters[i].db_id == key:
                 return self._db_parameters[i]
         return None
@@ -5228,7 +5228,7 @@ class DBAbstraction(object):
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == function.db_id:
                 self._db_functions[i] = function
                 found = True
@@ -5238,7 +5238,7 @@ class DBAbstraction(object):
         self.db_functions_id_index[function.db_id] = function
     def db_delete_function(self, function):
         self.is_dirty = True
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == function.db_id:
                 if not self._db_functions[i].is_new:
                     self.db_deleted_functions.append(self._db_functions[i])
@@ -5246,7 +5246,7 @@ class DBAbstraction(object):
                 break
         del self.db_functions_id_index[function.db_id]
     def db_get_function(self, key):
-        for i in xrange(len(self._db_functions)):
+        for i in range(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
@@ -5271,7 +5271,7 @@ class DBAbstraction(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -5282,7 +5282,7 @@ class DBAbstraction(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -5291,7 +5291,7 @@ class DBAbstraction(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -5609,7 +5609,7 @@ class DBWorkflow(object):
     def db_change_module(self, module):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_modules)):
+        for i in range(len(self._db_modules)):
             if self._db_modules[i].db_id == module.db_id:
                 self._db_modules[i] = module
                 found = True
@@ -5619,7 +5619,7 @@ class DBWorkflow(object):
         self.db_modules_id_index[module.db_id] = module
     def db_delete_module(self, module):
         self.is_dirty = True
-        for i in xrange(len(self._db_modules)):
+        for i in range(len(self._db_modules)):
             if self._db_modules[i].db_id == module.db_id:
                 if not self._db_modules[i].is_new:
                     self.db_deleted_modules.append(self._db_modules[i])
@@ -5627,7 +5627,7 @@ class DBWorkflow(object):
                 break
         del self.db_modules_id_index[module.db_id]
     def db_get_module(self, key):
-        for i in xrange(len(self._db_modules)):
+        for i in range(len(self._db_modules)):
             if self._db_modules[i].db_id == key:
                 return self._db_modules[i]
         return None
@@ -5716,7 +5716,7 @@ class DBWorkflow(object):
     def db_change_connection(self, connection):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_connections)):
+        for i in range(len(self._db_connections)):
             if self._db_connections[i].db_id == connection.db_id:
                 self._db_connections[i] = connection
                 found = True
@@ -5726,7 +5726,7 @@ class DBWorkflow(object):
         self.db_connections_id_index[connection.db_id] = connection
     def db_delete_connection(self, connection):
         self.is_dirty = True
-        for i in xrange(len(self._db_connections)):
+        for i in range(len(self._db_connections)):
             if self._db_connections[i].db_id == connection.db_id:
                 if not self._db_connections[i].is_new:
                     self.db_deleted_connections.append(self._db_connections[i])
@@ -5734,7 +5734,7 @@ class DBWorkflow(object):
                 break
         del self.db_connections_id_index[connection.db_id]
     def db_get_connection(self, key):
-        for i in xrange(len(self._db_connections)):
+        for i in range(len(self._db_connections)):
             if self._db_connections[i].db_id == key:
                 return self._db_connections[i]
         return None
@@ -5758,7 +5758,7 @@ class DBWorkflow(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -5768,7 +5768,7 @@ class DBWorkflow(object):
         self.db_annotations_id_index[annotation.db_id] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -5776,7 +5776,7 @@ class DBWorkflow(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -5800,7 +5800,7 @@ class DBWorkflow(object):
     def db_change_plugin_data(self, plugin_data):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_plugin_datas)):
+        for i in range(len(self._db_plugin_datas)):
             if self._db_plugin_datas[i].db_id == plugin_data.db_id:
                 self._db_plugin_datas[i] = plugin_data
                 found = True
@@ -5810,7 +5810,7 @@ class DBWorkflow(object):
         self.db_plugin_datas_id_index[plugin_data.db_id] = plugin_data
     def db_delete_plugin_data(self, plugin_data):
         self.is_dirty = True
-        for i in xrange(len(self._db_plugin_datas)):
+        for i in range(len(self._db_plugin_datas)):
             if self._db_plugin_datas[i].db_id == plugin_data.db_id:
                 if not self._db_plugin_datas[i].is_new:
                     self.db_deleted_plugin_datas.append(self._db_plugin_datas[i])
@@ -5818,7 +5818,7 @@ class DBWorkflow(object):
                 break
         del self.db_plugin_datas_id_index[plugin_data.db_id]
     def db_get_plugin_data(self, key):
-        for i in xrange(len(self._db_plugin_datas)):
+        for i in range(len(self._db_plugin_datas)):
             if self._db_plugin_datas[i].db_id == key:
                 return self._db_plugin_datas[i]
         return None
@@ -5842,7 +5842,7 @@ class DBWorkflow(object):
     def db_change_other(self, other):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_others)):
+        for i in range(len(self._db_others)):
             if self._db_others[i].db_id == other.db_id:
                 self._db_others[i] = other
                 found = True
@@ -5852,7 +5852,7 @@ class DBWorkflow(object):
         self.db_others_id_index[other.db_id] = other
     def db_delete_other(self, other):
         self.is_dirty = True
-        for i in xrange(len(self._db_others)):
+        for i in range(len(self._db_others)):
             if self._db_others[i].db_id == other.db_id:
                 if not self._db_others[i].is_new:
                     self.db_deleted_others.append(self._db_others[i])
@@ -5860,7 +5860,7 @@ class DBWorkflow(object):
                 break
         del self.db_others_id_index[other.db_id]
     def db_get_other(self, key):
-        for i in xrange(len(self._db_others)):
+        for i in range(len(self._db_others)):
             if self._db_others[i].db_id == key:
                 return self._db_others[i]
         return None
@@ -6594,7 +6594,7 @@ class DBRegistry(object):
     def db_change_package(self, package):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_packages)):
+        for i in range(len(self._db_packages)):
             if self._db_packages[i].db_id == package.db_id:
                 self._db_packages[i] = package
                 found = True
@@ -6605,7 +6605,7 @@ class DBRegistry(object):
         self.db_packages_identifier_index[(package.db_identifier,package.db_version)] = package
     def db_delete_package(self, package):
         self.is_dirty = True
-        for i in xrange(len(self._db_packages)):
+        for i in range(len(self._db_packages)):
             if self._db_packages[i].db_id == package.db_id:
                 if not self._db_packages[i].is_new:
                     self.db_deleted_packages.append(self._db_packages[i])
@@ -6614,7 +6614,7 @@ class DBRegistry(object):
         del self.db_packages_id_index[package.db_id]
         del self.db_packages_identifier_index[(package.db_identifier,package.db_version)]
     def db_get_package(self, key):
-        for i in xrange(len(self._db_packages)):
+        for i in range(len(self._db_packages)):
             if self._db_packages[i].db_id == key:
                 return self._db_packages[i]
         return None
@@ -7992,7 +7992,7 @@ class DBGroupExec(object):
     def db_change_item_exec(self, item_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == item_exec.db_id:
                 self._db_item_execs[i] = item_exec
                 found = True
@@ -8002,7 +8002,7 @@ class DBGroupExec(object):
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
     def db_delete_item_exec(self, item_exec):
         self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == item_exec.db_id:
                 if not self._db_item_execs[i].is_new:
                     self.db_deleted_item_execs.append(self._db_item_execs[i])
@@ -8010,7 +8010,7 @@ class DBGroupExec(object):
                 break
         del self.db_item_execs_id_index[item_exec.db_id]
     def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == key:
                 return self._db_item_execs[i]
         return None
@@ -8164,7 +8164,7 @@ class DBGroupExec(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -8174,7 +8174,7 @@ class DBGroupExec(object):
         self.db_annotations_id_index[annotation.db_id] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -8182,7 +8182,7 @@ class DBGroupExec(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -8550,7 +8550,7 @@ class DBPackage(object):
     def db_change_module_descriptor(self, module_descriptor):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_module_descriptors)):
+        for i in range(len(self._db_module_descriptors)):
             if self._db_module_descriptors[i].db_id == module_descriptor.db_id:
                 self._db_module_descriptors[i] = module_descriptor
                 found = True
@@ -8561,7 +8561,7 @@ class DBPackage(object):
         self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)] = module_descriptor
     def db_delete_module_descriptor(self, module_descriptor):
         self.is_dirty = True
-        for i in xrange(len(self._db_module_descriptors)):
+        for i in range(len(self._db_module_descriptors)):
             if self._db_module_descriptors[i].db_id == module_descriptor.db_id:
                 if not self._db_module_descriptors[i].is_new:
                     self.db_deleted_module_descriptors.append(self._db_module_descriptors[i])
@@ -8570,7 +8570,7 @@ class DBPackage(object):
         del self.db_module_descriptors_id_index[module_descriptor.db_id]
         del self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)]
     def db_get_module_descriptor(self, key):
-        for i in xrange(len(self._db_module_descriptors)):
+        for i in range(len(self._db_module_descriptors)):
             if self._db_module_descriptors[i].db_id == key:
                 return self._db_module_descriptors[i]
         return None
@@ -8784,7 +8784,7 @@ class DBWorkflowExec(object):
     def db_change_item_exec(self, item_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == item_exec.db_id:
                 self._db_item_execs[i] = item_exec
                 found = True
@@ -8794,7 +8794,7 @@ class DBWorkflowExec(object):
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
     def db_delete_item_exec(self, item_exec):
         self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == item_exec.db_id:
                 if not self._db_item_execs[i].is_new:
                     self.db_deleted_item_execs.append(self._db_item_execs[i])
@@ -8802,7 +8802,7 @@ class DBWorkflowExec(object):
                 break
         del self.db_item_execs_id_index[item_exec.db_id]
     def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == key:
                 return self._db_item_execs[i]
         return None
@@ -9126,7 +9126,7 @@ class DBLoopExec(object):
     def db_change_item_exec(self, item_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == item_exec.db_id:
                 self._db_item_execs[i] = item_exec
                 found = True
@@ -9136,7 +9136,7 @@ class DBLoopExec(object):
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
     def db_delete_item_exec(self, item_exec):
         self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == item_exec.db_id:
                 if not self._db_item_execs[i].is_new:
                     self.db_deleted_item_execs.append(self._db_item_execs[i])
@@ -9144,7 +9144,7 @@ class DBLoopExec(object):
                 break
         del self.db_item_execs_id_index[item_exec.db_id]
     def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
+        for i in range(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == key:
                 return self._db_item_execs[i]
         return None
@@ -9360,7 +9360,7 @@ class DBConnection(object):
     def db_change_port(self, port):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_ports)):
+        for i in range(len(self._db_ports)):
             if self._db_ports[i].db_id == port.db_id:
                 self._db_ports[i] = port
                 found = True
@@ -9371,7 +9371,7 @@ class DBConnection(object):
         self.db_ports_type_index[port.db_type] = port
     def db_delete_port(self, port):
         self.is_dirty = True
-        for i in xrange(len(self._db_ports)):
+        for i in range(len(self._db_ports)):
             if self._db_ports[i].db_id == port.db_id:
                 if not self._db_ports[i].is_new:
                     self.db_deleted_ports.append(self._db_ports[i])
@@ -9380,7 +9380,7 @@ class DBConnection(object):
         del self.db_ports_id_index[port.db_id]
         del self.db_ports_type_index[port.db_type]
     def db_get_port(self, key):
-        for i in xrange(len(self._db_ports)):
+        for i in range(len(self._db_ports)):
             if self._db_ports[i].db_id == key:
                 return self._db_ports[i]
         return None
@@ -10128,7 +10128,7 @@ class DBAction(object):
     def db_change_operation(self, operation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_operations)):
+        for i in range(len(self._db_operations)):
             if self._db_operations[i].db_id == operation.db_id:
                 self._db_operations[i] = operation
                 found = True
@@ -10138,7 +10138,7 @@ class DBAction(object):
         self.db_operations_id_index[operation.db_id] = operation
     def db_delete_operation(self, operation):
         self.is_dirty = True
-        for i in xrange(len(self._db_operations)):
+        for i in range(len(self._db_operations)):
             if self._db_operations[i].db_id == operation.db_id:
                 if not self._db_operations[i].is_new:
                     self.db_deleted_operations.append(self._db_operations[i])
@@ -10146,7 +10146,7 @@ class DBAction(object):
                 break
         del self.db_operations_id_index[operation.db_id]
     def db_get_operation(self, key):
-        for i in xrange(len(self._db_operations)):
+        for i in range(len(self._db_operations)):
             if self._db_operations[i].db_id == key:
                 return self._db_operations[i]
         return None
@@ -10249,7 +10249,7 @@ class DBAction(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -10260,7 +10260,7 @@ class DBAction(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -10269,7 +10269,7 @@ class DBAction(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -10866,7 +10866,7 @@ class DBVistrail(object):
     def db_change_action(self, action):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_actions)):
+        for i in range(len(self._db_actions)):
             if self._db_actions[i].db_id == action.db_id:
                 self._db_actions[i] = action
                 found = True
@@ -10876,7 +10876,7 @@ class DBVistrail(object):
         self.db_actions_id_index[action.db_id] = action
     def db_delete_action(self, action):
         self.is_dirty = True
-        for i in xrange(len(self._db_actions)):
+        for i in range(len(self._db_actions)):
             if self._db_actions[i].db_id == action.db_id:
                 if not self._db_actions[i].is_new:
                     self.db_deleted_actions.append(self._db_actions[i])
@@ -10884,7 +10884,7 @@ class DBVistrail(object):
                 break
         del self.db_actions_id_index[action.db_id]
     def db_get_action(self, key):
-        for i in xrange(len(self._db_actions)):
+        for i in range(len(self._db_actions)):
             if self._db_actions[i].db_id == key:
                 return self._db_actions[i]
         return None
@@ -10909,7 +10909,7 @@ class DBVistrail(object):
     def db_change_tag(self, tag):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_tags)):
+        for i in range(len(self._db_tags)):
             if self._db_tags[i].db_id == tag.db_id:
                 self._db_tags[i] = tag
                 found = True
@@ -10920,7 +10920,7 @@ class DBVistrail(object):
         self.db_tags_name_index[tag.db_name] = tag
     def db_delete_tag(self, tag):
         self.is_dirty = True
-        for i in xrange(len(self._db_tags)):
+        for i in range(len(self._db_tags)):
             if self._db_tags[i].db_id == tag.db_id:
                 if not self._db_tags[i].is_new:
                     self.db_deleted_tags.append(self._db_tags[i])
@@ -10929,7 +10929,7 @@ class DBVistrail(object):
         del self.db_tags_id_index[tag.db_id]
         del self.db_tags_name_index[tag.db_name]
     def db_get_tag(self, key):
-        for i in xrange(len(self._db_tags)):
+        for i in range(len(self._db_tags)):
             if self._db_tags[i].db_id == key:
                 return self._db_tags[i]
         return None
@@ -10958,7 +10958,7 @@ class DBVistrail(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -10969,7 +10969,7 @@ class DBVistrail(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -10978,7 +10978,7 @@ class DBVistrail(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -11316,7 +11316,7 @@ class DBModuleExec(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 self._db_annotations[i] = annotation
                 found = True
@@ -11326,7 +11326,7 @@ class DBModuleExec(object):
         self.db_annotations_id_index[annotation.db_id] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == annotation.db_id:
                 if not self._db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self._db_annotations[i])
@@ -11334,7 +11334,7 @@ class DBModuleExec(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
     def db_get_annotation(self, key):
-        for i in xrange(len(self._db_annotations)):
+        for i in range(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
@@ -11358,7 +11358,7 @@ class DBModuleExec(object):
     def db_change_loop_exec(self, loop_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self._db_loop_execs)):
+        for i in range(len(self._db_loop_execs)):
             if self._db_loop_execs[i].db_id == loop_exec.db_id:
                 self._db_loop_execs[i] = loop_exec
                 found = True
@@ -11368,7 +11368,7 @@ class DBModuleExec(object):
         self.db_loop_execs_id_index[loop_exec.db_id] = loop_exec
     def db_delete_loop_exec(self, loop_exec):
         self.is_dirty = True
-        for i in xrange(len(self._db_loop_execs)):
+        for i in range(len(self._db_loop_execs)):
             if self._db_loop_execs[i].db_id == loop_exec.db_id:
                 if not self._db_loop_execs[i].is_new:
                     self.db_deleted_loop_execs.append(self._db_loop_execs[i])
@@ -11376,7 +11376,7 @@ class DBModuleExec(object):
                 break
         del self.db_loop_execs_id_index[loop_exec.db_id]
     def db_get_loop_exec(self, key):
-        for i in xrange(len(self._db_loop_execs)):
+        for i in range(len(self._db_loop_execs)):
             if self._db_loop_execs[i].db_id == key:
                 return self._db_loop_execs[i]
         return None

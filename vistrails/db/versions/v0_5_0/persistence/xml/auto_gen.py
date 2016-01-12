@@ -35,9 +35,9 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-from __future__ import division
 
-from xml_dao import XMLDAO
+
+from .xml_dao import XMLDAO
 from vistrails.db.versions.v0_5_0.domain import *
 
 class DBPortSpecXMLDAOBase(XMLDAO):
@@ -114,7 +114,7 @@ class DBModuleXMLDAOBase(XMLDAO):
                 portSpec = self.getDao('portSpec').fromXML(child)
                 portSpecs.append(portSpec)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBModule(id=id,
                        cache=cache,
@@ -142,7 +142,7 @@ class DBModuleXMLDAOBase(XMLDAO):
         for function in functions:
             node.appendChild(self.getDao('function').toXML(function, doc))
         annotations = module.db_annotations
-        for annotation in annotations.itervalues():
+        for annotation in annotations.values():
             node.appendChild(self.getDao('annotation').toXML(annotation, doc))
         portSpecs = module.db_portSpecs
         for portSpec in portSpecs:
@@ -180,7 +180,7 @@ class DBSessionXMLDAOBase(XMLDAO):
                 wfExec = self.getDao('wfExec').fromXML(child)
                 wfExecs[wfExec.db_id] = wfExec
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBSession(id=id,
                         user=user,
@@ -207,7 +207,7 @@ class DBSessionXMLDAOBase(XMLDAO):
         
         # set elements
         wfExecs = session.db_wfExecs
-        for wfExec in wfExecs.itervalues():
+        for wfExec in wfExecs.values():
             node.appendChild(self.getDao('wfExec').toXML(wfExec, doc))
         
         return node
@@ -279,7 +279,7 @@ class DBLogXMLDAOBase(XMLDAO):
                 machine = self.getDao('machine').fromXML(child)
                 machines[machine.db_id] = machine
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBLog(id=id,
                     sessions=sessions,
@@ -295,10 +295,10 @@ class DBLogXMLDAOBase(XMLDAO):
         
         # set elements
         sessions = log.db_sessions
-        for session in sessions.itervalues():
+        for session in sessions.values():
             node.appendChild(self.getDao('session').toXML(session, doc))
         machines = log.db_machines
-        for machine in machines.itervalues():
+        for machine in machines.values():
             node.appendChild(self.getDao('machine').toXML(machine, doc))
         
         return node
@@ -387,7 +387,7 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.nodeName == 'other':
                 data = self.getDao('other').fromXML(child)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBAdd(id=id,
                     what=what,
@@ -454,7 +454,7 @@ class DBOtherXMLDAOBase(XMLDAO):
             if child.nodeName == 'value':
                 value = self.convertFromStr(child.firstChild.nodeValue,'str')
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBOther(id=id,
                       key=key,
@@ -541,7 +541,7 @@ class DBWfExecXMLDAOBase(XMLDAO):
                 execRec = self.getDao('execRec').fromXML(child)
                 execRecs[execRec.db_id] = execRec
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBWfExec(id=id,
                        tsStart=tsStart,
@@ -566,7 +566,7 @@ class DBWfExecXMLDAOBase(XMLDAO):
         
         # set elements
         execRecs = wfExec.db_execRecs
-        for execRec in execRecs.itervalues():
+        for execRec in execRecs.values():
             node.appendChild(self.getDao('execRec').toXML(execRec, doc))
         
         return node
@@ -639,7 +639,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
                 parameter = self.getDao('parameter').fromXML(child)
                 parameters.append(parameter)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBFunction(id=id,
                          pos=pos,
@@ -701,7 +701,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                 other = self.getDao('other').fromXML(child)
                 others.append(other)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBWorkflow(id=id,
                          name=name,
@@ -721,10 +721,10 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         
         # set elements
         modules = workflow.db_modules
-        for module in modules.itervalues():
+        for module in modules.values():
             node.appendChild(self.getDao('module').toXML(module, doc))
         connections = workflow.db_connections
-        for connection in connections.itervalues():
+        for connection in connections.values():
             node.appendChild(self.getDao('connection').toXML(connection, doc))
         annotations = workflow.db_annotations
         for annotation in annotations:
@@ -768,7 +768,7 @@ class DBActionXMLDAOBase(XMLDAO):
                 operation = self.getDao('change').fromXML(child)
                 operations.append(operation)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBAction(id=id,
                        prevId=prevId,
@@ -875,7 +875,7 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.nodeName == 'other':
                 data = self.getDao('other').fromXML(child)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBChange(id=id,
                        what=what,
@@ -947,7 +947,7 @@ class DBMacroXMLDAOBase(XMLDAO):
                 action = self.getDao('action').fromXML(child)
                 actions[action.db_id] = action
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBMacro(id=id,
                       name=name,
@@ -966,7 +966,7 @@ class DBMacroXMLDAOBase(XMLDAO):
         
         # set elements
         actions = macro.db_actions
-        for action in actions.itervalues():
+        for action in actions.values():
             node.appendChild(self.getDao('action').toXML(action, doc))
         
         return node
@@ -995,7 +995,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
                 port = self.getDao('port').fromXML(child)
                 ports.append(port)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBConnection(id=id,
                            ports=ports)
@@ -1073,7 +1073,7 @@ class DBExecRecXMLDAOBase(XMLDAO):
                 annotation = self.getDao('annotation').fromXML(child)
                 annotations.append(annotation)
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBExecRec(id=id,
                         tsStart=tsStart,
@@ -1138,7 +1138,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
                 macro = self.getDao('macro').fromXML(child)
                 macros[macro.db_id] = macro
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBVistrail(id=id,
                          version=version,
@@ -1165,13 +1165,13 @@ class DBVistrailXMLDAOBase(XMLDAO):
         
         # set elements
         actions = vistrail.db_actions
-        for action in actions.itervalues():
+        for action in actions.values():
             node.appendChild(self.getDao('action').toXML(action, doc))
         tags = vistrail.db_tags
-        for tag in tags.itervalues():
+        for tag in tags.values():
             node.appendChild(self.getDao('tag').toXML(tag, doc))
         macros = vistrail.db_macros
-        for macro in macros.itervalues():
+        for macro in macros.values():
             node.appendChild(self.getDao('macro').toXML(macro, doc))
         
         return node

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from datetime import date, datetime
 
@@ -59,7 +59,7 @@ class XMLDAO:
                 return str(value)
             elif value.strip() != '':
                 if type == 'long':
-                    return long(value)
+                    return int(value)
                 elif type == 'float':
                     return float(value)
                 elif type == 'int':

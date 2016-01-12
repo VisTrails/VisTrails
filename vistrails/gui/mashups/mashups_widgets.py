@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -344,7 +344,7 @@ class QDropDownWidget(QtGui.QWidget):
     
     def value_selected(self):
         #print "value_selected", self.menu.pos()
-        for rb, vw in self.menu_widgets.iteritems():
+        for rb, vw in self.menu_widgets.items():
             if rb.isChecked():
                 self.value.setContents(vw.contents(), silent=False)
                 vw.setFocus()

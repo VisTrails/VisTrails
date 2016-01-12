@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core import system, debug
@@ -44,7 +44,7 @@ from vistrails.gui.modules.module_configure import StandardModuleConfigurationWi
 from vistrails.gui.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
 from vistrails.gui.theme import CurrentTheme
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 class SourceEditor(QtGui.QTextEdit):
 
@@ -119,7 +119,7 @@ class SourceWidget(PortTableConfigurationWidget):
                 code, = port.defaults
         if code is not None:
             if self.sourceEncode:
-                code = urllib.unquote(code).decode('utf-8')
+                code = urllib.parse.unquote(code).decode('utf-8')
             self.codeEditor.setPlainText(code)
         if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.document().setModified(False)
@@ -129,7 +129,7 @@ class SourceWidget(PortTableConfigurationWidget):
 
     def findSourceFunction(self):
         fid = -1
-        for i in xrange(self.module.getNumFunctions()):
+        for i in range(self.module.getNumFunctions()):
             if self.module.functions[i].name==self.sourcePortName:
                 fid = i
                 break
@@ -367,7 +367,7 @@ class SourceConfigurationWidget(SourceWidget):
         if (self.codeEditor is not None and modified):
             code = self.codeEditor.toPlainText().encode('utf-8')
             if self.sourceEncode:
-                code = urllib.quote(code)
+                code = urllib.parse.quote(code)
             functions.append((self.sourcePortName, [code]))
         if len(deleted_ports) + len(added_ports) + len(functions) == 0:
             # nothing changed
@@ -377,7 +377,7 @@ class SourceConfigurationWidget(SourceWidget):
                                                        deleted_ports,
                                                        added_ports,
                                                        functions)
-        except PortAlreadyExists, e:
+        except PortAlreadyExists as e:
             debug.critical('Port Already Exists %s' % e)
             return False
         return True

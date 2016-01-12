@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import cgi
 import logging
@@ -132,7 +132,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.resize(700, 400)
 
     def refresh(self):
-        for i in xrange(self.list.count()):
+        for i in range(self.list.count()):
             item = self.list.item(i)
             level = item.data(32).split('\n')[0]
             self.list.setItemHidden(item, not self.levels[level].isChecked())

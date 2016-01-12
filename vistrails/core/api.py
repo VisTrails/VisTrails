@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import contextlib
-from itertools import izip
+
 import subprocess
 
 import vistrails.core.application
@@ -151,13 +151,13 @@ class Vistrail(object):
             for connection in pipeline.connection_list:
                 ops.append(('add', connection))
             action = vistrails.core.db.action.create_action(ops)
-            vistrail.add_action(action, 0L)
+            vistrail.add_action(action, 0)
             vistrail.update_id_scope()
-            vistrail.change_description("Imported pipeline", 0L)
+            vistrail.change_description("Imported pipeline", 0)
             self.controller = VistrailController(vistrail, UntitledLocator())
         elif isinstance(arg, VistrailController):
             self.controller = arg
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, str):
             raise TypeError("Vistrail was constructed from %r.\n"
                             "Use load_vistrail() to get a Vistrail from a "
                             "file." % type(arg).__name__)
@@ -171,12 +171,12 @@ class Vistrail(object):
         This does not change the currently selected version in this Vistrail.
         """
         vistrail = self.controller.vistrail
-        if isinstance(version, (int, long)):
+        if isinstance(version, int):
             if not vistrail.db_has_action_with_id(version):
                 raise NoSuchVersion("Vistrail doesn't have a version %r" %
                                     version)
             return Pipeline(vistrail.getPipelineVersionNumber(version))
-        elif isinstance(version, basestring):
+        elif isinstance(version, str):
             if not vistrail.has_tag_str(version):
                 raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
             return Pipeline(vistrail.getPipelineVersionName(version))
@@ -192,11 +192,11 @@ class Vistrail(object):
         new versions are created if you perform actions.
         """
         vistrail = self.controller.vistrail
-        if isinstance(version, (int, long)):
+        if isinstance(version, int):
             if not vistrail.db_has_action_with_id(version):
                 raise NoSuchVersion("Vistrail doesn't have a version %r" %
                                     version)
-        elif (isinstance(version, basestring)):
+        elif (isinstance(version, str)):
             if not vistrail.has_tag_str(version):
                 raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
             version = vistrail.get_tag_str(version).action_id
@@ -237,11 +237,11 @@ class Vistrail(object):
         else:
             raise TypeError("set_tag() takes 1 or 2 arguments (%r given)" %
                             len(args))
-        if isinstance(version, (int, long)):
+        if isinstance(version, int):
             if not self.controller.vistrail.db_has_action_with_id(version):
                 raise NoSuchVersion("Vistrail doesn't have a version %r" %
                                     version)
-        elif isinstance(version, basestring):
+        elif isinstance(version, str):
             if not self.controller.vistrail.has_tag_str(version):
                 raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
         else:
@@ -283,9 +283,9 @@ class Vistrail(object):
         if self._html is None:
             import cgi
             try:
-                from cStringIO import StringIO
+                from io import StringIO
             except ImportError:
-                from StringIO import StringIO
+                from io import StringIO
 
             self._html = ''
             stream = StringIO()
@@ -334,7 +334,7 @@ class Pipeline(object):
             self.pipeline = _Pipeline()
         elif isinstance(pipeline, _Pipeline):
             self.pipeline = pipeline
-        elif isinstance(pipeline, basestring):
+        elif isinstance(pipeline, str):
             raise TypeError("Pipeline was constructed from %r.\n"
                             "Use load_pipeline() to get a Pipeline from a "
                             "file." % type(pipeline).__name__)
@@ -401,7 +401,7 @@ class Pipeline(object):
                 sinks.add(arg.module_id)
 
         # Read kwargs
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             key = self.get_input(key)  # Might raise KeyError
             if key.module_id in inputs:
                 raise ValueError("Multiple values set for InputPort %r" %
@@ -442,7 +442,7 @@ class Pipeline(object):
                 create_function = VistrailController.create_function_static
                 create_connection = VistrailController.create_connection_static
                 # Fills in the ExternalPipe ports
-                for module_id, values in inputs.iteritems():
+                for module_id, values in inputs.items():
                     module = pipeline.modules[module_id]
                     if not isinstance(values, (list, tuple)):
                         values = [values]
@@ -454,7 +454,7 @@ class Pipeline(object):
                     # Convert whatever we got to a list of strings, for the
                     # pipeline
                     values = [reg.convert_port_val(val, sigstring, None)
-                              for val, sigstring in izip(values, sigstrings)]
+                              for val, sigstring in zip(values, sigstrings)]
 
                     if len(values) == 1:
                         # Create the constant module
@@ -485,16 +485,16 @@ class Pipeline(object):
             return ExecutionResults(self, result)
 
     def get_module(self, module_id):
-        if isinstance(module_id, (int, long)):  # module id
+        if isinstance(module_id, int):  # module id
             module = self.pipeline.modules[module_id]
-        elif isinstance(module_id, basestring):  # module name
+        elif isinstance(module_id, str):  # module name
             def desc(mod):
                 if '__desc__' in mod.db_annotations_key_index:
                     return mod.get_annotation_by_key('__desc__').value
                 else:
                     return None
             modules = [mod
-                       for mod in self.pipeline.modules.itervalues()
+                       for mod in self.pipeline.modules.values()
                        if desc(mod) == module_id]
             if not modules:
                 raise KeyError("No module with description %r" % module_id)
@@ -517,7 +517,7 @@ class Pipeline(object):
                 'org.vistrails.vistrails.basic',
                 module_name)
         modules = {}
-        for module in self.pipeline.modules.itervalues():
+        for module in self.pipeline.modules.values():
             if module.module_descriptor is desc:
                 name = get_inputoutput_name(module)
                 if name is not None:
@@ -547,13 +547,13 @@ class Pipeline(object):
     @property
     def inputs(self):
         if self._inputs is None:
-            self._inputs = self._get_inputs_or_outputs('InputPort').keys()
+            self._inputs = list(self._get_inputs_or_outputs('InputPort').keys())
         return self._inputs
 
     @property
     def outputs(self):
         if self._outputs is None:
-            self._outputs = self._get_inputs_or_outputs('OutputPort').keys()
+            self._outputs = list(self._get_inputs_or_outputs('OutputPort').keys())
         return self._outputs
 
     def __repr__(self):
@@ -573,9 +573,9 @@ class Pipeline(object):
         if self._html is None:
             import cgi
             try:
-                from cStringIO import StringIO
+                from io import StringIO
             except ImportError:
-                from StringIO import StringIO
+                from io import StringIO
 
             self._html = ''
 
@@ -596,14 +596,14 @@ class Pipeline(object):
             modules = dict((mod_id,
                             (dict((n, i) for i, n in enumerate(mod_ports[0])),
                              dict((n, i) for i, n in enumerate(mod_ports[1]))))
-                           for mod_id, mod_ports in modules.iteritems())
+                           for mod_id, mod_ports in modules.items())
 
             # Write out the modules
-            for mod, port_lists in modules.iteritems():
+            for mod, port_lists in modules.items():
                 labels = []
-                for port_type, ports in izip(('in', 'out'), port_lists):
+                for port_type, ports in zip(('in', 'out'), port_lists):
                     label = ('<td port="%s%s">%s</td>' % (port_type, port_num, cgi.escape(port_name))
-                             for port_name, port_num in ports.iteritems())
+                             for port_name, port_num in ports.items())
                     labels.append(''.join(label))
 
                 label = ['<table border="0" cellborder="0" cellspacing="0">']
@@ -683,7 +683,7 @@ class ModuleValuePair(object):
         self.module = module
         self.value = value
 
-    def __nonzero__(self):
+    def __bool__(self):
         raise TypeError("Took truth value of ModuleValuePair!")
 
 
@@ -698,7 +698,7 @@ class Module(object):
         if 'module_id' and 'pipeline' in kwargs:
             self.module_id = kwargs.pop('module_id')
             self.pipeline = kwargs.pop('pipeline')
-            if not (isinstance(self.module_id, (int, long)) and
+            if not (isinstance(self.module_id, int) and
                     isinstance(self.pipeline, Pipeline)):
                 raise TypeError
         elif 'module_id' in kwargs or 'pipeline' in kwargs:
@@ -791,7 +791,7 @@ class Package(ModuleNamespace):
         self._package = package
 
         # Builds namespaces
-        for mod, namespaces in self._package.descriptors.iterkeys():
+        for mod, namespaces in self._package.descriptors.keys():
             if not namespaces:
                 continue
             ns = self
@@ -831,7 +831,7 @@ class ExecutionErrors(Exception):
         return "Pipeline execution failed: %d error%s:\n%s" % (
                 len(self._errors),
                 's' if len(self._errors) >= 2 else '',
-                '\n'.join('%d: %s' % p for p in self._errors.iteritems()))
+                '\n'.join('%d: %s' % p for p in self._errors.items()))
 
 
 class ExecutionResults(object):
@@ -844,7 +844,7 @@ class ExecutionResults(object):
     def output_port(self, output):
         """Gets the value passed to an OutputPort module with that name.
         """
-        if isinstance(output, basestring):
+        if isinstance(output, str):
             outputs = self.pipeline._get_inputs_or_outputs('OutputPort')
             module_id = outputs[output].id
         else:
@@ -873,7 +873,7 @@ def load_vistrail(filename, version=None):
     """Loads a Vistrail from a filename.
     """
     initialize()
-    if not isinstance(filename, basestring):
+    if not isinstance(filename, str):
         raise TypeError("load_vistrails() expects a filename, got %r" %
                         type(filename).__name__)
 
@@ -890,7 +890,7 @@ def load_pipeline(filename):
     """Loads a single pipeline from a filename.
     """
     initialize()
-    if not isinstance(filename, basestring):
+    if not isinstance(filename, str):
         raise TypeError("load_vistrails() expects a filename, got %r" %
                         type(filename).__name__)
 

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import os
 import sqlite3
@@ -95,7 +95,7 @@ class DatabaseAccess(object):
 #         self.conn = sqlite3.connect(db_file)
 
         cur = self.conn.cursor()
-        cols, vals = zip(*value_dict.iteritems())
+        cols, vals = list(zip(*iter(value_dict.items())))
         col_str = ', '.join(cols)
         # print "executing sql:", "INSERT INTO file(%s) VALUES (%s);" % \
         #                 (col_str, ','.join(['?'] * len(vals)))
@@ -123,7 +123,7 @@ class DatabaseAccess(object):
             cur.execute("SELECT " + ", ".join(cols) +
                         " FROM file WHERE deleted != 'True';")
         else:
-            where_cols, where_vals = zip(*where_dict.iteritems())
+            where_cols, where_vals = list(zip(*iter(where_dict.items())))
             where_str = '=? AND '.join(where_cols) + '=?'
             cur.execute("SELECT " + ", ".join(cols) + " FROM file WHERE "
                         "%s AND deleted != 'True';" % where_str, where_vals)
@@ -163,7 +163,7 @@ class DatabaseAccess(object):
         if where_dict is None or len(where_dict) <= 0:
             cur.execute("UPDATE file SET deleted='True';")
         else:
-            where_cols, where_vals = zip(*where_dict.iteritems())
+            where_cols, where_vals = list(zip(*iter(where_dict.items())))
             where_str = '=? AND '.join(where_cols) + '=?'
             cur.execute("UPDATE file SET deleted='True' WHERE %s;" %
                            where_str, where_vals)

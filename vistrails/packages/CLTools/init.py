@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import errno
 import json
@@ -50,7 +50,7 @@ from vistrails.core.packagemanager import get_package_manager
 import vistrails.core.system
 from vistrails.core.system import packages_directory, vistrails_root_directory
 
-import identifiers
+from . import identifiers
 
 
 cl_tools = {}
@@ -79,7 +79,7 @@ def _eintr_retry_call(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, IOError), e: # pragma: no cover
+        except (OSError, IOError) as e: # pragma: no cover
             if e.errno == errno.EINTR:
                 continue
             raise
@@ -88,7 +88,7 @@ def _eintr_retry_call(func, *args):
 def _add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
-    if isinstance(tool_name, unicode):
+    if isinstance(tool_name, str):
         tool_name = tool_name.encode('utf-8')
     if not tool_name.endswith(SUFFIX): # pragma: no cover
         return
@@ -176,7 +176,7 @@ def _add_tool(path):
                         suffix=options.get('suffix', DEFAULTFILESUFFIX))
                 try:
                     shutil.copyfile(value.name, outfile.name)
-                except IOError, e: # pragma: no cover
+                except IOError as e: # pragma: no cover
                     raise ModuleError(self,
                                       "Error copying file '%s': %s" %
                                       (value.name, debug.format_exception(e)))
@@ -267,7 +267,7 @@ def _add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e: # pragma: no cover
+            except Exception as e: # pragma: no cover
                 raise ModuleError(self,
                                   "Error parsing configuration env: %s" % (
                                   debug.format_exception(e)))
@@ -280,7 +280,7 @@ def _add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e: # pragma: no cover
+            except Exception as e: # pragma: no cover
                 raise ModuleError(self,
                                   "Error parsing module env: %s" % (
                                   debug.format_exception(e)))
@@ -296,7 +296,7 @@ def _add_tool(path):
                         value = value.strip()
                         if key:
                             env[key] = value
-                except Exception, e: # pragma: no cover
+                except Exception as e: # pragma: no cover
                     raise ModuleError(self,
                                       "Error parsing env port: %s" % (
                                       debug.format_exception(e)))
@@ -305,7 +305,7 @@ def _add_tool(path):
             kwargs['env'] = dict(os.environ)
             kwargs['env'].update(env)
             # write to execution provenance
-            env = ';'.join(['%s=%s'%(k,v) for k,v in env.iteritems()])
+            env = ';'.join(['%s=%s'%(k,v) for k,v in env.items()])
             self.annotate({'execution_env': env})
 
         if 'dir' in self.conf:
@@ -432,7 +432,7 @@ def initialize(*args, **keywords):
 
 def remove_all_scripts():
     reg = vistrails.core.modules.module_registry.get_module_registry()
-    for tool_name in cl_tools.keys():
+    for tool_name in list(cl_tools.keys()):
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
 
@@ -457,7 +457,7 @@ def reload_scripts(initial=False, name=None):
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Could not create CLTools directory. Make "
                                "sure '%s' does not exist and parent directory "
                                "is writable" % location,
@@ -492,8 +492,8 @@ def menu_items():
     
     """
     try:
-        from wizard import QCLToolsWizardWindow
-    except Exception, e: # pragma: no cover
+        from .wizard import QCLToolsWizardWindow
+    except Exception as e: # pragma: no cover
         if "CLTools" == identifiers.name:
             debug.unexpected_exception(e)
             raise

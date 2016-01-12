@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
-from itertools import izip
+
 import os
 import string
 
@@ -239,7 +239,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         else:
             params = [None,] * len(self.port_spec.descriptors())
 
-        for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
+        for i, (psi, param) in enumerate(zip(self.port_spec.port_spec_items, 
                                               params)):
             if psi.entry_type is not None:
                 # !!only pull off the prefix!! options follow in camelcase
@@ -518,7 +518,7 @@ class PortsList(QtGui.QTreeWidget):
                     # self.setItemWidget(i, 1, connected_checkbox)
 
                 # Highlight unset ports
-                for _, item  in self.port_spec_items.itervalues():
+                for _, item  in self.port_spec_items.values():
                     item.calcUnset()
 
                 self.sortItems(0, QtCore.Qt.AscendingOrder)
@@ -573,7 +573,7 @@ class PortsList(QtGui.QTreeWidget):
                 else:
                     sigstring = create_port_spec_string(
                         [(basic_identifier, "String")
-                         for i in xrange(len(function.parameters))])
+                         for i in range(len(function.parameters))])
                     port_spec = PortSpec(name=function.name, type='input',
                                          sigstring=sigstring)
                     item = PortItem(port_spec,  False, False, False)

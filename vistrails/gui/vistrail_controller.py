@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import os
 import uuid
@@ -341,7 +341,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.stop_timer()
         # close associated mashup apps
         version_prop = QVersionProp.instance()
-        for app in version_prop.versionMashups.apps.values():
+        for app in list(version_prop.versionMashups.apps.values()):
             if app and app.view == self.vistrail_view:
                 app.close()
 
@@ -444,7 +444,7 @@ class VistrailController(QtCore.QObject, BaseController):
             version_id = self.current_version
             # check if a job exist for this workflow
             current_workflow = None
-            for wf in self.jobMonitor.workflows.itervalues():
+            for wf in self.jobMonitor.workflows.values():
                 try:
                     wf_version = int(wf.version)
                 except ValueError:
@@ -475,7 +475,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                     reason,
                                                     sinks,
                                                     extra_info)])
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 raise
         return ([], False)
@@ -572,7 +572,7 @@ class VistrailController(QtCore.QObject, BaseController):
         try:
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
 #            from vistrails.gui.application import get_vistrails_application
 #
 #             def process_err(err):
@@ -714,7 +714,7 @@ class VistrailController(QtCore.QObject, BaseController):
         change versions when we're moving exactly one action up or down.
         This allows a few optimizations that improve interactivity."""
         
-        if self.current_version <> new_version:
+        if self.current_version != new_version:
             # Instead of recomputing the terse graph, simply update it
 
             # There are two variables in play:
@@ -734,7 +734,7 @@ class VistrailController(QtCore.QObject, BaseController):
             current_node_will_be_visible = \
                 (self.full_tree or
                  self.vistrail.has_tag(self.current_version) or
-                 children_count <> 1)
+                 children_count != 1)
 
             self.change_selected_version(new_version)
             # case 1:
@@ -902,7 +902,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         """
         def remove_duplicate_aliases(pip):
-            aliases = self.current_pipeline.aliases.keys()
+            aliases = list(self.current_pipeline.aliases.keys())
             for a in aliases:
                 if a in pip.aliases:
                     (type, oId, parentType, parentId, mid) = pip.aliases[a]
@@ -1056,7 +1056,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 for attr in lists:
                     if hasattr(module, attr):
                         found_lists[attr] = getattr(module, attr)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Exception: %s" % e)
                 pass
             return (found_attrs, found_lists)
@@ -1067,18 +1067,18 @@ class VistrailController(QtCore.QObject, BaseController):
                 f = open(init_file, 'a')
             else:
                 f = open(init_file, 'w')
-            for attr, val in attrs.iteritems():
+            for attr, val in attrs.items():
                 if attr not in found_attrs:
-                    print >>f, "%s = '%s'" % (attr, val)
-            for attr, val_list in lists.iteritems():
+                    print("%s = '%s'" % (attr, val), file=f)
+            for attr, val_list in lists.items():
                 if attr not in found_lists:
-                    print >>f, "%s = %s" % (attr, str(val_list))
+                    print("%s = %s" % (attr, str(val_list)), file=f)
                 else:
                     diff_list = []
                     for val in val_list:
                         if val not in found_lists[attr]:
                             diff_list.append(val)
-                    print >>f, '%s.extend(%s)' % (attr, str(diff_list))
+                    print('%s.extend(%s)' % (attr, str(diff_list)), file=f)
             f.close()
 
         if os.path.exists(os.path.join(save_dir, '__init__.py')):
@@ -1111,7 +1111,7 @@ class VistrailController(QtCore.QObject, BaseController):
             if abstraction.is_abstraction() and \
                     abstraction.package == abstraction_pkg:
                 abstractions.append(abstraction)
-                for v in self.find_abstractions(abstraction.vistrail).itervalues():
+                for v in self.find_abstractions(abstraction.vistrail).values():
                     abstractions.extend(v)
         pkg_subworkflows = []
         pkg_dependencies = set()
@@ -1203,7 +1203,7 @@ class VistrailController(QtCore.QObject, BaseController):
             if not self._current_terse_graph:
                 self.recompute_terse_graph()
             versions_to_check = \
-                set(self._current_terse_graph.vertices.iterkeys())
+                set(self._current_terse_graph.vertices.keys())
             search = VisualQuery(pipeline, versions_to_check)
 
         self.set_search(search, '') # pipeline.dump_to_string())
@@ -1213,8 +1213,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def add_analogy(self, analogy_name, version_from, version_to):
         assert isinstance(analogy_name, str)
-        assert isinstance(version_from, (int, long))
-        assert isinstance(version_to, (int, long))
+        assert isinstance(version_from, int)
+        assert isinstance(version_to, int)
         if analogy_name in self.analogy:
             raise VistrailsInternalError("duplicated analogy name '%s'" %
                                          analogy_name)
@@ -1243,14 +1243,14 @@ class VistrailController(QtCore.QObject, BaseController):
         try:
             pipeline_a = self.vistrail.getPipeline(a)
             self.validate(pipeline_a)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             (_, pipeline_a) = \
                 self.handle_invalid_pipeline(e, a, Vistrail())
             self._delayed_actions = []
         try:
             pipeline_c = self.vistrail.getPipeline(c)
             self.validate(pipeline_c)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
             self._delayed_actions = []
                                                      
@@ -1333,7 +1333,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
                 images = {}
                 errors = []
-                for pi in xrange(len(modifiedPipelines)):
+                for pi in range(len(modifiedPipelines)):
                     if showProgress:
                         self.progress.setValue(mCount[pi])
                         QtCore.QCoreApplication.processEvents()
@@ -1374,7 +1374,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     job_id = 'Parameter Exploration %s %s %s_%s_%s' % ((self.current_version, pe.id) + pipelinePositions[pi])
 
                     current_workflow = None
-                    for wf in self.jobMonitor.workflows.itervalues():
+                    for wf in self.jobMonitor.workflows.values():
                         if job_id == wf.version:
                             current_workflow = wf
                             self.jobMonitor.startWorkflow(wf)
@@ -1387,7 +1387,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     finally:
                         self.jobMonitor.finishWorkflow()
 
-                    for error in result.errors.itervalues():
+                    for error in result.errors.values():
                         if use_spreadsheet:
                             pp = pipelinePositions[pi]
                             errors.append(((pp[1], pp[0], pp[2]), error))
@@ -1431,7 +1431,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller = VistrailController(Vistrail(), None, 
                                         pipeline_view=DummyView(),
                                         auto_save=False)
-        controller.change_selected_version(0L)
+        controller.change_selected_version(0)
         module = controller.add_module(
                 vistrails.core.system.get_vistrails_basic_pkg_id(),
                 'ConcatenateString',
