@@ -349,16 +349,22 @@ class QVTKWidget(QCellWidget):
                 display = None
                 try:
                     display = int(QtGui.QX11Info.display())
+                    display = hex(display)[2:]
                 except TypeError:
                     # This was changed for PyQt5.2
                     if isinstance(QtGui.QX11Info.display(), QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
+                        display = hex(display)[2:]
+                except AttributeError:
+                    # Qt5 does not have QX11Info
+                    visApp = QtCore.QCoreApplication.instance()
+                    display = visApp.desktop().screenNumber()
+                    print "dissed", display
                 if display is not None:
                     v = vtk.vtkVersion()
                     version = [v.GetVTKMajorVersion(),
                                v.GetVTKMinorVersion(),
                                v.GetVTKBuildVersion()]
-                    display = hex(display)[2:]
                     if version < [5, 7, 0]:
                         vp = ('_%s_void_p\0x00' % display)
                     elif version < [6, 2, 0]:
@@ -477,8 +483,10 @@ class QVTKWidget(QCellWidget):
         """
         if system.systemType in ['Windows', 'Microsoft']:
             return None
-        else:
-            return QCellWidget.paintEngine(self)
+        # Qt5 does not use paintEngine, but VTK still calls it?
+        # So we need to disable it
+        #else:
+        #    return QCellWidget.paintEngine(self)
 
     def paintEvent(self, e):
         """ paintEvent(e: QPaintEvent) -> None

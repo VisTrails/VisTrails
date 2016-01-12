@@ -82,7 +82,6 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtWidgets.QGraphicsPolygonItem):
         
         """
         QtWidgets.QGraphicsPolygonItem.__init__(self,  parent)
-        if scene is not None: scene.addItem(self)
         self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
         self.linkPen = CurrentTheme.LINK_PEN
@@ -275,7 +274,6 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtWidgets.QGraphicsTextIt
 
         """
         QtWidgets.QGraphicsTextItem.__init__(self,  parent)
-        if scene is not None: scene.addItem(self)
         self.timer = None
         self.isEditable = None
         self.setEditable(False)
@@ -412,7 +410,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtWidgets.QGraphicsEllipseIte
         
         """
         QtWidgets.QGraphicsEllipseItem.__init__(self,  parent)
-        if scene is not None: scene.addItem(self)
         self.setZValue(1)
         self.setAcceptDrops(True)
         self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)

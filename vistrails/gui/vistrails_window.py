@@ -36,7 +36,6 @@
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import copy
@@ -1832,7 +1831,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             if name=='':
                 name = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
             text = ('Vistrail ' +
-                    QtCore.Qt.escape(name) +
+                    escape(name) +
                     ' contains unsaved changes.\n Do you want to '
                     'save changes before closing it?')
             res = QtWidgets.QMessageBox.information(window,

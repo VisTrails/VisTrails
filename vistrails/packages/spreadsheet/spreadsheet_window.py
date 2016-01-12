@@ -402,7 +402,8 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
             if isinstance(q, QCellContainer):
                 return q.containedWidget!=None
             p = q
-            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet) and p.parent):
+            while (p and not (hasattr(p, 'isModal') and p.isModal()) and
+                   not isinstance(p, StandardWidgetSheet) and p.parent):
                 p = p.parent()
             if p and isinstance(p, StandardWidgetSheet) and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
