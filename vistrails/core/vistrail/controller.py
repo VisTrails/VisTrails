@@ -145,7 +145,8 @@ def parse_custom_color(color):
 class VistrailController(object):
     def __init__(self, vistrail=None, locator=None, abstractions=None, 
                  thumbnails=None, mashups=None, id_scope=None, 
-                 set_log_on_vt=True, auto_save=True):
+                 set_log_on_vt=True, auto_save=True, **kwargs):
+        super().__init__(**kwargs)
         self.vistrail = None
         self.locator = None
         self._auto_save = auto_save

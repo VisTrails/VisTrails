@@ -153,10 +153,13 @@ class VistrailController(QtCore.QObject, BaseController):
     versionWasChanged = QtCore.pyqtSignal(int)
     searchChanged = QtCore.pyqtSignal()
     stateChanged = QtCore.pyqtSignal()
-    def __init__(self, vistrail=None, locator=None, abstractions=None,
-                 thumbnails=None, mashups=None, pipeline_view=None, 
-                 id_scope=None, set_log_on_vt=True, auto_save=True, name=''):
-        """ VistrailController(vistrail: Vistrail, 
+
+    #def __init__(self, vistrail=None, locator=None, abstractions=None,
+    #             thumbnails=None, mashups=None, pipeline_view=None,
+    #             id_scope=None, set_log_on_vt=True, auto_save=True, name=''):
+    def __init__(self, vistrail=None, locator=None, pipeline_view=None,
+                 name='', auto_save=True, **kwargs):
+        """ VistrailController(vistrail: Vistrail,
                                locator: BaseLocator,
                                abstractions: [<filename strings>],
                                thumbnails: [<filename strings>],
@@ -164,13 +167,11 @@ class VistrailController(QtCore.QObject, BaseController):
                                pipeline_view: QPipelineView
                                id_scope: IdScope,
                                set_log_on_vt: bool,
-                               auto_save: bool, 
+                               auto_save: bool,
                                name: str) -> VistrailController
         Create a controller for a vistrail.
 
         """
-
-        QtCore.QObject.__init__(self)
 
         if pipeline_view is None:
             self.current_pipeline_view = QPipelineView()
@@ -189,8 +190,6 @@ class VistrailController(QtCore.QObject, BaseController):
         # file every 2 minutes
         self._auto_save = auto_save
         self.timer = None
-        if self._auto_save:
-            self.setup_timer()
 
         # the redo stack stores the undone action ids
         # (undo is automatic with us, through the version tree)
@@ -205,9 +204,14 @@ class VistrailController(QtCore.QObject, BaseController):
                                   CurrentTheme.VERSION_LABEL_MARGIN[1])
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
-        BaseController.__init__(self, vistrail, locator, abstractions, 
-                                thumbnails, mashups, id_scope, set_log_on_vt, 
-                                auto_save)
+        super().__init__(vistrail=vistrail, locator=locator,
+                         auto_save=auto_save, **kwargs)
+        #BaseController.__init__(self, vistrail, locator, abstractions,
+        #                        thumbnails, mashups, id_scope, set_log_on_vt,
+        #                        auto_save)
+
+        if self._auto_save:
+            self.setup_timer()
 
     def _get_current_pipeline_scene(self):
         return self.current_pipeline_view.scene()

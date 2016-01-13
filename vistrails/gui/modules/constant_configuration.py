@@ -67,7 +67,8 @@ class ConstantWidgetMixin(object):
     # subclasses need to add this signal:
     # contentsChanged = QtCore.pyqtSignal(tuple)
 
-    def __init__(self, contents=None):
+    def __init__(self, contents=None, **kwargs):
+        super().__init__(**kwargs)
         if not hasattr(self, 'contentsChanged'):
             raise Exception('ConstantWidget must define contentsChanged signal')
         self._last_contents = contents
@@ -95,7 +96,7 @@ class ConstantWidgetBase(ConstantWidgetMixin):
                 self.__cwidget._focus_out(event)
             return False
 
-    def __init__(self, param):
+    def __init__(self, param, **kwargs):
         if param is None:
             raise ValueError("Must pass param as first argument.")
         psi = param.port_spec_item
@@ -104,7 +105,7 @@ class ConstantWidgetBase(ConstantWidgetMixin):
             value = psi.default
         else:
             value = param.strValue
-        ConstantWidgetMixin.__init__(self, value)
+        super().__init__(contents=value, **kwargs)
 
         self.psi = psi
         if psi and psi.default and param.strValue == '':
@@ -149,14 +150,14 @@ class ConstantWidgetBase(ConstantWidgetMixin):
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
 class ConstantEnumWidgetBase(ConstantWidgetBase):
-    def __init__(self, param):
+    def __init__(self, param, parent=None, **kwargs):
         psi = param.port_spec_item
         self.setValues(psi.values)
 
         self.setFree(psi.entry_type == "enumFree")
         self.setNonEmpty(psi.entry_type == "enumNonEmpty")
 
-        ConstantWidgetBase.__init__(self, param)
+        super().__init__(parent=parent, param=param, **kwargs)
 
     def setValues(self, values):
         raise NotImplementedError("Subclass must implement this method.")
@@ -171,9 +172,11 @@ class QGraphicsLineEdit(QtWidgets.QGraphicsTextItem, ConstantWidgetBase):
     """ A GraphicsItem version of ConstantWidget
 
     """
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QtWidgets.QGraphicsTextItem.__init__(self, parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.setTabChangesFocus(True)
         self.setFont(CurrentTheme.MODULE_EDIT_FONT)
@@ -181,7 +184,6 @@ class QGraphicsLineEdit(QtWidgets.QGraphicsTextItem, ConstantWidgetBase):
         self.offset = 0
         self.is_valid = True
         self.document().setDocumentMargin(1)
-        ConstantWidgetBase.__init__(self, param)
         d = self.document()
         d.contentsChanged.connect(self.ensureCursorVisible)
 
@@ -289,12 +291,12 @@ class QGraphicsLineEdit(QtWidgets.QGraphicsTextItem, ConstantWidgetBase):
             painter.drawRect(self.boundingRect())
         return result
 
-class StandardConstantWidget(QtWidgets.QLineEdit,ConstantWidgetBase):
+class StandardConstantWidget(QtWidgets.QLineEdit, ConstantWidgetBase):
     contentsChanged = QtCore.pyqtSignal(tuple)
     GraphicsItem = QGraphicsLineEdit
-    def __init__(self, param, parent=None):
-        QtWidgets.QLineEdit.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.returnPressed.connect(self.update_parent)
 
     def setContents(self, value, silent=False):
@@ -336,11 +338,12 @@ def findEmbeddedParentWidget(widget):
     return None
 
 class StandardConstantEnumWidget(QtWidgets.QComboBox, ConstantEnumWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
     GraphicsItem = None
-    def __init__(self, param, parent=None):
-        QtWidgets.QComboBox.__init__(self, parent)
-        ConstantEnumWidgetBase.__init__(self, param)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.currentIndexChanged.connect(self.update_parent)
 
     def setValues(self, values):
@@ -421,11 +424,12 @@ class StandardConstantEnumWidget(QtWidgets.QComboBox, ConstantEnumWidgetBase):
 # Multi-line String Widget
 
 class MultiLineStringWidget(QtWidgets.QTextEdit, ConstantWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QtWidgets.QTextEdit.__init__(self, parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.setAcceptRichText(False)
-        ConstantWidgetBase.__init__(self, param)
 
     def setContents(self, contents):
         self.setPlainText(expression.evaluate_expressions(contents))
@@ -455,15 +459,16 @@ class PathChooserWidget(QtWidgets.QWidget, ConstantWidgetMixin):
     selected.
 
     """    
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
+
+    def __init__(self, param, parent=None, **kwargs):
         """__init__(param: core.vistrail.module_param.ModuleParam,
         parent: QWidget)
         Initializes the line edit with contents
 
         """
-        QtWidgets.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
+        super().__init__(parent=parent, param=param.strValue, **kwargs)
         layout = QtWidgets.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = self.create_browse_button()
@@ -544,13 +549,13 @@ class BooleanWidget(QtWidgets.QCheckBox, ConstantWidgetBase):
     _states = [QtCore.Qt.Checked, QtCore.Qt.Unchecked]
 
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
+
+    def __init__(self, param, parent=None, **kwargs):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)
         Initializes the line edit with contents
         """
-        QtWidgets.QCheckBox.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
+        super().__init__(parent=parent, param=param, **kwargs)
         self.stateChanged.connect(self.change_state)
         
     def contents(self):
@@ -572,9 +577,12 @@ class BooleanWidget(QtWidgets.QCheckBox, ConstantWidgetBase):
 
 # FIXME ColorChooserButton remains because the parameter exploration
 # code uses it, really should be removed at some point
+
 class ColorChooserButton(QtWidgets.QPushButton):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
     color_selected = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         QtWidgets.QPushButton.__init__(self, parent)
         # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
@@ -659,10 +667,11 @@ class QColorWidget(QtWidgets.QToolButton):
             self.setColor(qcolor)
 
 class ColorWidget(QColorWidget, ConstantWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QColorWidget.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.clicked.connect(self.openChooser)
 
     def contents(self):
@@ -672,12 +681,13 @@ class ColorWidget(QColorWidget, ConstantWidgetBase):
         self.setColorString(strValue, silent)
 
 class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QColorWidget.__init__(self, parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
-        ConstantEnumWidgetBase.__init__(self, param)
-    
+
     def setFree(self, is_free):
         if is_free:
             self.clicked.connect(self.openChooser)

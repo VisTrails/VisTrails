@@ -47,7 +47,8 @@ class BaseView(object):
 
     windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.controller = None
         self.title = None
         self.index = -1

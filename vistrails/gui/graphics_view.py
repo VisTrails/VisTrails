@@ -225,14 +225,16 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
     zoom/span with right/mid click
     
     """
+
     resetQuery = QtCore.pyqtSignal()
-    def __init__(self, parent=None):
+
+    def __init__(self, parent=None, **kwargs):
         """ QInteractiveGraphicsView(parent: QWidget)
                                      -> QInteractiveGraphicsView
         Initialize the graphics view with interactive options
         
         """
-        QtWidgets.QGraphicsView.__init__(self, parent)
+        super().__init__(parent=parent, **kwargs)
         self.setInteractive(True)
 #        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)

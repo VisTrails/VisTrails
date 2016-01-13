@@ -246,7 +246,8 @@ class QConfigurationWidget(QtWidgets.QWidget):
         self._tree.treeWidget.create_tree(persistent_config, temp_config)
 
 class QConfigurationWidgetItem(object):
-    def __init__(self, key, field, callback_f):
+    def __init__(self, key, field, callback_f, **kwargs):
+        super().__init__(**kwargs)
         self.key = key
         self.field = field
         self.change_callback_f = callback_f
@@ -280,9 +281,8 @@ class QConfigurationWidgetItem(object):
         return options
 
 class QConfigurationCheckBox(QtWidgets.QCheckBox, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f, parent=None):
-        QtWidgets.QCheckBox.__init__(self, parent)
-        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.setText(self.get_desc())
         self.toggled.connect(self.value_changed)
 
@@ -297,13 +297,13 @@ class QConfigurationCheckBox(QtWidgets.QCheckBox, QConfigurationWidgetItem):
         return ""
 
 class QConfigurationLineEdit(QtWidgets.QLineEdit, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f, parent=None):
-        QtWidgets.QLineEdit.__init__(self, parent)
-        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.setMinimumWidth(200)
         self.editingFinished.connect(self.value_changed)
 
     def value_changed(self):
+        print("ValueChangeed", self.key, self.text())
         QConfigurationWidgetItem.value_changed(self, self.text())
 
     def set_value(self, value, signal=True):
@@ -316,9 +316,8 @@ class QConfigurationLineEdit(QtWidgets.QLineEdit, QConfigurationWidgetItem):
             self.editingFinished.connect(self.value_changed)
 
 class QConfigurationLineEditButton(QtWidgets.QWidget, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f, button, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
-        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+    def __init__(self, button=QDirectoryChooserToolButton(), **kwargs):
+        super().__init__(**kwargs)
 
         layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -350,20 +349,17 @@ class QConfigurationLineEditButton(QtWidgets.QWidget, QConfigurationWidgetItem):
             self.line_edit.editingFinished.connect(self.value_changed)
 
 class QConfigurationPathEdit(QConfigurationLineEditButton):
-    def __init__(self, key, field, callback_f, 
-                 button_cls=QDirectoryChooserToolButton, parent=None):
-        QConfigurationLineEditButton.__init__(self, key, field, callback_f,
-                                              None, parent)
+    def __init__(self, button_cls=QDirectoryChooserToolButton, **kwargs):
+        super().__init__(**kwargs)
         button = button_cls(self, self.line_edit)
         self.add_button(button)
 
 class QConfigurationThumbnailCache(QConfigurationLineEditButton):
-    def __init__(self, key, field, callback_f, parent=None):
+    def __init__(self, **kwargs):
         button = QtWidgets.QPushButton("Clear...")
         button.setAutoDefault(False)
         button.clicked.connect(self.clear_clicked)
-        QConfigurationLineEditButton.__init__(self, key, field, callback_f, 
-                                              button, parent)
+        super().__init__(button=button, **kwargs)
 
     def clear_clicked(self, checked=False):
         thumbnail_dir = system.get_vistrails_directory("thumbs.cacheDir")
@@ -376,11 +372,8 @@ class QConfigurationThumbnailCache(QConfigurationLineEditButton):
             ThumbnailCache.getInstance().clear()
 
 class QConfigurationLabelButton(QtWidgets.QWidget, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f, label=None, button=None, 
-                 parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
-        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
-
+    def __init__(self, label=None, button=None, **kwargs):
+        super().__init__(**kwargs)
         layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
@@ -407,7 +400,7 @@ class QConfigurationLabelButton(QtWidgets.QWidget, QConfigurationWidgetItem):
         pass
 
 class QConfigurationLinuxHandler(QConfigurationLabelButton):
-    def __init__(self, key, field, callback_f, parent=None):
+    def __init__(self, **kwargs):
         from vistrails.gui.application import linux_default_application_set
         if linux_default_application_set():
             label = QtWidgets.QLabel(".vt, .vtl handlers installed")
@@ -417,8 +410,7 @@ class QConfigurationLinuxHandler(QConfigurationLabelButton):
         button = QtWidgets.QPushButton("Install...")
         button.setAutoDefault(False)
         button.clicked.connect(self.install_clicked)
-        QConfigurationLabelButton.__init__(self, key, field, callback_f, 
-                                           label, button, parent)
+        super().__init__(label=label, button=button, **kwargs)
 
     def install_clicked(self, checked=False):
         from vistrails.core.application import get_vistrails_application
@@ -427,9 +419,8 @@ class QConfigurationLinuxHandler(QConfigurationLabelButton):
             self.label.setText(".vt, .vtl handlers installed")
 
 class QConfigurationComboBox(QtWidgets.QComboBox, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f, parent=None):
-        QtWidgets.QComboBox.__init__(self, parent)
-        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         inv_remap = None
         options = self.get_widget_options()

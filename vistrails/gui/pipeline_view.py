@@ -998,7 +998,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
 ##############################################################################
 # QGraphicsModuleItem
 
-class QGraphicsModuleItem(QGraphicsItemInterface, QtWidgets.QGraphicsItem):
+class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
     """
     QGraphicsModuleItem knows how to draw a Vistrail Module into the
     pipeline view. It is usually a rectangular shape with a bold text
@@ -3528,13 +3528,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, **kwargs):
         """ QPipelineView(parent: QWidget) -> QPipelineView
         Initialize the graphics view and its properties
         
         """
-        QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        super().__init__(parent=parent, **kwargs)
         self.setScene(QPipelineScene(self))
         self.set_title('Pipeline')
         self.controller = None
