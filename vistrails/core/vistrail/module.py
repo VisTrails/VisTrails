@@ -372,6 +372,9 @@ class Module(DBModule):
     ##########################################################################
     # Operators
 
+    def __hash__(self):
+        return self.id
+
     def __str__(self):
         """__str__() -> str Returns a string representation of itself. """
         def get_name():

@@ -414,6 +414,9 @@ class PortSpec(DBPortSpec):
     ##########################################################################
     # Operators
     
+    def __hash__(self):
+        return self.id
+
     def __str__(self):
         """__str__() -> str - Returns a string representation of an PortSpec
         object. 

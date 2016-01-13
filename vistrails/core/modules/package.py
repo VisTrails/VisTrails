@@ -250,6 +250,9 @@ class Package(DBPackage):
             return (type(self), self.identifier, self.version).__hash__()
         return (type(self), self.codepath).__hash__()
 
+    def __lt__(self, other):
+        self.__hash__() < other.__hash__()
+
     def __eq__(self, other):
         return (type(self) == type(other) and 
                 self.identifier == other.identifier and
