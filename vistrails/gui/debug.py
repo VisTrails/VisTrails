@@ -268,11 +268,14 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         """
         # adds the string s to the list and 
         s = s.strip()
+        if not s:
+            # FIXME: Why is empty messages sent?
+            return
         msgs = s.split('\n')
 
         if len(msgs)<=3:
             msgs.append('Error logging message: invalid log format')
-            s += '\n' + msgs[3]
+            s += '\n' + msgs[-1]
         if not len(msgs[3].strip()):
             msgs[3] = "Unknown Error"
             s = '\n'.join(msgs)
