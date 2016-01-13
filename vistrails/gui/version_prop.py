@@ -482,7 +482,7 @@ class QVersionPropOverlay(QtWidgets.QFrame):
         self.notes_dialog = QNotesDialog(self)
         self.notes_dialog.hide()
 
-        self.notes_button.pressed(self.openNotes)
+        self.notes_button.pressed.connect(self.openNotes)
 
     def updateGeometry(self):
         """ updateGeometry() -> None

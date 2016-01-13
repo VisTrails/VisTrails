@@ -218,8 +218,8 @@ def show_question(which_files, has_distro_pkg, has_pip):
             layout.addWidget(label)
         buttons = QtWidgets.QDialogButtonBox(
                 QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-        buttons.accepted.connect(dialog, accept)
-        buttons.rejected.connect(dialog, reject)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
 
         dialog.setLayout(layout)

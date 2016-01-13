@@ -107,7 +107,7 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
         self.layout().addLayout(layout)
         self.layout().setStretch(0, 0)
 
-        self.portCombiner = QPortCombineTreeWidget(self.stateChanged)
+        self.portCombiner = QPortCombineTreeWidget(self._stateChanged)
         self.layout().addWidget(self.portCombiner)
         self.portCombiner.setVisible(False)
         
@@ -199,19 +199,19 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
         self.resetButton.clicked.connect(self.resetTriggered)
         self.layout().setStretch(3, 0)
         self.update_module()
-        self.pairwiseButton.toggled.connect(self.stateChanged)
-        self.cartesianButton.toggled.connect(self.stateChanged)
-        self.customButton.toggled.connect(self.stateChanged)
+        self.pairwiseButton.toggled.connect(self._stateChanged)
+        self.cartesianButton.toggled.connect(self._stateChanged)
+        self.customButton.toggled.connect(self._stateChanged)
         self.customButton.toggled.connect(self.customToggled)
-        self.portCombiner.itemChanged.connect(self.stateChanged)
-        self.whileButton.toggled.connect(self.stateChanged)
+        self.portCombiner.itemChanged.connect(self._stateChanged)
+        self.whileButton.toggled.connect(self._stateChanged)
         self.whileButton.toggled.connect(self.whileToggled)
-        self.condEdit.textChanged.connect(self.stateChanged)
-        self.maxEdit.textChanged.connect(self.stateChanged)
-        self.delayEdit.textChanged.connect(self.stateChanged)
-        self.feedInputEdit.textChanged.connect(self.stateChanged)
-        self.feedOutputEdit.textChanged.connect(self.stateChanged)
-        self.jobCacheButton.toggled.connect(self.stateChanged)
+        self.condEdit.textChanged.connect(self._stateChanged)
+        self.maxEdit.textChanged.connect(self._stateChanged)
+        self.delayEdit.textChanged.connect(self._stateChanged)
+        self.feedInputEdit.textChanged.connect(self._stateChanged)
+        self.feedOutputEdit.textChanged.connect(self._stateChanged)
+        self.jobCacheButton.toggled.connect(self._stateChanged)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -235,7 +235,7 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
     def resetTriggered(self, checked = False):
         self.update_module(self.module)
 
-    def stateChanged(self, *args):
+    def _stateChanged(self, *args):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         self.state_changed = True

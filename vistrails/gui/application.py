@@ -280,8 +280,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         buttons = QtWidgets.QDialogButtonBox(
                 QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No)
         layout.addWidget(buttons)
-        buttons.accepted.connect(dialog, accept)
-        buttons.rejected.connect(dialog, reject)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
 
         res = dialog.exec_()
         if dont_ask_checkbox:

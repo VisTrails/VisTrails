@@ -133,7 +133,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         for i in range(self.list.count()):
             item = self.list.item(i)
             level = item.data(32).split('\n')[0]
-            self.list.setItemHidden(item, not self.levels[level].isChecked())
+            item.setHidden(self.levels[level].isChecked())
 
     def copyMessage(self):
         """ copy selected message to clipboard """
@@ -282,7 +282,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
         self.list.addItem(item)
         item.setForeground(CurrentTheme.DEBUG_COLORS[msgs[0]])
-        self.list.setItemHidden(item, not self.levels[msgs[0]].isChecked())
+        item.setHidden(self.levels[msgs[0]].isChecked())
         alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
                                        'showDebugPopups',
                                        False)
