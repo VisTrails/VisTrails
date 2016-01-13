@@ -356,7 +356,7 @@ class QCellToolBar(QtWidgets.QToolBar):
                     QtWidgets.QFileDialog.getSaveFileName(
                         self, "Select a File to Export the Cell",
                         ".", ';;'.join(['(*.%s)' % f for f in formats]),
-                        selected_filter)
+                        selected_filter)[0]
             if filename:
                 save_mode = format_map[save_format[3:-1]]
                 cell.save_via_file_output(filename, save_mode)
@@ -368,7 +368,7 @@ class QCellToolBar(QtWidgets.QToolBar):
                 return
             filename = QtWidgets.QFileDialog.getSaveFileName(
                 self, "Select a File to Export the Cell",
-                ".", ';;'.join(cell.save_formats))
+                ".", ';;'.join(cell.save_formats))[0]
             if filename:
                 cell.dumpToFile(filename)
 

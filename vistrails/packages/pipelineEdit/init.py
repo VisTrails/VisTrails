@@ -91,9 +91,9 @@ class QPipelineEditor(QtWidgets.QWidget):
 
         """
         fn = QtWidgets.QFileDialog.getOpenFileName(self,
-        [0]                                       'Load Vistrail',
+                                               'Load Vistrail',
                                                '.',
-                                               'Vistrail (*.vt)')
+                                               'Vistrail (*.vt)')[0]
         if not fn.isNull():
             self.filenameLabel.setText('Vistrail: %s' % fn)
             self.vistrail = vistrails.api.get_vistrail_from_file(str(fn))

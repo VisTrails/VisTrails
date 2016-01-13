@@ -466,12 +466,12 @@ class QStringEdit(QtWidgets.QFrame):
         Allow user to insert a file name as a value to the string
         
         """
-        fileName = QtWidgets.QFileDialog.getOpenFileName(self[0],
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                                                      'Use Filename '
                                                      'as Value...',
                                                      self.text(),
                                                      'All files '
-                                                     '(*.*)')
+                                                     '(*.*)')[0]
         if fileName:
             self.setText(fileName)
 
@@ -737,11 +737,11 @@ class QPathChooserToolButton(QtWidgets.QToolButton):
         return self.lineEdit.text() or self.defaultPath
 
     def openChooser(self):
-        path = QtWidgets.QFileDialog.getOpenFileName(self[0],
+        path = QtWidgets.QFileDialog.getOpenFileName(self,
                                                  'Select Path...',
                                                  self.getDefaultText(),
                                                  'All files '
-                                                 '(*.*)')
+                                                 '(*.*)')[0]
         return self.setDataDirectory(path)
 
     def runDialog(self):
@@ -765,11 +765,11 @@ class QFileChooserToolButton(QPathChooserToolButton):
                                         defaultPath)
 
     def openChooser(self):
-        path = QtWidgets.QFileDialog.getOpenFileName(self[0],
+        path = QtWidgets.QFileDialog.getOpenFileName(self,
                                                  'Select File...',
                                                  self.getDefaultText(),
                                                  'All files '
-                                                 '(*.*)')
+                                                 '(*.*)')[0]
         return self.setDataDirectory(path)
 
 class QDirectoryChooserToolButton(QPathChooserToolButton):
@@ -798,7 +798,7 @@ class QOutputPathChooserToolButton(QPathChooserToolButton):
         path = QtWidgets.QFileDialog.getSaveFileName(self,
                                                  'Select Output Location...',
                                                  self.getDefaultText(),
-                                                 'All files (*.*)')
+                                                 'All files (*.*)')[0]
         return self.setDataDirectory(path)
     
     

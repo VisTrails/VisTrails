@@ -206,7 +206,7 @@ class QLatexAssistant(QtWidgets.QWidget, QVistrailsPaletteInterface):
         fname = QtWidgets.QFileDialog.getOpenFileName(self,
                                                   'Load LaTeX File...',
                                                   self.source_edit.text(),
-                                                  'LaTeX files (*.tex)')
+                                                  'LaTeX files (*.tex)')[0]
         if fname:
             self.source_edit.setText(fname)
             self.texts = parse_latex_file(fname)

@@ -143,10 +143,10 @@ suffix_map = {'vistrail': ['.vt', '.xml', '.vtl'],
 def get_load_file_locator_from_gui(parent, obj_type):
     suffixes = "*" + " *".join(suffix_map[obj_type])
     fileName = QtWidgets.QFileDialog.getOpenFileName(
-     [0]   parent,
+        parent,
         "Open %s..." % obj_type.capitalize(),
         vistrails.core.system.vistrails_file_directory(),
-        "VisTrails files (%s)\nOther files (*)" % suffixes)
+        "VisTrails files (%s)\nOther files (*)" % suffixes)[0]
     if not fileName:
         return None
     filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
@@ -162,11 +162,11 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
 
     suffixes = "*" + " *".join(suffix_map[obj_type])
     fileName = QtWidgets.QFileDialog.getSaveFileName(
-     [0]   parent,
+        parent,
         "Save Vistrail...",
         vistrails.core.system.vistrails_file_directory(),
         filter="VisTrails files (%s)" % suffixes, # filetypes.strip()
-        options=QtWidgets.QFileDialog.DontConfirmOverwrite)
+        options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
     if not fileName:
         return None
     f = str(QtCore.QFile.encodeName(fileName))

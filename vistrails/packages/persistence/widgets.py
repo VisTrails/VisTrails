@@ -526,7 +526,7 @@ class PersistentRefDialog(QtWidgets.QDialog):
             QtWidgets.QFileDialog.getOpenFileName(self,
                                               'Use File...',
                                               self.current_file,
-                                              'All files (*.*)')
+                                              'All files (*.*)')[0]
         if chosen_file:
             self.current_file = chosen_file
             self.filename_edit.setText(self.current_file)
@@ -598,7 +598,7 @@ class PathChooserLayout(QtWidgets.QHBoxLayout):
                 QtWidgets.QFileDialog.getOpenFileName(self.par_widget,
                                                   'Use File...',
                                                   self.pathname_edit.text(),
-                                                  'All files (*.*)')
+                                                  'All files (*.*)')[0]
 
         if chosen_path and chosen_path:
             self.pathname_edit.setText(chosen_path)
@@ -1072,7 +1072,7 @@ class PersistentConfiguration(QtWidgets.QDialog):
             chosen_path = QtWidgets.QFileDialog.getSaveFileName(
                     self,
                     'Save...',
-                    name)
+                    name)[0]
             if not chosen_path:
                 return
 

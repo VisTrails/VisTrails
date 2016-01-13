@@ -359,7 +359,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
         fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                 "Open Wrapper",
                 self.file if self.file else default_dir(),
-                "Wrappers (*%s)" % SUFFIX)
+                "Wrappers (*%s)" % SUFFIX)[0]
         if not fileName:
             return
         try:
@@ -449,7 +449,7 @@ class QCLToolsWizard(QtWidgets.QWidget):
         fileName = QtWidgets.QFileDialog.getSaveFileName(self,
                             "Save Wrapper as",
                             self.file if self.file else default_dir(),
-                            "Wrappers (*%s)" % SUFFIX)
+                            "Wrappers (*%s)" % SUFFIX)[0]
         if fileName:
             self.file = fileName
             if not self.file.endswith(SUFFIX):

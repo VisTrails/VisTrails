@@ -1007,7 +1007,7 @@ class QVistrailView(QtWidgets.QWidget):
             self.window(),
             "Save DOT...",
             vistrails_file_directory(),
-            "Graphviz DOT files (*.dot)")
+            "Graphviz DOT files (*.dot)")[0]
         if not filename:
             return
         self.controller.save_version_graph(filename)

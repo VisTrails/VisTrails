@@ -253,7 +253,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
         """
         filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Select a File to Export the Sheet",
-            ".", "Images (*.png *.xpm *.jpg)")
+            ".", "Images (*.png *.xpm *.jpg)")[0]
         if filename:
             self.currentWidget().exportSheetToImage(filename)
 
@@ -677,7 +677,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
                                                      'name',
                                                      '',
                                                      'VisTrails Spreadsheet '
-                                                     '(*.vss)')
+                                                     '(*.vss)')[0]
         if fileName:
             (root, ext) = os.path.splitext(fileName)
             if ext=='':
@@ -782,7 +782,7 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
                                                      '',
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)',
-                                                     )
+                                                     )[0]
         if fileName:
             self.openSpreadsheet(fileName)
 

@@ -193,7 +193,7 @@ class QCollectionWidget(QtWidgets.QTreeWidget):
     def add_file(self):
         s = QtWidgets.QFileDialog.getOpenFileName(
                     self, "Choose a file",
-                    "", "Vistrail files (*.vt *.xml)")
+                    "", "Vistrail files (*.vt *.xml)")[0]
         if str(s):
             locator = FileLocator(str(s))
             url = locator.to_url()

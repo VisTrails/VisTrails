@@ -644,7 +644,7 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
             fileName = QtWidgets.QFileDialog.getSaveFileName(self.window(),
                 "Save PDF...",
                 vistrails.core.system.vistrails_file_directory(),
-                "PDF files (*.pdf)")
+                "PDF files (*.pdf)")[0]
 
             if not fileName:
                 return None
