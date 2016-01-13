@@ -76,7 +76,7 @@ class RecentVistrailList(object):
                 loc.to_xml(childNode, include_name=True)
             else:
                 loc.to_xml(childNode)
-        return ElementTree.tostring(node)
+        return ElementTree.tostring(node, encoding='unicode')
     
     def ensure_no_more_than_max(self, max):
         while len(self.locators) > max:

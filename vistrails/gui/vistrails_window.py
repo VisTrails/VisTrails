@@ -40,6 +40,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 import copy
 
+from xml.sax.saxutils import escape
+
 from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \

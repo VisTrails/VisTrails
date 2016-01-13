@@ -1189,7 +1189,7 @@ def get_saved_workflows(vistrail, db_connection):
 def open_log_from_xml(filename, was_appended=False):
     """open_log_from_xml(filename) -> DBLog"""
     if was_appended:
-        parser = ElementTree.XMLTreeBuilder()
+        parser = ElementTree.XMLParser(encoding="utf-8")
         parser.feed("<log>\n")
         f = open(filename, "rb")
         parser.feed(f.read())

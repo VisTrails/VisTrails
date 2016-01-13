@@ -306,7 +306,6 @@ class QConfigurationLineEdit(QtWidgets.QLineEdit, QConfigurationWidgetItem):
         self.editingFinished.connect(self.value_changed)
 
     def value_changed(self):
-        print("ValueChangeed", self.key, self.text())
         QConfigurationWidgetItem.value_changed(self, self.text())
 
     def set_value(self, value, signal=True):

@@ -387,7 +387,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     short_filename = property(_get_short_filename)
 
     def _get_short_name(self):
-        return self._get_name().decode('ascii')
+        return self._get_name()
     short_name = property(_get_short_name)
 
     @staticmethod
@@ -495,8 +495,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
     def _get_short_name(self):
         name = self._get_short_filename()
-        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
-        return name.decode(enc)
+        return name
     short_name = property(_get_short_name)
 
     @classmethod
@@ -564,7 +563,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
         node.set('type', 'file')
         childnode = ElementTree.SubElement(node,'name')
-        childnode.text = self._name.decode('latin-1')
+        childnode.text = self._name
         return node
 
     @staticmethod
