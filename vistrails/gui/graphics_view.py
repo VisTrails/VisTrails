@@ -392,7 +392,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         scenePos = self.mapToScene(e.pos())
-        item = self.scene().itemAt(scenePos)
+        item = self.scene().itemAt(scenePos, QtGui.QTransform())
         buttons = self.translateButton(e)
         if buttons == QtCore.Qt.LeftButton:
             if item is None:
@@ -530,14 +530,14 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                       )/self.scaleRatio
         scale = pow(2.0, power)
         matrix.scale(scale, scale)
-        self.setMatrix(matrix)
+        self.setTransform(matrix)
 
     def computeScale(self):
         """ computeScale() -> None
         Compute the current scale based on the view matrix
         
         """
-        self.currentScale = (math.log(self.matrix().m11(), 2.0)*
+        self.currentScale = (math.log(self.transform().m11(), 2.0)*
                              self.scaleRatio + self.scaleMax/2 +
                              self.scaleOffset)
 

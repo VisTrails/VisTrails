@@ -184,6 +184,7 @@ def show_question(which_files, has_distro_pkg, has_pip):
         which_files = [which_files]
     if qt_available():
         from PyQt4 import QtCore, QtGui
+
         dialog = QtGui.QDialog()
         dialog.setWindowTitle("Required packages missing")
         layout = QtGui.QVBoxLayout()
@@ -218,10 +219,8 @@ def show_question(which_files, has_distro_pkg, has_pip):
             layout.addWidget(label)
         buttons = QtGui.QDialogButtonBox(
                 QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                               dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                               dialog, QtCore.SLOT('reject()'))
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
 
         dialog.setLayout(layout)

@@ -163,8 +163,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                "of vistrails application")
                 return
             self.local_server = QtNetwork.QLocalServer(self)
-            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                         self.message_received)
+            self.local_server.newConnection.connect(self.message_received)
             if self.local_server.listen(self._unique_key):
                 debug.log("Listening on %s"%self.local_server.fullServerName())
             else:
@@ -183,8 +182,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                    "of vistrails application")
                     return
                 self.local_server = QtNetwork.QLocalServer(self)
-                self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                             self.message_received)
+                self.local_server.newConnection.connect(self.message_received)
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
@@ -269,11 +267,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if hasattr(self, 'splashScreen') and self.splashScreen:
             self.splashScreen.hide()
         dialog = QtGui.QDialog()
-        dialog.setWindowTitle(u"Install .vt .vtl handler")
+        dialog.setWindowTitle("Install .vt .vtl handler")
         layout = QtGui.QVBoxLayout()
         dialog.setLayout(layout)
-        layout.addWidget(QtGui.QLabel(u"Install VisTrails as default handler "
-                                      u"to open .vt and .vtl files?"))
+        layout.addWidget(QtGui.QLabel("Install VisTrails as default handler "
+                                      "to open .vt and .vtl files?"))
         if dont_ask_checkbox:
             dont_ask = QtGui.QCheckBox(u"Don't ask on startup")
             dont_ask_setting = self.configuration.check('handlerDontAsk')
@@ -282,10 +280,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         buttons = QtGui.QDialogButtonBox(
                 QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
         layout.addWidget(buttons)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                     dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                     dialog, QtCore.SLOT('reject()'))
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
 
         res = dialog.exec_()
         if dont_ask_checkbox:

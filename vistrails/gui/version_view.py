@@ -402,7 +402,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     label
     
     """
-    diffRequested = QtCore.pyqtSignal(int,int)
     versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsVersionItem(parent: QGraphicsItem, scene: QGraphicsScene)
@@ -766,8 +765,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     
     """
 
+    diffRequested = QtCore.pyqtSignal(int,int)
+    selectionChanged = QtCore.pyqtSignal()
     versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
     twoVersionsSelected = QtCore.pyqtSignal(int,int)
+
     def __init__(self, parent=None):
         """ QVersionTree(parent: QWidget) -> QVersionTree
         Initialize the graphics scene with no shapes
@@ -782,7 +784,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.fullGraph = None
         self.emit_selection = True
         self.select_by_click = True
-        self.selectionChanged.connect(self.selectionChanged)
+        self.selectionChanged.connect(self._selectionChanged)
 
     def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: str, description: str,
@@ -995,7 +997,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 self.versions[v].setSelected(v == controller.current_base_version)
 
         self.emit_selection = True
-        self.selectionChanged()
+        self._selectionChanged()
 
         # remove gui edges from scene
         for (v1, v2) in removeEdgeSet:
@@ -1051,7 +1053,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         else:
             qt_super(QVersionTreeScene, self).keyPressEvent(event)
 
-    def selectionChanged(self):
+    @QtCore.pyqtSlot()
+    def _selectionChanged(self):
         if not self.emit_selection:
             return
 
@@ -1079,6 +1082,8 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     handle drawing of versions layout output from Dotty
     
     """
+
+    vistrailChanged = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """ QVersionTreeView(parent: QWidget) -> QVersionTreeView
@@ -1165,7 +1170,6 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         Overrides parent class to disable text items if you click on background
 
         """
-        vistrailChanged = QtCore.pyqtSignal()
         if self.canSelectRectangle:
             br = self.selectionBox.sceneBoundingRect()
         else:
@@ -1187,12 +1191,12 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
-                oldController.vistrailChanged.connect(self.vistrailChanged)
+                oldController.vistrailChanged.connect(self._vistrailChanged)
                 oldController.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
                 oldController.notesChanged.connect(self.notesChanged)
             self.controller = controller
             self.scene().controller = controller
-            controller.vistrailChanged.connect(self.vistrailChanged)
+            controller.vistrailChanged.connect(self._vistrailChanged)
             controller.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
             controller.notesChanged.connect(self.notesChanged)
             if controller:
@@ -1202,7 +1206,8 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
                 # self.versionProp.updateController(controller)
                 # self.versionView.versionProp.updateController(controller)
 
-    def vistrailChanged(self):
+    @QtCore.pyqtSlot()
+    def _vistrailChanged(self):
         """ vistrailChanged() -> None
         An action was performed on the current vistrail
         

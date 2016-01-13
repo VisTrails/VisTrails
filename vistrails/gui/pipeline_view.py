@@ -1008,7 +1008,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     
     """
     moduleSelected = QtCore.pyqtSignal(int,list)
-    def __init__(self, parent=None, scene=None):
+    def __init__(self, parent=None):
         """ QGraphicsModuleItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsModuleItem
         Create the shape, initialize its pen and brush accordingly
@@ -1681,7 +1681,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             configureShape.moduleId = self.id
             configureShape.setGhosted(self.ghosted)
             configureShape.setBreakpoint(self.module.is_breakpoint)
-            configureShape.translate(x, y)
+            configureShape.setTransform(QtGui.QTransform.fromTranslate(x, y), True)
             return configureShape
         return None
 

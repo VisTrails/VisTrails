@@ -1825,7 +1825,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         if current_view:
             locator = current_view.controller.locator
 
-        SAVE_BUTTON, DISCARD_BUTTON, CANCEL_BUTTON = 0, 1, 2
+        MB = QtWidgets.QMessageBox
 
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
@@ -1836,18 +1836,15 @@ class QVistrailsWindow(QVistrailViewWindow):
                     escape(name) +
                     ' contains unsaved changes.\n Do you want to '
                     'save changes before closing it?')
-            res = QtGui.QMessageBox.information(window,
-                                                'Vistrails',
-                                                text, 
-                                                '&Save', 
-                                                '&Discard',
-                                                'Cancel',
-                                                0,
-                                                2)
+            res = MB.information(window,
+                                 'Vistrails',
+                                 text,
+                                 MB.Save | MB.Discard | MB.Cancel,
+                                 0)
         else:
-            res = DISCARD_BUTTON
+            res = MB.Discard
         
-        if res == SAVE_BUTTON:
+        if res == MB.Save:
             if locator is None or locator.is_untitled():
                 class_ = FileLocator()
             else:
@@ -1855,7 +1852,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             locator = current_view.save_vistrail(class_)
             if not locator:
                 return False
-        elif res == CANCEL_BUTTON:
+        elif res == MB.Cancel:
             return False
         
         if locator is not None:

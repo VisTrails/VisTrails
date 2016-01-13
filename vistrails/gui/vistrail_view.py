@@ -132,7 +132,7 @@ class QVistrailView(QtGui.QWidget):
         self.current_tab = self.stack.setCurrentIndex(0)
         self.pipeline_selected()
         self.tabs.currentChanged.connect(self.tab_changed)
-        self.tabstabCloseRequested.connect(self.remove_view_by_index)
+        self.tabs.tabCloseRequested.connect(self.remove_view_by_index)
        
         #self.view_changed()
         #self.tab_changed(0)

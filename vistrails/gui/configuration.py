@@ -183,7 +183,10 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         # disconnect() and clear() are here because create_tree might
         # also be called when an entirely new configuration object is set.
 
-        self.itemChanged.connect(self.change_configuration)
+        try:
+            self.itemChanged.disconnect(self.change_configuration)
+        except TypeError:
+            pass
         self.clear()
         self._configuration = persistent_config
         self._temp_configuration = temp_config
