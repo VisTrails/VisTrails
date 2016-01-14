@@ -42,17 +42,9 @@ import sys
 from vistrails.core.requirements import MissingRequirement, require_python_module
 
 
-def setNewPyQtAPI():
-    import sip
-    # We now use the new PyQt API - IPython needs it
-    sip.setapi('QString', 2)
-    sip.setapi('QVariant', 2)
-
-
 def qt_available():
     try:
         require_python_module('sip')
-        setNewPyQtAPI()
         require_python_module('PyQt5.QtGui')
         require_python_module('PyQt5.QtOpenGL')
     except MissingRequirement:
@@ -61,7 +53,7 @@ def qt_available():
         return True
 
 
-def require_pyqt4_api2():
+def require_pyqt5():
     # Forces the use of PyQt4 (avoid PySide even if installed)
     # This is necessary at least for IPython
     if os.environ.get('QT_API', None) not in (None, 'pyqt'):
@@ -72,10 +64,11 @@ def require_pyqt4_api2():
     if not qt_available():
         from vistrails.gui.bundles.installbundle import install
         r = install({
-            'linux-debian': ['python-qt5', 'python-qt5-gl', 'python-qt5-sql'],
-            'linux-ubuntu': ['python-qt5', 'python-qt5-gl', 'python-qt5-sql'],
+            'linux-debian': ['python3-pyqt5',
+                             'python3-pyqt5.qtopengl', 'python3-pyqt5.qtsql'],
+            'linux-ubuntu': ['python3-pyqt5',
+                             'python3-pyqt5.qtopengl', 'python3-pyqt5.qtsql'],
             'linux-fedora': ['PyQt5'],
             'pip': ['PyQt>=5.0']})
         if not r:
             raise MissingRequirement('PyQt5')
-        setNewPyQtAPI()

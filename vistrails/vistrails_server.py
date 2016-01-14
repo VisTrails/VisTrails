@@ -67,7 +67,7 @@ if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, 'C')
 
     import vistrails.gui.requirements
-    vistrails.gui.requirements.require_pyqt4_api2()
+    vistrails.gui.requirements.require_pyqt5()
 
     import vistrails.gui.application_server
     try:

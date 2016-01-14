@@ -160,17 +160,6 @@ if options.unbuffered:
     sys.stdout = Unbuffered(sys.stdout)
     sys.stderr = Unbuffered(sys.stderr)
 
-# Use PyQt API v2
-def setNewPyQtAPI():
-    try:
-        import sip
-        # We now use the new PyQt API - IPython needs it
-        sip.setapi('QString', 2)
-        sip.setapi('QVariant', 2)
-    except Exception:
-        print("Could not set PyQt API, is PyQt4 installed?")
-setNewPyQtAPI()
-
 # Start debugger on test failure
 if debug_mode:
     from vistrails.tests.utils import DebugTestCaseMetaBase

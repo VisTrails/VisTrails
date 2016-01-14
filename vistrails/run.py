@@ -108,8 +108,8 @@ def main():
     from vistrails.core import debug
     debug.DebugPrint.getInstance().log_to_console()
 
-    from vistrails.gui.requirements import require_pyqt4_api2
-    require_pyqt4_api2()
+    from vistrails.gui.requirements import require_pyqt5
+    require_pyqt5()
 
     import vistrails.gui.application
     from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
