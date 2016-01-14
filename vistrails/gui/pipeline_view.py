@@ -1411,13 +1411,13 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
         painter.translate(center_x, center_y)
         self.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
         for port in self.inputPorts.values():
-            m = port.matrix()
+            m = port.transform()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
             painter.restore()
         for port in self.outputPorts.values():
-            m = port.matrix()
+            m = port.transform()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
@@ -3749,7 +3749,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.scene().perform_configure_done_actions(mid)
 
     def paintModuleToPixmap(self, module_item):
-        m = self.matrix()
+        m = self.transform()
         return module_item.paintToPixmap(m.m11(), m.m22())
 
     def viewSelected(self):
