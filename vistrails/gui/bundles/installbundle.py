@@ -109,9 +109,11 @@ def run_install_command(graphical, cmd, args, as_root=True):
                               shell=True)
     lines = []
     try:
-        for line in iter(p.stdout.readline, ''):
-            print(line, end=' ')
+        line = p.stdout.readline()
+        while line:
+            sys.stdout.buffer.write(line)
             lines.append(line)
+            line = p.stdout.readline()
     except IOError as e:
         print("Ignoring IOError: %s" % e)
     result = p.wait()
