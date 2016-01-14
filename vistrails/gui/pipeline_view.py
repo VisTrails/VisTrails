@@ -997,7 +997,7 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
 ##############################################################################
 # QGraphicsModuleItem
 
-class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
+class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
     """
     QGraphicsModuleItem knows how to draw a Vistrail Module into the
     pipeline view. It is usually a rectangular shape with a bold text
@@ -1410,13 +1410,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         painter.translate(center_x, center_y)
         self.paint(painter, QtGui.QStyleOptionGraphicsItem())
         for port in self.inputPorts.itervalues():
-            m = port.matrix()
+            m = port.transform()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtGui.QStyleOptionGraphicsItem())
             painter.restore()
         for port in self.outputPorts.itervalues():
-            m = port.matrix()
+            m = port.transform()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtGui.QStyleOptionGraphicsItem())
@@ -3747,7 +3747,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.scene().perform_configure_done_actions(mid)
 
     def paintModuleToPixmap(self, module_item):
-        m = self.matrix()
+        m = self.transform()
         return module_item.paintToPixmap(m.m11(), m.m22())
 
     def viewSelected(self):
