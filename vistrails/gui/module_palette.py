@@ -267,7 +267,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
 
         """
         if item and item.parent() is None:
-            self.setItemExpanded(item, not self.isItemExpanded(item))
+            item.setExpanded(not self.isItemExpanded(item))
 
     def contextMenuEvent(self, event):
         """Just dispatches the menu event to the widget item"""

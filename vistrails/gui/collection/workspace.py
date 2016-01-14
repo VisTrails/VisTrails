@@ -771,7 +771,7 @@ class QVistrailList(QtGui.QTreeWidget):
         
         """
         if item and item.parent() is None:
-            self.setItemExpanded(item, not self.isItemExpanded(item))
+            item.setExpanded(not self.isItemExpanded(item))
             
     def search_result_selected(self, view, version):
         # need to signal the query view to change its version and vistrail
