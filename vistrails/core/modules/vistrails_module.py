@@ -1173,12 +1173,6 @@ class Module(object):
                     return defaultValue
             raise ModuleError(self, "Missing value from port %s" % port_name)
 
-        # Cannot resolve circular reference here, need to be fixed later
-        from vistrails.core.modules.sub_module import InputPort
-        for conn in self.inputPorts[port_name]:
-            if isinstance(conn.obj, InputPort):
-                return conn()
-
         # Check for generator
         from vistrails.core.modules.basic_modules import Generator
         raw = self.inputPorts[port_name][0].get_raw()
@@ -1218,13 +1212,15 @@ class Module(object):
             raise ModuleError(self, "Missing value from port %s" % port_name)
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
-        fromInputPortModule = [connector()
-                               for connector in self.inputPorts[port_name]
-                               if isinstance(connector.obj, InputPort)]
-        if len(fromInputPortModule)>0:
-            return fromInputPortModule
-        ports = []
+        connectors = []
         for connector in self.inputPorts[port_name]:
+            if isinstance(connector.obj, InputPort):
+                # add external connectors
+                connectors.extend(connector.obj.inputPorts['ExternalPipe'])
+            else:
+                connectors.append(connector)
+        ports = []
+        for connector in connectors:
             from vistrails.core.modules.basic_modules import List, Variant
             value = connector()
             src_depth = connector.depth()
