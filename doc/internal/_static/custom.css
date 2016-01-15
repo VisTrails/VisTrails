@@ -1,0 +1,6 @@
+@import url("classic.css");
+
+div.admonition-todo {
+    background-color: #eee;
+    border: 1px solid #ccc;
+}

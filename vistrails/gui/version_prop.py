@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -807,6 +807,7 @@ class QVersionMashups(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.versionNumber = None
         self.controller = None
+        self.mtrail = None
         #label = QtGui.QLabel("Mashups:")
         self.mashupsButton = QtGui.QToolButton()
         self.mashupsButton.setText("Mashups")

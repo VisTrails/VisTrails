@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -373,7 +373,7 @@ class UpgradeWorkflowHandler(object):
                                   function_remap=None, src_port_remap=None, 
                                   dst_port_remap=None, annotation_remap=None,
                                   control_param_remap=None):
-        """attempt_automatic_upgrade(module_id, pipeline): [Action]
+        """Automatically upgrade by simply replacing a module with the new version.
 
         Attempts to automatically upgrade module by simply adding a
         new module with the current package version, and recreating
@@ -693,7 +693,7 @@ class UpgradeWorkflowHandler(object):
                                                      internal_version,
                                                      not use_registry)
 
-        return UpgradeWorkflowHandler.replace_generic(controller, pipeline, 
+        return UpgradeWorkflowHandler.replace_generic(controller, pipeline,
                                                       old_module, new_module,
                                                       function_remap, 
                                                       src_port_remap, 
@@ -704,7 +704,6 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def remap_module(controller, module_id, pipeline, pkg_remap):
-
         """remap_module offers a method to shortcut the
         specification of upgrades.  It is useful when just changing
         the names of ports or modules, but can also be used to add
@@ -713,13 +712,17 @@ class UpgradeWorkflowHandler(object):
         first three arguments are passed from the arguments to that
         method.
 
-        pkg_remap specifies all of the changes and is of the format
-        {<old_module_name>: [(<start_version>, <end_version>, 
-                             <new_module_klass> | <new_module_id> | None, 
-                             <remap_dictionary>)]}
+        pkg_remap specifies all of the changes and is of the format::
+
+            {<old_module_name>: [(<start_version>, <end_version>,
+                                  <new_module_klass> | <new_module_id> | None,
+                                  <remap_dictionary>)]}
+
         where new_module_klass is the class and new_module_id
-        is a string of the format 
+        is a string of the format::
+
             <package_name>:[<namespace> | ]<module_name>
+
         passing None keeps the original name,
         and remap_dictionary is {<remap_type>:
         <name_changes>} and <name_changes> is a map from <old_name> to
@@ -728,20 +731,22 @@ class UpgradeWorkflowHandler(object):
         module and should return a list of operations with elements of
         the form ('add', <obj>).
 
-        For example:
+        For example::
 
-        def outputName_remap(old_conn, new_module):
-            ops = []
-            ...
-            return ops
-        pkg_remap = {'FileSink': [(None, '1.5.1', FileSink,
-                                     {'dst_port_remap':
-                                          {'overrideFile': 'overwrite',
-                                           'outputName': outputName_remap},
-                                      'function_remap':
-                                          {'overrideFile': 'overwrite',
-                                           'outputName': 'outputPath'}}),
-                        }
+            def outputName_remap(old_conn, new_module):
+                ops = []
+                ...
+                return ops
+
+            pkg_remap = {'FileSink': [
+                             (None, '1.5.1', FileSink, {
+                                  'dst_port_remap': {
+                                      'overrideFile': 'overwrite',
+                                      'outputName': outputName_remap},
+                                  'function_remap': {
+                                      'overrideFile': 'overwrite',
+                                      'outputName': 'outputPath'}}),
+            }
         """
 
         reg = get_module_registry()
@@ -770,6 +775,8 @@ class UpgradeWorkflowHandler(object):
             elif isinstance(new_module_type, basestring):
                 new_module_t = parse_descriptor_string(new_module_type,
                                                        old_module_t[0])
+            elif isinstance(new_module_type, ModuleDescriptor):
+                new_module_t = new_module_type.spec_tuple
             else:
                 new_module_desc = reg.get_descriptor(new_module_type)
                 new_module_t = new_module_desc.spec_tuple
@@ -806,9 +813,9 @@ class UpgradeWorkflowHandler(object):
                                                                  old_version)
                 old_module_t = new_module_t
             replace_module = UpgradeWorkflowHandler.replace_module
-            actions = replace_module(controller, 
+            actions = replace_module(controller,
                                      tmp_pipeline,
-                                     module_id, 
+                                     module_id,
                                      new_module_desc,
                                      module_remap.function_remap,
                                      module_remap.src_port_remap,
@@ -820,8 +827,11 @@ class UpgradeWorkflowHandler(object):
             for a in actions:
                 for op in a.operations:
                     # Update the id of the module being updated
+                    # FIXME: This is brittle
+                    # This assumes first added module is the correct one
                     if op.vtType == 'add' and op.what == 'module':
                         module_id = op.objectId
+                        break
                 tmp_pipeline.perform_action(a)
 
             action_list.extend(actions)

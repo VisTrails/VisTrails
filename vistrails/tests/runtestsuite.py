@@ -2,7 +2,7 @@
 # pragma: no testimport
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -58,6 +58,17 @@ import re
 import shutil
 import tempfile
 
+# This makes sure we use unittest2 everywhere
+# If we are running 2.6, since our tests are in the same files as our code,
+# VisTrails might choke up because of missing unittest features
+try:
+    import unittest2
+except ImportError:
+    pass
+else:
+    sys.modules['unittest'] = unittest2
+import unittest
+
 if 'vistrails' not in sys.modules:
     # Makes sure we can import modules as if we were running VisTrails
     # from the root directory
@@ -81,7 +92,7 @@ class clean_tempdir(object):
         nb_dirs = 0
         nb_files = 0
         for f in self.listdir(self.test_temp_dir):
-            if self.isdir(f):
+            if self.isdir(os.path.join(self.test_temp_dir,f)):
                 nb_dirs += 1
             else:
                 nb_files += 1
@@ -160,6 +171,11 @@ def setNewPyQtAPI():
         print "Could not set PyQt API, is PyQt4 installed?"
 setNewPyQtAPI()
 
+# Start debugger on test failure
+if debug_mode:
+    from vistrails.tests.utils import DebugTestCaseMetaBase
+    unittest.TestCase = DebugTestCaseMetaBase
+
 # Log to the console
 import vistrails.core.debug
 vistrails.core.debug.DebugPrint.getInstance().log_to_console()
@@ -174,10 +190,6 @@ import vistrails.gui.application
 from vistrails.core.system import vistrails_root_directory, \
                                   vistrails_examples_directory
 from vistrails.core.packagemanager import get_package_manager
-
-# VisTrails does funny stuff with unittest/unittest2, be sure to load that
-# after vistrails
-import unittest
 
 # reinitializing arguments and options so VisTrails does not try parsing them
 sys.argv = sys.argv[:1]
@@ -385,7 +397,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if suite.countTestCases() == 0 and verbose >= 1:
             print >>sys.stderr, "WARNING: module has no tests: %s" % module
         elif verbose >= 2:
-            print >>sys.stderr, "OK: module as %d test cases: %s" % (
+            print >>sys.stderr, "OK: module has %d test cases: %s" % (
                     suite.countTestCases(),
                     module)
 

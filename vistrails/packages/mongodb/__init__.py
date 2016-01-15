@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -33,6 +33,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+"""
+MongoDB package for VisTrails.
+
+Uses the pymongo driver to access MongoDB.
+"""
+
 from __future__ import division
 
-pass
+identifier = 'org.vistrails.vistrails.mongodb'
+name = 'MongoDB'
+version = '0.1.0'
+
+def package_requirements():
+    from vistrails.core.requirements import require_python_module
+    require_python_module('pymongo', {
+            'pip': 'pymongo',
+            'linux-debian': 'python-pymongo',
+            'linux-ubuntu': 'python-pymongo',
+            'linux-fedora': 'pymongo'})

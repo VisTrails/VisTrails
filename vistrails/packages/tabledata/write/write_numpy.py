@@ -1,10 +1,9 @@
 from __future__ import division
 
-import numpy
-
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.utils.compat import ascii_s
 
+from ..common import get_numpy
 from ..read.read_numpy import NumPyArray
 
 
@@ -20,14 +19,16 @@ class WriteNumPy(Module):
             ('array', '(org.vistrails.vistrails.basic:List)'),
             ('datatype', '(org.vistrails.vistrails.basic:String)',
              {'entry_types': "['enum']",
-              'values': "[%r]" % NumPyArray.FORMAT_MAP.keys()})]
+              'values': "[%r]" % NumPyArray.FORMATS})]
     _output_ports = [('file', '(org.vistrails.vistrails.basic:File)')]
 
     def compute(self):
+        numpy = get_numpy()
+
         array = self.get_input('array')
         if not isinstance(array, numpy.ndarray):
             array = numpy.array(array)
-        dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
+        dtype = NumPyArray.get_format(self.get_input('datatype'))
 
         if dtype is NumPyArray.NPY_FMT:
             fileobj = self.interpreter.filePool.create_file(suffix='.npy')
@@ -80,6 +81,7 @@ class WriteNumpyTestCase(unittest.TestCase):
     def test_npy_numpy(self):
         """Uses WriteNumPy to write an array in .NPY format.
         """
+        import numpy
         from vistrails.tests.utils import execute, intercept_result
         from ..identifiers import identifier
         with intercept_result(WriteNumPy, 'file') as results:

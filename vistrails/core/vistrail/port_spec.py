@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -405,11 +405,11 @@ class PortSpec(DBPortSpec):
             port_string = self.type.capitalize()
         else:
             port_string = 'Invalid'
-        _depth = " (depth %s)" % self.depth if self.depth else ''
+        depth = " (depth %s)" % self.depth if self.depth else ''
         self._tooltip = "%s port %s\n%s%s" % (port_string,
                                             self.name,
                                             self._short_sigstring,
-                                            _depth)
+                                            depth)
         
     ##########################################################################
     # Operators

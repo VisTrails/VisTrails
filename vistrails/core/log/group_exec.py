@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -89,19 +89,11 @@ class GroupExec(DBGroupExec):
         return None
     duration = property(_get_duration)
 
-    def _get_annotations(self):
-        return self.db_annotations
-    def _set_annotations(self, annotations):
-        self.db_annotations = annotations
-    annotations = property(_get_annotations, _set_annotations)
+    annotations = DBGroupExec.db_annotations
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
 
-    def _get_item_execs(self):
-        return self.db_item_execs
-    def _set_item_execs(self, item_execs):
-        self.db_item_execs = item_execs
-    item_execs = property(_get_item_execs, _set_item_execs)
+    item_execs = DBGroupExec.db_item_execs
     def add_item_exec(self, item_exec):
         self.db_add_item_exec(item_exec)
 

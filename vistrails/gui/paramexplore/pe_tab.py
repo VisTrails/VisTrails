@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -47,8 +47,7 @@ from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.param_explore import ActionBasedParameterExploration
-from vistrails.core.system import current_time, strftime, \
-    get_vistrails_default_pkg_prefix
+from vistrails.core.system import current_time, strftime
 from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -33,3 +33,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+"""
+TensorFlow package for VisTrails.
+"""
+
+from __future__ import division
+
+identifier = 'org.vistrails.vistrails.tensorflow'
+name = 'TensorFlow'
+version = '0.1.0'
+
+def package_requirements():
+    from vistrails.core.requirements import require_python_module
+    require_python_module('tensorflow')

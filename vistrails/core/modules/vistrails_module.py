@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -37,9 +37,8 @@ from __future__ import division
 
 from base64 import b16encode, b16decode
 import copy
-from itertools import izip, product
+from itertools import izip, product, chain
 import json
-import sys
 import time
 import traceback
 import warnings
@@ -136,7 +135,7 @@ class ModuleSuspended(ModuleError):
     This is useful when executing external jobs where you do not want to block
     vistrails while waiting for the execution to finish.
 
-    'monitor' is a class instance that should provide a finished() method for
+    'handle' should be a class instance providing a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
@@ -146,13 +145,21 @@ class ModuleSuspended(ModuleError):
     def __init__(self, module, errormsg, handle=None, children=None,
                  queue=None):
         ModuleError.__init__(self, module, errormsg)
-        self.handle = handle
-        if handle is None and queue is not None:
-            warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'handle'",
-                          category=VistrailsDeprecation,
-                          stacklevel=2)
-            self.handle = queue
+        if handle is not None:
+            self.handle = handle
+        else:
+            if queue is not None:
+                warnings.warn("Use of deprecated argument 'queue' replaced by "
+                              "'handle'",
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+                self.handle = queue
+            elif children is None:
+                raise TypeError("__init__(): 'handle' argument not set")
+            else:
+                # parent exceptions has no handle
+                self.handle = None
+
         self.children = children
         self.name = None
 
@@ -167,7 +174,8 @@ class ModuleErrors(Exception):
 
     """
     def __init__(self, module_errors):
-        """ModuleErrors should be passed a list of ModuleError objects"""
+        """ModuleErrors should be passed a list of ModuleError objects
+        """
         Exception.__init__(self, unicode(tuple(me.msg for me in module_errors)))
         self.module_errors = module_errors
 
@@ -350,8 +358,7 @@ class Module(object):
         return clone
 
     def clear(self):
-        """clear(self) -> None.
-        Removes all references, prepares for deletion.
+        """Removes all references, prepares for deletion.
 
         """
         for connector_list in self.inputPorts.itervalues():
@@ -364,19 +371,19 @@ class Module(object):
         self._latest_method_order = 0
 
     def is_cacheable(self):
-        """is_cacheable() -> bool.
-        A Module should return whether it can be
-        reused across executions. It is safe for a Module to return
-        different values in different occasions. In other words, it is
-        possible for modules to be cacheable depending on their
-        execution context.
+        """Returns whether this Module can be reused between executions.
+
+        It is safe for a Module to return different values in different
+        occasions. In other words, it is possible for modules to be cacheable
+        depending on their execution context.
 
         """
         return True
 
     def update_upstream_port(self, port_name):
-        """Updates upstream of a single port instead of all ports."""
+        """Updates upstream of a single port instead of all ports.
 
+        """
         if port_name in self.inputPorts:
             for connector in self.inputPorts[port_name]:
                 connector.obj.update() # Might raise
@@ -386,8 +393,9 @@ class Module(object):
 
 
     def useJobCache(self):
-        """ useJobCache() -> Module/None
-            Checks if this is a job cache
+        """Checks if this is a job cache
+
+        DOCTODO
         """
         if not self.moduleInfo.get('pipeline', None):
             return False
@@ -402,8 +410,9 @@ class Module(object):
         return False
 
     def setJobCache(self):
-        """ setJobCache() -> Boolean
-            Checks if this is a job cache and it exists
+        """Checks if this is a job cache and it exists
+
+        DOCTODO
         """
         p_module = self.useJobCache()
         if not p_module:
@@ -425,8 +434,9 @@ class Module(object):
         return False
 
     def addJobCache(self):
-        """ addJobCache() -> None
-            Add outputs from job cache
+        """Add outputs from job cache
+
+        DOCTODO
         """
         p_module = self.useJobCache()
         if not p_module:
@@ -447,10 +457,7 @@ class Module(object):
                 jm.setCache(self.signature, params, p_module.name)
 
     def update_upstream(self):
-        """ update_upstream() -> None
-        Go upstream from the current module, then update its upstream
-        modules and check input connection based on upstream modules
-        results
+        """Recursively update the modules upstream of this one.
 
         """
         suspended = []
@@ -480,8 +487,7 @@ class Module(object):
                     self.remove_input_connector(iport, connector)
 
     def set_iterated_ports(self):
-        """ set_iterated_ports() -> None
-        Calculates which inputs needs to be iterated over
+        """Calculates which inputs needs to be iterated over
         """
         iports = {}
         from vistrails.core.modules.basic_modules import List, Variant
@@ -521,8 +527,7 @@ class Module(object):
                                if p in iports]
 
     def set_streamed_ports(self):
-        """ set_streamed_ports() -> None
-        Calculates which inputs will be streamed
+        """Calculates which inputs will be streamed
 
         """
         self.streamed_ports = {}
@@ -534,9 +539,11 @@ class Module(object):
                     self.streamed_ports[iport] = value
 
     def update(self):
-        """ update() -> None
-        Check if the module is up-to-date then update the
-        modules. Report to the logger if available
+        """Check module status, update upstream and run compute.
+
+        This is the execution logic for the module. It handled all the
+        different possible states (cached, suspended, already failed), run the
+        upstream and the compute() method, reporting everything to the logger.
 
         """
         if self.had_error:
@@ -637,7 +644,9 @@ class Module(object):
 
     def compute_all(self):
         """This method executes the module once for each input.
-           Similarly to controlflow's fold.
+
+        Similarly to controlflow's fold, it calls update() in a loop to handle
+        lists of inputs.
 
         """
         from vistrails.core.modules.sub_module import InputPort
@@ -820,7 +829,7 @@ class Module(object):
 
     def compute_accumulate(self):
         """This method creates a generator object that converts all
-        streaming inputs to list inputs for modules that does not explicitly
+        streaming inputs to list inputs for modules that do not explicitly
         support streaming.
 
         """
@@ -939,8 +948,10 @@ class Module(object):
             self.set_output(name_output, iterator)
 
     def compute_while(self):
-        """This method executes the module once for each module.
-           Similarly to fold.
+        """This method executes the module once for each input.
+
+        Similarly to controlflow's fold, it calls update() in a loop to handle
+        lists of inputs.
 
         """
         name_condition = self.control_params.get(
@@ -1028,8 +1039,7 @@ class Module(object):
             self.set_output(name_output, module.get_output(name_output))
 
     def setInputValues(self, module, inputPorts, elementList, iteration):
-        """
-        Function used to set a value inside 'module', given the input port(s).
+        """Function used to set a value inside 'module', given the input ports.
         """
         from vistrails.core.modules.basic_modules import create_constant
         for element, inputPort in izip(elementList, inputPorts):
@@ -1083,9 +1093,7 @@ class Module(object):
                 for desc in source_spec.descriptors()]
 
     def typeChecking(self, module, inputPorts, inputList):
-        """
-        Function used to check if the types of the input list element and of the
-        inputPort of 'module' match.
+        """Checks if elements of `inputList` match the `inputPort` types.
         """
         from vistrails.core.modules.basic_modules import Generator
         from vistrails.core.modules.basic_modules import get_module
@@ -1186,7 +1194,12 @@ class Module(object):
 
             if (self.input_specs[port_name].depth + self.list_depth > 0) or \
                 self.input_specs[port_name].descriptors() == [list_desc]:
-                return [j for i in self.get_input_list(port_name) for j in i]
+                ret = self.get_input_list(port_name)
+                if len(ret) > 1:
+                    ret = list(chain.from_iterable(ret))
+                else:
+                    ret = ret[0]
+                return ret
 
         # else return first connector item
         value = self.inputPorts[port_name][0]()
@@ -1378,7 +1391,6 @@ class Module(object):
         return "<<%s>>" % unicode(self.__class__)
 
     def annotate(self, d):
-
         """Manually add provenance information to the module's execution
         trace.  For example, a module that generates random numbers
         might add the seed that was used to initialize the generator.
@@ -1400,9 +1412,7 @@ class Module(object):
             self._latest_method_order += 1
 
     def enable_output_port(self, port_name):
-
-        """ enable_output_port(port_name: str) -> None
-        Set an output port to be active to store result of computation
+        """Set an output port to be active to store result of computation
 
         """
         # Don't reset existing values, it screws up the caching.
@@ -1410,9 +1420,9 @@ class Module(object):
             self.set_output(port_name, None)
 
     def remove_input_connector(self, port_name, connector):
-        """ remove_input_connector(port_name: str,
-                                 connector: ModuleConnector) -> None
-        Remove a connector from the connection list of an input port
+        """Remove a connector from the connection list of an input port
+
+        :type connector: ModuleConnector
 
         """
         if port_name in self.inputPorts:
@@ -1422,23 +1432,9 @@ class Module(object):
             if conList==[]:
                 del self.inputPorts[port_name]
 
-    def create_instance_of_type(self, ident, name, ns=''):
-        """ Create a vistrails module from the module registry.  This creates
-        an instance of the module for use in creating the object output by a
-        Module.
-        """
-        from vistrails.core.modules.module_registry import get_module_registry
-        try:
-            reg = get_module_registry()
-            m = reg.get_module_by_name(ident, name, ns)
-            return m()
-        except:
-            msg = "Cannot get module named " + unicode(name) + \
-                  " with identifier " + unicode(ident) + " and namespace " + ns
-            raise ModuleError(self, msg)
-
     def set_streaming(self, UserGenerator):
-        """creates a generator object that computes when the next input is received.
+        """Creates a generator object that computes when the next input is
+        received.
         """
         # use the below tag if calling from a PythonSource
         # pragma: streaming - This tag is magic, do not change.
@@ -1545,14 +1541,13 @@ class Module(object):
                                         port=port))
 
     def job_monitor(self):
-        """ job_monitor() -> JobMonitor
-        Returns the JobMonitor for the associated controller if it exists
+        """Returns the JobMonitor for the associated controller if it exists.
         """
-        controller = self.moduleInfo['controller']
-        if controller is None:
+        if 'job_monitor' not in self.moduleInfo or \
+           not self.moduleInfo['job_monitor']:
             raise ModuleError(self,
-                              "Cannot run job, no controller is specified!")
-        return controller.jobMonitor
+                              "Cannot run job, no job_monitor is specified!")
+        return self.moduleInfo['job_monitor']
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):
@@ -1632,7 +1627,6 @@ class Streaming(object):
     """ A mixin indicating support for streamable inputs
 
     """
-    pass
 
 ################################################################################
 
@@ -1696,12 +1690,12 @@ class ModuleConnector(object):
         self.typecheck = typecheck
 
     def clear(self):
-        """clear() -> None. Removes references, prepares for deletion."""
+        """Removes references, prepares for deletion."""
         self.obj = None
         self.port = None
 
     def depth(self, fix_list=True):
-        """depth(result) -> int. Returns the list depth of the port value."""
+        """Returns the list depth of the port value."""
         from vistrails.core.modules.basic_modules import List
         depth = self.obj.list_depth + self.spec.depth
         descs = self.spec.descriptors()
@@ -1711,7 +1705,7 @@ class ModuleConnector(object):
         return depth
 
     def get_raw(self):
-        """get_raw() -> Module. Returns the value or a Generator."""
+        """Returns the value or a Generator."""
         return self.obj.get_output(self.port)
 
 
@@ -1783,14 +1777,15 @@ class ModuleConnector(object):
 
 
 def new_module(base_module, name, class_dict={}, docstring=None):
-    """new_module(base_module or [base_module list],
-                  name,
-                  class_dict={},
-                  docstring=None
+    """Creates a new VisTrails module dynamically.
 
-    Creates a new VisTrails module dynamically. Exactly one of the
-    elements of the base_module list (or base_module itself, in the case
-    it's a single class) should be a subclass of Module.
+    :type base_module: class | list[class]
+    :type name: str
+    :type class_dict: dict
+    :type docstring: str | None
+
+    Exactly one of the elements of the base_module list (or base_module itself,
+    in case it's a single class) should be a subclass of Module.
     """
     if isinstance(base_module, type):
         assert issubclass(base_module, Module)

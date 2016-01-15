@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -93,8 +93,8 @@ class Vistrail(DBVistrail):
     def __init__(self, locator=None):
         DBVistrail.__init__(self)
 
-        self.locator = locator
         self.set_defaults()
+        self.locator = locator
 
     def __copy__(self):
         """ __copy__() -> Vistrail - Returns a clone of itself """ 
@@ -113,11 +113,13 @@ class Vistrail(DBVistrail):
             self.currentVersion = -1
             self.savedQueries = []
             self.is_abstraction = False
+            self.locator = None
         else:
             self.changed = other.changed
             self.currentVersion = other.currentVersion
             self.savedQueries = copy.copy(other.savedQueries)
             self.is_abstraction = other.is_abstraction
+            self.locator = other.locator
 
         # object to keep explicit expanded 
         # version tree always updated
@@ -167,6 +169,7 @@ class Vistrail(DBVistrail):
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
     vistrail_variables = DBVistrail.db_vistrailVariables
+    vistrail_vars = vistrail_variables
     parameter_explorations = DBVistrail.db_parameter_explorations
     
     def _get_actionMap(self):
@@ -214,13 +217,6 @@ class Vistrail(DBVistrail):
     def _set_database_info(self, value):
         return self.set_annotation("__database_info__", value)
     database_info = property(_get_database_info, _set_database_info)
-    
-    def _get_vistrail_vars(self):
-        return self.vistrail_variables
-    
-    def _set_vistrail_vars(self, vars):
-        self.vistrail_variables = vars
-    vistrail_vars = property(_get_vistrail_vars, _set_vistrail_vars)
     
     def has_vistrail_var(self, name):
         return self.db_has_vistrailVariable_with_name(name)

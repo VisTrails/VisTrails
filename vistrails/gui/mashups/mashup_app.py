@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -35,13 +35,16 @@
 ###############################################################################
 from __future__ import division
 
+import os
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
 from vistrails.core import debug
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.gui.mashups.mashups_widgets import QAliasNumericStepperWidget, \
     QAliasSliderWidget, QDropDownWidget
-from vistrails.gui.utils import show_warning, TestVisTrailsGUI
+from vistrails.gui.utils import TestVisTrailsGUI
+from vistrails.gui.vistrail_controller import ExecutionProgressDialog
 
 from vistrails.packages.spreadsheet.spreadsheet_controller import \
     spreadsheetController
@@ -69,7 +72,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.mainLayout.setSpacing(5)
         centralWidget.setLayout(self.mainLayout)
         self.setCentralWidget(centralWidget)
-        self.numberOfCells = 0
+        self.numberOfCells = None
         self.is_executing = False
         self.sequenceOption = False
         self.steps = []
@@ -105,13 +108,16 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         spreadsheetController.setEchoMode(True)
         #will run to get Spreadsheet Cell events
         (cellEvents, errors) = self.runAndGetCellEvents(useDefaultValues=True)
-        if cellEvents:
+        if not errors:
             self.numberOfCells = len(cellEvents)
-            self.initCells(cellEvents)
-        if len(errors) > 0:
-            show_warning("VisTrails::Mashup Preview",
-                         "There was a problem executing the pipeline: %s." %
-                         errors)
+            if cellEvents:
+                self.initCells(cellEvents)
+        if errors is True:
+            debug.critical("Mashup job is still running. Run again to check "
+                          "if it has completed.")
+        elif len(errors) > 0:
+            debug.critical("There was a problem executing the mashup: %s." %
+                           errors)
         # Construct the controllers for aliases
         self.controlDocks = {}
         self.cellControls = {}
@@ -236,6 +242,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             (res, errors) = self.run(useDefaultValues)
             if res:
                 cellEvents = spreadsheetController.getEchoCellEvents()
+            else:
+                return [], True
         except Exception, e:
             debug.unexpected_exception(e)
             print "Executing pipeline failed:", debug.format_exc()
@@ -250,14 +258,21 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             return self.updateCellsLoop(info)
         self.is_executing = True
         (cellEvents, errors) = self.runAndGetCellEvents()
+        if errors is True:
+            debug.critical("Mashup job is still running. Run again to check "
+                          "if it has completed.")
         self.is_executing = False
-        if len(cellEvents) != self.numberOfCells:
+        if self.numberOfCells is not None and len(cellEvents) != self.numberOfCells:
             raise RuntimeError(
                     "The number of cells has changed (unexpectedly) "
                     "(%d vs. %d)!\n"
                     "Pipeline results: %s" % (len(cellEvents),
                                               self.numberOfCells,
                                               errors))
+        elif self.numberOfCells is None and not errors:
+            self.numberOfCells = len(cellEvents)
+            if cellEvents:
+                self.initCells(cellEvents)
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
@@ -297,13 +312,20 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         while True:
             (cellEvents, errors) = self.runAndGetCellEvents()
-            if len(cellEvents) != self.numberOfCells:
+            if errors is True:
+                debug.critical("Mashup job is still running. Run again to check "
+                              "if it has completed.")
+            if self.numberOfCells is not None and len(cellEvents) != self.numberOfCells:
                 raise RuntimeError(
                         "The number of cells has changed (unexpectedly) "
                         "(%d vs. %d)!\n"
                         "Pipeline results: %s" % (len(cellEvents),
                                                   self.numberOfCells,
                                                   errors))
+            elif  self.numberOfCells is None and not errors:
+                self.numberOfCells = len(cellEvents)
+                if cellEvents:
+                    self.initCells(cellEvents)
             if interactive:
                 self.steps.append([])
             else:
@@ -565,15 +587,48 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                     val =unicode(edit.text())
                 params.append((alias.component.vttype, alias.component.vtid,
                               val))
-        results = self.controller.execute(params)[0]
+
+        # reset job view
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. "
+                           "Please wait a few seconds and try again.")
+            return [False, []]
+        jobView.updating_now = True
+
+        job_id = 'Mashup %s %s' % (self.currentMashup.version, self.currentMashup.id)
+        current_workflow = None
+        for wf in self.view.controller.jobMonitor.workflows.itervalues():
+            if job_id == wf.version:
+                current_workflow = wf
+                self.view.controller.jobMonitor.startWorkflow(wf)
+        if not current_workflow:
+            current_workflow = JobWorkflow(job_id)
+            self.view.controller.jobMonitor.startWorkflow(current_workflow)
+
+        self.view.controller.progress = ExecutionProgressDialog(self.view)
+        self.view.controller.progress.show()
+
+        try:
+            results = self.controller.execute(params)[0]
+        finally:
+            self.view.controller.jobMonitor.finishWorkflow()
+            jobView.updating_now = False
+            self.view.controller.progress.setValue(100)
+            self.view.controller.progress.hide()
+            self.view.controller.progress.deleteLater()
+            self.view.controller.progress = None
+
         result = results[0]
-        (objs, errors, executed) = (result.objects, result.errors,
-                                                   result.executed)
+        objs, errors, executed, suspended = \
+          result.objects, result.errors, result.executed, result.suspended
+
         if len(errors) > 0:
             print '=== ERROR EXECUTING PIPELINE ==='
             print errors
             return (False, errors)
-        return (True, [])
+        return (not suspended, [])
 
     def showBuilderWindow(self):
         from vistrails.gui.vistrails_window import _app
@@ -624,8 +679,9 @@ class TestMashupApp(TestVisTrailsGUI):
     def test_load_mashup(self):
         import vistrails.api
         import vistrails.core.system
-        filename = (vistrails.core.system.vistrails_root_directory() +
-                    '/tests/resources/spx_loop.vt')
+        filename = os.path.join(
+                vistrails.core.system.vistrails_root_directory(),
+                'tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
         # Execute workflow to trigger upgrades
         view.controller.execute_current_workflow()

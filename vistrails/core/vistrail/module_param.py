@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -94,7 +94,7 @@ class ModuleParam(DBParameter):
         self.queryMethod = None
 
         # this is used for parameter settings
-        self._port_spec_item = None
+        self.port_spec_item = None
 
         # Used by constant widgets to determine how default is displayed
         self.param_exists = True
@@ -108,7 +108,7 @@ class ModuleParam(DBParameter):
         cp.minValue = self.minValue
         cp.maxValue = self.maxValue
         cp.queryMethod = self.queryMethod
-        cp._port_spec_item = self._port_spec_item
+        cp.port_spec_item = self.port_spec_item
 
         # cp.identifier = self.identifier
         # cp.namespace = self.namespace
@@ -125,7 +125,7 @@ class ModuleParam(DBParameter):
         _parameter.queryMethod = None
         _parameter.minValue = ""
         _parameter.maxValue = ""
-        _parameter._port_spec_item = None
+        _parameter.port_spec_item = None
 
         # _parameter.identifier = ""
         # _parameter.namespace = ""
@@ -187,12 +187,6 @@ class ModuleParam(DBParameter):
         self._identifier = identifier
         self.update_db_type()
     identifier = property(_get_identifier, _set_identifier)
-        
-    def _get_port_spec_item(self):
-        return self._port_spec_item
-    def _set_port_spec_item(self, psi):
-        self._port_spec_item = psi
-    port_spec_item = property(_get_port_spec_item, _set_port_spec_item)
 
     def _get_spec_tuple(self):
         return (self._identifier, self._type, self._namespace)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -338,60 +338,42 @@ class SaveTemporariesMixin(object):
     def get_temp_basename(self):
         return self.name
 
+    def get_temporary(self):
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            return temp_fname
+        return None
+
     def save_temporary(self, obj):
-        fname = self._find_latest_temporary()
-        new_temp_fname = self._next_temporary(fname)
+        """ Writes a backup file to disk
+        """
+        temp_fname = self.encode_name(self.get_temp_basename())
+        new_temp_fname = temp_fname + '.tmp'
+        # Write a temporary backup before deleting the old one
         io.save_to_xml(obj, new_temp_fname)
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        os.rename(new_temp_fname, temp_fname)
 
     def clean_temporaries(self):
-        def remove_it(fname):
-            os.unlink(fname)
-        self._iter_temporaries(remove_it)
+        """_remove_temporaries() -> None
 
-    def encode_name(self, filename, number):
-        """Builds a temporary filename from an original path and a number.
-        """
-        filename, ext = os.path.splitext(filename)
-        name = '%s_tmp_%d' % (urllib.quote_plus(utf8_b(filename)), number)
-        return os.path.join(self.get_autosave_dir(), name + ext)
+        Erases all temporary files.
 
-    def decode_name(self, temporary):
-        """Decodes a temporary filename to the original path and number.
         """
-        temporary, ext = os.path.splitext(os.path.basename(temporary))
-        base, _, number = temporary.rsplit('_', 2)
-        base = urllib.unquote(base)
-        return base + ext, int(number)
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        if os.path.isfile(temp_fname + '.tmp'):
+            os.unlink(temp_fname + '.tmp')
 
-    def _iter_temporaries(self, f):
-        """Calls f with each temporary file name, in sequence.
-        """
-        current = 0
-        while True:
-            fname = self.encode_name(self.get_temp_basename(), current)
-            if os.path.isfile(fname):
-                f(fname)
-                current += 1
-            else:
-                break
+    def encode_name(self, filename):
+        """encode_name(filename) -> str
+        Encodes a file path using urllib.quoteplus
 
-    def _find_latest_temporary(self):
-        """Returns the latest temporary file saved, or None.
         """
-        latest = [None]
-        def set_it(fname):
-            latest[0] = fname
-        self._iter_temporaries(set_it)
-        return latest[0]
-
-    def _next_temporary(self, temporary):
-        """Returns the next suitable temporary file after the given one.
-        """
-        if temporary is None:
-            return self.encode_name(self.get_temp_basename(), 0)
-        else:
-            base, number = self.decode_name(temporary)
-            return self.encode_name(base, number + 1)
+        name = urllib.quote_plus(utf8_b(filename)) + '_tmp'
+        return os.path.join(self.get_autosave_dir(), name)
 
 
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
@@ -434,9 +416,6 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
 
     def get_temp_basename(self):
         return UntitledLocator.UNTITLED_PREFIX + self._uuid.hex
-
-    def get_temporary(self):
-        return self._find_latest_temporary()
 
     def _get_name(self):
         return UntitledLocator.UNTITLED_NAME
@@ -548,14 +527,12 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def is_valid(self):
         return os.path.isfile(self._name)
 
-    def get_temporary(self):
-        return self._find_latest_temporary()
-
     def _get_name(self):
         return self._name
     name = property(_get_name)
 
     def _get_short_filename(self):
+        print "HOOPLA", self._name
         return os.path.splitext(os.path.basename(self._name))[0]
     short_filename = property(_get_short_filename)
 
@@ -1100,10 +1077,10 @@ import unittest
 class TestLocators(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
         def assertIsInstance(self, obj, cls, msg=None):
-            assert(isinstance(obj, cls))
+            self.assertTrue(isinstance(obj, cls), msg)
 
         def assertIsNone(self, obj, msg=None):
-            self.assertEqual(obj, None)
+            self.assertTrue(obj is None, msg)
 
     @staticmethod
     def path2url(fname):

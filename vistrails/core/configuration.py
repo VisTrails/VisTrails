@@ -1,6 +1,6 @@
 ##############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -34,7 +34,9 @@
 ##
 ###############################################################################
 
-"""Configuration variables for controlling specific things in VisTrails."""
+"""Configuration variables for controlling specific things in VisTrails.
+"""
+
 from __future__ import division
 
 import argparse
@@ -72,7 +74,7 @@ detachHistoryView: Show the version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
-execute: Execute any specified workflows
+NoExecute: Do not execute specified workflows
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
@@ -136,8 +138,8 @@ userPackageDir: Local packages directory
 viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-withVersionTree: Output the version tree as an image
-withWorkflow: Output the workflow graph as an image
+outputVersionTree: Output the version tree as an image
+outputPipelineGraph: Output the workflow graph as an image
 """
 
 _documentation = """
@@ -198,9 +200,9 @@ errorLog: Boolean
 
     Write errors to a log file.
 
-execute: Boolean
+noExecute: Boolean
 
-    Execute any specified workflows.
+    Do not execute specified workflows.
 
 executionLog: Boolean
 
@@ -524,11 +526,11 @@ webRepositoryUser: String
     The default username for logging into a VisTrails web repository
     like crowdLabs.
 
-withVersionTree: Boolean
+outputVersionTree: Boolean
 
     Output the version tree as an image.
 
-withWorkflow: Boolean
+outputPipelineGraph: Boolean
 
     Output the workflow graph as an image.
 
@@ -618,8 +620,8 @@ class ConfigFieldParent(object):
 
 base_config = {
     "Command-Line":
-    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG,
-                 flag='-e'),
+    [ConfigField("noExecute", False, bool, ConfigType.COMMAND_LINE_FLAG,
+                 flag='-E'),
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG,
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
@@ -632,8 +634,8 @@ base_config = {
      ConfigField("parameterExploration", False, bool,
                  ConfigType.COMMAND_LINE_FLAG),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
@@ -1098,7 +1100,6 @@ class ConfigValue(object):
 
 class ConfigBool(DBConfigBool, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigBool - Returns a clone of itself """
         return ConfigBool.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1118,7 +1119,6 @@ class ConfigBool(DBConfigBool, ConfigValue):
 
 class ConfigInt(DBConfigInt, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigInt - Returns a clone of itself """
         return ConfigInt.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1132,7 +1132,6 @@ class ConfigInt(DBConfigInt, ConfigValue):
 
 class ConfigStr(DBConfigStr, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigStr - Returns a clone of itself """
         return ConfigStr.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1146,7 +1145,6 @@ class ConfigStr(DBConfigStr, ConfigValue):
 
 class ConfigFloat(DBConfigFloat, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigFloat - Returns a clone of itself """
         return ConfigFloat.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1160,7 +1158,6 @@ class ConfigFloat(DBConfigFloat, ConfigValue):
 
 class ConfigList(DBConfigStr, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigList - Returns a clone of itself """
         return ConfigList.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1189,7 +1186,6 @@ class ConfigKey(DBConfigKey):
             self.set_type(type(value))
 
     def __copy__(self):
-        """ __copy__() -> ConfigKey - Returns a clone of itself """
         return ConfigKey.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1241,9 +1237,7 @@ class ConfigurationObject(DBConfiguration):
 
     ConfigurationObject exists so that the GUI can automatically infer
     the right types for the widgets.
-
     """
-
 
     def __init__(self, **kwargs):
         self._in_init = True
@@ -1262,7 +1256,6 @@ class ConfigurationObject(DBConfiguration):
         self.vistrails = []
 
     def __copy__(self):
-        """ __copy__() -> ConfigurationObject - Returns a clone of itself """
         return ConfigurationObject.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1383,21 +1376,18 @@ class ConfigurationObject(DBConfiguration):
                 self.__setattr__(name, other_key.value)
 
     def unsubscribe(self, field, callable_):
-        """unsubscribe(field, callable_): remove observer from subject
+        """Remove the given `callable_` from the observers of a field.
         """
         self._subscribers[field].remove(weakref.ref(callable_))
 
     def subscribe(self, field, callable_):
-        """subscribe(field, callable_): call observer callable_ when
-        self.field is set.
+        """Call `callable_` when the given field is set.
         """
         append_to_dict_of_lists(self._subscribers, field,
                                 Ref(callable_))
 
     def has(self, key):
-        """has(key) -> bool.
-
-        Returns true if key has valid value in the object.
+        """Returns whether `key` has a valid value in the object.
         """
 
         return key in self.db_config_keys_name_index
@@ -1449,176 +1439,41 @@ class ConfigurationObject(DBConfiguration):
         config.__setattr__(keys[-1], value)
 
     def check(self, key):
-        """check(key) -> obj
-
-        Returns False if key is absent in object, and returns object
-        otherwise.
+        """Returns False if key is absent in object, else returns the value.
         """
 
         return self.has(key) and getattr(self, key)
 
     def allkeys(self):
-        """allkeys() -> list of strings
-
-        Returns all options stored in this object.
+        """Returns all options stored in this object.
         """
-
         return self.db_config_keys_name_index.keys() + self._unset_keys.keys()
 
     def keys(self):
-        """keys(self) -> list of strings
-        Returns all public options stored in this object.
+        """Returns all public options stored in this object.
+
         Public options are keys that do not start with a _
         """
         return [k for k in itertools.chain(self.db_config_keys_name_index,
                                            self._unset_keys)
                 if not k.startswith('_')]
 
-# def default():
-#     """ default() -> ConfigurationObject
-#     Returns the default configuration of VisTrails
-
-#     """
-
-#     base_dir = {
-#         'abstractionsDirectory': os.path.join("$DOT_VISTRAILS",
-#                                               "subworkflows"),
-#         'alwaysShowDebugPopup': False,
-#         'autoConnect': True,
-#         'autosave': True,
-#         'dataDirectory': (None, str),
-#         'dbDefault': False,
-# #        'debugSignals': False,
-#         'defaultFileType':system.vistrails_default_file_type(),
-#         'detachHistoryView': False,
-#         'dotVistrails': system.default_dot_vistrails(),
-#         'enablePackagesSilently': False,
-#         'errorOnConnectionTypeerror': False,
-#         'errorOnVariantTypeerror': True,
-#         'executeWorkflows': False,
-#         'fileDirectory': (None, str),
-#         'fixedSpreadsheetCells': False,
-# #        'evolutionGraph': (None, str),
-#         'installBundles': True,
-#         'installBundlesWithPip': False,
-#         'interactiveMode': True,
-#         'logFile': os.path.join("$DOT_VISTRAILS", "vistrails.log"),
-#         'logger': default_logger(),
-#         'maxMemory': (None, int),
-#         'maximizeWindows': False,
-#         'maxRecentVistrails': 5,
-#         'migrateTags': False,
-#         'minMemory': (None, int),
-#         'multiHeads': False,
-#         'nologger': False,
-#         'packageDirectory': (None, str),
-#         'pythonPrompt': False,
-#         'recentVistrailList': (None, str),
-#         'repositoryLocalPath': (None, str),
-#         'repositoryHTTPURL': "http://www.vistrails.org/packages",
-#         'reviewMode': False,
-#         'rootDirectory': (None, str),
-#         'runningJobsList': (None, str),
-#         'shell': default_shell(),
-#         'showScrollbars': True,
-#         'showMovies': True,
-#         'showSplash': True,
-#         'showSpreadsheetOnly': False,
-#         'singleInstance': True,
-#         'spreadsheetDumpCells': (None, str),
-#         'spreadsheetDumpPDF': False,
-#         'staticRegistry': (None, str),
-#         'stopOnError': True,
-#         'temporaryDirectory': (None, str),
-#         'thumbs': default_thumbs(),
-#         'upgradeOn': True,
-#         'upgradeDelay': True,
-#         'upgradeModuleFailPrompt': True,
-#         'useCache': True,
-#         'userPackageDirectory': os.path.join("$DOT_VISTRAILS", "userpackages"),
-#         'verbosenessLevel': (None, int),
-# #        'workflowGraph': (None, str),
-# #        'workflowInfo': (None, str),
-#         'webRepositoryLogin': (None, str),
-#         'webRepositoryURL': "http://www.crowdlabs.org",
-#         'isInServerMode': False,
-#         }
-#     specific_dir = add_specific_config(base_dir)
-#     return ConfigurationObject(**specific_dir)
-
-# def default_logger():
-#     """default_logger() -> ConfigurationObject
-#     Returns the default configuration for the VisTrails logger
-
-#     """
-#     logger_dir = {
-#         'dbHost': '',
-#         'dbName': '',
-#         'dbPasswd': '',
-#         'dbPort': 0,
-#         'dbUser': '',
-#         }
-#     return ConfigurationObject(**logger_dir)
-
-# def default_shell():
-#     """default_shell() -> ConfigurationObject
-#     Returns the default configuration for the VisTrails shell
-#
-#     """
-#     if system.systemType == 'Linux':
-#         shell_dir = {
-#             'font_face': 'Fixed',
-#             'font_size': 12,
-#             }
-#     elif system.systemType in ['Windows', 'Microsoft']:
-#         shell_dir = {
-#             'font_face': 'Courier New',
-#             'font_size': 8,
-#             }
-#     elif system.systemType == 'Darwin':
-#         shell_dir = {
-#             'font_face': 'Monaco',
-#             'font_size': 12,
-#             }
-#     else:
-#         raise VistrailsInternalError('system type not recognized')
-#     return ConfigurationObject(**shell_dir)
-
-# def default_thumbs():
-#     """default_thumbs() -> ConfigurationObject
-#     Returns the default configuration for VisTrails Pipelines Thumbnails
-#     """
-#     thumbs_dir = {
-#                   'autoSave': True,
-#                   'cacheDirectory': os.path.join("$DOT_VISTRAILS", "thumbs"),
-#                   'cacheSize': 20,
-#                   'mouseHover': False,
-#                   'tagsOnly': False,
-#                 }
-#     return ConfigurationObject(**thumbs_dir)
-
-def add_specific_config(base_dir):
-    """add_specific_config() -> dict
-
-    Returns a dict with other specific configuration to the current
-    platform added to base_dir
-
+def add_specific_config(opts):
+    """Returns a new dict with platform-specific options added.
     """
-    newdir = dict(base_dir)
+    newopts = dict(opts)
     if system.systemType == 'Darwin':
-        newdir['useMacBrushedMetalStyle'] = True
+        newopts['useMacBrushedMetalStyle'] = True
 
-    return newdir
+    return newopts
 
 def get_vistrails_persistent_configuration():
-    """get_vistrails_persistent_configuration() -> ConfigurationObject or None
-    Returns the persistent configuration of the application. It returns None if
-    configuration was not found (when running as a bogus application
-    for example.
-    Notice that this function should be use only to write configurations to
-    the user's startup.xml file. Otherwise, use get_vistrails_configuration  or
-    get_vistrails_temp_configuration.
+    """Returns the persistent configuration (the serialized one).
 
+    Returns None if configuration was not found (when running as a bogus
+    application for example).
+    Notice that this function should be use only to write configurations to
+    the user's startup.xml file. Otherwise, use get_vistrails_configuration().
     """
     from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
@@ -1628,13 +1483,13 @@ def get_vistrails_persistent_configuration():
         return None
 
 def get_vistrails_temp_configuration():
-    """get_vistrails_temp_configuration() -> ConfigurationObject or None
-    Returns the temp configuration of the application. It returns None if
-    configuration was not found (when running as a bogus application
-    for example. The temp configuration is the one that is used just for the
-    current session and is not persistent. To make changes persistent,
-    use get_vistrails_persistent_configuration() instead.
+    """Returns the current configuration of the application.
 
+    It returns None if configuration was not found (when running as a bogus
+    application for example).
+    The temp configuration is the one that is used just for the current session
+    and is not persistent. To make changes persistent, use
+    get_vistrails_persistent_configuration() instead.
     """
     from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
@@ -1796,4 +1651,3 @@ class TestConfiguration(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

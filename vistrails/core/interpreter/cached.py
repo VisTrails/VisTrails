@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -46,7 +46,6 @@ from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
-import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
                                                  Generator
@@ -302,6 +301,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         reg = get_module_registry()
 
@@ -324,7 +324,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             if param.strValue != '':
                 constant.setValue(param.strValue)
             else:
-                constant.setValue( \
+                constant.setValue(
                     constant.translate_to_string(constant.default_value))
             return constant
 
@@ -454,6 +454,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -490,6 +491,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
             obj.moduleInfo['controller'] = controller
+            # extract job monitor from controller if this is the top level
+            if controller:
+                obj.moduleInfo['job_monitor'] = controller.jobMonitor
+            else:
+                obj.moduleInfo['job_monitor'] = job_monitor
+
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:
@@ -656,6 +663,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
           actions = fetch('actions', None)
           done_summon_hooks = fetch('done_summon_hooks', [])
           module_executed_hook = fetch('module_executed_hook', [])
+          job_monitor = fetch('job_monitor', None)
 
         Executes a pipeline using caching. Caching works by reusing
         pipelines directly.  This means that there exists one global
@@ -699,6 +707,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -739,12 +748,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
         result = InstanceObject(objects=res[1],
-                              errors=res[2],
-                              executed=res[3],
-                              suspended=res[4],
-                              parameter_changes=res[6],
-                              modules_added=modules_added,
-                              conns_added=conns_added)
+                                errors=res[2],
+                                executed=res[3],
+                                suspended=res[4],
+                                parameter_changes=res[6],
+                                modules_added=modules_added,
+                                conns_added=conns_added)
 
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
 

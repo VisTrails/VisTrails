@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -159,7 +159,7 @@ class VistrailsInternalError(Exception):
 
     """
     def __str__(self):
-        return "Vistrails Internal Error: " + unicode(self.message)
+        return "Vistrails Internal Error: %s" % Exception.__str__(self)
 
 class VersionTooLow(Exception):
     """VersionTooLow is raised when you're running an outdated version of
@@ -438,23 +438,6 @@ class DummyView(object):
     def flushMoveActions(self, *args, **kwargs): pass
     def scene(self): 
         return self._scene
-##############################################################################    
-# FIXME: Add tests
-def no_interrupt(callable_, *args, **kwargs):
-    """no_interrupt(callable_, *args, **kwargs) -> return arguments
-    from callable.
-
-    Calls callable_ with *args and **kwargs and keeps retrying as long as call
-is interrupted by the OS. This makes calling read more convenient when
-using output from the subprocess module."""
-    while True:
-        try:
-            return callable_(*args, **kwargs)
-        except IOError, e:
-            if e.errno == errno.EINTR:
-                continue
-            else:
-                raise
 
 ################################################################################
 # class for creating weak references to bound methods
@@ -656,7 +639,7 @@ class TestCommon(unittest.TestCase):
                 f(1, 2)
             self.assertEqual(len(w), 1)
             w, = w
-            self.assertEqual(w.message.message, msg)
+            self.assertEqual(w.message.args, (msg,))
             self.assertEqual(w.category, VistrailsDeprecation)
             self.assertTrue(canon_path(w.filename),
                             canon_path(__file__))

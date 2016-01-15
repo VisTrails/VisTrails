@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2013-2014, NYU-Poly.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,9 +35,9 @@
 
 from __future__ import division
 
-import numpy
-
 from vistrails.core.modules.vistrails_module import Module
+
+from ..common import get_numpy
 
 
 class NumPyArray(Module):
@@ -55,37 +55,61 @@ class NumPyArray(Module):
     """
     NPY_FMT = object()
 
-    FORMAT_MAP = dict(
-               npy = NPY_FMT,
+    FORMATS = [
+        'int8',
+        'uint8',
+        'int16',
+        'uint16',
+        'int32',
+        'uint32',
+        'int64',
+        'uint64',
+        'float32',
+        'float64',
+        'complex64',
+        'complex128',
+    ]
 
-              int8 = numpy.int8,
-             uint8 = numpy.uint8,
-             int16 = numpy.int16,
-            uint16 = numpy.uint16,
-             int32 = numpy.int32,
-            uint32 = numpy.uint32,
-             int64 = numpy.int64,
-            uint64 = numpy.uint64,
+    _format_map = None
 
-           float32 = numpy.float32,
-           float64 = numpy.float64,
+    @classmethod
+    def get_format(cls, format):
+        if cls._format_map is None:
+            numpy = get_numpy()
+            cls._format_map = dict(
+                       npy = cls.NPY_FMT,
 
-         complex64 = numpy.complex64,
-        complex128 = numpy.complex128,
-    )
+                      int8 = numpy.int8,
+                     uint8 = numpy.uint8,
+                     int16 = numpy.int16,
+                    uint16 = numpy.uint16,
+                     int32 = numpy.int32,
+                    uint32 = numpy.uint32,
+                     int64 = numpy.int64,
+                    uint64 = numpy.uint64,
+
+                   float32 = numpy.float32,
+                   float64 = numpy.float64,
+
+                 complex64 = numpy.complex64,
+                complex128 = numpy.complex128,
+            )
+        return cls._format_map[format]
 
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('datatype', '(org.vistrails.vistrails.basic:String)',
-             {'entry_types': "['enum']", 'values': "[%r]" % FORMAT_MAP.keys()}),
+             {'entry_types': "['enum']", 'values': "[%r]" % FORMATS}),
             ('shape', '(org.vistrails.vistrails.basic:List)')]
     _output_ports = [
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
+        numpy = get_numpy()
+
         filename = self.get_input('file').name
         if self.has_input('datatype'):
-            dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
+            dtype = NumPyArray.get_format(self.get_input('datatype'))
         else:
             if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT

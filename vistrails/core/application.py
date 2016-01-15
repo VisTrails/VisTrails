@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -37,7 +37,6 @@ from __future__ import division
 
 import os
 import sys
-import weakref
 import warnings
 
 from vistrails.core import debug
@@ -46,6 +45,7 @@ from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
 from vistrails.core.configuration import ConfigurationObject
+import vistrails.core.db.action
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
 import vistrails.core.db.io
@@ -53,11 +53,11 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
+import vistrails.core.requirements
 from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject, VistrailsWarning
+from vistrails.core.utils import VistrailsWarning
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
@@ -71,12 +71,12 @@ def finalize_vistrails(app):
 
 def get_vistrails_application():
     if VistrailsApplication is not None:
-        return VistrailsApplication()
+        return VistrailsApplication
     return None
 
 def set_vistrails_application(app):
     global VistrailsApplication
-    VistrailsApplication = weakref.ref(app, finalize_vistrails)
+    VistrailsApplication = app
 
 def is_running_gui():
     app = get_vistrails_application()

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -202,7 +202,7 @@ class Group(Module):
         kwargs = {'logger': self.logging.log.recursing(self),
                   'clean_pipeline': True,
                   'current_version': self.moduleInfo['version']}
-        module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
+        module_info_args = set(['locator', 'reason', 'extra_info', 'actions', 'job_monitor'])
         for arg in module_info_args:
             if arg in self.moduleInfo:
                 kwargs[arg] = self.moduleInfo[arg]
