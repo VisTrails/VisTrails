@@ -38,6 +38,7 @@
 
 # Installs a package through APT, showing progress.
 from __future__ import division
+from __future__ import print_function
 
 import apt
 import apt_pkg
@@ -111,21 +112,21 @@ class GUIAcquireProgress(AcquireProgress):
         QtGui.qApp.processEvents()
 
     def done(self, item):
-        print "[Fetched] %s" % item.shortdesc
+        print("[Fetched] %s" % item.shortdesc)
         self.status_label.setText("[Fetched] %s" % item.shortdesc)
         QtGui.qApp.processEvents()
 
     def fail(self, item):
-        print "[Failed] %s" % item.shortdesc
+        print("[Failed] %s" % item.shortdesc)
 
     def ims_hit(self, item):
-        print "[Hit] %s" % item.shortdesc
+        print("[Hit] %s" % item.shortdesc)
         self.status_label.setText("[Hit] %s" % item.shortdesc)
         QtGui.qApp.processEvents()
 
     def media_change(self, media, drive):
-        print "[Waiting] Please insert media '%s' in drive '%s'" % (
-                media, drive)
+        print("[Waiting] Please insert media '%s' in drive '%s'" % (
+                media, drive))
 
 class GUIInstallProgress(InstallProgress):
     def __init__(self, pbar, status_label):
@@ -150,13 +151,13 @@ class GUIInstallProgress(InstallProgress):
         pass
 
     def processing(self, pkg, stage):
-        print "starting '%s' stage for %s" % (stage, pkg)
+        print("starting '%s' stage for %s" % (stage, pkg))
 
     def conffile(self,current,new):
-        print "WARNING: conffile prompt: %s %s" % (current, new)
+        print("WARNING: conffile prompt: %s %s" % (current, new))
 
     def error(self, errorstr):
-        print "ERROR: got dpkg error: '%s'" % errorstr
+        print("ERROR: got dpkg error: '%s'" % errorstr)
 
 ##############################################################################
 
@@ -243,7 +244,7 @@ class Window(QtGui.QWidget):
         except Exception:
             import traceback; traceback.print_exc()
             self.show_quit('Error installing package!')
-        print "Installation successful, back to VisTrails..."
+        print("Installation successful, back to VisTrails...")
         self.show_quit("Success, exiting...", result=0)
 
     def show_quit(self, message, t=2, result=1):

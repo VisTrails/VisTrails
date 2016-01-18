@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import itertools
 
@@ -88,7 +89,7 @@ class ThumbnailCache(object):
 
     def destroy(self):
         if self._temp_directory is not None:
-            print "removing thumbnail directory"
+            print("removing thumbnail directory")
             shutil.rmtree(self._temp_directory)
         
     def get_directory(self):
@@ -122,10 +123,10 @@ class ThumbnailCache(object):
         """
         try:
             return self.elements[name].abs_name
-        except KeyError, e:
+        except KeyError as e:
             try:
                 return self.vtelements[name].abs_name
-            except KeyError, e:
+            except KeyError as e:
                 return None
         
     def size(self):
@@ -147,7 +148,7 @@ class ThumbnailCache(object):
                     shutil.move(srcname,dstname)
                     entry.abs_name = dstname
                         
-                except shutil.Error, e:
+                except shutil.Error as e:
                     debug.warning("Could not move thumbnail from %s to %s" % (
                                   sourcedir, destdir),
                                   e)
@@ -163,7 +164,7 @@ class ThumbnailCache(object):
             try:
                 del self.elements[elem.name]
                 os.unlink(elem.abs_name)
-            except os.error, e:
+            except os.error as e:
                 debug.warning("Could not remove file %s" % elem.abs_name, e)
 
     def remove(self,key):
@@ -237,7 +238,7 @@ class ThumbnailCache(object):
                 for fname in files:
                     os.unlink(os.path.join(root,fname))
                     
-        except OSError, e:
+        except OSError as e:
             debug.warning("Error when removing thumbnails", e)
     
     @staticmethod

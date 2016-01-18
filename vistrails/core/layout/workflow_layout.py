@@ -472,7 +472,7 @@ class WorkflowLayout(object):
         # topologically sorted permulation of the modules
         permutation = []
         while True:
-            mod = iterator.next()
+            mod = next(iterator)
             if mod is None:
                 break
             permutation.append(mod)

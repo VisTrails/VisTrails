@@ -392,7 +392,7 @@ class Package(DBPackage):
                     self._force_sys_unload = module._force_sys_unload
                 else:
                     self._force_sys_unload = False
-            except ImportError, e:
+            except ImportError as e:
                 errors.append(traceback.format_exc())
                 self.prefix = None
                 return False
@@ -406,7 +406,7 @@ class Package(DBPackage):
             else:
                 r = (not import_from('vistrails.packages.') and
                      not import_from('userpackages.'))
-        except Exception, e:
+        except Exception as e:
             raise self.LoadFailed(self, e, traceback.format_exc())
 
         if r:
@@ -426,7 +426,7 @@ class Package(DBPackage):
             name = self.prefix + self.codepath + '.init'
             try:
                 __import__(ascii_s(name), globals(), locals(), [])
-            except ImportError, e:
+            except ImportError as e:
                 # FIXME !!! Want to differentiate between .init not
                 # existing and an error with an import in the .init
                 # file !!!
@@ -451,7 +451,7 @@ class Package(DBPackage):
 
             if hasattr(self._init_module, 'initialize'):
                 self._init_module.initialize()
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             self.unload()
             raise
@@ -478,7 +478,7 @@ class Package(DBPackage):
             if hasattr(self._module, "old_identifiers"):
                 self.old_identifiers = self._module.old_identifiers
             self.package_dir = os.path.dirname(self._module.__file__)
-        except AttributeError, e:
+        except AttributeError as e:
             try:
                 v = self._module.__file__
             except AttributeError:
@@ -502,7 +502,7 @@ class Package(DBPackage):
         try:
             return (hasattr(self.init_module, 'can_handle_identifier') and
                     self.init_module.can_handle_identifier(identifier))
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_identifier: "
                            "%s\n%s" % (self.name,
@@ -516,7 +516,7 @@ class Package(DBPackage):
         try:
             return (hasattr(self.init_module, 'can_handle_vt_file') and
                     self.init_module.can_handle_vt_file(name))
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_vt_file: "
                            "%s\n%s" % (self.name,
@@ -597,7 +597,7 @@ class Package(DBPackage):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
             try:
                 self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's loadVistrailFileHook(): "
                                "%s\n%s" % (self.name,
@@ -608,7 +608,7 @@ class Package(DBPackage):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
             try:
                 self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's saveVistrailFileHook(): "
                                "%s\n%s" % (self.name,
@@ -631,7 +631,7 @@ class Package(DBPackage):
         else:
             try:
                 return callable_()
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Couldn't load menu items for %s: %s\n%s" % (
                                self.name, debug.format_exception(e),
@@ -648,7 +648,7 @@ class Package(DBPackage):
         else:
             try:
                 callable_()
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Couldn't finalize %s: %s\n%s" % (
                                self.name, debug.format_exception(e),
@@ -670,7 +670,7 @@ class Package(DBPackage):
         else:
             try:
                 deps = callable_()
-            except Exception, e:
+            except Exception as e:
                 debug.critical(
                         "Couldn't get dependencies of %s: %s\n%s" % (
                             self.name, debug.format_exception(e),

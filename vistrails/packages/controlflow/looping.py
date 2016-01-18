@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 from base64 import b16encode, b16decode
 import copy
@@ -44,7 +45,7 @@ from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.utils import xor, long2bytes
 
-from fold import create_constant
+from .fold import create_constant
 
 try:
     import hashlib
@@ -72,17 +73,17 @@ class While(Module):
                 for connector in connector_list:
                     try:
                         connector.obj.update_upstream()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
         if len(suspended) == 1:
             raise suspended[0]
@@ -206,17 +207,17 @@ class For(Module):
                 for connector in connector_list:
                     try:
                         connector.obj.update_upstream()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
         if len(suspended) == 1:
             raise suspended[0]
@@ -275,7 +276,7 @@ class For(Module):
 
             try:
                 module.update()
-            except ModuleSuspended, e:
+            except ModuleSuspended as e:
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue

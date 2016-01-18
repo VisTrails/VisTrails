@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 from vistrails.core.bundles import py_import
 py_import('dulwich', {
@@ -246,29 +247,29 @@ def run_get_dir_test():
 
 def run_get_type_test():
     r = GitRepo("/vistrails/src/git")
-    print "README.md:", r.get_type("README.md")
-    print "scripts:", r.get_type("scripts")
+    print("README.md:", r.get_type("README.md"))
+    print("scripts:", r.get_type("scripts"))
 
 def run_compute_sha_test():
     r = GitRepo("/vistrails/src/git")
-    print r.get_hash("README.md")
+    print(r.get_hash("README.md"))
     # print r.compute_blob_hash("/Users/dakoop/Downloads/xcode_2.4.1_8m1910_6936315.dmg")        
-    print r.compute_blob_hash("/vistrails/src/git/README.md")
+    print(r.compute_blob_hash("/vistrails/src/git/README.md"))
 
 def run_compute_sha_dir_test():
     r = GitRepo("/vistrails/src/git")
-    print r.get_hash("scripts")
-    print r.compute_tree_hash("/vistrails/src/git/scripts")
+    print(r.get_hash("scripts"))
+    print(r.compute_tree_hash("/vistrails/src/git/scripts"))
 
 def run_get_latest_test():
     r = GitRepo("/vistrails/src/git")
-    print r.get_latest_version("README.md")
+    print(r.get_latest_version("README.md"))
 
 def run_init_add_test():
     r = GitRepo("/Users/dakoop/.vistrails/git_test")
     shutil.copy("/vistrails/src/git/README.md", 
                 "/Users/dakoop/.vistrails/git_test")
-    print r.add_commit("README.md")
+    print(r.add_commit("README.md"))
 
 if __name__ == '__main__':
     run_init_add_test()

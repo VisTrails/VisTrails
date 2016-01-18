@@ -37,8 +37,9 @@
 # Internet Explorer plugin for VisTrails Spreadsheet
 ################################################################################
 from __future__ import division
+from __future__ import absolute_import
 
-from iecell import IECell
+from .iecell import IECell
 
 ################################################################################
 

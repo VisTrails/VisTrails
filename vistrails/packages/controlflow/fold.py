@@ -110,17 +110,17 @@ class FoldWithModule(Fold):
                 for connector in connector_list:
                     try:
                         connector.obj.update_upstream()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
         if len(suspended) == 1:
             raise suspended[0]
@@ -183,7 +183,7 @@ class FoldWithModule(Fold):
 
                 try:
                     module.update()
-                except ModuleSuspended, e:
+                except ModuleSuspended as e:
                     suspended.append(e)
                     do_operation = False
                     loop.end_iteration(module)

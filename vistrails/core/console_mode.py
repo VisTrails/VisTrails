@@ -35,6 +35,7 @@
 ###############################################################################
 """ Module used when running  vistrails uninteractively """
 from __future__ import absolute_import, division
+from __future__ import print_function
 import os.path
 import unittest
 
@@ -155,7 +156,7 @@ def run_and_get_results(w_list, parameters='',
                 for job in current_workflow.jobs.itervalues():
                     if not job.finished:
                         run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
-            print run.job
+            print(run.job)
     return result
 
 ################################################################################
@@ -205,7 +206,7 @@ def get_wf_graph(w_list, output_dir, pdf=False):
                         filename = os.path.join(output_dir, base_fname)
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
-            except Exception, e:
+            except Exception as e:
                 result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save pipeline figure when not " \
@@ -244,7 +245,7 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                         version_view.scene().saveToPNG(filename)
                     del version_view
                     result.append((True, ""))
-            except Exception, e:
+            except Exception as e:
                 result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save version tree figure when not " \
@@ -295,7 +296,7 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
             controller.change_selected_version(pe.action_id)
             controller.executeParameterExploration(pe, extra_info=extra_info,
                                                    showProgress=False)
-        except Exception, e:
+        except Exception as e:
             return (locator, pe_id,
                     debug.format_exception(e), debug.format_exc())
 
@@ -389,7 +390,7 @@ class TestConsoleMode(unittest.TestCase):
 
         interpreter.execute(p,
                             locator=XMLFileLocator('foo'),
-                            current_version=1L,
+                            current_version=1,
                             view=v)
 
     def test_python_source(self):

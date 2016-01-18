@@ -210,7 +210,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QAliasParameterTreeWidgetItem(annotatedId,
                                                                        self, mLabel)

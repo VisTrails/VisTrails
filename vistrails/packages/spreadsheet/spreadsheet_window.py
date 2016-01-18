@@ -426,7 +426,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         Handle all special events from spreadsheet controller
 
         """
-        if self.eventMap.has_key(e.type()):
+        if e.type() in self.eventMap:
             self.eventMap[e.type()](e)
             return False
         return QtGui.QMainWindow.event(self, e)
@@ -486,12 +486,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 sheet.setCellEditingMode(row, col, True)
             #If a cell has to dump its contents to a file, it will be in the
             #extra_info dictionary
-            if cell and e.vistrail.has_key('extra_info'):
+            if cell and 'extra_info' in e.vistrail:
                 dump_as_pdf = False
                 extra_info = e.vistrail['extra_info']
-                if extra_info.has_key('pathDumpCells'):
+                if 'pathDumpCells' in extra_info:
                     dumppath = extra_info['pathDumpCells']
-                    if extra_info.has_key('nameDumpCells'):
+                    if 'nameDumpCells' in extra_info:
                         name = extra_info['nameDumpCells']
                         base_fname = os.path.join(dumppath,
                                                   name)
@@ -503,7 +503,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                             name = 'untitled'
                         version = e.vistrail['version']
                         if version is None:
-                            version = 0L
+                            version = 0
                         base_fname = os.path.join(dumppath,"%s_%s" % \
                                                   (name, e.vistrail['version']))
 
@@ -513,7 +513,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         dump_as_pdf = True
 
                     #extra_info configuration overwrites global configuration
-                    if extra_info.has_key('pdf'):
+                    if 'pdf' in extra_info:
                         dump_as_pdf = extra_info['pdf']
 
                     file_extension = '.png'
@@ -521,7 +521,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         file_extension = '.pdf'
 
                     # add cell location by default
-                    if not extra_info.has_key('nameDumpCells'):
+                    if 'nameDumpCells' not in extra_info:
                         base_fname = base_fname + "_%d_%d" % (row, col)
                     # make a unique filename
                     filename = base_fname + file_extension

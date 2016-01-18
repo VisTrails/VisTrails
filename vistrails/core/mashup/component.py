@@ -292,8 +292,8 @@ maxVal='%s' stepSize='%s' strvaluelist='%s' parent='%s' seq='%s' widget='%s')@%X
 class TestComponent(unittest.TestCase):
     def create_component(self, id_scope=IdScope()):
         c = Component(id=id_scope.getNewId('mashup_component'),
-                          vttype='parameter', param_id=15L, 
-                          parent_vttype='function', parent_id=3L, mid=4L,
+                          vttype='parameter', param_id=15, 
+                          parent_vttype='function', parent_id=3, mid=4,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
         return c

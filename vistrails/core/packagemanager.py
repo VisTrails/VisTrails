@@ -492,7 +492,7 @@ class PackageManager(object):
         try:
             pkg.load(prefix_dictionary.get(pkg.codepath, None))
             # pkg.create_startup_package_node()
-        except Exception, e:
+        except Exception as e:
             # invert self.add_package
             del self._package_list[codepath]
             raise
@@ -511,7 +511,7 @@ class PackageManager(object):
             app.send_notification("package_added", codepath)
             self.add_menu_items(pkg)
             self._startup.set_package_to_enabled(codepath)
-        except Exception, e:
+        except Exception as e:
             del self._package_versions[pkg.identifier][pkg.version]
             if len(self._package_versions[pkg.identifier]) == 0:
                 del self._package_versions[pkg.identifier]
@@ -588,7 +588,7 @@ class PackageManager(object):
                 if prefix is None:
                     prefix = self._default_prefix_dict.get(package.codepath)
                 package.load(prefix)
-            except Package.LoadFailed, e:
+            except Package.LoadFailed as e:
                 debug.critical(
                         "Package %s failed to load and will be disabled" % (
                             package.name or
@@ -599,12 +599,12 @@ class PackageManager(object):
                 # the reference in the package list
                 self._startup.set_package_to_disabled(package.codepath)
                 failed.append(package)
-            except MissingRequirement, e:
+            except MissingRequirement as e:
                 debug.critical("Package <codepath %s> is missing a "
                                "requirement: %s" % (
                                    package.codepath, e.requirement),
                                e)
-            except Package.InitializationFailed, e:
+            except Package.InitializationFailed as e:
                 debug.critical("Initialization of package <codepath %s> "
                                "failed and will be disabled" %
                                package.codepath,
@@ -641,12 +641,12 @@ class PackageManager(object):
         for package in self._package_list.itervalues():
             try:
                 self.add_dependencies(package)
-            except Package.MissingDependency, e:
+            except Package.MissingDependency as e:
                 if report_missing_dependencies:
                     debug.critical("Dependencies of package %s are missing "
                                    "so it will be disabled" % package.name,
                                    e)
-            except Exception, e:
+            except Exception as e:
                 if report_missing_dependencies:
                     debug.critical("Got an exception while getting dependencies "
                                    "of %s so it will be disabled" % package.name,
@@ -668,7 +668,7 @@ class PackageManager(object):
         try:
             g = self._dependency_graph.inverse_immutable()
             sorted_packages = g.vertices_topological_sort()
-        except vistrails.core.data_structures.graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.GraphContainsCycles as e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
 
@@ -679,14 +679,14 @@ class PackageManager(object):
                 #pkg.check_requirements()
                 try:
                     self._registry.initialize_package(pkg)
-                except MissingRequirement, e:
+                except MissingRequirement as e:
                     if report_missing_dependencies:
                         debug.critical("Package <codepath %s> is missing a "
                                        "requirement: %s" % (
                                            pkg.codepath, e.requirement),
                                        e)
                     self.late_disable_package(pkg.codepath)
-                except Package.InitializationFailed, e:
+                except Package.InitializationFailed as e:
                     debug.critical("Initialization of package <codepath %s> "
                                    "failed and will be disabled" %
                                    pkg.codepath,
@@ -769,7 +769,7 @@ class PackageManager(object):
             except (pkg.LoadFailed, pkg.InitializationFailed,
                     MissingRequirement):
                 pass
-            except Exception, e:
+            except Exception as e:
                 pass
         return None
 
@@ -875,7 +875,7 @@ class PackageManager(object):
     def get_ordered_dependencies(self, dep_graph, identifiers=None):
         try:
             sorted_packages = dep_graph.vertices_topological_sort(identifiers)
-        except vistrails.core.data_structures.graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.GraphContainsCycles as e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
         return list(reversed(sorted_packages))

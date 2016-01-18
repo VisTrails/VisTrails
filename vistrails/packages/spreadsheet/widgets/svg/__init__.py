@@ -37,8 +37,9 @@
 # SVG plugin for VisTrails Spreadsheet
 ################################################################################
 from __future__ import division
+from __future__ import absolute_import
 
-from svg import SVGCell, SVGSplitter
+from .svg import SVGCell, SVGSplitter
 
 ################################################################################
 

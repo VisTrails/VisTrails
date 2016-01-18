@@ -200,7 +200,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         try:
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
-        except Exception, e:
+        except Exception as e:
             self.setToolTip("Invalid value: %s" % unicode(e))
             self.is_valid = False
         else:
@@ -309,7 +309,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
         try:
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
-        except Exception, e:
+        except Exception as e:
             # Color background yellow and add tooltip
             self.setStyleSheet("border:2px dashed %s;" %
                                CurrentTheme.PARAM_INVALID_COLOR.name())

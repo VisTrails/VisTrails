@@ -34,9 +34,10 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.query import Query
-from combined import CombinedSearch
+from .combined import CombinedSearch
 
 class MultipleSearch(Query):
     # vistrails_to_check { Vistrail: set(version_ids) }

@@ -169,7 +169,7 @@ class SQLDAO:
                 data = cursor.fetchall()
             else:
                 data = cursor.lastrowid
-        except Exception, e:
+        except Exception as e:
             raise VistrailsDBException('Command "%s" with values "%s" '
                                        'failed: %s' % (dbCommand, values, e))
         finally:

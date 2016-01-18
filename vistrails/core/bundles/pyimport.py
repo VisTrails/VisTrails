@@ -114,7 +114,7 @@ def py_import(module_name, dependency_dictionary, store_in_config=False):
     try:
         result = _vanilla_import(module_name)
         return result
-    except ImportError, e:
+    except ImportError as e:
         _previously_failed_pkgs.add(module_name)
         raise PyImportBug("Installation of package '%s' succeeded, but import "
                           "still fails." % module_name)

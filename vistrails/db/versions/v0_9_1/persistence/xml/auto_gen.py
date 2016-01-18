@@ -36,10 +36,12 @@
 
 """generated automatically by auto_dao.py"""
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from vistrails.core.system import get_elementtree_library
 
-from xml_dao import XMLDAO
+from .xml_dao import XMLDAO
 from vistrails.db.versions.v0_9_1.domain import *
 
 ElementTree = get_elementtree_library()
@@ -136,7 +138,7 @@ class DBModuleXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBModule(id=id,
                        cache=cache,
@@ -317,7 +319,7 @@ class DBGroupXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBGroup(id=id,
                       workflow=workflow,
@@ -402,7 +404,7 @@ class DBLogXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBLog(id=id,
                     version=version,
@@ -548,7 +550,7 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAdd(data=data,
                     id=id,
@@ -637,7 +639,7 @@ class DBOtherXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOther(id=id,
                       key=key,
@@ -773,7 +775,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBFunction(id=id,
                          pos=pos,
@@ -831,7 +833,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAbstraction(id=id,
                             name=name,
@@ -914,7 +916,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBWorkflow(modules=modules,
                          id=id,
@@ -1011,7 +1013,7 @@ class DBAbstractionRefXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAbstractionRef(id=id,
                                name=name,
@@ -1154,7 +1156,7 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBChange(data=data,
                        id=id,
@@ -1261,7 +1263,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBWorkflowExec(id=id,
                              user=user,
@@ -1327,7 +1329,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBConnection(id=id,
                            ports=ports)
@@ -1395,7 +1397,7 @@ class DBActionXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAction(operations=operations,
                        id=id,
@@ -1528,7 +1530,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBVistrail(id=id,
                          version=version,
@@ -1614,7 +1616,7 @@ class DBModuleExecXMLDAOBase(XMLDAO):
             elif child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBModuleExec(id=id,
                            ts_start=ts_start,

@@ -39,6 +39,7 @@
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 import vtk
 import os
@@ -52,7 +53,7 @@ from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from identifiers import identifier as vtk_pkg_identifier
+from .identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 

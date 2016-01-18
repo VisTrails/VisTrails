@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 if __name__ == '__main__':
     import sip
@@ -110,7 +111,7 @@ class Command(object):
         if 'stderr' not in kwargs:
             kwargs['stderr'] = subprocess.PIPE
         # thread
-        print "calling with kwargs", target, kwargs
+        print("calling with kwargs", target, kwargs)
         thread = threading.Thread(target=target, kwargs=kwargs)
         thread.start()
         thread.join(timeout)
@@ -383,7 +384,7 @@ class QCLToolsWizard(QtGui.QWidget):
         try:
             conf = json.load(open(fileName))
         except  ValueError as exc:
-            print "Error opening Wrapper '%s': %s" % (fileName, exc)
+            print("Error opening Wrapper '%s': %s" % (fileName, exc))
             return
         self.newFile()
         self.file = fileName

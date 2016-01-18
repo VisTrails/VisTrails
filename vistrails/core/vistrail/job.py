@@ -38,6 +38,7 @@
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
@@ -115,7 +116,7 @@ class JobMixin(object):
         debug.log("Calling checkJob()")
         try:
             jm.checkJob(self, self.signature, self.job_get_handle(params))
-        except ModuleSuspended, e:
+        except ModuleSuspended as e:
             debug.log("checkJob() raised ModuleSuspended, job handle is %r" %
                       e.handle)
             raise
@@ -589,8 +590,8 @@ class JobMonitor(object):
                 try:
                     while not self.isDone(handle):
                         time.sleep(interval)
-                        print ("Waiting for job: %s,"
-                               "press Ctrl+C to suspend") % job.name
+                        print(("Waiting for job: %s,"
+                               "press Ctrl+C to suspend") % job.name)
                 except KeyboardInterrupt:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
                                           ' is still running', handle=handle)

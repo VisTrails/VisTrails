@@ -39,6 +39,7 @@ thread-safe. It won't crash, but the bump() printouts might not be correct.
 Also defines report_stack, a decorator that dumps the traceback whenever
 a method gets called."""
 from __future__ import division
+from __future__ import print_function
 
 import sys
 import traceback
@@ -103,17 +104,17 @@ def bump_trace():
 
 def report_stack(method):
     def decorated(self, *args, **kwargs):
-        print "-" * 78
+        print("-" * 78)
         try:
-            print "Method: " + method.im_class.__name__ + '.' + method.__name__
+            print("Method: " + method.__self__.__class__.__name__ + '.' + method.__name__)
         except AttributeError:
             pass
         try:
-            print "Function: " + method.func_name
+            print("Function: " + method.__name__)
         except AttributeError:
             pass
         traceback.print_stack()
-        print "-" * 78
+        print("-" * 78)
         return method(self, *args, **kwargs)
     return decorated
         

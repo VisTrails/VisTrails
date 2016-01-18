@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import os
 from PyQt4 import QtCore, QtGui
@@ -244,9 +245,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 cellEvents = spreadsheetController.getEchoCellEvents()
             else:
                 return [], True
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
-            print "Executing pipeline failed:", debug.format_exc()
+            print("Executing pipeline failed:", debug.format_exc())
         finally:
             spreadsheetController.setEchoMode(False)
 
@@ -625,8 +626,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
           result.objects, result.errors, result.executed, result.suspended
 
         if len(errors) > 0:
-            print '=== ERROR EXECUTING PIPELINE ==='
-            print errors
+            print('=== ERROR EXECUTING PIPELINE ===')
+            print(errors)
             return (False, errors)
         return (not suspended, [])
 

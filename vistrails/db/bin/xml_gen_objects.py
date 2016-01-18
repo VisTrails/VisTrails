@@ -35,8 +35,9 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
-from auto_gen_objects import Object, Property, Choice
+from .auto_gen_objects import Object, Property, Choice
 
 XML_TYPE = 'xml'
 
@@ -90,7 +91,7 @@ class XMLObject(Object):
 
 class XMLProperty(Property):
     def hasSpec(self):
-        return self.specs.has_key(XML_TYPE)
+        return XML_TYPE in self.specs
 
     def getName(self):
         try:

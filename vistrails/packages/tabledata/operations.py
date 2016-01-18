@@ -180,7 +180,7 @@ class JoinTables(Table):
                         column_names=table.names,
                         name=self.force_get_input(col_name_port, None),
                         index=self.force_get_input(col_idx_port, None))
-            except ValueError, e:
+            except ValueError as e:
                 raise ModuleError(self, e.message)
 
             return col_idx
@@ -230,7 +230,7 @@ class ProjectTable(Table):
                     column_names=table.names,
                     names=self.force_get_input('column_names', None),
                     indexes=self.force_get_input('column_indexes', None))
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
         if self.has_input('new_column_names'):
             column_names = self.get_input('new_column_names')

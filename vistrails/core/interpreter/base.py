@@ -118,7 +118,7 @@ class BaseInterpreter(object):
                 try:
                     param = pipeline.db_get_object(vttype,oId)
                     param.strValue = unicode(strval)
-                except Exception, e:
+                except Exception as e:
                     debug.debug("Problem when updating params", e)
 
     def resolve_variables(self, vistrail_variables, pipeline):

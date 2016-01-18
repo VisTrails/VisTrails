@@ -76,7 +76,7 @@ class QFunctionItemModel(QtGui.QStandardItemModel):
         Return the current flags of the item with the index 'index'
         
         """
-        if index.isValid() and self.disabledRows.has_key(index.row()):
+        if index.isValid() and index.row() in self.disabledRows:
             return (QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled |
                     QtCore.Qt.ItemIsSelectable)
         return QtGui.QStandardItemModel.flags(self,index)

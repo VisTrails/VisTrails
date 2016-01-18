@@ -466,9 +466,9 @@ class Module(object):
             for connector in connectorList:
                 try:
                     connector.obj.update()
-                except ModuleWasSuspended, e:
+                except ModuleWasSuspended as e:
                     was_suspended = e
-                except ModuleSuspended, e:
+                except ModuleSuspended as e:
                     suspended.append(e)
                 # Here we keep going even if one of the module suspended, but
                 # we'll stop right after the loop
@@ -581,10 +581,10 @@ class Module(object):
                 self.compute()
                 self.addJobCache()
             self.computed = True
-        except ModuleSuspended, e:
+        except ModuleSuspended as e:
             self.had_error, self.was_suspended = False, True
             raise
-        except ModuleError, me:
+        except ModuleError as me:
             if hasattr(me.module, 'interpreter'):
                 if me.errorTrace is None:
                     me.errorTrace = traceback.format_exc()
@@ -594,11 +594,11 @@ class Module(object):
                 raise ModuleError(self, msg, errorTrace=me.errorTrace)
         except ModuleErrors:
             raise
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt as e:
             raise ModuleError(self, 'Interrupted by user')
         except ModuleBreakpoint:
             raise
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             raise ModuleError(
                     self,
@@ -698,7 +698,7 @@ class Module(object):
 
             try:
                 module.update()
-            except ModuleSuspended, e:
+            except ModuleSuspended as e:
                 e.loop_iteration = i
                 module.logging.end_update(module, e, was_suspended=True)
                 suspended.append(e)
@@ -779,7 +779,7 @@ class Module(object):
                                   for port, depth, value in
                                   self.iterated_ports])
 
-                elements = [iter_dict[port][1].next() for port in ports]
+                elements = [next(iter_dict[port][1]) for port in ports]
                 if None in elements:
                     for name_output in module.outputPorts:
                         module.set_output(name_output, None)
@@ -810,10 +810,10 @@ class Module(object):
 
                 try:
                     module.compute()
-                except ModuleSuspended, e:
+                except ModuleSuspended as e:
                     e.loop_iteration = i
                     suspended.append(e)
-                except Exception, e:
+                except Exception as e:
                     raise ModuleError(module, unicode(e))
                 i += 1
                 yield True
@@ -850,7 +850,7 @@ class Module(object):
             self.logging.begin_update(module)
             i = 0
             while 1:
-                elements = [self.streamed_ports[port].next() for port in ports]
+                elements = [next(self.streamed_ports[port]) for port in ports]
                 if None in elements:
                     self.logging.begin_compute(module)
                     # assembled all inputs so do the actual computation
@@ -860,7 +860,7 @@ class Module(object):
                     self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
-                    except Exception, e:
+                    except Exception as e:
                         raise ModuleError(module, unicode(e))
                     if suspended:
                         raise ModuleSuspended(
@@ -914,7 +914,7 @@ class Module(object):
             for name_output in module.outputPorts:
                 module.set_output(name_output, None)
             while 1:
-                elements = [self.streamed_ports[port].next() for port in ports]
+                elements = [next(self.streamed_ports[port]) for port in ports]
                 if None not in elements:
                     self.logging.begin_compute(module)
                     ## Type checking
@@ -922,7 +922,7 @@ class Module(object):
                     self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
-                    except Exception, e:
+                    except Exception as e:
                         raise ModuleError(module, unicode(e))
                     if suspended:
                         raise ModuleSuspended(
@@ -1010,7 +1010,7 @@ class Module(object):
             try:
                 module.update() # might raise ModuleError, ModuleSuspended,
                                 # ModuleHadError, ModuleWasSuspended
-            except ModuleSuspended, e:
+            except ModuleSuspended as e:
                 e.loop_iteration = i
                 raise
 
@@ -1459,7 +1459,7 @@ class Module(object):
             #intsum = 0
             userGenerator = UserGenerator(module)
             while 1:
-                elements = [self.streamed_ports[port].next() for port in ports]
+                elements = [next(self.streamed_ports[port]) for port in ports]
                 if None in elements:
                     self.logging.update_progress(self, 1.0)
                     self.logging.end_update(module)
@@ -1470,7 +1470,7 @@ class Module(object):
                 self.typeChecking(module, ports, [elements])
                 self.setInputValues(module, ports, elements, i)
 
-                userGenerator.next()
+                next(userGenerator)
                 # <compute here>
                 #intsum += dict(zip(ports, elements))['integerStream']
                 #print "Sum so far:", intsum
@@ -1513,12 +1513,12 @@ class Module(object):
             i = 0
             while 1:
                 try:
-                    value = generator.next()
+                    value = next(generator)
                 except StopIteration:
                     module.set_output(port, None)
                     self.logging.update_progress(self, 1.0)
                     yield None
-                except Exception, e:
+                except Exception as e:
                     me = ModuleError(self, "Error generating value: %s"% unicode(e),
                                       errorTrace=unicode(e))
                     raise me
@@ -1844,7 +1844,7 @@ class TestImplicitLooping(unittest.TestCase):
                     errs = run(w_list, update_vistrail=False)
                 for err in errs:
                     self.fail(unicode(err))
-        except Exception, e:
+        except Exception as e:
             self.fail(debug.format_exception(e))
 
     def test_implicit_while(self):

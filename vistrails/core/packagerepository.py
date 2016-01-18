@@ -111,7 +111,7 @@ class LocalPackageRepository(PackageRepository):
         # read manifest
         try:
             f = open(os.path.join(self._path, codepath, 'MANIFEST'))
-        except IOError, e:
+        except IOError as e:
             raise PackageRepository.InvalidPackage("Package is missing manifest.")
         # create directory
         self.create_main_directory(codepath)
@@ -148,7 +148,7 @@ class HTTPPackageRepository(PackageRepository):
         # read manifest
         try:
             f = urllib2.urlopen(self._path + '/' + codepath + '/MANIFEST')
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             raise PackageRepository.InvalidPackage("Package is missing manifest.")
         self.create_main_directory(codepath)
         for l in f:

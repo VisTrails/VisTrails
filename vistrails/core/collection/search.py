@@ -36,6 +36,7 @@
 # search functions for entity-type objects
 # notes in plain text, not html, should be fix later
 from __future__ import division
+from __future__ import print_function
 
 import datetime
 import re
@@ -468,7 +469,7 @@ class SearchCompiler(object):
         while t1:
             tok = t1[0]
             cmd = tok.split(':')
-            if not SearchCompiler.dispatch.has_key(cmd[0]):
+            if cmd[0] not in SearchCompiler.dispatch:
                 fun = SearchCompiler.parseAny
             else:
                 fun = SearchCompiler.dispatch[cmd[0]]
@@ -528,12 +529,12 @@ class SearchCompiler(object):
                 lst.append(tok)
                 tokStream = tokStream[1:]
             return (BeforeSearchStmt(" ".join(lst)), [])
-        except SearchParseError, e:
+        except SearchParseError as e:
             if 'Expected a date' in e.args[0]:
                 try:
                     return self.parseAny(old_tokstream)
-                except SearchParseError, e2:
-                    print "Another exception...", e2.args[0]
+                except SearchParseError as e2:
+                    print("Another exception...", e2.args[0])
                     raise e
             else:
                 raise
@@ -553,12 +554,12 @@ class SearchCompiler(object):
                 lst.append(tok)
                 tokStream = tokStream[1:]
             return (AfterSearchStmt(" ".join(lst)), [])
-        except SearchParseError, e:
+        except SearchParseError as e:
             if 'Expected a date' in e.args[0]:
                 try:
                     return self.parseAny(['after'] + tokStream)
-                except SearchParseError, e2:
-                    print "Another exception...", e2.args[0]
+                except SearchParseError as e2:
+                    print("Another exception...", e2.args[0])
                     raise e
             else:
                 raise

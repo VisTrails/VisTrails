@@ -34,10 +34,11 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.configuration import ConfigurationObject
 
-from identifiers import *
+from .identifiers import *
 
 configuration = ConfigurationObject(global_db=(None, str), 
                                     local_db=(None, str),

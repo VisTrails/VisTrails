@@ -96,7 +96,7 @@ class System_guesser(object):
         self._callable_dict = {}
 
     def add_test(self, test, system_name):
-        if self._callable_dict.has_key(system_name):
+        if system_name in self._callable_dict:
             raise ValueError("test for '%s' already present." % system_name)
         if system_name == 'UNKNOWN':
             raise ValueError("Invalid system name")

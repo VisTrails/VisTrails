@@ -202,13 +202,13 @@ class ClassTree(object):
             try:
                 klass = self.nodes[name].klass
             except KeyError:
-                raise KeyError, "Cannot find class of name %s"%name
+                raise KeyError("Cannot find class of name %s"%name)
         return klass
 
     def add_node(self, klass):
         """Create a node for the given class."""
         name = klass.__name__
-        if not self.nodes.has_key(name):
+        if name not in self.nodes:
             node = TreeNode(klass)
             self.nodes[name] = node
             return node
@@ -234,7 +234,7 @@ class ClassTree(object):
         - `TreeNode`
 
         """
-        if self.nodes.has_key(name):
+        if name in self.nodes:
             return self.nodes[name]
         elif create:
             return self.add_node(self.get_class(name))
@@ -261,7 +261,7 @@ class ClassTree(object):
 
         """
         name = cls.__name__
-        if self.nodes.has_key(name):
+        if name in self.nodes:
             return self.nodes[name]
         elif create:
             return self.add_node(cls)

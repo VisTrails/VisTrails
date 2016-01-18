@@ -223,7 +223,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
             try:
                 request = urllib2.Request(server_url)
                 get_servers = urllib2.urlopen(request)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 self._repository_status['support_status'] = ""
                 self._repository_status['details'] = ""
                 if e.code == 500:
@@ -272,7 +272,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
 
             try:
                 get_supported_packages = urllib2.urlopen(url=packages_url)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 self._repository_status['support_status'] = ""
                 self._repository_status['details'] = ""
                 if e.code == 500:
@@ -530,7 +530,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     self._repository_status['details'] = \
                             "Update to repository was successful"
 
-        except Exception, e:
+        except Exception as e:
             debug.critical("An error occurred", e)
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()

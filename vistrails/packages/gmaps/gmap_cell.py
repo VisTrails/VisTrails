@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 from string import Template
 
@@ -133,8 +134,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
                                 json.dumps(map_options, cls=RawJsJSONEncoder),
                                 'layers':
                                 layers_js}
-            print >>f, self.TEMPLATE.substitute(template_options)
-        print "GMAP FILENAME:", fname
+            print(self.TEMPLATE.substitute(template_options), file=f)
+        print("GMAP FILENAME:", fname)
 
         WebViewCellWidget.updateContents(self, (None, file_module))
 

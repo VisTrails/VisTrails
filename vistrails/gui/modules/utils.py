@@ -35,12 +35,13 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import load_cls
-from constant_configuration import StandardConstantWidget, \
+from .constant_configuration import StandardConstantWidget, \
     StandardConstantEnumWidget
-from query_configuration import BaseQueryWidget
+from .query_configuration import BaseQueryWidget
 
 def get_prefix(reg, descriptor):
     package = reg.get_package_by_name(descriptor.identifier)

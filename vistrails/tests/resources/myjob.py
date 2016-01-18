@@ -35,6 +35,7 @@
 ###############################################################################
 
 """Testing package for Job Submission"""
+from __future__ import print_function
 
 ##############################################################################
 import time
@@ -56,7 +57,7 @@ class TimedJobMonitor(object):
         self.how_long = how_long
 
     def finished(self):
-        print time.time(), self.start_time, self.how_long
+        print(time.time(), self.start_time, self.how_long)
         return (time.time()-self.start_time) > self.how_long
 
 

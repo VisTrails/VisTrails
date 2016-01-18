@@ -149,7 +149,7 @@ class OSXSystemProfiler(object):
             for child in node:
                 if child.tag == 'key' and child.text == key:
                     v = self._convert_value_node(node)[key]
-                    if isinstance(v, dict) and v.has_key('_order'):
+                    if isinstance(v, dict) and '_order' in v:
                         # this is just information for display
                         pass
                     else:
@@ -173,9 +173,9 @@ def parse_meminfo():
     mem = info['physical_memory'][0]
     # print "*** MEMORY", mem
     if mem.upper().endswith(' GB'):
-        result = int(float(mem[:-3]) * 1024) * 1L
+        result = int(float(mem[:-3]) * 1024) * 1
     elif mem.upper().endswidth(' MB'):
-        result = int(mem[:-3]) * 1L
+        result = int(mem[:-3]) * 1
     # print '>>>>', result
     return result
 
@@ -223,7 +223,7 @@ def link_or_copy(src, dst):
     # Links if possible, but we're across devices, we need to copy.
     try:
         os.link(src, dst)
-    except OSError, e:
+    except OSError as e:
         if e.errno == 18:
             # Across-device linking is not possible. Let's copy.
             shutil.copyfile(src, dst)

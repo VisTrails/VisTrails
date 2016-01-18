@@ -1,7 +1,8 @@
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.modules.vistrails_module import Module
-from bases import MplProperties
+from .bases import MplProperties
 import matplotlib.artist
 import matplotlib.cbook
 

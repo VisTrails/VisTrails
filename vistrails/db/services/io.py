@@ -195,7 +195,7 @@ def open_db_connection(config):
         db_connection = get_db_lib().connect(**config)
         #db_connection = get_db_lib().connect(config)
         return db_connection
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         # should have a DB exception type
         msg = "cannot open connection (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -215,10 +215,10 @@ def test_db_connection(config):
     try:
         db_connection = get_db_lib().connect(**config)
         close_db_connection(db_connection)
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
-    except TypeError, e:
+    except TypeError as e:
         msg = "connection test failed (%s)" %unicode(e)
         raise VistrailsDBException(msg)
 
@@ -288,7 +288,7 @@ def get_db_object_list(config, obj_type):
         c.close()
         close_db_connection(db)
         
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get list of vistrails objects from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -308,7 +308,7 @@ def get_db_object_modification_time(db_connection, obj_id, obj_type):
         db_connection.commit()
         time = c.fetchall()[0][0]
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get object modification time from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -327,7 +327,7 @@ def get_db_object_version(db_connection, obj_id, obj_type):
         c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
         version = c.fetchall()[0][0]
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get object version from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -344,7 +344,7 @@ def get_db_version(db_connection):
         c.execute(command)
         version = c.fetchall()[0][0]
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         # just return None if we hit an error
         return None
     return version
@@ -374,7 +374,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
         else:
             c.close()
             return int(rows[0][0])
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         c.close()
         msg = "Connection error when trying to get db id from name"
         raise VistrailsDBException(msg)
@@ -405,7 +405,7 @@ def get_db_abstraction_modification_time(db_connection, abstraction):
                              id_value))
         modtime = c.fetchall()[0][0]
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get modification time from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -442,7 +442,7 @@ def get_db_ids_from_vistrail(db_connection, vt_id, id_key):
         c.execute(command%(translate_to_tbl_name(DBAnnotation.vtType), id_key, vt_id))
         abs_ids = c.fetchall()
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get object ids from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -479,7 +479,7 @@ def get_matching_abstraction_id(db_connection, abstraction):
         if len(result) > 0:
             #print 'got result:', result
             id = result[0][0]
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get object modification time from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -537,7 +537,7 @@ def setup_db_tables(db_connection, version=None, old_version=None):
 #         c.execute(db_script)
         f.close()
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         raise VistrailsDBException("unable to create tables: " + unicode(e))
 
 ##############################################################################
@@ -667,7 +667,7 @@ def close_zip_xml(temp_dir):
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
         os.rmdir(temp_dir)
-    except OSError, e:
+    except OSError as e:
         raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, unicode(e)))
 
 def serialize(object):
@@ -692,7 +692,7 @@ def open_vistrail_from_xml(filename):
             raise VistrailsDBException("Couldn't read vistrail from XML")
         vistrail = translate_vistrail(vistrail, version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
-    except VistrailsDBException, e:
+    except VistrailsDBException as e:
         if unicode(e).startswith('VistrailsDBException: Cannot find DAO for'):
             raise VistrailsDBException(
                 "This vistrail was created by a newer version of VisTrails "
@@ -758,7 +758,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
                             continue
                     if not handled:
                         unknown_files.append(os.path.join(root, fname))
-    except OSError, e:
+    except OSError as e:
         raise VistrailsDBException("Error when reading vt file")
     if len(unknown_files) > 0:
         raise VistrailsDBException("Unknown files in vt file: %s" % \
@@ -797,7 +797,7 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             fname = os.path.join(vt_abs_dir, abs_fname)
             save_vistrail_to_xml(abs, fname)
             abstractions.append(fname)
-    except Exception, e:
+    except Exception as e:
         debug.critical('Could not load abstraction from database: %s' % e,
                        debug.format_exc())
     # open mashuptrails from db
@@ -806,7 +806,7 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
         for mashup_id in get_db_mashuptrail_ids_from_vistrail(db_connection, vistrail.db_id):
             mashup = open_mashuptrail_from_db(db_connection, mashup_id)
             mashuptrails.append(mashup)
-    except Exception, e:
+    except Exception as e:
         debug.critical('Could not load mashuptrail from database: %s' % e,
                        debug.format_exc())
     thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
@@ -846,7 +846,7 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
 
     # current_action holds the current action id 
     # (used by the controller--write_vistrail)
-    current_action = 0L
+    current_action = 0
     if hasattr(vistrail, 'db_currentVersion'):
         current_action = vistrail.db_currentVersion
 
@@ -920,7 +920,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
                 # print 'copying %s -> %s' % (obj, xml_fname)
                 try:
                     shutil.copyfile(obj, xml_fname)
-                except Exception, e:
+                except Exception as e:
                     saved_abstractions.pop()
                     debug.critical('copying %s -> %s failed: %s' % \
                                        (obj, xml_fname, unicode(e)))
@@ -939,10 +939,10 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             
             try:
                 shutil.copyfile(obj, png_fname)
-            except shutil.Error, e:
+            except shutil.Error as e:
                 #files are the same no need to show warning
                 saved_thumbnails.pop()
-            except IOError, e2:
+            except IOError as e2:
                 saved_thumbnails.pop()
                 debug.warning('copying thumbnail %s -> %s failed: %s' % \
                               (obj, png_fname, unicode(e2)))
@@ -960,7 +960,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             xml_fname = os.path.join(mashup_dir, unicode(obj.id))
             save_mashuptrail_to_xml(obj, xml_fname)
             saved_mashups.append(obj)
-        except Exception, e:
+        except Exception as e:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'when saving mashup: %s'%unicode(e))
 
@@ -971,7 +971,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         pm = get_package_manager()
         for package in pm.enabled_package_list():
             package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
-    except Exception, e:
+    except Exception as e:
         debug.warning("Could not call package hooks", unicode(e))
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
@@ -1037,7 +1037,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     
     # current_action holds the current action id 
     # (used by the controller--write_vistrail)
-    current_action = 0L
+    current_action = 0
     if hasattr(vistrail, 'db_currentVersion'):
         current_action = vistrail.db_currentVersion
 
@@ -1249,7 +1249,7 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
             res = c.execute("SELECT id FROM log_tbl WHERE vistrail_id=%s;", (vt_id,))
             ids = [i[0] for i in c.fetchall()]
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             debug.critical("Error getting log id:s %d: %s" % (e.args[0], e.args[1]))
     log = DBLog()
     if hasattr(dao_list, 'open_many_from_db'): # does not exist pre 1.0.2
@@ -1278,7 +1278,7 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
             # cannot do correct numbering here...
             # but need to save so that we can use it for deletes
             wf_exec_id = workflow_exec.db_id
-            workflow_exec.db_id = -1L
+            workflow_exec.db_id = -1
             daoList.save_to_xml(workflow_exec, log_file, {}, version)
             workflow_exec.db_id = wf_exec_id
         log_file.close()
@@ -1495,7 +1495,7 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
             getVersionDAO(version).save_to_db(db_connection, abs, True)
             db_connection.commit()
 
-        except Exception, e:
+        except Exception as e:
             debug.critical('Could not save abstraction to db: %s' % unicode(e))
 
 ##############################################################################
@@ -1532,7 +1532,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
         c.execute(prepared_statement, (obj_id, obj_type))
         file_names = [file_name for (file_name,) in c.fetchall()]
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't get thumbnails list from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -1550,7 +1550,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
             c.execute(prepared_statement, (file_name,))
             row = c.fetchone()
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             msg = "Couldn't get thumbnail from db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)
@@ -1561,7 +1561,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
                 image_file = open(absfname, 'wb')
                 image_file.write(image_bytes)
                 image_file.close()
-            except IOError, e:
+            except IOError as e:
                 msg = "Couldn't write thumbnail file to disk: %s" % absfname
                 raise VistrailsDBException(msg)
         else:
@@ -1596,7 +1596,7 @@ def save_thumbnails_to_db(absfnames, db_connection):
         c.execute(statement % sql_in_token)
         db_file_names = [file_name for (file_name,) in c.fetchall()]
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't check which thumbnails already exist in db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -1617,10 +1617,10 @@ def save_thumbnails_to_db(absfnames, db_connection):
             c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, strftime(get_current_time(db_connection), '%Y-%m-%d %H:%M:%S')))
             db_connection.commit()
         c.close()
-    except IOError, e:
+    except IOError as e:
         msg = "Couldn't read thumbnail file for writing to db: %s" % absfname
         raise VistrailsDBException(msg)
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't insert thumbnail into db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -1646,7 +1646,7 @@ def open_mashuptrail_from_xml(filename):
         Mashuptrail.convert(mashuptrail)
         mashuptrail.currentVersion = mashuptrail.getLatestVersion()
         mashuptrail.updateIdScope()
-    except VistrailsDBException, e:
+    except VistrailsDBException as e:
         msg = "There was a problem when reading mashups from the xml file: "
         msg += unicode(e)
         raise VistrailsDBException(msg)
@@ -1678,7 +1678,7 @@ def open_mashuptrail_from_db(db_connection, mashup_id, lock=False):
         Mashuptrail.convert(mashuptrail)
         mashuptrail.currentVersion = mashuptrail.getLatestVersion()
         mashuptrail.updateIdScope()
-    except VistrailsDBException, e:
+    except VistrailsDBException as e:
         msg = "There was a problem when reading mashups from the db file: "
         msg += unicode(e)
         raise VistrailsDBException(msg)
@@ -1725,7 +1725,7 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
             getVersionDAO(version).save_to_db(db_connection, mashuptrail, True)
             db_connection.commit()
 
-        except Exception, e:
+        except Exception as e:
             debug.critical('Could not save mashuptrail to db: %s' % unicode(e))
 
 def open_startup_from_xml(filename):
@@ -1794,7 +1794,7 @@ def get_current_time(db_connection=None):
                 timestamp = row[0]
                 # timestamp = strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             debug.critical("Logger Error %d: %s" % (e.args[0], e.args[1]))
 
     return timestamp
@@ -1818,7 +1818,7 @@ def remove_temp_folder(temp_dir):
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
         os.rmdir(temp_dir)
-    except OSError, e:
+    except OSError as e:
         raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, unicode(e)))
     
 ##############################################################################
@@ -1868,7 +1868,7 @@ class TestDBIO(unittest.TestCase):
                 save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
                 if os.path.isfile(filename):
                     os.unlink(filename)
-            except Exception, e:
+            except Exception as e:
                 self.fail(unicode(e))
         finally:
             os.rmdir(testdir)

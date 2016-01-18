@@ -142,8 +142,8 @@ class ParameterExploration(DBParameterExploration):
         added_functions = {}
         vistrail_vars = []
         function_actions = []
-        tmp_f_id = -1L
-        tmp_p_id = -1L
+        tmp_f_id = -1
+        tmp_p_id = -1
         for i in xrange(len(self.functions)):
             pe_function = self.functions[i]
             module = pipeline.db_get_object(Module.vtType, pe_function.module_id)

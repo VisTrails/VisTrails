@@ -50,7 +50,7 @@ class BaseConverter(Table):
     def convert_to_table(self, obj):
         try:
             table = self.make_table(obj)
-        except InternalModuleError, e:
+        except InternalModuleError as e:
             e.raise_module_error(self)
         self.set_output('column_count', table.columns)
         if table.names is not None:

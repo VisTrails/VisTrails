@@ -215,7 +215,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
                 pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
-        except Exception, e:
+        except Exception as e:
             debug.critical("Exception saving to PNG", e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
@@ -380,7 +380,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             state2Button = {0: QtCore.Qt.LeftButton,
                             1: QtCore.Qt.MidButton,
                             2: QtCore.Qt.RightButton}
-            if state2Button.has_key(state):
+            if state in state2Button:
                 return state2Button[state]
         return event.buttons()
 

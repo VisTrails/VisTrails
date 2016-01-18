@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 from itertools import izip
 import re
@@ -124,7 +125,7 @@ def parse_latex_file(fname):
                     if brackets_complete:
                         break
                     cmd_text += line
-                    line = f.next()
+                    line = next(f)
             
             opt_cmd_text = cmd_text
             cmd_text = ""
@@ -146,7 +147,7 @@ def parse_latex_file(fname):
                 if braces_complete:
                     break
                 cmd_text += line
-                line = f.next()
+                line = next(f)
             # print cmd_text
             vt_text.append((opt_cmd_text,cmd_text))
             raw_text[raw_idx] += line[m.end():]
@@ -167,7 +168,7 @@ def parse_latex_file(fname):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
-        print "Usage: %s %s <latex-file>" % (sys.executable, sys.argv[0])
+        print("Usage: %s %s <latex-file>" % (sys.executable, sys.argv[0]))
         sys.exit(-1)
     
     parse_latex_file(sys.argv[1])

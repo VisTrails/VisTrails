@@ -91,7 +91,7 @@ def initialize(*args, **kwargs):
                 try:
                     abstraction = \
                         new_abstraction(abs_name, abs_vistrail, abs_fname)
-                except InvalidPipeline, e:
+                except InvalidPipeline as e:
                     # handle_invalid_pipeline will raise it's own InvalidPipeline
                     # exception if it fails
                     try:
@@ -106,9 +106,9 @@ def initialize(*args, **kwargs):
                         save_abstraction(abs_vistrail, abs_fname)
                         abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname,
                                                       new_version, new_pipeline)
-                    except Exception, _e:
+                    except Exception as _e:
                         cannot_load[abs_name] = (abs_vistrail, _e)
-                except Exception, e:
+                except Exception as e:
                     cannot_load[abs_name] = (abs_vistrail, e)
                 if abstraction is not None:
                     # add descriptors for all available version namespaces
@@ -169,7 +169,7 @@ def package_dependencies():
             vistrail = read_vistrail(abs_fname)
             try:
                 dependencies = get_abstraction_dependencies(vistrail)
-            except vistrails.core.modules.module_registry.MissingPackage, e:
+            except vistrails.core.modules.module_registry.MissingPackage as e:
                 dependencies = {e._identifier: set()}
             add_abstraction = True
             inter_depends = []

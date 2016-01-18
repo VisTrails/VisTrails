@@ -86,7 +86,7 @@ class SQLDAO:
                             self.convertWarning(value, value[:length],
                                                 type, db_type)
                             value = value[:length]
-                    except Exception, e:
+                    except Exception as e:
                         pass
                 if db_type.startswith('char'):
                     try:
@@ -95,7 +95,7 @@ class SQLDAO:
                             self.convertWarning(value, value[:length],
                                                 type, db_type)
                             value = value[:length]
-                    except Exception, e:
+                    except Exception as e:
                         pass
                 # return "'" + unicode(value).replace("'", "''") + "'"
                 return value
@@ -106,7 +106,7 @@ class SQLDAO:
                 if db_type.startswith('DECIMAL'):
                     try:
                         value="%%.%sf"%unicode(db_type[8:-1].split(',')[1])%value
-                    except Exception, e:
+                    except Exception as e:
                         pass
                 return unicode(value)
             elif type == 'int':
@@ -211,7 +211,7 @@ class SQLDAO:
                 data = cursor.fetchall()
             else:
                 data = cursor.lastrowid
-        except Exception, e:
+        except Exception as e:
             raise VistrailsDBException('Command "%s" with values "%s" '
                                        'failed: %s' % (dbCommand, values, e))
         finally:
@@ -244,7 +244,7 @@ class SQLDAO:
                     next = cur.nextset()
                     if not next:
                         break
-            except Exception, e:
+            except Exception as e:
                 raise VistrailsDBException('Command failed: %s -- """ %s """' % 
                                            (e, commandString))
             finally:

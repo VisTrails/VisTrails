@@ -65,7 +65,7 @@ class SpreadsheetRegistry(object):
         Unregister a package out of the spreadsheet
 
         """
-        if self.packages.has_key(package):
+        if package in self.packages:
             del self.packages[package]
 
     def registerSheet(self, name, sheetType):
@@ -80,7 +80,7 @@ class SpreadsheetRegistry(object):
         Unregister a named sheet type
 
         """
-        if self.sheets.has_key(name):
+        if name in self.sheets:
             del self.sheets[name]
 
     def getSheet(self, name):
@@ -88,7 +88,7 @@ class SpreadsheetRegistry(object):
         Return the type of sheet with the corresponding name
 
         """
-        if self.sheets.has_key(name):
+        if name in self.sheets:
             return self.sheets[name]
         else:
             return None

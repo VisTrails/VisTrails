@@ -66,7 +66,7 @@ def translateVistrail(vistrail):
                     id_remap[old_id] = new_id
                 elif operation.vtType == 'change':
                     changed_id = operation.db_oldObjId
-                    if id_remap.has_key(changed_id):
+                    if changed_id in id_remap:
                         operation.db_oldObjId = id_remap[changed_id]
                     else:
                         raise VistrailsDBException('cannot translate')
@@ -78,7 +78,7 @@ def translateVistrail(vistrail):
                     id_remap[old_id] = new_id
                 elif operation.vtType == 'delete':
                     old_id = operation.db_objectId
-                    if id_remap.has_key(old_id):
+                    if old_id in id_remap:
                         operation.db_objectId = id_remap[old_id]
                     else:
                         raise VistrailsDBException('cannot translate')

@@ -38,6 +38,7 @@ initializations to the theme, packages and the builder...
 
 """
 from __future__ import division
+from __future__ import print_function
 
 from ast import literal_eval
 import copy
@@ -147,7 +148,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             "Removing socket" % (local_socket.errorString()))
                     try:
                         os.remove(self._unique_key)
-                    except OSError, e:
+                    except OSError as e:
                         debug.critical("Couldn't remove socket: %s" %
                                        self._unique_key, e)
 
@@ -413,7 +414,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             for m in self.notifications[notification_id]:
                 try:
                     m(*args)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
         notifications = {}
@@ -428,7 +429,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception, e:
+                    except Exception as e:
                         debug.unexpected_exception(e)
                         debug.print_exc()
 
@@ -444,7 +445,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception, e:
+                    except Exception as e:
                         debug.unexpected_exception(e)
                         debug.print_exc()
 
@@ -579,7 +580,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             update_vistrail=True))
                 if len(errs) > 0:
                     for err in errs:
-                        print err
+                        print(err)
                         debug.critical("*** Error in %s:%s:%s -- %s" % err)
                     return [False, ["*** Error in %s:%s:%s -- %s" % err for err in errs]]
             return True
@@ -598,7 +599,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                           j.start,
                           "FINISHED" if j.completed() else "RUNNING")
              for i, j in controller.jobMonitor.workflows.iteritems()])
-        print text
+        print(text)
         return text
 
     def printJob(self, locator, version):
@@ -611,7 +612,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     if wf.version == int(version)]
         if len(workflow) < 1:
             text = "No job for workflow with id %s" % version
-            print text
+            print(text)
             return text
         workflow = workflow[0]
         text += '\n'.join(
@@ -619,7 +620,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                           i.start,
                           "FINISHED" if i.finished else "RUNNING")
              for i in workflow.jobs.values()])
-        print text
+        print(text)
         return text
 
     def setIcon(self):
@@ -723,7 +724,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 output = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
-            except Exception, e:
+            except Exception as e:
                 import traceback
                 traceback.print_exc()
                 debug.unexpected_exception(e)
@@ -763,7 +764,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             return False
         byte_array = local_socket.readAll()
         result = unicode(byte_array)
-        print "Other instance processed input (%s)" % result
+        print("Other instance processed input (%s)" % result)
         if not result.startswith('Command Completed'):
             debug.critical(result)
         else:
@@ -822,7 +823,7 @@ def linux_default_application_set():
             # something is wrong, abort
             debug.warning("Error checking mimetypes: %s" % output[0])
             return None
-    except OSError, e:
+    except OSError as e:
         debug.warning("Error checking mimetypes: %s" % e.message)
         return None
     if 'application/x-vistrails' == output[0].strip():

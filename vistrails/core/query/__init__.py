@@ -179,15 +179,15 @@ class Query(object):
                 self.versionDict[v] = {}
         elif len(self.queryResult[0]) == 2:
             for (v, m) in self.queryResult:
-                if not self.versionDict.has_key(v):
+                if v not in self.versionDict:
                     self.versionDict[v] = {m: []}
                 self.versionDict[v][m] = {}
         else:
             assert len(self.queryResult[0]) == 3
             for (v, m, e) in self.queryResult:
-                if not self.versionDict.has_key(v):
+                if v not in self.versionDict:
                     self.versionDict[v] = {m: [e]}
-                elif not self.versionDict[v].has_key(m):
+                elif m not in self.versionDict[v]:
                     self.versionDict[v][m] = [e]
                 else:
                     self.versionDict[v][m].append(e)
@@ -203,7 +203,7 @@ class Query(object):
     def executionInstances(self, version_id, module_id):
         versionDict = self.versionDict
         assert self.tupleLength == 3
-        if versionDict[version_id].has_key(module_id):
+        if module_id in versionDict[version_id]:
             return versionDict[version_id][module_id]
         else:
             return None

@@ -36,6 +36,7 @@
 """ Wrapper for Hadoop DFS operations """
 
 from __future__ import division
+from __future__ import absolute_import
 
 import os
 import shutil
@@ -44,7 +45,7 @@ from vistrails.core.modules.basic_modules import File, Boolean, String, \
                                                  PathObject, Path
 from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
-from base import HadoopBaseModule
+from .base import HadoopBaseModule
 
 
 ################################################################################

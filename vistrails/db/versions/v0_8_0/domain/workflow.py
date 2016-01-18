@@ -35,9 +35,11 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-from auto_gen import DBWorkflow as _DBWorkflow
-from id_scope import IdScope
+from .auto_gen import DBWorkflow as _DBWorkflow
+from .id_scope import IdScope
 
 import copy
 
@@ -72,7 +74,7 @@ class DBWorkflow(_DBWorkflow):
 
     def db_print_objects(self):
         for k,v in self.objects.iteritems():
-            print '%s: %s' % (k, v)
+            print('%s: %s' % (k, v))
 
     def db_get_object(self, type, id):
         return self.objects[(type, id)]

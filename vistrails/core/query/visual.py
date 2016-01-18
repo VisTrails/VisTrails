@@ -98,7 +98,7 @@ class VisualQuery(query.Query):
                 append_to_dict_of_lists(queryModuleNameIndex, module.name, moduleId)
             for querySourceId in self.queryPipeline.graph.sources():
                 querySourceName = self.queryPipeline.modules[querySourceId].name
-                if not queryModuleNameIndex.has_key(querySourceName):
+                if querySourceName not in queryModuleNameIndex:
                     # need to reset matches here!
                     matches = set()
                     continue

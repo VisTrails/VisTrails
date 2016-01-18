@@ -98,7 +98,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                 config['succeeded'] = True
                 config['name'] = unicode(dialog.nameEdt.text())
                 config['id'] = dialog.id
-            except VistrailsDBException, e:
+            except VistrailsDBException as e:
                 debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
         return config
@@ -114,7 +114,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         try:
             vistrails.db.services.io.test_db_connection(testconfig)
             config['succeeded'] = True
-        except VistrailsDBException, e:
+        except VistrailsDBException as e:
             config = show_dialog(parent, config['id'],
                                  config['name'], host, port, config['user'],
                                  passwd, database, create = False)

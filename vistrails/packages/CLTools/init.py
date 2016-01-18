@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 import errno
 import json
@@ -50,7 +51,7 @@ from vistrails.core.packagemanager import get_package_manager
 import vistrails.core.system
 from vistrails.core.system import packages_directory, vistrails_root_directory
 
-import identifiers
+from . import identifiers
 
 
 cl_tools = {}
@@ -79,7 +80,7 @@ def _eintr_retry_call(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, IOError), e: # pragma: no cover
+        except (OSError, IOError) as e: # pragma: no cover
             if e.errno == errno.EINTR:
                 continue
             raise
@@ -176,7 +177,7 @@ def _add_tool(path):
                         suffix=options.get('suffix', DEFAULTFILESUFFIX))
                 try:
                     shutil.copyfile(value.name, outfile.name)
-                except IOError, e: # pragma: no cover
+                except IOError as e: # pragma: no cover
                     raise ModuleError(self,
                                       "Error copying file '%s': %s" %
                                       (value.name, debug.format_exception(e)))
@@ -267,7 +268,7 @@ def _add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e: # pragma: no cover
+            except Exception as e: # pragma: no cover
                 raise ModuleError(self,
                                   "Error parsing configuration env: %s" % (
                                   debug.format_exception(e)))
@@ -280,7 +281,7 @@ def _add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e: # pragma: no cover
+            except Exception as e: # pragma: no cover
                 raise ModuleError(self,
                                   "Error parsing module env: %s" % (
                                   debug.format_exception(e)))
@@ -296,7 +297,7 @@ def _add_tool(path):
                         value = value.strip()
                         if key:
                             env[key] = value
-                except Exception, e: # pragma: no cover
+                except Exception as e: # pragma: no cover
                     raise ModuleError(self,
                                       "Error parsing env port: %s" % (
                                       debug.format_exception(e)))
@@ -457,7 +458,7 @@ def reload_scripts(initial=False, name=None):
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Could not create CLTools directory. Make "
                                "sure '%s' does not exist and parent directory "
                                "is writable" % location,
@@ -492,8 +493,8 @@ def menu_items():
     
     """
     try:
-        from wizard import QCLToolsWizardWindow
-    except Exception, e: # pragma: no cover
+        from .wizard import QCLToolsWizardWindow
+    except Exception as e: # pragma: no cover
         if "CLTools" == identifiers.name:
             debug.unexpected_exception(e)
             raise

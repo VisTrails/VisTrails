@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division, unicode_literals
+from __future__ import print_function
 
 from datetime import datetime, date
 import hashlib
@@ -532,7 +533,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     name = property(_get_name)
 
     def _get_short_filename(self):
-        print "HOOPLA", self._name
+        print("HOOPLA", self._name)
         return os.path.splitext(os.path.basename(self._name))[0]
     short_filename = property(_get_short_filename)
 

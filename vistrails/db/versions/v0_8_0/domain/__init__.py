@@ -35,9 +35,10 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
-from auto_gen import *
-from workflow import DBWorkflow
-from vistrail import DBVistrail
-from abstraction import DBAbstraction
-from id_scope import IdScope
+from .auto_gen import *
+from .workflow import DBWorkflow
+from .vistrail import DBVistrail
+from .abstraction import DBAbstraction
+from .id_scope import IdScope

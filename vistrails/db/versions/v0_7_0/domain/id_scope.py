@@ -39,7 +39,7 @@ from __future__ import division
 import copy
 
 class IdScope:
-    def __init__(self, beginId=0L, remap=None):
+    def __init__(self, beginId=0, remap=None):
         self.ids = {}
         self.beginId = beginId
         if remap is None:
@@ -57,9 +57,9 @@ class IdScope:
         return unicode(self.ids)
 
     def getNewId(self, objType):
-        if self.remap.has_key(objType):
+        if objType in self.remap:
             objType = self.remap[objType]
-        if self.ids.has_key(objType):
+        if objType in self.ids:
             id = self.ids[objType]
             self.ids[objType] += 1
             return id
@@ -68,12 +68,12 @@ class IdScope:
             return self.beginId
 
     def updateBeginId(self, objType, beginId):
-        if self.remap.has_key(objType):
+        if objType in self.remap:
             objType = self.remap[objType]        
-        if not self.ids.has_key(objType) or self.ids[objType] <= beginId:
+        if objType not in self.ids or self.ids[objType] <= beginId:
             self.ids[objType] = beginId
         
     def setBeginId(self, objType, beginId):
-        if self.remap.has_key(objType):
+        if objType in self.remap:
             objType = self.remap[objType]
         self.ids[objType] = beginId

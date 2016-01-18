@@ -96,5 +96,5 @@ class MplSpyMixin(object):
 
 class MplBarMixin(object):
     def compute_before(self):
-        if not kwargs.has_key('left'):
+        if 'left' not in kwargs:
             kwargs['left'] = range(len(kwargs['height']))

@@ -34,6 +34,8 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from PyQt4 import QtCore, QtGui
 import os
@@ -45,9 +47,9 @@ from vistrails.gui.common_widgets import QSearchBox
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 
-from db_utils import DatabaseAccessSingleton
-from identifiers import identifier as persistence_pkg
-import repo
+from .db_utils import DatabaseAccessSingleton
+from .identifiers import identifier as persistence_pkg
+from . import repo
 
 class IntegerWrapper(object):
     def __init__(self, idx):
@@ -289,7 +291,7 @@ class PersistentRefView(QtGui.QTreeView):
     def __init__(self, path_type=None, parent=None):
         QtGui.QTreeView.__init__(self, parent)
         self.my_model = PersistentRefModelSingleton()
-        print 'my_model:', id(self.my_model)
+        print('my_model:', id(self.my_model))
         proxy_model = QtGui.QSortFilterProxyModel(self)
         proxy_model.setSourceModel(self.my_model)
         proxy_model.setFilterKeyColumn(-1)
@@ -313,7 +315,7 @@ class PersistentRefView(QtGui.QTreeView):
                 id_list = self.my_model.id_lists[key]
                 if id_list[0][self.my_model.idxs["type"]] != "blob":
                     # if i not in self.my_model.file_idxs:
-                    print "setting index", i, "to hidden"
+                    print("setting index", i, "to hidden")
                     my_index = self.my_model.createIndex(i, 0, None)
                     index = self.model().mapFromSource(my_index)
                     self.setRowHidden(index.row(), QtCore.QModelIndex(), True)
@@ -323,7 +325,7 @@ class PersistentRefView(QtGui.QTreeView):
                 id_list = self.my_model.id_lists[key]
                 if id_list[0][self.my_model.idxs["type"]] != "tree":
                     # if i not in self.my_model.dir_idxs:
-                    print "setting index", i, "to hidden"
+                    print("setting index", i, "to hidden")
                     my_index = self.my_model.createIndex(i, 0, None)
                     index = self.model().mapFromSource(my_index)
                     self.setRowHidden(index.row(), QtCore.QModelIndex(), True)
@@ -335,7 +337,7 @@ class PersistentRefView(QtGui.QTreeView):
             
             index = self.model().mapFromSource(my_index)
             if index.isValid():
-                print 'checking internalPointer', my_index.internalPointer()
+                print('checking internalPointer', my_index.internalPointer())
                 if my_index.internalPointer():
                     my_expand_index = \
                         self.my_model.createIndex(
@@ -433,7 +435,7 @@ class PersistentRefDialog(QtGui.QDialog):
         search = QSearchBox(False, False)
 
         def keyPressEvent(obj, e):
-            print "got to key press event", e.key()
+            print("got to key press event", e.key())
             if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
                 if obj.currentText():
                     obj.emit(QtCore.SIGNAL('executeSearch(QString)'),  
@@ -442,9 +444,9 @@ class PersistentRefDialog(QtGui.QDialog):
                     obj.emit(QtCore.SIGNAL('resetSearch()'))
             QtGui.QComboBox.keyPressEvent(obj, e)
 
-        print 'keyPressEvent:', search.searchEdit.keyPressEvent
+        print('keyPressEvent:', search.searchEdit.keyPressEvent)
         search.searchEdit.keyPressEvent = keyPressEvent
-        print 'keyPressEvent:', search.searchEdit.keyPressEvent
+        print('keyPressEvent:', search.searchEdit.keyPressEvent)
         self.connect(search, QtCore.SIGNAL('executeSearch(QString)'),
                      self.search_string)
         self.connect(search, QtCore.SIGNAL('resetSearch()'),
@@ -873,8 +875,8 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
                 ref_exists = \
                     self.ref_widget.set_version(self.existing_ref.version)
                 self.existing_ref._exists = ref_exists
-                print 'ref_exists:', ref_exists, self.existing_ref.id, \
-                    self.existing_ref.version
+                print('ref_exists:', ref_exists, self.existing_ref.id, \
+                    self.existing_ref.version)
             elif function.name == 'value':
                 if self.new_file:
                     self.new_file.set_path(function.parameters[0].strValue)
@@ -1151,7 +1153,7 @@ class PersistentConfiguration(QtGui.QDialog):
                                    "disabled for this release.")
         return
 
-        from init import PersistentPath
+        from .init import PersistentPath
         info_list = self.ref_search.ref_widget.get_info_list()
         if len(info_list) < 1:
             return
@@ -1177,7 +1179,7 @@ class PersistentConfiguration(QtGui.QDialog):
             else:
                 # FIXME implement delete for versions...
                 delete_where['version'] = info[1]
-                print "NOT IMPLEMENTED FOR VERSIONS!!"
+                print("NOT IMPLEMENTED FOR VERSIONS!!")
                 
                 
         

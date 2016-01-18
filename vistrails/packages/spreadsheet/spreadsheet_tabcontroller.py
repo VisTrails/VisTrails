@@ -748,7 +748,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             while lines[lidx]!='---':
                 (r, c, vistrail, pid, cid) = literal_eval(lines[lidx])
                 locator = vistrail['locator']
-                if locators.has_key(locator):
+                if locator in locators:
                     vistrail['locator'] = locators[locator]
                 else:
                     locators[locator] = parse_locator(vistrail['locator'])

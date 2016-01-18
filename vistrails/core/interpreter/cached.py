@@ -379,7 +379,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         constant = create_constant(p, module)
                         connector = ModuleConnector(constant, 'value',
                                                     f.get_spec('output'))
-                    except Exception, e:
+                    except Exception as e:
                         debug.unexpected_exception(e)
                         err = ModuleError(
                                 module,
@@ -399,7 +399,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                             connector = ModuleConnector(constant, 'value',
                                                         f.get_spec('output'))
                             tupleModule.set_input_port(j, connector)
-                        except Exception, e:
+                        except Exception as e:
                             debug.unexpected_exception(e)
                             err = ModuleError(
                                     module,
@@ -530,20 +530,20 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 pass
             except AbortExecution:
                 break
-            except ModuleSuspended, ms:
+            except ModuleSuspended as ms:
                 ms.module.logging.end_update(ms.module, ms,
                                              was_suspended=True)
                 continue
-            except ModuleErrors, mes:
+            except ModuleErrors as mes:
                 for me in mes.module_errors:
                     me.module.logging.end_update(me.module, me)
                     logging_obj.signalError(me.module, me)
                     abort = abort or me.abort
-            except ModuleError, me:
+            except ModuleError as me:
                 me.module.logging.end_update(me.module, me, me.errorTrace)
                 logging_obj.signalError(me.module, me)
                 abort = me.abort
-            except ModuleBreakpoint, mb:
+            except ModuleBreakpoint as mb:
                 mb.module.logging.end_update(mb.module)
                 logging_obj.signalError(mb.module, mb)
                 abort = True
@@ -559,24 +559,24 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             while result is not None:
                 try:
                     for m in Generator.generators:
-                        result = m.generator.next()
+                        result = next(m.generator)
                     continue
                 except AbortExecution:
                     break
-                except ModuleErrors, mes:
+                except ModuleErrors as mes:
                     for me in mes.module_errors:
                         me.module.logging.end_update(me.module, me)
                         logging_obj.signalError(me.module, me)
                         abort = abort or me.abort
-                except ModuleError, me:
+                except ModuleError as me:
                     me.module.logging.end_update(me.module, me, me.errorTrace)
                     logging_obj.signalError(me.module, me)
                     abort = me.abort
-                except ModuleBreakpoint, mb:
+                except ModuleBreakpoint as mb:
                     mb.module.logging.end_update(mb.module)
                     logging_obj.signalError(mb.module, mb)
                     abort = True
-                except Exception, e:
+                except Exception as e:
                     import traceback
                     traceback.print_exc()
                     abort = True

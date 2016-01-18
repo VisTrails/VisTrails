@@ -36,13 +36,14 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 import os
 import shutil
 
-from parse import run as run_parse
-from diff import compute_diff, apply_diff
-from generate import run as run_generate
+from .parse import run as run_parse
+from .diff import compute_diff, apply_diff
+from .generate import run as run_generate
 
 _bases = ["artists", "plots"]
 

@@ -35,6 +35,7 @@
 ###############################################################################
 # MACOSX binary install stuff
 from __future__ import division
+from __future__ import print_function
 
 import os
 import sys
@@ -50,8 +51,8 @@ def setup_tables(host, port, user, passwd, db):
     try:
         db_connection = io.open_db_connection(config)
         io.setup_db_tables(db_connection)
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
     args = sys.argv
@@ -63,4 +64,4 @@ if __name__ == '__main__':
         db = unicode(args[4])
         setup_tables(host, port, user, passwd, db)
     else:
-        print "Usage: %s host user passwd db" % args[0]
+        print("Usage: %s host user passwd db" % args[0])

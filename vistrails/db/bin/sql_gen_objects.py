@@ -35,8 +35,9 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
-from auto_gen_objects import Object, Property, Choice
+from .auto_gen_objects import Object, Property, Choice
 
 SQL_TYPE = 'sql'
 

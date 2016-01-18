@@ -406,7 +406,7 @@ def save_abstraction(vistrail, fname):
     vistrail.set_annotation(annotation_key, new_namespace)
     save_vistrail_to_xml(vistrail, fname)
 
-def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
+def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1,
                     pipeline=None):
     """make_abstraction(name: str, 
                         vistrail: (str or Vistrail), 
@@ -427,7 +427,7 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
         raise VistrailsInternalError("Abstraction must provide "
                                      "vt_fname with vistrail")
     
-    if internal_version == -1L:
+    if internal_version == -1:
         internal_version = vistrail.get_latest_version()
     action = vistrail.actionMap[internal_version]
     if pipeline is None:
@@ -482,10 +482,10 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     # print "output_ports", d['_output_ports']
     return new_module(Abstraction, name, d, docstring)
 
-def get_abstraction_dependencies(vistrail, internal_version=-1L):
+def get_abstraction_dependencies(vistrail, internal_version=-1):
     if isinstance(vistrail, basestring):
         vistrail = read_vistrail(vistrail)
-    if internal_version == -1L:
+    if internal_version == -1:
         internal_version = vistrail.get_latest_version()
     pipeline = vistrail.getPipeline(internal_version)
 
@@ -501,10 +501,10 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
     pipeline_deps(pipeline)
     return packages
 
-def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
+def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1):
     if isinstance(vistrail, basestring):
         vistrail = read_vistrail(os.path.join(pkg.package_dir, vistrail))
-    if internal_version == -1L:
+    if internal_version == -1:
         internal_version = vistrail.get_latest_version()
     pipeline = vistrail.getPipeline(internal_version)
     abstractions = []

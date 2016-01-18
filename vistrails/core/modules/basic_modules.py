@@ -36,6 +36,7 @@
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
 from __future__ import division
+from __future__ import print_function
 
 import vistrails.core.cache.hasher
 from vistrails.core import debug
@@ -469,7 +470,7 @@ class Directory(Path):
                 self.get_input("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
-            except Exception, e:
+            except Exception as e:
                 raise ModuleError(self, 'mkdir: %s' % format_exception(e))
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
@@ -528,7 +529,7 @@ class FileSink(NotCacheable, Module):
             if self.get_input('overwrite'):
                 try:
                     os.remove(full_path)
-                except OSError, e:
+                except OSError as e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
                     raise ModuleError(self, msg)
@@ -539,15 +540,15 @@ class FileSink(NotCacheable, Module):
 
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
-        except OSError, e:
+        except OSError as e:
             msg = "Could not create file '%s': %s" % (full_path, e)
             raise ModuleError(self, msg)
 
         if (self.has_input("publishFile") and
             self.get_input("publishFile") or 
             not self.has_input("publishFile")):
-            if self.moduleInfo.has_key('extra_info'):
-                if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
+            if 'extra_info' in self.moduleInfo:
+                if 'pathDumpCells' in self.moduleInfo['extra_info']:
                     folder = self.moduleInfo['extra_info']['pathDumpCells']
                     base_fname = os.path.basename(full_path)
                     (base_fname, file_extension) = os.path.splitext(base_fname)
@@ -561,7 +562,7 @@ class FileSink(NotCacheable, Module):
                         counter += 1
                     try:
                         vistrails.core.system.link_or_copy(input_file.name, filename)
-                    except OSError, e:
+                    except OSError as e:
                         msg = "Could not publish file '%s' \n   on  '%s':" % (
                                 full_path, filename)
                         # I am not sure whether we should raise an error
@@ -591,7 +592,7 @@ class DirectorySink(NotCacheable, Module):
                         os.remove(full_path)
                     else:
                         shutil.rmtree(full_path)
-                except OSError, e:
+                except OSError as e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
                     raise ModuleError(
@@ -604,7 +605,7 @@ class DirectorySink(NotCacheable, Module):
             
         try:
             shutil.copytree(input_dir.name, full_path)
-        except OSError, e:
+        except OSError as e:
             msg = 'Could not copy path from "%s" to "%s"' % \
                 (input_dir.name, full_path)
             raise ModuleError(self, '%s\n%s' % (msg, format_exception(e)))
@@ -774,7 +775,7 @@ class StandardOutput(NotCacheable, Module):
             try:
                 fp = open(v.name, 'rb')
             except IOError:
-                print v
+                print(v)
             else:
                 try:
                     CHUNKSIZE = 2048
@@ -789,7 +790,7 @@ class StandardOutput(NotCacheable, Module):
                 finally:
                     fp.close()
         else:
-            print v
+            print(v)
 
 ##############################################################################
 
@@ -1053,7 +1054,7 @@ class CodeRunnerMixin(object):
         if 'source' in locals_:
             del locals_['source']
         # Python 2.6 needs code to end with newline
-        exec code_str + '\n' in locals_, locals_
+        exec(code_str + '\n', locals_, locals_)
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) is not None:
@@ -1226,10 +1227,10 @@ class Generator(object):
         
         """
         items = []
-        item = self.next()
+        item = next(self)
         while item is not None:
             items.append(item)
-            item = self.next()
+            item = next(self)
         return items
 
     @staticmethod
@@ -1243,7 +1244,7 @@ class Generator(object):
             return
         while result is not None:
             for g in Generator.generators:
-                result = g.next()
+                result = next(g)
         Generator.generators = []
 
 ##############################################################################

@@ -296,7 +296,7 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             new_deps = self._current_package.dependencies()
-        except Exception, e:
+        except Exception as e:
             debug.critical("Failed getting dependencies of package %s, "
                            "so it will not be enabled" %
                             self._current_package.name,
@@ -308,7 +308,7 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             pm.check_dependencies(self._current_package, new_deps)
-        except Package.MissingDependency, e:
+        except Package.MissingDependency as e:
             debug.critical("Missing dependencies", e)
         else:
             # Deselects available list to prevent another package from getting
@@ -319,7 +319,7 @@ class QPackagesWidget(QtGui.QWidget):
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except (Package.InitializationFailed, MissingRequirement), e:
+            except (Package.InitializationFailed, MissingRequirement) as e:
                 debug.unexpected_exception(e)
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
@@ -382,7 +382,7 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         try:
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
-        except Package.InitializationFailed, e:
+        except Package.InitializationFailed as e:
             debug.critical("Re-initialization of package '%s' failed" % 
                             codepath,
                             e)
@@ -470,7 +470,7 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             p.load()
-        except Exception, e:
+        except Exception as e:
             msg = 'ERROR: Could not load package.'
             self._name_label.setText(msg)
             self._version_label.setText(msg)
@@ -484,7 +484,7 @@ class QPackagesWidget(QtGui.QWidget):
             try:
                 deps = ', '.join(unicode(d) for d in p.dependencies()) or \
                     'No package dependencies.'
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Failed getting dependencies of package %s" %
                                p.name,
                                e)

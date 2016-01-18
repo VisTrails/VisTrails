@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 import colorsys
 from string import Template
@@ -67,8 +68,8 @@ class TitlesMixin(object):
             table = self.get_input("table")
         title_col_idx = self.force_get_input('titleColIdx')
         title_col_name = self.force_get_input('titleColName')
-        print "title_col_idx:", title_col_idx
-        print "title_col_name:", title_col_name
+        print("title_col_idx:", title_col_idx)
+        print("title_col_name:", title_col_name)
 
         if (title_col_idx is None and
                 title_col_name is None and 
@@ -146,7 +147,7 @@ class GMapMarkers(GMapVis, TitlesMixin):
         (positions, center) = self.get_positions()
         marker_options = self.get_options(self.SPECS)
         titles = self.get_titles()
-        print "got titles:", titles
+        print("got titles:", titles)
         data = {"marker_options": marker_options,
                 "marker_data": positions,
                 "marker_titles": titles}
@@ -260,7 +261,7 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
         use_values = True
         try:
             values = [float(x) for x in self.get_values()]
-        except ValueError, e:
+        except ValueError as e:
             # LEGACY SUPPORT
             if legacy:
                 use_values = False

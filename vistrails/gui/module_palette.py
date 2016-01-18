@@ -41,6 +41,7 @@ QModuleTreeWidget
 QModuleTreeWidgetItem
 """
 from __future__ import division
+from __future__ import absolute_import
 
 import os
 import traceback
@@ -122,7 +123,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
                                            QtCore.Qt.MatchWrap |
                                            QtCore.Qt.MatchRecursive)
                  if not x.is_top_level() and x.descriptor == descriptor]
-        if len(items) <> 1:
+        if len(items) != 1:
             raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
                                          (moduleName,
                                           len(items),
@@ -306,7 +307,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
                             menu.addAction(act)
                         menu.exec_(event.globalPos())
                     return
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.warning("Got exception trying to display %s's "
                               "context menu in the palette: %s\n%s" % (
@@ -503,13 +504,13 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         menu.exec_(event.globalPos())
 
     def view_documentation(self):
-        from vistrails_window import _app
+        from .vistrails_window import _app
         _app.show_documentation()
         widget = QModuleDocumentation.instance()
         widget.update_descriptor(self.descriptor)
 
     def edit_subworkflow(self):
-        from vistrails_window import _app
+        from .vistrails_window import _app
         filename = self.descriptor.module.vt_fname
         _app.openAbstraction(filename)
 

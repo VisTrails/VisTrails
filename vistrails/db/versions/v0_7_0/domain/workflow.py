@@ -35,9 +35,10 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
-from auto_gen import DBWorkflow as _DBWorkflow
-from id_scope import IdScope
+from .auto_gen import DBWorkflow as _DBWorkflow
+from .id_scope import IdScope
 
 import copy
 

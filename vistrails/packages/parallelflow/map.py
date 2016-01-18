@@ -113,7 +113,7 @@ def execute_wf(wf, output_port):
             action_list.append(('add', connection))
         action = vistrails.core.db.action.create_action(action_list)
 
-        vistrail.add_action(action, 0L)
+        vistrail.add_action(action, 0)
         vistrail.update_id_scope()
         tag = 'parallel flow'
         vistrail.addTag(tag, action.id)
@@ -321,7 +321,7 @@ class Map(Module):
                     mod_function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
                                                   pos=0,
                                                   name=inputPort)
-                    mod_param = ModuleParam(id=0L,
+                    mod_param = ModuleParam(id=0,
                                             pos=0,
                                             type=type,
                                             val=elementValue)
@@ -339,7 +339,7 @@ class Map(Module):
         # IPython stuff
         try:
             rc = get_client()
-        except Exception, error:
+        except Exception as error:
             raise ModuleError(self, "Exception while loading IPython: %s" %
                               debug.format_exception(error))
         if rc is None:
@@ -386,7 +386,7 @@ class Map(Module):
                         '        {"spawned": True},'
                         '        args=[])',
                         block=True)
-            except CompositeError, e:
+            except CompositeError as e:
                 self.print_compositeerror(e)
                 raise ModuleError(self, "Error initializing application on "
                                   "IPython engines:\n"
@@ -402,7 +402,7 @@ class Map(Module):
         try:
             ldview = rc.load_balanced_view()
             map_result = ldview.map_sync(execute_wf, workflows, [nameOutput]*len(workflows))
-        except CompositeError, e:
+        except CompositeError as e:
             self.print_compositeerror(e)
             raise ModuleError(self, "Error from IPython engines:\n"
                               "%s" % self.list_exceptions(e))

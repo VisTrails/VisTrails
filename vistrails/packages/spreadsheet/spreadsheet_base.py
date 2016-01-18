@@ -202,7 +202,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         """
         cell = self.getCell(row, col)
         if cell and hasattr(cell, 'toolBarType'):
-            if not self.toolBars.has_key(cell.toolBarType):
+            if cell.toolBarType not in self.toolBars:
                 self.toolBars[cell.toolBarType] = cell.toolBarType(self)
             return self.toolBars[cell.toolBarType]
         else:

@@ -120,7 +120,7 @@ def link_or_copy(src, dst):
     # Links if possible, but we're across devices, we need to copy.
     try:
         os.link(src, dst)
-    except OSError, e:
+    except OSError as e:
         if e.errno == 18:
             # Across-device linking is not possible. Let's copy.
             shutil.copyfile(src, dst)

@@ -282,7 +282,7 @@ class VistrailsStartup(DBStartup):
             try:
                 os.mkdir(dir_name)
                 return True
-            except Exception, e:
+            except Exception as e:
                 msg = ("Failed to create directory: '%s'."
                        "This could be an indication of a permissions problem."
                        "Make sure directory '%s' in writable." %

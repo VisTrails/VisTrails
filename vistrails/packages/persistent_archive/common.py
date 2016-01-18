@@ -132,7 +132,7 @@ class PersistentHash(Constant):
         else:
             try:
                 self._set_hash(self.get_input('hash'))
-            except ValueError, e:
+            except ValueError as e:
                 raise ModuleError(self, e.message)
 
 PersistentHash._input_ports = [

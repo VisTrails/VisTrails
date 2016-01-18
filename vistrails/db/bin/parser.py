@@ -35,10 +35,12 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from xml.dom import minidom, Node
-from auto_gen_objects import Object, Property, Choice
+from .auto_gen_objects import Object, Property, Choice
 
 class AutoGenParser(object):
     def __init__(self):
@@ -63,7 +65,7 @@ class AutoGenParser(object):
                     try:
                         prop.setReferencedObject(objects[prop.getReference()])
                     except KeyError:
-                        print 'error:', prop.getReference()
+                        print('error:', prop.getReference())
             for choice in obj.choices:
                 for prop in choice.properties:
                     if prop.getReference():
@@ -71,7 +73,7 @@ class AutoGenParser(object):
                             prop.setReferencedObject(
                                 objects[prop.getReference()])
                         except KeyError:
-                            print 'error:', prop.getReference()
+                            print('error:', prop.getReference())
                 
         return objects.values()
 

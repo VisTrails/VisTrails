@@ -46,8 +46,9 @@ Qt's WebKit in the spreadsheet.
 
 
 from __future__ import division
+from __future__ import absolute_import
 
-from identifiers import *
+from .identifiers import *
 
 
 def package_dependencies():

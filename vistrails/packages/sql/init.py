@@ -81,7 +81,7 @@ class DBConnection(Module):
 
         try:
             engine = create_engine(url)
-        except ImportError, e:
+        except ImportError as e:
             driver = url.drivername
             installed = False
             if driver == 'sqlite':
@@ -123,7 +123,7 @@ class DBConnection(Module):
                                   "Failed to install required driver")
             try:
                 engine = create_engine(url)
-            except Exception, e:
+            except Exception as e:
                 raise ModuleError(self,
                                   "Couldn't connect to the database: %s" %
                                   debug.format_exception(e))
@@ -176,7 +176,7 @@ class SQLSource(Module):
                 self.set_output('result', table)
                 self.set_output('resultSet', rows)
             transaction.commit()
-        except SQLAlchemyError, e:
+        except SQLAlchemyError as e:
             raise ModuleError(self, debug.format_exception(e))
 
 

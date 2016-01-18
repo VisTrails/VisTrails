@@ -34,6 +34,8 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import shutil
@@ -48,7 +50,7 @@ if vistrails_src not in sys.path:
 
 import vistrails.db.services.io
 
-from identifiers import identifier as persistence_pkg, \
+from .identifiers import identifier as persistence_pkg, \
     old_identifiers as persistence_old_ids
 persistence_pkg_ids = set(persistence_old_ids)
 persistence_pkg_ids.add(persistence_pkg)
@@ -108,9 +110,9 @@ if __name__ == '__main__':
     all_files, tags = find_files(fname, version)
     for version, filenames in all_files.iteritems():
         if version in tags:
-            print unicode(version) + ' (' + tags[version] + '):'
+            print(unicode(version) + ' (' + tags[version] + '):')
         else:
-            print unicode(version) + ':'
+            print(unicode(version) + ':')
         for fname in filenames:
-            print ' ', fname
+            print(' ', fname)
                     

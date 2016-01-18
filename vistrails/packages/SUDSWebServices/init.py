@@ -139,7 +139,7 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating SUDS cache directory...")
             os.mkdir(location)
-        except OSError, e:
+        except OSError as e:
             debug.critical(
 """Could not create SUDS cache directory. Make sure
 '%s' does not exist and parent directory is writable""" % location, e)
@@ -607,7 +607,7 @@ It is a WSDL type with signature:
                     #print "result:", unicode(result)[:400]
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
                             mname, debug.format_exception(e)))
@@ -688,7 +688,7 @@ def load_from_signature(signature):
     if not wsdl in wsdlList:
         try:
             service = Service(wsdl)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             return False
         if not service.service:
@@ -730,7 +730,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         try:
             return UpgradeWorkflowHandler.replace_module(controller, pipeline,
                                                     module_id, new_descriptor)
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             raise
@@ -747,7 +747,7 @@ def handle_missing_module(controller, module_id, pipeline):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             return None
     

@@ -455,7 +455,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         try:
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
-        except PortAlreadyExists, e:
+        except PortAlreadyExists as e:
             debug.critical('Port Already Exists %s' % unicode(e))
             return False
         return True            
@@ -558,7 +558,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         try:
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
-        except PortAlreadyExists, e:
+        except PortAlreadyExists as e:
             debug.critical('Port Already Exists %s' % e)
             return False
         return True

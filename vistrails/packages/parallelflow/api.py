@@ -61,6 +61,7 @@ prompt the user to start a cluster if none is available. It is True by default
 
 
 from __future__ import division
+from __future__ import absolute_import
 
 __all__ = ['get_client', 'direct_view', 'load_balanced_view', 'parallel_map']
 
@@ -71,7 +72,7 @@ def get_client(ask=True):
     This may return None if no client is available, if the user cancels, etc.
     In this case, you might want to raise a ModuleError.
     """
-    from engine_manager import EngineManager
+    from .engine_manager import EngineManager
 
     c = EngineManager.ensure_controller(connect_only=not ask)
     if c is not None and ask and not c.ids:
@@ -134,7 +135,7 @@ def parallel_map(function, *args, **kwargs):
     except ImportError:
         result, ipython = map(function, *args), False
     else:
-        from engine_manager import EngineManager
+        from .engine_manager import EngineManager
         c = EngineManager.ensure_controller(connect_only=not ask)
         if c is not None and not c.ids:
             EngineManager.start_engines(

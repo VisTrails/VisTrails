@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import math
 
@@ -89,15 +90,15 @@ class Point(object):
 
     def show_comparison(self, other):
         if type(self) != type(other):
-            print "Type mismatch"
+            print("Type mismatch")
             return
         l = (self - other).length()
         if l >= self.eq_delta:
-            print "Points are too far away:"
-            print self
-            print other
+            print("Points are too far away:")
+            print(self)
+            print(other)
         else:
-            print "No difference found: delta is %f" % l
+            print("No difference found: delta is %f" % l)
             assert self == other
 
     ##########################################################################

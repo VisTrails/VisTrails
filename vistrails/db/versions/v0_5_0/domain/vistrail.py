@@ -35,9 +35,10 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
-from auto_gen import DBVistrail as _DBVistrail
-from id_scope import IdScope
+from .auto_gen import DBVistrail as _DBVistrail
+from .id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):

@@ -35,10 +35,12 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import re
 from xml.etree import ElementTree as ET
-from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
+from .specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
 def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier, 
@@ -56,7 +58,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
     in_port_specs_set = set(in_port_specs.iterkeys())
 
     for arg in in_port_specs_set - out_port_specs_set:
-        print "- %s.%s.%s" % (code_ref, qualifier, arg)
+        print("- %s.%s.%s" % (code_ref, qualifier, arg))
         elt = ET.Element("deletePortSpec")
         elt.set("code_ref", code_ref)
         if qualifier == "alternate":
@@ -69,9 +71,9 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
 
     for arg, out_ps in out_port_specs.iteritems():
         if arg not in in_port_specs:
-            print "out_ps:", out_ps
-            print "+ %s.%s.%s %s" % (code_ref, qualifier, arg, 
-                                     ET.tostring(out_ps.to_xml()))
+            print("out_ps:", out_ps)
+            print("+ %s.%s.%s %s" % (code_ref, qualifier, arg, 
+                                     ET.tostring(out_ps.to_xml())))
             elt = ET.Element("addPortSpec")
             elt.set("code_ref", code_ref)
             if qualifier == "alternate":
@@ -100,8 +102,8 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
             in_val = getattr(in_ps, attr) 
             out_val = getattr(out_ps, attr)
             if in_val != out_val:
-                print "C %s.%s.%s.%s %s" % (code_ref, qualifier, arg, attr, 
-                                            out_val)
+                print("C %s.%s.%s.%s %s" % (code_ref, qualifier, arg, attr, 
+                                            out_val))
                 elt = ET.Element("changePortSpec")
                 elt.set("code_ref", code_ref)
                 if qualifier == "alternate":
@@ -140,7 +142,7 @@ def compute_diff(in_fname, out_fname, diff_fname):
         root.append(elt)
 
     for ref in in_refs_set - out_refs_set:
-        print "- %s" % ref
+        print("- %s" % ref)
         elt = ET.Element("deleteModule")
         elt.set("code_ref", ref)
         root.append(elt)
@@ -148,7 +150,7 @@ def compute_diff(in_fname, out_fname, diff_fname):
     for code_ref, out_spec in out_refs.iteritems():
         # need to check port specs, which removed, which added
         if code_ref not in in_refs:
-            print "+ %s %s" % (ref, ET.tostring(out_spec.to_xml()))
+            print("+ %s %s" % (ref, ET.tostring(out_spec.to_xml())))
             elt = ET.Element("addModule")
             elt.set("code_ref", ref)
             subelt = ET.Element("value")
@@ -163,7 +165,7 @@ def compute_diff(in_fname, out_fname, diff_fname):
             in_val = getattr(in_spec, attr)
             out_val = getattr(out_spec, attr)
             if in_val != out_val:
-                print "C %s.%s %s" % (out_spec.code_ref, attr, out_val)
+                print("C %s.%s %s" % (out_spec.code_ref, attr, out_val))
                 elt = ET.Element("changeModule")
                 elt.set("code_ref", out_spec.code_ref)
                 elt.set("attr", attr)
@@ -296,7 +298,7 @@ def run_apply():
     apply_diff("mpl_plots_raw.xml", "mpl_plots_diff.xml", "mpl_plots.xml")
 
 def usage():
-    print "Usage: %s %s [apply|compute]" % (sys.executable, sys.argv[0])
+    print("Usage: %s %s [apply|compute]" % (sys.executable, sys.argv[0]))
 
 if __name__ == '__main__':
     import sys

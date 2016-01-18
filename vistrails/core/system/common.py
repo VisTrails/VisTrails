@@ -95,7 +95,7 @@ def current_ip():
         for i in info:
             if i[0] in (socket.AF_INET, socket.AF_INET6):
                 return i[4][0]
-    except Exception, e:
+    except Exception as e:
         debug.unexpected_exception(e)
         return ''
 

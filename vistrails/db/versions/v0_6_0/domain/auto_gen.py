@@ -70,7 +70,7 @@ class DBPortSpec(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -204,7 +204,7 @@ class DBModule(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -383,13 +383,13 @@ class DBModule(object):
         del self.__db_annotations[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        if self.__db_annotations.has_key(key):
+        if key in self.__db_annotations:
             return self.__db_annotations[key]
         return None
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def __get_db_portSpecs(self):
         return self.__db_portSpecs
@@ -412,13 +412,13 @@ class DBModule(object):
         del self.__db_portSpecs[portSpec.db_id]
         del self.db_portSpecs_name_index[portSpec.db_name]
     def db_get_portSpec(self, key):
-        if self.__db_portSpecs.has_key(key):
+        if key in self.__db_portSpecs:
             return self.__db_portSpecs[key]
         return None
     def db_get_portSpec_by_name(self, key):
         return self.db_portSpecs_name_index[key]
     def db_has_portSpec_with_name(self, key):
-        return self.db_portSpecs_name_index.has_key(key)
+        return key in self.db_portSpecs_name_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -449,9 +449,9 @@ class DBTag(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('action', obj.db_id)):
+            if ('action', obj.db_id) in id_remap:
                 obj.db_id = id_remap[('action', obj.db_id)]
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -523,9 +523,9 @@ class DBPort(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('module', obj.db_moduleId)):
+            if ('module', obj.db_moduleId) in id_remap:
                 obj.db_moduleId = id_remap[('module', obj.db_moduleId)]
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -644,7 +644,7 @@ class DBLog(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -706,7 +706,7 @@ class DBLog(object):
         self.is_dirty = True
         del self.__db_workflow_execs[workflow_exec.db_id]
     def db_get_workflow_exec(self, key):
-        if self.__db_workflow_execs.has_key(key):
+        if key in self.__db_workflow_execs:
             return self.__db_workflow_execs[key]
         return None
     
@@ -728,7 +728,7 @@ class DBLog(object):
         self.is_dirty = True
         del self.__db_machines[machine.db_id]
     def db_get_machine(self, key):
-        if self.__db_machines.has_key(key):
+        if key in self.__db_machines:
             return self.__db_machines[key]
         return None
     
@@ -777,7 +777,7 @@ class DBMachine(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -946,7 +946,7 @@ class DBAdd(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -1072,7 +1072,7 @@ class DBOther(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -1153,7 +1153,7 @@ class DBLocation(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -1256,7 +1256,7 @@ class DBWorkflowExec(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -1425,7 +1425,7 @@ class DBWorkflowExec(object):
         self.is_dirty = True
         del self.__db_module_execs[module_exec.db_id]
     def db_get_module_exec(self, key):
-        if self.__db_module_execs.has_key(key):
+        if key in self.__db_module_execs:
             return self.__db_module_execs[key]
         return None
     
@@ -1468,7 +1468,7 @@ class DBFunction(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -1683,7 +1683,7 @@ class DBAbstraction(object):
         self.is_dirty = True
         del self.__db_actions[action.db_id]
     def db_get_action(self, key):
-        if self.__db_actions.has_key(key):
+        if key in self.__db_actions:
             return self.__db_actions[key]
         return None
     
@@ -1708,13 +1708,13 @@ class DBAbstraction(object):
         del self.__db_tags[tag.db_id]
         del self.db_tags_name_index[tag.db_name]
     def db_get_tag(self, key):
-        if self.__db_tags.has_key(key):
+        if key in self.__db_tags:
             return self.__db_tags[key]
         return None
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
-        return self.db_tags_name_index.has_key(key)
+        return key in self.db_tags_name_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -1785,7 +1785,7 @@ class DBWorkflow(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -1890,7 +1890,7 @@ class DBWorkflow(object):
         self.is_dirty = True
         del self.__db_modules[module.db_id]
     def db_get_module(self, key):
-        if self.__db_modules.has_key(key):
+        if key in self.__db_modules:
             return self.__db_modules[key]
         return None
     
@@ -1912,7 +1912,7 @@ class DBWorkflow(object):
         self.is_dirty = True
         del self.__db_connections[connection.db_id]
     def db_get_connection(self, key):
-        if self.__db_connections.has_key(key):
+        if key in self.__db_connections:
             return self.__db_connections[key]
         return None
     
@@ -2000,7 +2000,7 @@ class DBWorkflow(object):
         self.is_dirty = True
         del self.__db_abstractionRefs[abstractionRef.db_id]
     def db_get_abstractionRef(self, key):
-        if self.__db_abstractionRefs.has_key(key):
+        if key in self.__db_abstractionRefs:
             return self.__db_abstractionRefs[key]
         return None
     
@@ -2035,7 +2035,7 @@ class DBAbstractionRef(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -2116,7 +2116,7 @@ class DBAnnotation(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -2205,7 +2205,7 @@ class DBChange(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -2350,7 +2350,7 @@ class DBParameter(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -2479,7 +2479,7 @@ class DBConnection(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -2551,7 +2551,7 @@ class DBConnection(object):
     def db_get_port_by_type(self, key):
         return self.db_ports_type_index[key]
     def db_has_port_with_type(self, key):
-        return self.db_ports_type_index.has_key(key)
+        return key in self.db_ports_type_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -2607,7 +2607,7 @@ class DBAction(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -2711,13 +2711,13 @@ class DBAction(object):
         del self.__db_annotations[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        if self.__db_annotations.has_key(key):
+        if key in self.__db_annotations:
             return self.__db_annotations[key]
         return None
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def __get_db_operations(self):
         return self.__db_operations
@@ -2787,7 +2787,7 @@ class DBDelete(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):
@@ -3063,7 +3063,7 @@ class DBVistrail(object):
         self.is_dirty = True
         del self.__db_actions[action.db_id]
     def db_get_action(self, key):
-        if self.__db_actions.has_key(key):
+        if key in self.__db_actions:
             return self.__db_actions[key]
         return None
     
@@ -3088,13 +3088,13 @@ class DBVistrail(object):
         del self.__db_tags[tag.db_id]
         del self.db_tags_name_index[tag.db_name]
     def db_get_tag(self, key):
-        if self.__db_tags.has_key(key):
+        if key in self.__db_tags:
             return self.__db_tags[key]
         return None
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
-        return self.db_tags_name_index.has_key(key)
+        return key in self.db_tags_name_index
     
     def __get_db_abstractions(self):
         return self.__db_abstractions
@@ -3114,7 +3114,7 @@ class DBVistrail(object):
         self.is_dirty = True
         del self.__db_abstractions[abstraction.db_id]
     def db_get_abstraction(self, key):
-        if self.__db_abstractions.has_key(key):
+        if key in self.__db_abstractions:
             return self.__db_abstractions[key]
         return None
     
@@ -3161,9 +3161,9 @@ class DBModuleExec(object):
             id_remap[(obj.vtType, obj.db_id)] = new_id
             obj.db_id = new_id
         for (obj, _, _) in children:
-            if id_remap.has_key(('module', obj.db_module_id)):
+            if ('module', obj.db_module_id) in id_remap:
                 obj.db_module_id = id_remap[('module', obj.db_module_id)]
-            if id_remap.has_key(('vistrail', obj.db_vistrailId)):
+            if ('vistrail', obj.db_vistrailId) in id_remap:
                 obj.db_vistrailId = id_remap[('vistrail', obj.db_vistrailId)]
         
     def db_children(self, parent=(None,None), orphan=False):

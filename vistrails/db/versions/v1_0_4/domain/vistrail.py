@@ -35,13 +35,14 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 import copy
 import hashlib
-from auto_gen import DBVistrail as _DBVistrail
-from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
+from .auto_gen import DBVistrail as _DBVistrail
+from .auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
     DBModule, DBAnnotation, DBActionAnnotation, DBParameterExploration
-from id_scope import IdScope
+from .id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):

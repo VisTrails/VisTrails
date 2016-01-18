@@ -35,9 +35,11 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import inspect
-import mixins
+from . import mixins
 from xml.etree import ElementTree as ET
 
 def capfirst(s):
@@ -286,7 +288,7 @@ class PortSpec(object):
                     attr_vals = [c.text for c in child_elts[attr]
                                  if c.text is not None]
                     if attr == "docstring":
-                        print "()() docstring attr_vals:", attr_vals
+                        print("()() docstring attr_vals:", attr_vals)
             else:
                 attr_val = elt.get(attr)
                 if attr_val is not None:
@@ -423,18 +425,18 @@ class AlternatePortSpec(InputPortSpec):
         self.arg = self._parent.arg
 
     def get_port_attr_dict(self):
-        print "CALLING AlternatePortSpec.get_port_attr_dict", self.arg
+        print("CALLING AlternatePortSpec.get_port_attr_dict", self.arg)
         my_attrs = InputPortSpec.get_port_attr_dict(self)
-        print "=> my_attrs:", my_attrs
+        print("=> my_attrs:", my_attrs)
         par_attrs = self._parent.get_port_attr_dict()
-        print "=> par_attrs:", par_attrs
+        print("=> par_attrs:", par_attrs)
         for k, v in par_attrs.iteritems():
             if k == 'defaults' or k == "values" or k == "entry_types" or \
                     k == "translations":
                 continue
             if k not in my_attrs or my_attrs[k] is None:
                 my_attrs[k] = v
-        print my_attrs
+        print(my_attrs)
         return my_attrs
 
 class OutputPortSpec(PortSpec):

@@ -45,5 +45,6 @@ check is performed efficiently using HTTP headers.
 """
 
 from __future__ import division
+from __future__ import absolute_import
 
-from identifiers import *
+from .identifiers import *

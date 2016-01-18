@@ -65,7 +65,7 @@ def patch_methods(base_module, cls):
 
     instance_dict = {}
     def update_dict(name, callable_):
-        if instance_dict.has_key(name):
+        if name in instance_dict:
             instance_dict[name] = callable_(types.MethodType(instance_dict[name], base_module))
         elif hasattr(base_module, name):
             instance_dict[name] = callable_(getattr(base_module, name))
@@ -82,7 +82,7 @@ def patch_methods(base_module, cls):
             def ProgressEvent(obj, event):
                 try:
                     self._callback(obj.GetProgress())
-                except Exception, e:
+                except Exception as e:
                     if e.__name__ == 'AbortExecution':
                         obj.SetAbortExecute(True)
                         self.RemoveObserver(cbId)

@@ -34,10 +34,11 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.modules.utils import make_modules_dict
 
-from convert_dates import _modules as dates_modules
+from .convert_dates import _modules as dates_modules
 from .convert_numpy import _modules as numpy_modules
 
 

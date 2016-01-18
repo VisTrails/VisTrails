@@ -258,7 +258,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 try:
                     shutil.copyfile(thumbnail, cachedir_thumbnail)
                     new_thumbnails.append(cachedir_thumbnail)
-                except Exception, e:
+                except Exception as e:
                     debug.critical("copying %s -> %s failed" % (
                                    thumbnail, cachedir_thumbnail),
                                    e)
@@ -326,10 +326,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 config['succeeded'] = True
                 config['name'] = '%s@%s'%(self._user,self._host)
                 config['id'] = -1
-            except VistrailsDBException, e:
+            except VistrailsDBException as e:
                 debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
-            except Exception, e2:
+            except Exception as e2:
                 debug.critical('VisTrails Exception', e2)
                 config['succeeded'] = False
         if config is not None:
@@ -347,7 +347,7 @@ class DBLocator(_DBLocator, CoreLocator):
                     test_db_connection(dbconfig)
                     config['succeeded'] = True
                     config['passwd'] = self._passwd
-                except VistrailsDBException, e:
+                except VistrailsDBException as e:
                     debug.critical('VisTrails DB Exception', e)
                     config['succeeded'] = False
             

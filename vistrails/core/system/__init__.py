@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division, with_statement
+from __future__ import absolute_import
 
 import datetime
 import functools
@@ -51,7 +52,7 @@ from vistrails.core.utils import unimplemented, VistrailsDeprecation, Chdir
 
 ###############################################################################
 
-from common import *
+from .common import *
 
 def with_c_locale(func):
     @functools.wraps(func)
@@ -319,7 +320,7 @@ def get_latest_vistrails_version():
         request = urllib2.Request(version_url)
         get_latest_version = urllib2.urlopen(request)
         version = get_latest_version.read().strip()
-    except urllib2.HTTPError, err:
+    except urllib2.HTTPError as err:
         debug.warning("Unable to check for updates: %s" % unicode(err))
         return version
 

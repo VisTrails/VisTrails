@@ -45,6 +45,7 @@ a container of a sheet:
 """
 
 from __future__ import division
+from __future__ import absolute_import
 
 import os.path
 from PyQt4 import QtCore, QtGui
@@ -57,7 +58,7 @@ from .spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
 from .spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 from .spreadsheet_config import configuration
-import spreadsheet_rc
+from . import spreadsheet_rc
 
 
 class SizeSpinBox(QtGui.QSpinBox):

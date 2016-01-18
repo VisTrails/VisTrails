@@ -229,13 +229,13 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                     try:
                         custom_color = parse_custom_color(custom_color.value)
                         custom_color = QtGui.QColor(*custom_color)
-                    except ValueError, e:
+                    except ValueError as e:
                         debug.warning("Version %r has invalid color "
                                       "annotation (%s)" % (versionNumber, e))
                         custom_color = None
                 self.customColor.setColor(custom_color)
 
-            if vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in vistrail.actionMap:
                 # Follow upgrades forward to find tag
                 tag = vistrail.search_upgrade_versions(
                         versionNumber,
@@ -328,7 +328,7 @@ class QVersionNotes(QtGui.QTextEdit):
             return
         self.versionNumber = versionNumber
         if self.controller:
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in self.controller.vistrail.actionMap:
                 # Follow upgrades forward to find notes
                 notes = self.controller.vistrail.search_upgrade_versions(
                         versionNumber,
@@ -515,7 +515,7 @@ class QVersionPropOverlay(QtGui.QFrame):
 
         self.notes_dialog.updateVersion(versionNumber)
         if self.controller:
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in self.controller.vistrail.actionMap:
                 vistrail = self.controller.vistrail
                 # Follow upgrades forward to find tag
                 tag = vistrail.search_upgrade_versions(
@@ -730,7 +730,7 @@ class QNotesDialog(QtGui.QDialog):
         """
         self.notes.updateVersion(versionNumber)
         if self.controller:
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if versionNumber in self.controller.vistrail.actionMap:
                 # Follow upgrades forward to find tag
                 tag = self.controller.vistrail.search_upgrade_versions(
                         versionNumber,
@@ -912,7 +912,7 @@ class QVersionMashups(QtGui.QWidget):
     def openMashup(self, version):
         from vistrails.gui.mashups.mashups_manager import MashupsManager
         item_key = (self.mtrail.id, version)
-        if self.apps.has_key(item_key):
+        if item_key in self.apps:
             app = self.apps[item_key]
             if app:
                 app.activateWindow()

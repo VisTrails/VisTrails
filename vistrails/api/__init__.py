@@ -203,7 +203,7 @@ def get_selected_modules(controller=None):
         modules.append(controller.current_pipeline.modules[m_id])
     return modules
     
-def change_parameter(module_id, function_name, param_list, function_id=-1L,
+def change_parameter(module_id, function_name, param_list, function_id=-1,
                      alias_list=[], controller=None):
     """change_parameter(module_id: long, 
                         function_name: str, 

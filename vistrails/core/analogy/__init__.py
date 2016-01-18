@@ -34,6 +34,8 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
@@ -47,7 +49,7 @@ from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 import copy
 from vistrails.core.vistrail.pipeline import Pipeline
 
-from eigen import *
+from .eigen import *
 
 ##########################################################################
 
@@ -69,9 +71,9 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
     #     pipeline_a = Pipeline(vistrail.actionChain(version_a))
 
     if _debug:
-        print 'version_a:', version_a
-        print 'version_b:', version_b
-        print 'version_c:', version_c
+        print('version_a:', version_a)
+        print('version_b:', version_b)
+        print('version_c:', version_c)
 
     if pipeline_a is None:
         pipeline_a = vistrails.core.db.io.get_workflow(vistrail, version_a)
@@ -88,16 +90,16 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
      combined_module_remap) = e.solve()
 
     if _debug:
-        print 'Input remap'
-        print input_module_remap
-        print 'Output remap'
-        print output_module_remap
-        print 'Combined remap'
-        print combined_module_remap
+        print('Input remap')
+        print(input_module_remap)
+        print('Output remap')
+        print(output_module_remap)
+        print('Combined remap')
+        print(combined_module_remap)
 
     module_remap = combined_module_remap
     if _debug:
-        print "Computing names..."
+        print("Computing names...")
         
     def name_remap(d):
         return dict([(from_id,
@@ -110,8 +112,8 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
     output_module_name_remap = name_remap(output_module_remap)
 
     if _debug:
-        print 'Name remap'
-        print module_name_remap
+        print('Name remap')
+        print(module_name_remap)
 
     # find connection remap
     connection_remap = {}
@@ -130,8 +132,8 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
         if match is not None:
             connection_remap[a_connect.id] = match.id
         elif _debug:
-            print "failed to find connection match", a_connect.id, a_source, \
-                a_dest
+            print("failed to find connection match", a_connect.id, a_source, \
+                a_dest)
 
     # find function remap
 
@@ -212,7 +214,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
             if (op.what == 'module' or 
                 op.what == 'abstraction' or 
                 op.what == 'group'):
-                if module_remap.has_key(op.old_obj_id):
+                if op.old_obj_id in module_remap:
                     remap_id = module_remap[op.old_obj_id]
                     module = pipeline_c.modules[remap_id]
                     graph = pipeline_c.graph
@@ -228,7 +230,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                     ops.append(op)
                     c_modules.discard(op.old_obj_id)
             elif op.what == 'connection':
-                if connection_remap.has_key(op.old_obj_id):
+                if op.old_obj_id in connection_remap:
                     conn = pipeline_c.connections[connection_remap[ \
                             op.old_obj_id]]
                     ops.extend(vistrails.core.db.io.create_delete_op_chain(conn))
@@ -272,7 +274,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
             if parent_obj_type == 'abstraction' or parent_obj_type == 'group':
                 parent_obj_type = 'module'
             if op.parentObjId is not None and \
-                    id_remap.has_key((parent_obj_type, op.parentObjId)):
+                    (parent_obj_type, op.parentObjId) in id_remap:
                 op.parentObjId = id_remap[(parent_obj_type, op.parentObjId)]
             if op.what == 'location':
                 # need to make this a 'change' if it's an 'add' and
@@ -352,7 +354,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                                 # Now try to find an imperfect one
                                 for (klass_name, ports) in all_ports:
                                     for candidate_port in ports:
-                                        print candidate_port
+                                        print(candidate_port)
                                         if candidate_port.type_equals(pspec):
                                             #print "found imperfect match"
                                             port.name = candidate_port.name
@@ -360,7 +362,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                                             return True
                                 return False
                             if not remap():
-                                print "COULD NOT FIND source MATCH!!!"
+                                print("COULD NOT FIND source MATCH!!!")
                         except KeyError:
                             # This happens when the module was added as part of the analogy
                             port.moduleName = module_name_remap[port.moduleId]
@@ -402,7 +404,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                                             return True
                                 return False
                             if not remap():
-                                print "COULD NOT FIND destination MATCH!!!"
+                                print("COULD NOT FIND destination MATCH!!!")
                             remap()
                         except KeyError:
                             # This happens when the module was added as part of the analogy

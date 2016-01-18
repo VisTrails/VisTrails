@@ -310,7 +310,7 @@ class ModuleDescriptor(DBModuleDescriptor):
         if hasattr(self.module, 'get_documentation'):
             try:
                 doc = self.module.get_documentation(doc, module)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Exception calling get_documentation on %r" %
                                self.module,
                                e)

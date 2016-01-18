@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import os
 import sys
@@ -106,7 +107,7 @@ class VistrailsApplicationInterface(object):
         try:
             parser.parse_args(args, namespace=command_line_config)
         except SystemError:
-            print "GOT SYSTEM ERROR!"
+            print("GOT SYSTEM ERROR!")
             debug.print_exc()
 
         self.input = command_line_config.vistrails
@@ -313,7 +314,7 @@ class VistrailsApplicationInterface(object):
         if notification_id not in notifications:
             notifications[notification_id] = set()
         else:
-            print "already added notification", notification_id
+            print("already added notification", notification_id)
 
     def register_notification(self, notification_id, method, *args, **kwargs):
         notifications = self.notifications     
@@ -338,7 +339,7 @@ class VistrailsApplicationInterface(object):
                 try:
                     #print "  m: ", m
                     m(*args)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
 
@@ -387,7 +388,7 @@ class VistrailsApplicationInterface(object):
             try:
                 version = \
                     self.get_controller().vistrail.get_version_number(version)
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 version = None
         return version
@@ -484,7 +485,7 @@ class VistrailsApplicationInterface(object):
         controller.flush_delayed_actions()
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Failed to save vistrail", debug.format_exc())
             raise
@@ -507,7 +508,7 @@ class VistrailsApplicationInterface(object):
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
-        except Exception, e:
+        except Exception as e:
             debug.critical('Failed to index vistrail', debug.format_exc())
         return controller.locator
 
@@ -557,7 +558,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             locator = self._cur_controller.locator
         del self._controllers[locator]
         if len(self._controllers) > 0:
-            self._cur_controller = self._controllers.itervalues().next()
+            self._cur_controller = next(self._controllers.itervalues())
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:

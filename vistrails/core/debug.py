@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import inspect
 import logging
@@ -92,12 +93,12 @@ def unexpected_exception(e, tb=None, frame=None):
         QtCore.pyqtRemoveInputHook()
 
     # Prints the exception and traceback
-    print >>sys.stderr, "!!!!!!!!!!"
-    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    print("!!!!!!!!!!", file=sys.stderr)
+    print("Got unexpected exception, starting debugger", file=sys.stderr)
     print_exception(None, e, tb, 3, file=sys.stderr)
 
     # Starts the debugger
-    print >>sys.stderr, "!!!!!!!!!!"
+    print("!!!!!!!!!!", file=sys.stderr)
     # pdb.post_mortem()
     p = pdb.Pdb()
     p.reset()
@@ -356,7 +357,7 @@ class DebugPrint(object):
             self.fhandler = handler
             self.logger.addHandler(handler)
 
-        except Exception, e:
+        except Exception as e:
             self.critical("Could not set log file %s:" % f, e)
 
     def log_to_console(self, enable=True):

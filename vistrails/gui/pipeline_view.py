@@ -196,7 +196,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         Set this link to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             self.setPainterState()
 
@@ -584,7 +584,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Set this link to be ghosted or not
         
         """
-        if ghosted <> self.ghosted:
+        if ghosted != self.ghosted:
             self.ghosted = ghosted
             if ghosted:
                 self.setPen(CurrentTheme.GHOSTED_CONFIGURE_PEN)
@@ -1143,9 +1143,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 new_op = sorted([x.key_no_id() 
                                  for x in core_module.sourcePorts()
                                  if (not x.optional or x._db_name in opv)])
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
-            if cip <> new_ip or cop <> new_op:
+            if cip != new_ip or cop != new_op:
                 return True
         return False
 
@@ -1520,7 +1520,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     else:
                         self.optionalOutputPorts.append(p)
                 outputPorts += visibleOptionalOutputPorts
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 error = e
 
         # Local dictionary lookups are faster than global ones..
@@ -1580,7 +1580,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 fringe = descriptor.module_fringe()
                 if fringe:
                     self.set_module_shape(self.create_shape_from_fringe(fringe))
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 error = e
 
             if self.functions_widget:
@@ -2330,7 +2330,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             for m_id in selected_modules:
                 self.modules[m_id].setSelected(True)
 
-        except ModuleRegistryException, e:
+        except ModuleRegistryException as e:
             debug.print_exc()
             views = self.views()
             assert len(views) > 0
@@ -2699,7 +2699,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         item = data.items[0]
         self.controller.reset_pipeline_view = False
         self.noUpdate = True
-        internal_version = -1L
+        internal_version = -1
         reg = get_module_registry()
         if reg.is_abstraction(item.descriptor):
             internal_version = item.descriptor.module.internal_version
@@ -3622,7 +3622,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                         reason="Execute specific module")
             else:
                 self.controller.execute_user_workflow()
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Error executing workflow: %s" % debug.format_exception(e))
         else:

@@ -110,9 +110,9 @@ def namedtuple(typename, fields):
 
     init_template = "def __init__(self, %s): pass" % ', '.join(args)
     d = {}
-    exec init_template in d
+    exec(init_template, d)
     T.__init__ = d['__init__']
-    T.__init__.im_func.__doc__ = init_docstring
+    T.__init__.__func__.__doc__ = init_docstring
     T._vistrails_fields = fields
 
     return T
@@ -430,14 +430,14 @@ _documentation = \
 
 def parse_documentation():
     line_iter = iter(_documentation.splitlines())
-    line_iter.next()
+    next(line_iter)
     for line in line_iter:
         field, field_type = line.strip().split(':', 1)
         (cls_name, field_name) = field.split('.')
         doc_lines = []
-        line = line_iter.next()
+        line = next(line_iter)
         while True:
-            line = line_iter.next()
+            line = next(line_iter)
             if not line.strip():
                 break
             doc_lines.append(line.strip())

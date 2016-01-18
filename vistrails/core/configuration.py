@@ -822,13 +822,13 @@ def default():
 
 def parse_documentation():
     line_iter = iter(_documentation.splitlines())
-    line_iter.next()
+    next(line_iter)
     for line in line_iter:
         arg_path, arg_type = line.strip().split(':', 1)
         doc_lines = []
-        line = line_iter.next()
+        line = next(line_iter)
         while True:
-            line = line_iter.next()
+            line = next(line_iter)
             if not line.strip():
                 break
             doc_lines.append(line.strip())
@@ -836,7 +836,7 @@ def parse_documentation():
 
 def parse_simple_docs():
     line_iter = iter(_simple_documentation.splitlines())
-    line = line_iter.next()
+    line = next(line_iter)
     for line in line_iter:
         (arg, doc) = line.strip().split(':', 1)
         _simple_docs[arg] = doc.strip()

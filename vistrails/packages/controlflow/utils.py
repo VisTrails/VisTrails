@@ -34,9 +34,10 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from fold import Fold, FoldWithModule
+from .fold import Fold, FoldWithModule
 
 #################################################################################
 ## Some useful loop structures

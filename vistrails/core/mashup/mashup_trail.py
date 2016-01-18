@@ -54,7 +54,7 @@ class Mashuptrail(DBMashuptrail):
         self.db_annotations = []
         self.db_actionAnnotations = []
         if not id_scope:
-            self.id_scope = IdScope(1L)
+            self.id_scope = IdScope(1)
         else:
             self.id_scope = id_scope
         
@@ -80,7 +80,7 @@ class Mashuptrail(DBMashuptrail):
 
         for aannotation in _mtrail.actionAnnotations:
             ActionAnnotation.convert(aannotation)
-        _mtrail.id_scope = IdScope(1L)
+        _mtrail.id_scope = IdScope(1)
         _mtrail.updateIdScope()
             
     def addVersion(self, parent_id, mashup, user, date):

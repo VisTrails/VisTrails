@@ -151,9 +151,9 @@ class Vistrail(object):
             for connection in pipeline.connection_list:
                 ops.append(('add', connection))
             action = vistrails.core.db.action.create_action(ops)
-            vistrail.add_action(action, 0L)
+            vistrail.add_action(action, 0)
             vistrail.update_id_scope()
-            vistrail.change_description("Imported pipeline", 0L)
+            vistrail.change_description("Imported pipeline", 0)
             self.controller = VistrailController(vistrail, UntitledLocator())
         elif isinstance(arg, VistrailController):
             self.controller = arg

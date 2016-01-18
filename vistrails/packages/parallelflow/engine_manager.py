@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 import os
 import subprocess
@@ -141,14 +142,14 @@ class EngineManager(object):
             self._select_profile()
         if self.profile is None:
             return None
-        print "parallelflow: using IPython profile %r" % self.profile
+        print("parallelflow: using IPython profile %r" % self.profile)
 
         try:
             self._client = Client(profile=self.profile)
-            print "parallelflow: connected to controller"
+            print("parallelflow: connected to controller")
             return self._client
         except error.TimeoutError:
-            print "parallelflow: timeout when connecting to controller"
+            print("parallelflow: timeout when connecting to controller")
             if connect_only:
                 start_ctrl = False
             elif qt_available:
@@ -162,7 +163,7 @@ class EngineManager(object):
             else:
                 start_ctrl = True
         except IOError:
-            print "parallelflow: didn't find a controller to connect to"
+            print("parallelflow: didn't find a controller to connect to")
             if connect_only:
                 start_ctrl = False
             elif qt_available:
@@ -183,7 +184,7 @@ class EngineManager(object):
                     'ipcontroller.pid')
             if os.path.exists(ctrl_pid):
                 os.remove(ctrl_pid)
-            print "parallelflow: starting controller"
+            print("parallelflow: starting controller")
             proc, code = self.start_process(
                     lambda: os.path.exists(ctrl_pid),
                     sys.executable,
@@ -201,7 +202,7 @@ class EngineManager(object):
                 return None
             else:
                 self.started_controller = proc
-                print "parallelflow: controller started, connecting"
+                print("parallelflow: controller started, connecting")
                 self._client = Client(profile=self.profile)
                 return self._client
 
@@ -239,7 +240,7 @@ class EngineManager(object):
                         "No controller",
                         "Can't start engines: couldn't connect to a "
                         "controller")
-            print "parallelflow: no controller, not starting engines"
+            print("parallelflow: no controller, not starting engines")
         else:
             if not nb and qt_available:
                 nb, res = QtGui.QInputDialog.getInt(
@@ -253,7 +254,7 @@ class EngineManager(object):
                     return
             elif nb is None:
                 nb = 1
-            print "parallelflow: about to start %d engines" % nb
+            print("parallelflow: about to start %d engines" % nb)
             if qt_available:
                 bar = QtGui.QProgressDialog(
                         "Starting engines...",
@@ -301,37 +302,37 @@ class EngineManager(object):
                         "Error",
                         "%d engine(s) exited with codes: %s" % (
                         nb_failed, failed))
-                print "parallelflow: %d engine(s) exited with codes: %s" % (
-                        nb_failed, failed)
+                print("parallelflow: %d engine(s) exited with codes: %s" % (
+                        nb_failed, failed))
             self.started_engines.update(starting)
 
             if qt_available:
                 bar.hide()
                 bar.deleteLater()
-            print "parallelflow: %d engines started" % nb
+            print("parallelflow: %d engines started" % nb)
 
     def info(self):
         """Show some information on the cluster.
         """
         client = self.ensure_controller(connect_only=True)
 
-        print "----- IPython information -----"
-        print "profile: %s" % self.profile
+        print("----- IPython information -----")
+        print("profile: %s" % self.profile)
         connected = client is not None
-        print "connected to controller: %s" % (
-                "yes" if connected else "no")
+        print("connected to controller: %s" % (
+                "yes" if connected else "no"))
         st_ctrl = (self.started_controller is not None and
                         self.started_controller.poll() is None)
-        print "controller started from VisTrails: %s" % (
-                "running" if st_ctrl else "no")
+        print("controller started from VisTrails: %s" % (
+                "running" if st_ctrl else "no"))
         st_engines = sum(1 for p in self.started_engines if p.poll() is None)
-        print "engines started from VisTrails: %d" % st_engines
+        print("engines started from VisTrails: %d" % st_engines)
         if client is not None:
             nb_engines = len(client.ids)
         else:
             nb_engines = None
-        print "total engines in cluster: %s" % (
-                nb_engines if nb_engines is not None else "(unknown)")
+        print("total engines in cluster: %s" % (
+                nb_engines if nb_engines is not None else "(unknown)"))
         if connected and client.ids:
             dview = client[:]
             with dview.sync_imports():
@@ -344,13 +345,13 @@ class EngineManager(object):
             ).get_dict()
             engines = sorted(
                     engines.items(),
-                    key=lambda (ip_id, (pid, system, fqdn)): (fqdn, ip_id))
-            print "engines:"
-            print "\tid\tsystem\tPID\tnode FQDN"
-            print "\t--\t------\t---\t---------"
+                    key=lambda ip_id_pid_system_fqdn: (ip_id_pid_system_fqdn[1][2], ip_id_pid_system_fqdn[0]))
+            print("engines:")
+            print("\tid\tsystem\tPID\tnode FQDN")
+            print("\t--\t------\t---\t---------")
             for ip_id, (pid, system, fqdn) in engines:
-                print "\t%d\t%s\t%d\t%s" % (ip_id, system, pid, fqdn)
-        print ""
+                print("\t%d\t%s\t%d\t%s" % (ip_id, system, pid, fqdn))
+        print("")
 
         if qt_available:
             dialog = QtGui.QDialog()
@@ -451,12 +452,12 @@ class EngineManager(object):
                             hub=True,
                             block=False)
                     hub_shutdown = True
-                    print "parallelflow: requested hub shutdown"
+                    print("parallelflow: requested hub shutdown")
                 else:
                     if self.started_controller.poll() is not None:
                         self.started_controller.terminate()
                         self.started_controller.wait()
-                    print "parallelflow: controller terminated"
+                    print("parallelflow: controller terminated")
             self.started_controller = None
 
         if engines > 0 and not hub_shutdown:
@@ -487,7 +488,7 @@ class EngineManager(object):
             self.started_engines = set()
 
         if self._client is not None:
-            print "parallelflow: closing client"
+            print("parallelflow: closing client")
             self._client.close()
             self._client = None
 
@@ -522,7 +523,7 @@ class EngineManager(object):
                 restart=False,
                 hub=True,
                 block=False)
-        print "parallelflow: cluster shutdown requested"
+        print("parallelflow: cluster shutdown requested")
         self._client = None
 
 EngineManager = EngineManager()

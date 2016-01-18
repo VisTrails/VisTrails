@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 import os
 try:
@@ -82,4 +83,4 @@ def compute_hash(persistent_path, is_dir=None):
 
 if __name__ == '__main__':
     import sys
-    print compute_hash(sys.argv[1])
+    print(compute_hash(sys.argv[1]))

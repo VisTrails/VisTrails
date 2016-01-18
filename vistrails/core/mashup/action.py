@@ -162,16 +162,16 @@ class TestAction(unittest.TestCase):
         from vistrails.core.mashup.alias import Alias
         from vistrails.core.mashup.mashup import Mashup
         c1 = Component(id=id_scope.getNewId('mashup_component'),
-                          vttype='parameter', param_id=15L, 
-                          parent_vttype='function', parent_id=3L, mid=4L,
+                          vttype='parameter', param_id=15, 
+                          parent_vttype='function', parent_id=3, mid=4,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
         a1 = Alias(id=id_scope.getNewId('mashup_alias'), name='alias1', component=c1)
         
         m = Mashup(id=id_scope.getNewId('mashup'), name='mashup1', vtid='empty.vt', 
-                   version=15L, alias_list=[a1])
+                   version=15, alias_list=[a1])
         action = Action(id=id_scope.getNewId('mashup_action'),
-                        prevId=0L,
+                        prevId=0,
                         date=datetime(2007,11,18),
                         mashup=m)
         return action

@@ -39,7 +39,7 @@ from __future__ import division
 import copy
 
 class IdScope:
-    def __init__(self, beginId=0L, remap=None):
+    def __init__(self, beginId=0, remap=None):
         self.ids = {}
         self.beginId = beginId
         if remap is None:

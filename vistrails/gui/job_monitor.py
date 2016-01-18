@@ -299,7 +299,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 # call monitor
                 if jm.isDone(job_item.handle):
                     job_item.job.ready = True
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Error checking job %s: %s" %
                                (workflow_item.text(0), e))
         if workflow_item.updateJobs():

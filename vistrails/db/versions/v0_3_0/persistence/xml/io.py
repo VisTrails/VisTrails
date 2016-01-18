@@ -44,7 +44,7 @@ from vistrails.db.versions.v0_3_0 import version as my_version
 def parse_xml_file(filename):
     try:
         return xml.dom.minidom.parse(filename)
-    except xml.parsers.expat.ExpatError, e:
+    except xml.parsers.expat.ExpatError as e:
         msg = 'XML parse error at line %s, col %s: %s' % \
             (e.lineno, e.offset, e.code)
         raise VistrailsDBException(msg)

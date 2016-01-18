@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import copy
 from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBWorkflow, DBLog, \
@@ -56,9 +57,9 @@ def translateVistrail(_vistrail):
                     [namespace, module] = m_and_ns.rsplit('|', 1)
                     new_type = ':'.join([identifier, module, namespace])
                     return new_type
-                except Exception, e:
+                except Exception as e:
                     # just bail for now
-                    print e
+                    print(e)
                     pass
         return old_obj.db_type
 

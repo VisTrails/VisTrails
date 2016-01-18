@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 from datetime import date, datetime
 
@@ -133,7 +134,7 @@ class SQLDAO:
         return dbCommand
 
     def executeSQL(self, db, dbCommand, isFetch):
-        print 'db: %s' % dbCommand
+        print('db: %s' % dbCommand)
         data = None
         cursor = db.cursor()
         cursor.execute(dbCommand)

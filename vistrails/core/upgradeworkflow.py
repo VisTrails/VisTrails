@@ -319,7 +319,7 @@ class UpgradeWorkflowHandler(object):
         try:
             try:
                 d = get_descriptor(mpkg, mname, mnamespace, '', desired_version)
-            except MissingModule, e:
+            except MissingModule as e:
                 r = None
                 if pkg.can_handle_missing_modules():
                     r = pkg.handle_missing_module(controller, module_id, 
@@ -328,7 +328,7 @@ class UpgradeWorkflowHandler(object):
                                        desired_version)
                 if not r:
                     raise e
-        except MissingModule, e:
+        except MissingModule as e:
             return None
         assert isinstance(d, ModuleDescriptor)
         return d
@@ -787,7 +787,7 @@ class UpgradeWorkflowHandler(object):
                 # upgrading to the current version
                 try:
                     new_module_desc = reg.get_descriptor_by_name(*new_module_t)
-                except MissingModule, e:
+                except MissingModule as e:
                     # if the replacement is an abstraction,
                     # and it has been upgraded, we use that
                     if reg.has_abs_upgrade(*new_module_t):

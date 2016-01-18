@@ -129,7 +129,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
         rows = c.fetchall()
         result = rows
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't perform query on db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -145,7 +145,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
             res = c.fetchall()
             result= (result, res[0][0])
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             msg = "Couldn't perform query on db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)
@@ -240,7 +240,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
         rows = c.fetchall()
         result = rows
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't perform query on db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -256,7 +256,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
             res = c.fetchall()
             result= (result, res[0][0])
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             msg = "Couldn't perform query on db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)

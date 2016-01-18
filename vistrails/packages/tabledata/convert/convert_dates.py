@@ -271,7 +271,7 @@ class StringsToDates(Module):
 
         try:
             result = self.convert(strings, fmt, tz)
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
         self.set_output('dates', result)
 
@@ -369,7 +369,7 @@ class StringsToMatplotlib(Module):
 
         try:
             result = self.convert(strings, fmt, tz)
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
         self.set_output('dates', result)
 

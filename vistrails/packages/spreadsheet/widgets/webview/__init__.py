@@ -37,8 +37,9 @@
 # WebView plugin for VisTrails Spreadsheet
 ################################################################################
 from __future__ import division
+from __future__ import absolute_import
 
-from webview import WebViewCell
+from .webview import WebViewCell
 
 ################################################################################
 

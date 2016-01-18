@@ -34,8 +34,9 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
-from entity import Entity
+from .entity import Entity
 
 class WorkflowEntity(Entity):
     type_id = 2

@@ -671,8 +671,8 @@ class QUserFunctionEditor(QtGui.QFrame):
             values = []
             d = {}
             try:
-                exec(self.function) in {}, d
-            except Exception, e:
+                exec((self.function), {}, d)
+            except Exception as e:
                 return [module.default_value] * count
             def evaluate(i):
                 try:
@@ -680,7 +680,7 @@ class QUserFunctionEditor(QtGui.QFrame):
                     if v is None:
                         return module.default_value
                     return v
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self.size)]

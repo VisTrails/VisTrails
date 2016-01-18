@@ -294,7 +294,7 @@ class DBModule(object):
         self.is_dirty = True
         del self.__db_annotations[annotation.db_id]
     def db_get_annotation(self, key):
-        if self.__db_annotations.has_key(key):
+        if key in self.__db_annotations:
             return self.__db_annotations[key]
         return None
     
@@ -495,7 +495,7 @@ class DBSession(object):
         self.is_dirty = True
         del self.__db_wfExecs[wfExec.db_id]
     def db_get_wfExec(self, key):
-        if self.__db_wfExecs.has_key(key):
+        if key in self.__db_wfExecs:
             return self.__db_wfExecs[key]
         return None
     
@@ -675,7 +675,7 @@ class DBLog(object):
         self.is_dirty = True
         del self.__db_sessions[session.db_id]
     def db_get_session(self, key):
-        if self.__db_sessions.has_key(key):
+        if key in self.__db_sessions:
             return self.__db_sessions[key]
         return None
     
@@ -697,7 +697,7 @@ class DBLog(object):
         self.is_dirty = True
         del self.__db_machines[machine.db_id]
     def db_get_machine(self, key):
-        if self.__db_machines.has_key(key):
+        if key in self.__db_machines:
             return self.__db_machines[key]
         return None
     
@@ -1215,7 +1215,7 @@ class DBWfExec(object):
         self.is_dirty = True
         del self.__db_execRecs[execRec.db_id]
     def db_get_execRec(self, key):
-        if self.__db_execRecs.has_key(key):
+        if key in self.__db_execRecs:
             return self.__db_execRecs[key]
         return None
     
@@ -1565,7 +1565,7 @@ class DBWorkflow(object):
         self.is_dirty = True
         del self.__db_modules[module.db_id]
     def db_get_module(self, key):
-        if self.__db_modules.has_key(key):
+        if key in self.__db_modules:
             return self.__db_modules[key]
         return None
     
@@ -1587,7 +1587,7 @@ class DBWorkflow(object):
         self.is_dirty = True
         del self.__db_connections[connection.db_id]
     def db_get_connection(self, key):
-        if self.__db_connections.has_key(key):
+        if key in self.__db_connections:
             return self.__db_connections[key]
         return None
     
@@ -2080,7 +2080,7 @@ class DBMacro(object):
         self.is_dirty = True
         del self.__db_actions[action.db_id]
     def db_get_action(self, key):
-        if self.__db_actions.has_key(key):
+        if key in self.__db_actions:
             return self.__db_actions[key]
         return None
     
@@ -2545,7 +2545,7 @@ class DBVistrail(object):
         self.is_dirty = True
         del self.__db_actions[action.db_id]
     def db_get_action(self, key):
-        if self.__db_actions.has_key(key):
+        if key in self.__db_actions:
             return self.__db_actions[key]
         return None
     
@@ -2567,7 +2567,7 @@ class DBVistrail(object):
         self.is_dirty = True
         del self.__db_tags[tag.db_name]
     def db_get_tag(self, key):
-        if self.__db_tags.has_key(key):
+        if key in self.__db_tags:
             return self.__db_tags[key]
         return None
     
@@ -2589,7 +2589,7 @@ class DBVistrail(object):
         self.is_dirty = True
         del self.__db_macros[macro.db_id]
     def db_get_macro(self, key):
-        if self.__db_macros.has_key(key):
+        if key in self.__db_macros:
             return self.__db_macros[key]
         return None
     

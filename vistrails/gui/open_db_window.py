@@ -206,7 +206,7 @@ Would you like to create one?"
         conn = self.connectionList.getCurrentItemId()
         try:
             self.objectList.updateContents(conn)
-        except VistrailsDBException, e:
+        except VistrailsDBException as e:
             self.connectionList.setCurrentItem(None)
         self.updateEditButtons(conn)
 
@@ -599,7 +599,7 @@ class QDBObjectList(QtGui.QListWidget):
                                              unicode(obj),
                                              unicode(date))
                     self.addItem(item)
-            except VistrailsDBException, e:
+            except VistrailsDBException as e:
                 #show connection setup
                 if "Couldn't get list of vistrails objects" in unicode(e):
                     debug.critical('An error has occurred', e)
@@ -750,7 +750,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
             vistrails.db.services.io.test_db_connection(config)
             show_info('Vistrails',"Connection succeeded!")
             
-        except Exception, e:
+        except Exception as e:
             debug.critical('An error has occurred', e)
 
     def updateButtons(self):

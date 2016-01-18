@@ -940,7 +940,7 @@ class ModuleRegistry(DBRegistry):
                 desc = self.get_descriptor_by_name(*sig)
             else:
                 desc = self.get_descriptor(cls)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             raise VistrailsInternalError("Cannot convert value %r due to "
                                          "missing descriptor for port" % val)
@@ -1044,7 +1044,7 @@ class ModuleRegistry(DBRegistry):
                 try:
                     name, sig, kwargs = self.decode_input_port(port_info)
                     self.add_input_port(module, name, sig, **kwargs)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.critical(
                             "Failed to add input port %s to module '%s'" % (
@@ -1059,7 +1059,7 @@ class ModuleRegistry(DBRegistry):
                 try:
                     name, sig, kwargs = self.decode_output_port(port_info)
                     self.add_output_port(module, name, sig, **kwargs)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.critical(
                              "Failed to add output port %s to module '%s'" % (
@@ -1291,7 +1291,7 @@ class ModuleRegistry(DBRegistry):
         if 'version' in kwargs:
             version = kwargs['version']
         else:
-            version = -1L
+            version = -1
         if 'name' in kwargs:
             name = kwargs['name']
         else:
@@ -1313,7 +1313,7 @@ class ModuleRegistry(DBRegistry):
         is_upgraded_abstraction = False
         try:
             module = new_abstraction(name, vistrail, vt_fname, version)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             # This import MUST be delayed until this point or it will fail
             import vistrails.core.vistrail.controller
             from vistrails.core.db.io import save_vistrail_to_xml
@@ -1321,7 +1321,7 @@ class ModuleRegistry(DBRegistry):
                 abstraction_pkg, version as abstraction_ver
             # Use a "dummy" controller to handle the upgrade
             controller = vistrails.core.vistrail.controller.VistrailController(vistrail)
-            if version == -1L:
+            if version == -1:
                 version = vistrail.get_latest_version()
             (new_version, new_pipeline) = \
                 controller.handle_invalid_pipeline(e, long(version), vistrail,
@@ -1486,7 +1486,7 @@ class ModuleRegistry(DBRegistry):
         # check if the spec is valid
         try:
             spec.descriptors()
-        except ModuleRegistryException, e:
+        except ModuleRegistryException as e:
             raise InvalidPortSpec(descriptor, spec.name, spec.type, e)
 
         descriptor.add_port_spec(spec)
@@ -1661,7 +1661,7 @@ class ModuleRegistry(DBRegistry):
                         added_descriptors.add(descriptor)
         except MissingRequirement:
             raise
-        except Exception, e:
+        except Exception as e:
             raise package.InitializationFailed(package,
                                                [traceback.format_exc()])
         finally:

@@ -35,10 +35,11 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
-from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+from .auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
     DBPortSpec
-from id_scope import IdScope
+from .id_scope import IdScope
 
 class DBRegistry(_DBRegistry):
     def __init__(self, *args, **kwargs):

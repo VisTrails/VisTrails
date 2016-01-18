@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import copy
 import sys
@@ -373,9 +374,9 @@ def create_prov(workflow, version, log):
             # used to create entities for input and output data
             source = conn.db_ports_type_index['source']
             dest = conn.db_ports_type_index['destination']
-            if not source_conn.has_key(source._db_moduleId):
+            if source._db_moduleId not in source_conn:
                 source_conn[source._db_moduleId] = []
-            if not dest_conn.has_key(dest._db_moduleId):
+            if dest._db_moduleId not in dest_conn:
                 dest_conn[dest._db_moduleId] = []
             source_conn[source._db_moduleId].append(conn)
             dest_conn[dest._db_moduleId].append(conn)
@@ -426,7 +427,7 @@ def create_prov(workflow, version, log):
                     prov_usage = create_prov_usage(prov_activity, prov_data)
                     usages.append(prov_usage)
 
-                if dest_conn.has_key(exec_._db_module_id):
+                if exec_._db_module_id in dest_conn:
                     connections = dest_conn[exec_._db_module_id]
                     for connection in connections:
                         prov_input_data, inserted = prov_data_conn[connection.db_id]
@@ -438,7 +439,7 @@ def create_prov(workflow, version, log):
                         usages.append(prov_usage)
 
                 if (prov_activity._db_vt_error is None) or (prov_activity._db_vt_error == ''):
-                    if source_conn.has_key(exec_._db_module_id):
+                    if exec_._db_module_id in source_conn:
                         connections = source_conn[exec_._db_module_id]
                         for connection in connections:
                             prov_output_data, inserted = prov_data_conn[connection.db_id]
@@ -584,7 +585,7 @@ def run(vistrail_xml, version, log_xml, output_fname):
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print "Usage: python %s <vt_xml> <version> <log_xml> <out_xml>" % sys.argv[0]
+        print("Usage: python %s <vt_xml> <version> <log_xml> <out_xml>" % sys.argv[0])
         sys.exit(1)
     run(*sys.argv[1:])
 

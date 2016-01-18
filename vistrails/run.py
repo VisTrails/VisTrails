@@ -38,6 +38,7 @@
 """Main file for the VisTrails distribution."""
 
 from __future__ import division
+from __future__ import print_function
 
 import os
 import sys
@@ -121,18 +122,18 @@ def main():
                 app.finishSession()
             sys.exit(APP_SUCCESS if v == APP_DONE else APP_FAIL)
         app = vistrails.gui.application.get_vistrails_application()()
-    except SystemExit, e:
+    except SystemExit as e:
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
         sys.exit(e)
-    except Exception, e:
+    except Exception as e:
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
         import traceback
-        print >>sys.stderr, "Uncaught exception on initialization: %s" % (
-                traceback._format_final_exc_line(type(e).__name__, e).strip())
+        print("Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e).strip()), file=sys.stderr)
         traceback.print_exc(None, sys.stderr)
         sys.exit(255)
     if not app.temp_configuration.batch:

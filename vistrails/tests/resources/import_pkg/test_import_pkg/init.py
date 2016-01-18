@@ -1,2 +1,3 @@
+from __future__ import absolute_import
 # pragma: no testimport
-import module2
+from . import module2

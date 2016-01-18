@@ -49,12 +49,14 @@ type information, and organizes them.
 # License: BSD Style.
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import re
 
 # Local imports (these are relative imports for a good reason).
-import class_tree
-import vtk_module as vtk
+from . import class_tree
+from . import vtk_module as vtk
 
 
 class VTKMethodParser:
@@ -190,7 +192,7 @@ class VTKMethodParser:
         if no_warn:
             # Save warning setting and shut it off before parsing.
             warn = vtk.vtkObject.GetGlobalWarningDisplay()
-            if klass.__name__ <> 'vtkObject':
+            if klass.__name__ != 'vtkObject':
                 vtk.vtkObject.GlobalWarningDisplayOff()
 
         self._organize_methods(klass, methods)
@@ -346,7 +348,7 @@ class VTKMethodParser:
         # Remove all the C++ function signatures.
         doc = method.__doc__
         if not doc:
-            print "Ignoring method %r, no __doc__" % method
+            print("Ignoring method %r, no __doc__" % method)
             return []
         doc = doc[:doc.find('\n\n')]
         sig = []
@@ -542,7 +544,7 @@ class VTKMethodParser:
                     try:
                         tm[key] = getattr(obj, 'Get%s'%key)()
                     except (TypeError, AttributeError):
-                        print klass.__name__, key
+                        print(klass.__name__, key)
                         pass
         return meths
 
@@ -572,7 +574,7 @@ class VTKMethodParser:
                     if (('Get' + key) in methods):
                         val = method[match.start()+2:] # <Value> part.
                         meths.remove(method)
-                        if sm.has_key(key):
+                        if key in sm:
                             sm[key].append([val, None])
                         else:
                             sm[key] = [[val, None]]

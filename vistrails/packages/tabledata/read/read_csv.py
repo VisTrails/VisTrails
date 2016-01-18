@@ -112,7 +112,7 @@ class CSVTable(TableObject):
                     reader = csv.reader(fp, dialect=dialect)
                 else:
                     reader = csv.reader(fp, delimiter=delimiter)
-                result = reader.next()
+                result = next(reader)
                 column_count = len(result)
 
                 if header_present:
@@ -210,7 +210,7 @@ class CSVFile(Table):
         try:
             table = CSVTable(csv_file, header_present, delimiter, skip_lines,
                              dialect, sniff_header)
-        except InternalModuleError, e:
+        except InternalModuleError as e:
             e.raise_module_error(self)
 
         self.set_output('column_count', table.columns)

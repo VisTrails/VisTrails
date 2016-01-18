@@ -37,6 +37,7 @@
 """ This module defines the class Module 
 """
 from __future__ import division
+from __future__ import print_function
 
 import copy
 from itertools import izip
@@ -342,31 +343,31 @@ class Module(DBModule):
 
     def show_comparison(self, other):
         if type(other) != type(self):
-            print "Type mismatch"
-            print type(self), type(other)
+            print("Type mismatch")
+            print(type(self), type(other))
         elif self.id != other.id:
-            print "id mismatch"
-            print self.id, other.id
+            print("id mismatch")
+            print(self.id, other.id)
         elif self.name != other.name:
-            print "name mismatch"
-            print self.name, other.name
+            print("name mismatch")
+            print(self.name, other.name)
         elif self.cache != other.cache:
-            print "cache mismatch"
-            print self.cache, other.cache
+            print("cache mismatch")
+            print(self.cache, other.cache)
         elif self.location != other.location:
-            print "location mismatch"
+            print("location mismatch")
             # FIXME Location has no show_comparison
             # self.location.show_comparison(other.location)
         elif len(self.functions) != len(other.functions):
-            print "function length mismatch"
-            print len(self.functions), len(other.functions)
+            print("function length mismatch")
+            print(len(self.functions), len(other.functions))
         else:
             for f, g in izip(self.functions, other.functions):
                 if f != g:
-                    print "function mismatch"
+                    print("function mismatch")
                     f.show_comparison(g)
                     return
-            print "No difference found"
+            print("No difference found")
             assert self == other
 
     ##########################################################################

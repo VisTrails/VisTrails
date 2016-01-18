@@ -46,6 +46,7 @@ QVersionTreeScene
 QVersionTreeView
 """
 from __future__ import division
+from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
@@ -115,7 +116,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Set this link to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             if ghosted:
                 self.linkPen = CurrentTheme.GHOSTED_LINK_PEN
@@ -318,7 +319,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         Change the position and text label from outside the editor
 
         """
-        if self.centerX <> x or self.centerY <> y or self.label <> label:
+        if self.centerX != x or self.centerY != y or self.label != label:
             self.centerX = x
             self.centerY = y
             self.label = label
@@ -469,7 +470,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Set this version to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             self.text.setGhosted(ghosted)
             if ghosted:
@@ -710,7 +711,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         analogy_name = unicode(sender.text())
         # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
-        print "calling perform analogy", analogy_name, self.id
+        print("calling perform analogy", analogy_name, self.id)
         # for item in selectedItems:
         controller.perform_analogy(analogy_name, self.id)
 
@@ -885,7 +886,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 if custom_color is not None:
                     try:
                         custom_color = parse_custom_color(custom_color.value)
-                    except ValueError, e:
+                    except ValueError as e:
                         debug.warning("Version %r has invalid color annotation "
                                       "(%s)" % (nodeId, e))
                         custom_color = None
@@ -1022,7 +1023,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             for target, (expand, collapse) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
-                if self.edges.has_key((source,target)):
+                if (source,target) in self.edges:
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,
                                         expand, collapse)

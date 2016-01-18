@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import copy
 from itertools import imap, chain
@@ -157,13 +158,13 @@ class EigenBase(object):
             total_descs = max(len(port_descs), 1)
             total += total_descs
             # assert len(port_descs) == 1
-            if (m2_outputs.has_key(port_name) and
+            if (port_name in m2_outputs and
                 m2_outputs[port_name] == port_descs):
                 output_similarity += float(total_descs)
             else:
                 for port_desc in port_descs:
                     port_desc = tuple(port_desc)
-                    if m2_output_hist.has_key(port_desc):
+                    if port_desc in m2_output_hist:
                         output_similarity += 1
         if len(m1_outputs):
             output_similarity /= total
@@ -183,13 +184,13 @@ class EigenBase(object):
             # nullary ports as well
             total_descs = max(len(port_descs), 1)
             total += total_descs
-            if (m2_inputs.has_key(port_name) and
+            if (port_name in m2_inputs and
                 m2_inputs[port_name] == port_descs):
                 input_similarity += 1.0
             else:
                 for port_desc in port_descs:
                     port_desc = tuple(port_desc)
-                    if m2_input_hist.has_key(port_desc):
+                    if port_desc in m2_input_hist:
                         input_similarity += 1
 
         if len(m1_inputs):
@@ -211,18 +212,18 @@ class EigenBase(object):
 
         # FIXME: Make this softer in the future
         if self._debug:
-            print "COMPARING %s:%s -> %s:%s with %s:%s -> %s:%s" % \
+            print("COMPARING %s:%s -> %s:%s with %s:%s -> %s:%s" % \
                 (self._p1.modules[c1.sourceId].name, c1.source.name,
                  self._p1.modules[c1.destinationId].name, c1.destination.name,
                  self._p2.modules[c2.sourceId].name, c2.source.name,
-                 self._p2.modules[c2.destinationId].name, c2.destination.name),
+                 self._p2.modules[c2.destinationId].name, c2.destination.name), end=' ')
         if c1.source.name != c2.source.name:
             if self._debug:
-                print 0.0
+                print(0.0)
             return 0.0
         if c1.destination.name != c2.destination.name:
             if self._debug:
-                print 0.0
+                print(0.0)
             return 0.0
 
         m_c1_sid = self._g1_vertex_map[c1.sourceId]
@@ -231,8 +232,8 @@ class EigenBase(object):
         m_c2_did = self._g2_vertex_map[c2.destinationId]
 
         if self._debug:
-            print (self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
-                    self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0
+            print((self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
+                    self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0)
         return (self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
                 self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0
 
@@ -261,7 +262,7 @@ class EigenBase(object):
         if isinstance(v, scipy.matrix):
             v = scipy.array(v)[0]
         (c,) = v.shape
-        print "[ ",
+        print("[ ", end=' ')
         for j in xrange(c):
             if left_digits is not None:
                 d = left_digits[0,j]
@@ -270,17 +271,17 @@ class EigenBase(object):
             fmt = ("%" +
                    unicode(d + digits + 1) +
                    "." + unicode(digits) + "f ")
-            print (fmt % v[j]),
-        print "]"
+            print((fmt % v[j]), end=' ')
+        print("]")
 
     def print_s8ys(self):
-        print "Input s8y"
+        print("Input s8y")
         self.pm(self._input_vertex_s8y)
-        print "\nOutput s8y"
+        print("\nOutput s8y")
         self.pm(self._output_vertex_s8y)
-        print "\nConnection s8y"
+        print("\nConnection s8y")
         self.pm(self._edge_s8y)
-        print "\nCombined s8y"
+        print("\nCombined s8y")
         self.pm(self._vertex_s8y)
 
     # FIXME: move this somewhere decent.
@@ -445,18 +446,18 @@ class EigenPipelineSimilarity2(EigenBase):
         r_out = r_out * 0.9 + r_combined * 0.1
 
         if self._debug:
-            print "== G1 =="
+            print("== G1 ==")
             for (k,v) in sorted(self._g1_vertex_map.iteritems(), key=operator.itemgetter(1)):
-                print v, k, self._p1.modules[k].name
-            print "== G2 =="
+                print(v, k, self._p1.modules[k].name)
+            print("== G2 ==")
             for (k,v) in sorted(self._g2_vertex_map.iteritems(), key=operator.itemgetter(1)):
-                print v, k, self._p2.modules[k].name
+                print(v, k, self._p2.modules[k].name)
             
-            print "input similarity"
+            print("input similarity")
             self.pm(r_in, digits=3)
-            print "output similarity"
+            print("output similarity")
             self.pm(r_out, digits=3)
-            print "combined similarity"
+            print("combined similarity")
             self.pm(r_combined, digits=3)
 
         inputmap = dict([(self._g1_vertex_map.inverse[ix],

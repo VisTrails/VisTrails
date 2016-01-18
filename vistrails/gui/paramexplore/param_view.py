@@ -252,7 +252,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     function_names[function.name] = function
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
                                                                   self, mLabel)
@@ -294,7 +294,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                         # or contains non-constant modules
                         continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
                                                                   self, 

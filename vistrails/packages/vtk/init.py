@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 import copy
 import re
@@ -61,7 +62,7 @@ from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
-from identifiers import identifier, version as package_version
+from .identifiers import identifier, version as package_version
 
 from .vtk_wrapper import vtk_classes
 from . import hasher

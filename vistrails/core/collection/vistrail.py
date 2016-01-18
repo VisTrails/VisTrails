@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 import copy
 import locale
@@ -45,11 +46,11 @@ from vistrails.core.query import extract_text
 import vistrails.core.system
 from vistrails.core.db.locator import BaseLocator
 
-from entity import Entity
-from workflow import WorkflowEntity
-from workflow_exec import WorkflowExecEntity
-from thumbnail import ThumbnailEntity
-from mashup import MashupEntity
+from .entity import Entity
+from .workflow import WorkflowEntity
+from .workflow_exec import WorkflowExecEntity
+from .thumbnail import ThumbnailEntity
+from .mashup import MashupEntity
 from vistrails.core.collection.parameter_exploration import ParameterExplorationEntity
 
 class VistrailEntity(Entity):
@@ -181,7 +182,7 @@ class VistrailEntity(Entity):
             tag = self.vistrail.get_tag(version_id)
         try:
             workflow = self.vistrail.getPipeline(version_id)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
@@ -262,7 +263,7 @@ class VistrailEntity(Entity):
             action = self.vistrail.actionMap[version_id]
             try:
                 workflow = self.vistrail.getPipeline(version_id)
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
@@ -350,7 +351,7 @@ class VistrailEntity(Entity):
             log = None
             try:
                 log = vistrail.get_persisted_log()
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Failed to read log", debug.format_exc())
                 

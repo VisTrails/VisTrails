@@ -36,6 +36,7 @@
 ###############################################################################
 # MACOSX binary install stuff
 from __future__ import division
+from __future__ import print_function
 
 import os
 
@@ -59,8 +60,8 @@ def convert_sql_to_xml(filename, id):
         io.setDBParameters(vistrail, config)
         io.save_vistrail_to_xml(vistrail, filename)
         io.close_db_connection(dbConnection)
-    except MySQLdb.Error, e:
-        print e
+    except MySQLdb.Error as e:
+        print(e)
 
 if __name__ == '__main__':
     convert_sql_to_xml('/vistrails/vtk_http_from_db.xml', 1)

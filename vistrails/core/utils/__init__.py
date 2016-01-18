@@ -38,6 +38,7 @@ This module defines common functions and exception class definitions
 used all over VisTrails.
 """
 from __future__ import division, with_statement
+from __future__ import print_function
 
 import copy
 from distutils.version import LooseVersion
@@ -335,7 +336,7 @@ def iter_index(iterable, item):
     iter_index is analogous to list.index for iterators."""
     try:
         itor = itertools.izip(iterable, itertools.count(0))
-        return itertools.dropwhile(lambda (v,c): v != item, itor).next()[1]
+        return itertools.dropwhile(lambda v_c: v_c[0] != item, itor).next()[1]
     except StopIteration:
         return -1
                                               
@@ -344,8 +345,8 @@ def eprint(*args):
     """eprint(*args) -> False - Prints the arguments, then returns
     false. Useful inside a lambda expression, for example."""
     for v in args:
-        print v,
-    print
+        print(v, end=' ')
+    print()
 
 def uniq(l):
     """uniq(l) -> List. Returns a new list consisting of elements that
@@ -451,7 +452,7 @@ class Ref(object):
     def __init__(self, fn):
         try:
             #try getting object, function, and class
-            o, f, c = fn.im_self, fn.im_func, fn.im_class
+            o, f, c = fn.__self__, fn.__func__, fn.__self__.__class__
         except AttributeError: #it's not a bound method
             self._obj = None
             self._func = fn
@@ -542,18 +543,18 @@ class _TestMemoFibo(_TestRegularFibo):
 class TestCommon(unittest.TestCase):
     def test_append_to_dict_of_lists(self):
         f = {}
-        self.assertEquals(f.has_key(1), False)
+        self.assertEquals(1 in f, False)
         append_to_dict_of_lists(f, 1, 1)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1])
         append_to_dict_of_lists(f, 1, 1)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1, 1])
         append_to_dict_of_lists(f, 1, 2)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1, 1, 2])
         append_to_dict_of_lists(f, 2, "Foo")
-        self.assertEquals(f.has_key(2), True)
+        self.assertEquals(2 in f, True)
         self.assertEquals(f[2], ["Foo"])
 
     def test_memo(self):

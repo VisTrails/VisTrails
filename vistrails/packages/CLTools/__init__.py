@@ -36,9 +36,10 @@
 """ This package provides a way to wrap command line tools into VisTrails modules
 """
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.configuration import ConfigurationObject
 
-from identifiers import *
+from .identifiers import *
 
 configuration = ConfigurationObject(env=(None, str))

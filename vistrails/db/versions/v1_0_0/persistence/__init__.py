@@ -34,9 +34,10 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
-from xml.auto_gen import XMLDAOListBase
-from sql.auto_gen import SQLDAOListBase
+from .xml.auto_gen import XMLDAOListBase
+from .sql.auto_gen import SQLDAOListBase
 from vistrails.core.system import get_elementtree_library
 
 from vistrails.db import VistrailsDBException
@@ -245,7 +246,7 @@ class DAOList(dict):
             obj = self.read_xml_object(obj_type, root)
             set_dirty(obj)
             return obj
-        except SyntaxError, e:
+        except SyntaxError as e:
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)
             return None

@@ -35,11 +35,12 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 import copy
-from auto_gen import DBAbstraction as _DBAbstraction
-from auto_gen import DBAbstractionRef, DBModule
-from id_scope import IdScope
+from .auto_gen import DBAbstraction as _DBAbstraction
+from .auto_gen import DBAbstractionRef, DBModule
+from .id_scope import IdScope
 
 class DBAbstraction(_DBAbstraction):
     def __init__(self, *args, **kwargs):

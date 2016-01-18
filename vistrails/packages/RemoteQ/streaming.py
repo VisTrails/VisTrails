@@ -37,13 +37,14 @@
 cache files, etc...  """
 
 from __future__ import division
+from __future__ import absolute_import
 
 import os.path
 
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
-from base import HadoopBaseModule
+from .base import HadoopBaseModule
 from remoteq.core.stack import use_machine
 from remoteq.batch.commandline import Subshell
 

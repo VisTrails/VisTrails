@@ -35,6 +35,7 @@
 ###############################################################################
 """ This is the application for vistrails when running as a server. """
 from __future__ import division
+from __future__ import print_function
 
 import Queue
 import base64
@@ -140,7 +141,7 @@ class RequestHandler(object):
                     proxy = xmlrpclib.ServerProxy(uri)
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("Instantiated client for %s" % uri)
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error("Error when instantiating proxy %s" % uri)
                     self.server_logger.error(unicode(e))
     #utils
@@ -220,7 +221,7 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.error(unicode(result))
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -229,7 +230,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
@@ -265,7 +266,7 @@ class RequestHandler(object):
                                                  mashuptrail.getMashup(mashup_id))
                             result.append([name, ElementTree.tostring(mashup.to_xml())])
             return (result, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -274,7 +275,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
@@ -306,7 +307,7 @@ class RequestHandler(object):
                 package_dic[package.identifier]['description'] = \
                         package.description if package.description else "(No description available)"
             return (package_dic, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -315,7 +316,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -349,7 +350,7 @@ class RequestHandler(object):
                         result, s = proxy.get_server_packages(codepath, status)
                     else:
                         result, s = proxy.get_server_packages()
-                except xmlrpclib.ProtocolError, err:
+                except xmlrpclib.ProtocolError as err:
                     err_msg = ("A protocol error occurred\n"
                            "URL: %s\n"
                            "HTTP/HTTPS headers: %s\n"
@@ -373,7 +374,7 @@ class RequestHandler(object):
                     try:
                         pkg_manager.late_enable_package(codepath)
                         message = "Successfully enabled package '%s'" % codepath
-                    except Exception, e:
+                    except Exception as e:
                         message = "Could not enable package '%s': %s %s" % \
                                          (codepath, unicode(e), traceback.format_exc())
                 else:
@@ -387,7 +388,7 @@ class RequestHandler(object):
                         try:
                             pkg_manager.remove_package(codepath)
                             message = "Successfully disabled package '%s'" % codepath
-                        except Exception, e:
+                        except Exception as e:
                             message = "Could not disable package '%s': %s %s" % \
                                       (codepath, unicode(e), traceback.format_exc())
             packages = []
@@ -408,7 +409,7 @@ class RequestHandler(object):
                    ["<br/>Instance %s: %s" % (i+1, m) for i, m in
                                               zip(xrange(len(messages)), messages)])
             return [[packages, message], 1]
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -417,7 +418,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -463,7 +464,7 @@ class RequestHandler(object):
             db_locator.save_as(bundle)
             return (db_locator.obj_id, 1)
 
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -472,7 +473,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -517,7 +518,7 @@ class RequestHandler(object):
             if tmp_file is not None:
                 os.unlink(tmp_file)
             return (1, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -526,7 +527,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -548,7 +549,7 @@ class RequestHandler(object):
             vistrails.db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
             vistrails.db.services.io.close_db_connection(conn)
             return (1, 1)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             if conn is not None:
                 vistrails.db.services.io.close_db_connection(conn)
@@ -613,7 +614,7 @@ class RequestHandler(object):
 
             return ((runnable_workflows, py_source_workflows), 1)
 
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -622,7 +623,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             return (unicode(e), 0)
 
@@ -696,7 +697,7 @@ class RequestHandler(object):
             c.current_pipeline = workflow
             (results, x) = c.execute_current_workflow()
             if len(results[0].errors.values()) > 0:
-                print "> ERROR: ", results[0].errors
+                print("> ERROR: ", results[0].errors)
                 return (-1, unicode(results[0].errors.values()[0]))
             else: return (1, 1)
 
@@ -736,14 +737,14 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s"% result)
                     return result
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error(unicode(e))
                     return (unicode(e), 0)
 
             if extra_info is None:
                 extra_info = {}
 
-            if not extra_info.has_key('pathDumpCells'):
+            if 'pathDumpCells' not in extra_info:
                 extra_info['pathDumpCells'] = path_to_images
 
             ok = False
@@ -794,7 +795,7 @@ class RequestHandler(object):
                                                     extra_info=extra_info)
                                     self.server_logger.info("Memory usage: %s"% self.memory_usage())
                                     interpreter.cached.CachedInterpreter.flush()
-                                except Exception, e:
+                                except Exception as e:
                                     self.server_logger.error(unicode(e))
                                     return (unicode(e), 0)
                                 ok = True
@@ -803,7 +804,7 @@ class RequestHandler(object):
                                     for e in errors.itervalues():
                                         self.server_logger.error("Module failed: %s"% unicode(e))
                                     for i in objs.iterkeys():
-                                        if errors.has_key(long(i)):
+                                        if long(i) in errors:
                                             ok = False
                                             result += unicode(errors[i])
                                 if ok:
@@ -837,7 +838,7 @@ class RequestHandler(object):
                                                 [(locator,int(workflow))],
                                                     s_alias,
                                                     extra_info=extra_info)
-                        except Exception, e:
+                        except Exception as e:
                             self.server_logger.error(unicode(e))
                             return (unicode(e), 0)
                         ok = True
@@ -846,7 +847,7 @@ class RequestHandler(object):
                             for e in errors.itervalues():
                                 self.server_logger.error(unicode(e))
                             for i in objs.iterkeys():
-                                if errors.has_key(long(i)):
+                                if long(i) in errors:
                                     ok = False
                                     result += unicode(errors[i])
 
@@ -888,7 +889,7 @@ class RequestHandler(object):
                 # FIXME: copy images to extra_path
             self.server_logger.info("returning %s" % result)
             return (result, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -897,7 +898,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             return (unicode(e), 0)
 
@@ -933,7 +934,7 @@ class RequestHandler(object):
                 self.proxies_queue.put(proxy)
                 self.server_logger.info("returning %s" % result)
                 return result
-            except xmlrpclib.ProtocolError, err:
+            except xmlrpclib.ProtocolError as err:
                 err_msg = ("A protocol error occurred\n"
                            "URL: %s\n"
                            "HTTP/HTTPS headers: %s\n"
@@ -942,7 +943,7 @@ class RequestHandler(object):
                                                      err.errcode, err.errmsg)
                 self.server_logger.error(err_msg)
                 return (unicode(err), 0)
-            except Exception, e:
+            except Exception as e:
                 self.server_logger.error(unicode(e))
                 return (unicode(e), 0)
 
@@ -983,7 +984,7 @@ class RequestHandler(object):
                             update_vistrail=True,
                             extra_info=extra_info,
                             reason="Server Pipeline Execution")
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error("workflow execution failed:")
                     self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
@@ -994,10 +995,10 @@ class RequestHandler(object):
                     (objs, errors, _) = (r.objects, r.errors, r.executed)
 
                     for i in objs.iterkeys():
-                        if errors.has_key(i):
+                        if i in errors:
                             ok = False
                             result += unicode(errors[i])
-            except Exception, e:
+            except Exception as e:
                 self.server_logger.error(unicode(e))
                 self.server_logger.error(traceback.format_exc())
                 return (unicode(e), 0)
@@ -1026,7 +1027,7 @@ class RequestHandler(object):
         try:
             packages = [x.identifier for x in module_registry().package_list]
             return (packages, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1035,7 +1036,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1067,7 +1068,7 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.error(result)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1076,7 +1077,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
@@ -1102,7 +1103,7 @@ class RequestHandler(object):
             self.server_logger.info("Answer: %s" % version)
             return (version, 1)
 
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1111,7 +1112,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1133,7 +1134,7 @@ class RequestHandler(object):
             (v, _ , _, _)  = io.load_vistrail(locator)
             result = io.serialize(v)
             return (result, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1142,7 +1143,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1169,7 +1170,7 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.info(result)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1178,7 +1179,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             result = unicode(e)
             self.server_logger.error(result)
             self.server_logger.error(traceback.format_exc())
@@ -1208,7 +1209,7 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("get_wf_graph_pdf returning %s"% result)
                     return result
-                except xmlrpclib.ProtocolError, err:
+                except xmlrpclib.ProtocolError as err:
                     err_msg = ("A protocol error occurred\n"
                                "URL: %s\n"
                                "HTTP/HTTPS headers: %s\n"
@@ -1217,7 +1218,7 @@ class RequestHandler(object):
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
                     return (unicode(err), 0)
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
                     return (unicode(e), 0)
@@ -1254,7 +1255,7 @@ class RequestHandler(object):
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
 
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1263,7 +1264,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error("Error when saving pdf: %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1293,7 +1294,7 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
-                except xmlrpclib.ProtocolError, err:
+                except xmlrpclib.ProtocolError as err:
                     err_msg = ("A protocol error occurred\n"
                                "URL: %s\n"
                                "HTTP/HTTPS headers: %s\n"
@@ -1302,7 +1303,7 @@ class RequestHandler(object):
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
                     return (unicode(err), 0)
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
                     return (unicode(e), 0)
@@ -1336,7 +1337,7 @@ class RequestHandler(object):
                 contents = f.read()
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1345,7 +1346,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error("Error when saving png %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1393,7 +1394,7 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
-                except xmlrpclib.ProtocolError, err:
+                except xmlrpclib.ProtocolError as err:
                     err_msg = ("A protocol error occurred\n"
                                "URL: %s\n"
                                "HTTP/HTTPS headers: %s\n"
@@ -1402,7 +1403,7 @@ class RequestHandler(object):
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
                     return (unicode(err), 0)
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
                     return (unicode(e), 0)
@@ -1444,7 +1445,7 @@ class RequestHandler(object):
                 contents = f.read()
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1453,7 +1454,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error("Error when saving png: %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1482,7 +1483,7 @@ class RequestHandler(object):
                     self.proxies_queue.put(proxy)
                     self.server_logger.info("returning %s" % result)
                     return result
-                except xmlrpclib.ProtocolError, err:
+                except xmlrpclib.ProtocolError as err:
                     err_msg = ("A protocol error occurred\n"
                                "URL: %s\n"
                                "HTTP/HTTPS headers: %s\n"
@@ -1491,7 +1492,7 @@ class RequestHandler(object):
                                                          err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
                     return (unicode(err), 0)
-                except Exception, e:
+                except Exception as e:
                     self.server_logger.error(unicode(e))
                     self.server_logger.error(traceback.format_exc())
                     return (unicode(e), 0)
@@ -1534,7 +1535,7 @@ class RequestHandler(object):
                 contents = f.read()
                 f.close()
                 return (xmlrpclib.Binary(contents), 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1543,7 +1544,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error("Error when saving pdf: %s" % unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1579,7 +1580,7 @@ class RequestHandler(object):
             finally:
                 os.unlink(name)
             return (result, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1588,7 +1589,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1622,7 +1623,7 @@ class RequestHandler(object):
                 for connection in p.connection_list:
                     action_list.append(('add', connection))
                 action = vistrails.core.db.action.create_action(action_list)
-                vistrail.add_action(action, 0L)
+                vistrail.add_action(action, 0)
                 vistrail.addTag("Imported workflow", action.id)
                 if not vistrail.db_version:
                     vistrail.db_version = currentVersion
@@ -1633,7 +1634,7 @@ class RequestHandler(object):
                 result = "Error: Pipeline was not materialized"
                 self.server_logger.info(result)
                 return (result, 0)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1642,7 +1643,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.info(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1660,7 +1661,7 @@ class RequestHandler(object):
             rows = io.get_db_vistrail_list(config)
             self.server_logger.info("returning %s" % unicode(rows))
             return (rows, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1669,7 +1670,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             return (unicode(e), 0)
 
@@ -1689,7 +1690,7 @@ class RequestHandler(object):
                 result += '<vistrail id="%s" name="%s" mod_time="%s" />'%(id,name,mod_time)
             result += '</vistrails>'
             return (result, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1698,7 +1699,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1743,7 +1744,7 @@ class RequestHandler(object):
                                    'date':action_map.date,
                                    'thumbnail': xmlrpclib.Binary(thumbnail_data)})
             return (result, 1)
-        except xmlrpclib.ProtocolError, err:
+        except xmlrpclib.ProtocolError as err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
                        "HTTP/HTTPS headers: %s\n"
@@ -1752,7 +1753,7 @@ class RequestHandler(object):
                                                  err.errcode, err.errmsg)
             self.server_logger.error(err_msg)
             return (unicode(err), 0)
-        except Exception, e:
+        except Exception as e:
             self.server_logger.error(unicode(e))
             self.server_logger.error(traceback.format_exc())
             return (unicode(e), 0)
@@ -1853,7 +1854,7 @@ class MedleySimpleGUI(XMLObject):
     @staticmethod
     def from_xml(node):
         if node.tag != 'medley_simple_gui':
-            print "node.tag != 'medley_simple_gui'"
+            print("node.tag != 'medley_simple_gui'")
             return None
         #read attributes
         data = node.get('id', None)
@@ -2268,7 +2269,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                 subprocess.Popen(args)
                 time.sleep(20)
                 self.others.append("http://%s:%s"%(host,port))
-            except Exception, e:
+            except Exception as e:
                 self.server_logger.error(("Couldn't start the instance on display:"
                                           "%s port: %s") % (virtual_display, port))
                 self.server_logger.error(unicode(e))
@@ -2280,7 +2281,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             try:
                 subprocess.Popen(args)
                 time.sleep(15)
-            except Exception, e:
+            except Exception as e:
                 self.server_logger.error("Couldn't stop instance: %s" % o)
                 self.server_logger.error(unicode(e))
 
@@ -2348,7 +2349,7 @@ def start_server(optionsDict=None, args=[]):
     """Initializes the application singleton."""
     global VistrailsServer
     if VistrailsServer:
-        print "Server already started."
+        print("Server already started.")
         return
     VistrailsServer = VistrailsServerSingleton()
     vistrails.gui.theme.initializeCurrentTheme()

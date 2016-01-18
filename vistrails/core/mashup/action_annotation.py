@@ -155,7 +155,7 @@ class TestActionAnnotation(unittest.TestCase):
 
         annotation = \
             ActionAnnotation(id=id_scope.getNewId('mashup_actionAnnotation'),
-                             key='akey', action_id=1L,
+                             key='akey', action_id=1,
                              value='some value', user='test')
         return annotation
 

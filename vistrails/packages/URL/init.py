@@ -99,7 +99,7 @@ class Downloader(object):
         # Send request
         try:
             response = self.send_request()
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             if self.is_in_local_cache:
                 debug.warning("A network error occurred. DownloadFile will "
                               "use a cached version of the file")
@@ -151,7 +151,7 @@ class Downloader(object):
             f2.close()
             response.close()
 
-        except Exception, e:
+        except Exception as e:
             try:
                 os.unlink(self.local_filename)
             except OSError:
@@ -194,7 +194,7 @@ class HTTPDownloader(Downloader):
             except OSError:
                 pass
             return self.opener.open(request)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if e.code == 304:
                 # Not modified
                 return None
@@ -332,7 +332,7 @@ class SSHDownloader(object):
         try:
             ssh.connect(hostname, port=portnum,
                         username=username, password=password)
-        except paramiko.SSHException, e:
+        except paramiko.SSHException as e:
             raise ModuleError(self.module, debug.format_exception(e))
         client = scp.SCPClient(ssh.get_transport())
 
@@ -498,7 +498,7 @@ class RepoSync(Module):
                         debug.warning("Push to repository was successful")
                         # make sure module caches
                         self.is_cacheable = self.validate_cache
-                except Exception, e:
+                except Exception as e:
                     show_warning("Upload Failure",
                                  "Data failed to upload to repository")
                     # make temporarily uncachable
@@ -528,7 +528,7 @@ class RepoSync(Module):
                     # file not in cache, download.
                     try:
                         urllib.urlretrieve(self.url, local_filename)
-                    except IOError, e:
+                    except IOError as e:
                         raise ModuleError(self, ("Invalid URL: %s" % e))
                 out_file = PathObject(local_filename)
                 debug.warning('RepoSync is using repository data')
@@ -647,7 +647,7 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating HTTP package directory: %s" % package_directory)
             os.mkdir(package_directory)
-        except Exception, e:
+        except Exception as e:
             raise RuntimeError("Failed to create cache directory: %s" %
                                package_directory, e)
 

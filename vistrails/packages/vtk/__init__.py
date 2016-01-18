@@ -39,8 +39,9 @@ visualization used by thousands of researchers and developers around
 the world. http://www.vtk.org"""
 
 from __future__ import division
+from __future__ import absolute_import
 
-from identifiers import *
+from .identifiers import *
 import vistrails.core
 
 def package_dependencies():

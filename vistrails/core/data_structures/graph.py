@@ -474,7 +474,7 @@ class Graph(object):
                 while stack.size:
                     parent, children = stack.top()
                     try:
-                        child, _ = children.next()
+                        child, _ = next(children)
                         if child in visited:
                             handle(parent, child, (child in gray
                                                    and back
@@ -696,7 +696,7 @@ class Graph(object):
     def __eq__(self, other):
         # Does not test isomorphism - vertices must be consistently labeled
         # might be slow - don't use in tight code
-        if type(self) <> type(other):
+        if type(self) != type(other):
             return False
         for v in self.vertices:
             if not v in other.vertices:
@@ -797,9 +797,9 @@ class TestGraph(unittest.TestCase):
             g.add_edge(v1, v2, i)
         sinkResult = [None for i in g.sinks() if g.out_degree(i) == 0]
         sourceResult = [None for i in g.sources() if g.in_degree(i) == 0]
-        if len(sinkResult) <> len(g.sinks()):
+        if len(sinkResult) != len(g.sinks()):
             assert False
-        if len(sourceResult) <> len(g.sources()):
+        if len(sourceResult) != len(g.sources()):
             assert False
 
     def test_remove_vertices(self):
@@ -1047,8 +1047,8 @@ class TestGraph(unittest.TestCase):
         g = self.make_linear(10)
         g2 = copy.copy(g)
         for v in g.vertices:
-            assert id(g.adjacency_list[v]) <> id(g2.adjacency_list[v])
-            assert id(g.inverse_adjacency_list[v]) <> id(g2.inverse_adjacency_list[v])
+            assert id(g.adjacency_list[v]) != id(g2.adjacency_list[v])
+            assert id(g.inverse_adjacency_list[v]) != id(g2.inverse_adjacency_list[v])
 
     def test_copy_works(self):
         g = self.make_linear(10)
@@ -1063,14 +1063,14 @@ class TestGraph(unittest.TestCase):
         assert copy.copy(g) == g
         g2 = copy.copy(g)
         g2.add_vertex(10)
-        assert g2 <> g
+        assert g2 != g
 
     def test_map_vertices(self):
         g = self.make_linear(5)
         m = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
         assert g == Graph.map_vertices(g, m)
         m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
-        assert g <> Graph.map_vertices(g, m)
+        assert g != Graph.map_vertices(g, m)
         
 if __name__ == '__main__':
     unittest.main()

@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 import os
 import uuid
@@ -475,7 +476,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                     reason,
                                                     sinks,
                                                     extra_info)])
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 raise
         return ([], False)
@@ -572,7 +573,7 @@ class VistrailController(QtCore.QObject, BaseController):
         try:
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
 #            from vistrails.gui.application import get_vistrails_application
 #
 #             def process_err(err):
@@ -714,7 +715,7 @@ class VistrailController(QtCore.QObject, BaseController):
         change versions when we're moving exactly one action up or down.
         This allows a few optimizations that improve interactivity."""
         
-        if self.current_version <> new_version:
+        if self.current_version != new_version:
             # Instead of recomputing the terse graph, simply update it
 
             # There are two variables in play:
@@ -734,7 +735,7 @@ class VistrailController(QtCore.QObject, BaseController):
             current_node_will_be_visible = \
                 (self.full_tree or
                  self.vistrail.has_tag(self.current_version) or
-                 children_count <> 1)
+                 children_count != 1)
 
             self.change_selected_version(new_version)
             # case 1:
@@ -1056,7 +1057,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 for attr in lists:
                     if hasattr(module, attr):
                         found_lists[attr] = getattr(module, attr)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Exception: %s" % e)
                 pass
             return (found_attrs, found_lists)
@@ -1069,16 +1070,16 @@ class VistrailController(QtCore.QObject, BaseController):
                 f = open(init_file, 'w')
             for attr, val in attrs.iteritems():
                 if attr not in found_attrs:
-                    print >>f, "%s = '%s'" % (attr, val)
+                    print("%s = '%s'" % (attr, val), file=f)
             for attr, val_list in lists.iteritems():
                 if attr not in found_lists:
-                    print >>f, "%s = %s" % (attr, unicode(val_list))
+                    print("%s = %s" % (attr, unicode(val_list)), file=f)
                 else:
                     diff_list = []
                     for val in val_list:
                         if val not in found_lists[attr]:
                             diff_list.append(val)
-                    print >>f, '%s.extend(%s)' % (attr, unicode(diff_list))
+                    print('%s.extend(%s)' % (attr, unicode(diff_list)), file=f)
             f.close()
 
         if os.path.exists(os.path.join(save_dir, '__init__.py')):
@@ -1243,14 +1244,14 @@ class VistrailController(QtCore.QObject, BaseController):
         try:
             pipeline_a = self.vistrail.getPipeline(a)
             self.validate(pipeline_a)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             (_, pipeline_a) = \
                 self.handle_invalid_pipeline(e, a, Vistrail())
             self._delayed_actions = []
         try:
             pipeline_c = self.vistrail.getPipeline(c)
             self.validate(pipeline_c)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
             self._delayed_actions = []
                                                      
@@ -1431,7 +1432,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller = VistrailController(Vistrail(), None, 
                                         pipeline_view=DummyView(),
                                         auto_save=False)
-        controller.change_selected_version(0L)
+        controller.change_selected_version(0)
         module = controller.add_module(
                 vistrails.core.system.get_vistrails_basic_pkg_id(),
                 'ConcatenateString',

@@ -36,10 +36,12 @@
 
 """generated automatically by auto_dao.py"""
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from vistrails.core.system import get_elementtree_library
 
-from xml_dao import XMLDAO
+from .xml_dao import XMLDAO
 from vistrails.db.versions.v1_0_2.domain import *
 
 ElementTree = get_elementtree_library()
@@ -124,7 +126,7 @@ class DBOpmWasGeneratedByXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmWasGeneratedBy(effect=effect,
                                   role=role,
@@ -196,7 +198,7 @@ class DBOpmAccountsXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmAccounts(accounts=accounts,
                             opm_overlapss=opm_overlapss)
@@ -336,7 +338,7 @@ class DBModuleXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBModule(id=id,
                        cache=cache,
@@ -429,7 +431,7 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBModuleDescriptor(id=id,
                                  name=name,
@@ -563,7 +565,7 @@ class DBOpmProcessesXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmProcesses(processs=processs)
         obj.is_dirty = False
@@ -705,7 +707,7 @@ class DBOpmArtifactXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmArtifact(id=id,
                             value=value,
@@ -788,7 +790,7 @@ class DBGroupXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBGroup(id=id,
                       workflow=workflow,
@@ -879,7 +881,7 @@ class DBLogXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBLog(id=id,
                     version=version,
@@ -942,7 +944,7 @@ class DBOpmAgentsXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmAgents(agents=agents)
         obj.is_dirty = False
@@ -1121,7 +1123,7 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAdd(data=data,
                     id=id,
@@ -1221,7 +1223,7 @@ class DBOtherXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOther(id=id,
                       key=key,
@@ -1315,7 +1317,7 @@ class DBOpmOverlapsXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmOverlaps(opm_account_ids=opm_account_ids)
         obj.is_dirty = False
@@ -1363,7 +1365,7 @@ class DBOpmArtifactsXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmArtifacts(artifacts=artifacts)
         obj.is_dirty = False
@@ -1423,7 +1425,7 @@ class DBOpmDependenciesXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmDependencies(dependencys=dependencys)
         obj.is_dirty = False
@@ -1553,7 +1555,7 @@ class DBOpmUsedXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmUsed(effect=effect,
                         role=role,
@@ -1666,7 +1668,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBFunction(id=id,
                          pos=pos,
@@ -1799,7 +1801,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAbstraction(id=id,
                             cache=cache,
@@ -1905,7 +1907,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBWorkflow(modules=modules,
                          id=id,
@@ -2026,7 +2028,7 @@ class DBOpmArtifactValueXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmArtifactValue(value=value)
         obj.is_dirty = False
@@ -2127,7 +2129,7 @@ class DBOpmGraphXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmGraph(accounts=accounts,
                          processes=processes,
@@ -2203,7 +2205,7 @@ class DBRegistryXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBRegistry(id=id,
                          version=version,
@@ -2263,7 +2265,7 @@ class DBOpmAccountXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmAccount(id=id,
                            value=value)
@@ -2402,7 +2404,7 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBChange(data=data,
                        id=id,
@@ -2514,7 +2516,7 @@ class DBOpmWasDerivedFromXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmWasDerivedFrom(effect=effect,
                                   role=role,
@@ -2602,7 +2604,7 @@ class DBOpmWasControlledByXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmWasControlledBy(effect=effect,
                                    role=role,
@@ -2740,7 +2742,7 @@ class DBGroupExecXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBGroupExec(item_execs=item_execs,
                           id=id,
@@ -2879,7 +2881,7 @@ class DBPackageXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBPackage(id=id,
                         name=name,
@@ -2979,7 +2981,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBWorkflowExec(item_execs=item_execs,
                              id=id,
@@ -3085,7 +3087,7 @@ class DBLoopExecXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBLoopExec(item_execs=item_execs,
                          id=id,
@@ -3158,7 +3160,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBConnection(id=id,
                            ports=ports)
@@ -3218,7 +3220,7 @@ class DBOpmProcessXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmProcess(id=id,
                            value=value,
@@ -3291,7 +3293,7 @@ class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmWasTriggeredBy(effect=effect,
                                   role=role,
@@ -3365,7 +3367,7 @@ class DBOpmProcessValueXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmProcessValue(value=value)
         obj.is_dirty = False
@@ -3442,7 +3444,7 @@ class DBActionXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBAction(operations=operations,
                        id=id,
@@ -3522,7 +3524,7 @@ class DBOpmAgentXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBOpmAgent(id=id,
                          value=value,
@@ -3647,7 +3649,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBVistrail(id=id,
                          version=version,
@@ -3742,7 +3744,7 @@ class DBModuleExecXMLDAOBase(XMLDAO):
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
-                print '*** ERROR *** tag = %s' % child.tag
+                print('*** ERROR *** tag = %s' % child.tag)
         
         obj = DBModuleExec(id=id,
                            ts_start=ts_start,

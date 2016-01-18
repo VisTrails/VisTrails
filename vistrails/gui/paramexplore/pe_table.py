@@ -305,7 +305,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
@@ -582,7 +582,7 @@ class QParameterExplorationTable(QPromptWidget):
                         pAlias = old_param.alias
                         pIdentifier = old_param.identifier
                         actions = []
-                        tmp_id = -1L
+                        tmp_id = -1
                         for v in values:
                             getter = reg.get_descriptor_by_name
                             desc = getter(paramInfo.identifier,

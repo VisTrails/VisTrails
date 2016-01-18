@@ -43,7 +43,7 @@ from vistrails.core.data_structures.point import Point
 
 def smart_sum(v):
     try:
-        fst = v.next()
+        fst = next(v)
         return sum(v, fst)
     except Exception:
         pass

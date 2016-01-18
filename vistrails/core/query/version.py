@@ -36,6 +36,7 @@
 # We need to remove QtGui and QtCore refernce by storing all of our
 # notes in plain text, not html, should be fix later
 from __future__ import division
+from __future__ import print_function
 
 import datetime
 import re
@@ -492,7 +493,7 @@ class SearchCompiler(object):
         while t1:
             tok = t1[0]
             cmd = tok.split(':', 1)
-            if SearchCompiler.dispatch.has_key(cmd[0]):
+            if cmd[0] in SearchCompiler.dispatch:
                 fun = SearchCompiler.dispatch[cmd[0]]
                 if len(cmd) > 1:
                     t1 = [cmd[1]] + t1[1:]
@@ -563,12 +564,12 @@ class SearchCompiler(object):
                 lst.append(tok)
                 tokStream = tokStream[1:]
             return (BeforeSearchStmt(" ".join(lst)), [])
-        except SearchParseError, e:
+        except SearchParseError as e:
             if 'Expected a date' in e.args[0]:
                 try:
                     return self.parseAny(old_tokstream, use_regex)
-                except SearchParseError, e2:
-                    print "Another exception...", e2.args[0]
+                except SearchParseError as e2:
+                    print("Another exception...", e2.args[0])
                     raise e
             else:
                 raise
@@ -588,12 +589,12 @@ class SearchCompiler(object):
                 lst.append(tok)
                 tokStream = tokStream[1:]
             return (AfterSearchStmt(" ".join(lst)), [])
-        except SearchParseError, e:
+        except SearchParseError as e:
             if 'Expected a date' in e.args[0]:
                 try:
                     return self.parseAny(['after'] + tokStream, use_regex)
-                except SearchParseError, e2:
-                    print "Another exception...", e2.args[0]
+                except SearchParseError as e2:
+                    print("Another exception...", e2.args[0])
                     raise e
             else:
                 raise

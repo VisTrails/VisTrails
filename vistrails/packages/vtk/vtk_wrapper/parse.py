@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 from itertools import izip, chain
 import re
@@ -174,7 +175,7 @@ def create_module(base_cls_name, node):
     try:
         node.klass.__doc__.decode('latin-1')
     except UnicodeDecodeError:
-        print "ERROR decoding docstring", node.name
+        print("ERROR decoding docstring", node.name)
         raise
 
     input_ports, output_ports = get_ports(node.klass)
@@ -893,8 +894,8 @@ def get_ports(cls):
     ports_tuples.append(get_custom_ports(cls))
 
     zipped_ports = izip(*ports_tuples)
-    input_ports = chain(*zipped_ports.next())
-    output_ports = chain(*zipped_ports.next())
+    input_ports = chain(*next(zipped_ports))
+    output_ports = chain(*next(zipped_ports))
     return input_ports, output_ports
 
 def parse(filename="vtk_raw.xml"):

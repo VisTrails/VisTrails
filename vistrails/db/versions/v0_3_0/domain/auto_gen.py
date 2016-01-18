@@ -803,7 +803,7 @@ class DBVistrail(object):
     def db_delete_action(self, action):
         del self.__db_actions[action.db_time]
     def db_get_action(self, key):
-        if self.__db_actions.has_key(key):
+        if key in self.__db_actions:
             return self.__db_actions[key]
         return None
     
@@ -821,7 +821,7 @@ class DBVistrail(object):
     def db_delete_tag(self, tag):
         del self.__db_tags[tag.db_time]
     def db_get_tag(self, key):
-        if self.__db_tags.has_key(key):
+        if key in self.__db_tags:
             return self.__db_tags[key]
         return None
     

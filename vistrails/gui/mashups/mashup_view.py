@@ -142,7 +142,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                         self.disconnect(self.mshpController.vtController,
                                         QtCore.SIGNAL('vistrailChanged()'),
                                         self.mshpControllerVistrailChanged)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
             self.controller.flush_delayed_actions()

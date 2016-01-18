@@ -368,7 +368,7 @@ class SourceConfigurationWidget(SourceWidget):
         if (self.codeEditor is not None and modified):
             try:
                 code = self.codeEditor.toPlainText()
-            except UnicodeEncodeError, e:
+            except UnicodeEncodeError as e:
                 debug.critical('Source Code Editor does not support non-ascii characters', e)
                 return False
             if self.sourceEncode:
@@ -382,7 +382,7 @@ class SourceConfigurationWidget(SourceWidget):
                                                        deleted_ports,
                                                        added_ports,
                                                        functions)
-        except PortAlreadyExists, e:
+        except PortAlreadyExists as e:
             debug.critical('Port Already Exists %s' % e)
             return False
         return True

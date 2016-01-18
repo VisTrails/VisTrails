@@ -127,7 +127,7 @@ def translate_object(obj, method_name, version=None, target_version=None):
         next_version = map[version]
         try:
             translate_module = get_translate_module(map, version, next_version)
-        except Exception, e:
+        except Exception as e:
             import traceback
             raise VistrailsDBException("Cannot translate version: "
                                        "error loading translation version %s method '%s': %s" % \

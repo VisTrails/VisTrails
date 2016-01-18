@@ -36,6 +36,7 @@
 ##TODO Tests
 """ This module defines the class Pipeline """
 from __future__ import division
+from __future__ import print_function
 
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.configuration import get_vistrails_configuration
@@ -852,13 +853,13 @@ class Pipeline(DBWorkflow):
         exceptions = set()
         try:
             self.ensure_modules_are_on_registry()
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             exceptions.update(e.get_exception_set())
 
         # check for cycles
         try:
             self.graph.dfs(raise_if_cyclic=True)
-        except GraphContainsCycles, e:
+        except GraphContainsCycles as e:
             exceptions.add(e)
 
         # do this before we check connection specs because it is
@@ -871,7 +872,7 @@ class Pipeline(DBWorkflow):
                     subpipeline = module.pipeline
                     if subpipeline is not None:
                         subpipeline.validate()
-                except InvalidPipeline, e:
+                except InvalidPipeline as e:
                     module.is_valid = False
                     e._module_id = module.id
                     exceptions.add(e)
@@ -886,19 +887,19 @@ class Pipeline(DBWorkflow):
                         pass
         try:
             self.ensure_port_specs()
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             exceptions.update(e.get_exception_set())
         try:
             self.ensure_connection_specs()
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             exceptions.update(e.get_exception_set())
         try:
             self.ensure_functions()
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             exceptions.update(e.get_exception_set())
         try:
             self.ensure_vistrail_variables(vistrail_vars)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             exceptions.update(e.get_exception_set())
         
         self.check_subworkflow_versions()
@@ -943,7 +944,7 @@ class Pipeline(DBWorkflow):
                 port.spec = module.get_port_spec(port.name, 
                                             port_type_map.inverse[port.type])
                 # print 'got spec', spec, spec.sigstring
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 # debug.critical('CONNECTION EXCEPTION: %s' % e)
                 exceptions.add(e)
             else:
@@ -1003,7 +1004,7 @@ class Pipeline(DBWorkflow):
                     # FIXME check for upgrades, otherwise use similar
                     # descriptor, the old behavior
                     descriptor = module.module_descriptor
-                except ModuleRegistryException, e:
+                except ModuleRegistryException as e:
                     e._module_id = mid
                     exceptions.add(e)
                 else:
@@ -1038,7 +1039,7 @@ class Pipeline(DBWorkflow):
                         desc = reg.get_module_by_name(idn,
                                                       p.type,
                                                       p.namespace)
-                    except ModuleRegistryException, e:
+                    except ModuleRegistryException as e:
                         is_valid = False
                         e._module_id = module.id
                         exceptions.add(e)
@@ -1089,18 +1090,18 @@ class Pipeline(DBWorkflow):
                 for port_spec in module.port_specs.itervalues():
                     try:
                         port_spec.descriptors()
-                    except MissingPackage, e:
+                    except MissingPackage as e:
                         port_spec.is_valid = False
                         e._module_id = module.id
                         exceptions.add(e)
-                    except ModuleRegistryException, e:
+                    except ModuleRegistryException as e:
                         e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,
                                          port_spec.type, port_spec.sigstring)
                         port_spec.is_valid = False
                         e._module_id = module.id
                         exceptions.add(e)
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 if module.is_valid:
                     module.is_valid = False
     
@@ -1177,37 +1178,37 @@ class Pipeline(DBWorkflow):
 
     def show_comparison(self, other):
         if type(other) != type(self):
-            print "type mismatch"
+            print("type mismatch")
             return
         if len(self.module_list) != len(other.module_list):
-            print "module lists of different sizes"
+            print("module lists of different sizes")
             return
         if len(self.connection_list) != len(other.connection_list):
-            print "Connection lists of different sizes"
+            print("Connection lists of different sizes")
             return
         for m_id, m in self.modules.iteritems():
             if not m_id in other.modules:
-                print "module %d in self but not in other" % m_id
+                print("module %d in self but not in other" % m_id)
                 return
-            if m <> other.modules[m_id]:
-                print "module %s in self doesn't match module %s in other" % (
-                    m, other.modules[m_id])
+            if m != other.modules[m_id]:
+                print("module %s in self doesn't match module %s in other" % (
+                    m, other.modules[m_id]))
                 return
         for m_id, m in other.modules.iteritems():
             if not m_id in self.modules:
-                print "module %d in other but not in self" % m_id
+                print("module %d in other but not in self" % m_id)
                 return
             # no need to check equality since this was already done before
         for c_id, c in self.connections.iteritems():
             if not c_id in other.connections:
-                print "connection %d in self but not in other" % c_id
+                print("connection %d in self but not in other" % c_id)
                 return
-            if c <> other.connections[c_id]:
-                print "connection %s in self doesn't match connection %s in other" % (c,  other.connections[c_id])
+            if c != other.connections[c_id]:
+                print("connection %s in self doesn't match connection %s in other" % (c,  other.connections[c_id]))
                 return
         for c_id, c, in other.connections.iteritems():
             if not c_id in self.connections:
-                print "connection %d in other but not in self" % c_id
+                print("connection %d in other but not in self" % c_id)
                 return
             # no need to check equality since this was already done before
         assert self == other
@@ -1247,7 +1248,7 @@ class Pipeline(DBWorkflow):
         for m_id, m in self.modules.iteritems():
             if not m_id in other.modules:
                 return False
-            if m <> other.modules[m_id]:
+            if m != other.modules[m_id]:
                 return False
         for m_id, m in other.modules.iteritems():
             if not m_id in self.modules:
@@ -1256,7 +1257,7 @@ class Pipeline(DBWorkflow):
         for c_id, c in self.connections.iteritems():
             if not c_id in other.connections:
                 return False
-            if c <> other.connections[c_id]:
+            if c != other.connections[c_id]:
                 return False
         for c_id, c, in other.connections.iteritems():
             if not c_id in self.connections:
@@ -1664,24 +1665,24 @@ class TestPipeline(unittest.TestCase):
         m1 = Module(name="String",
                     package=basic_pkg,
                     version=basic_version,
-                    id=1L)
+                    id=1)
         m2 = Module(name="String",
                     package=basic_pkg,
                     version=basic_version,
-                    id=2L)
-        source = Port(id=1L,
+                    id=2)
+        source = Port(id=1,
                       type='source', 
                       moduleId=m1.id, 
                       moduleName='String', 
                       name='value',
                       signature='(%s:StringBean)' % basic_pkg)
-        destination = Port(id=2L,
+        destination = Port(id=2,
                            type='destination',
                            moduleId=m2.id,
                            moduleName='String',
                            name='value',
                            signature='(%s:NString)' % basic_pkg)
-        c1 = Connection(id=1L,
+        c1 = Connection(id=1,
                         ports=[source, destination])
         p.add_module(m1)
         p.add_module(m2)

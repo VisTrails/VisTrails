@@ -34,9 +34,10 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
-from version import SearchCompiler
-from visual import VisualQuery
+from .version import SearchCompiler
+from .visual import VisualQuery
 
 class CombinedSearch(VisualQuery):
     def __init__(self, search_str=None, pipeline=None, versions_to_check=None,

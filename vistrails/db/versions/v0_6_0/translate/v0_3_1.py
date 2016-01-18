@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 from datetime import datetime
 import sys
@@ -328,7 +329,7 @@ def getTypeIdList(operation):
                 ('function', operation.db_oldParentId),
                 ('parameter', operation.db_oldId)]
     else:
-        print "unknown type: '%s'" % operation.db_what
+        print("unknown type: '%s'" % operation.db_what)
         return [(operation.db_what, operation.db_oldId)]
 
 def getOldId(object):
@@ -373,7 +374,7 @@ def captureObject(object, objectDict, newId, parentList):
     oldId = getOldId(object)
 #    print "capture: %s %s" % (object.vtType, oldId)
 #    currentDict[(object.vtType, oldId)] = (newId, {}, object)
-    if not currentDict.has_key((object.vtType, oldId)):
+    if (object.vtType, oldId) not in currentDict:
         currentDict[(object.vtType, oldId)] = ([], -1)
     (curList, curIdx) = currentDict[(object.vtType, oldId)]
     curList.append((newId, {}, object, curIdx))
@@ -388,7 +389,7 @@ def captureDelete(objType, objId, objectDict, parentList):
         currentDict = objList[curIdx][1]
 
 #    print "captureDelete: %s %s" % (objType, objId)
-    if not currentDict.has_key((objType, objId)):
+    if (objType, objId) not in currentDict:
         raise Exception("invalid delete")
     (curList, curIdx) = currentDict[(objType, objId)]
     curList.append((-1, {}, None, curIdx))
@@ -414,10 +415,10 @@ def removeObject(oldObjType, oldId, objectDict, parentList):
 #        del curList[curIdx]
         currentDict[(oldObjType, oldId)] = (curList, newIdx)
     except KeyError:
-        print "cannot remove (%s, %s)" % (oldObjType, oldId)
-        print parentList
-        print objList
-        print "index: %s"  % objIdx
+        print("cannot remove (%s, %s)" % (oldObjType, oldId))
+        print(parentList)
+        print(objList)
+        print("index: %s"  % objIdx)
 
 def findNewId(typeIdList, objectDict):
     try:
@@ -681,7 +682,7 @@ def convertOperation(vistrail, objectDict, actionType, operation):
 #        print 'found new id:  %s' % newId
         if newId is None:
             msg = "Cannot find id: %s" % parentList
-            print msg
+            print(msg)
 #            raise Exception(msg)
             return []
 

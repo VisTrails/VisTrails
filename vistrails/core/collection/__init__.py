@@ -34,19 +34,20 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 import glob
 import os
 import sqlite3
 from itertools import chain
 
-from entity import Entity
-from vistrail import VistrailEntity
-from workflow import WorkflowEntity
-from workflow_exec import WorkflowExecEntity
-from thumbnail import ThumbnailEntity
-from mashup import MashupEntity
-from parameter_exploration import ParameterExplorationEntity
+from .entity import Entity
+from .vistrail import VistrailEntity
+from .workflow import WorkflowEntity
+from .workflow_exec import WorkflowExecEntity
+from .thumbnail import ThumbnailEntity
+from .mashup import MashupEntity
+from .parameter_exploration import ParameterExplorationEntity
 
 from vistrails.core.db.locator import FileLocator, BaseLocator
 from vistrails.core.db.io import load_vistrail
@@ -89,7 +90,7 @@ class Collection(object):
                 for s in schema:
                     cur.execute(s)
                 self.conn.commit()
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Could not create vistrail index schema", e)
         else:
             self.conn = sqlite3.connect(self.database)

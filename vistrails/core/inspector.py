@@ -216,7 +216,7 @@ class PipelineInspector(object):
         module_name = {}
         for moduleId in pipeline.modules.iterkeys():
             module = pipeline.modules[moduleId]
-            if module_name.has_key(module.name): # ambiguous
+            if module.name in module_name: # ambiguous
                 if count[module.name]==1:
                     self.annotated_modules[module_name[module.name]] = 1
                 count[module.name] += 1
@@ -230,7 +230,7 @@ class PipelineInspector(object):
             # only need to worry about nested cells here
             if len(id_list) >= 2:
                 id_iter = iter(id_list)
-                m = pipeline.modules[id_iter.next()]
+                m = pipeline.modules[next(id_iter)]
                 for m_id in id_iter:
                     pipeline = m.pipeline
                     m = pipeline.modules[m_id]

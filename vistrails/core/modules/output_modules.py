@@ -35,6 +35,7 @@
 ##############################################################################
 
 from __future__ import division
+from __future__ import print_function
 
 from copy import copy
 import os
@@ -213,7 +214,7 @@ class OutputModeConfig(dict):
             return self.get_override(k)
         try:
             return dict.__getitem__(self, k)
-        except KeyError, e:
+        except KeyError as e:
             if self.has_global_setting(k):
                 return self.get_global_setting(k)
             else:
@@ -565,13 +566,13 @@ class FileToFileMode(FileMode):
         if os.path.exists(full_path):
             try:
                 os.remove(full_path)
-            except OSError, e:
+            except OSError as e:
                 raise ModuleError(output_module, 
                                   ('Could not delete existing '
                                    'path "%s"' % full_path))
         try:
             vistrails.core.system.link_or_copy(old_fname, full_path)
-        except OSError, e:
+        except OSError as e:
             msg = "Could not create file '%s': %s" % (full_path, e)
             raise ModuleError(output_module, msg)
 
@@ -585,14 +586,14 @@ class FileToStdoutMode(StdoutMode):
 class GenericToStdoutMode(StdoutMode):
     def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
-        print >>sys.stdout, value
+        print(value, file=sys.stdout)
 
 class GenericToFileMode(FileMode):
     def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         filename = self.get_filename(configuration)
         with open(filename, 'w') as f:
-            print >>f, value
+            print(value, file=f)
 
 class GenericOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")

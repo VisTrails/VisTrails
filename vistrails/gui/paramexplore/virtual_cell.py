@@ -115,7 +115,7 @@ def decodeConfiguration(pipeline, cells):
     for id_list in inspector.spreadsheet_cells:
         pipeline = orig_pipeline
         id_iter = iter(id_list)
-        m = pipeline.modules[id_iter.next()]
+        m = pipeline.modules[next(id_iter)]
         m_id = m.id
         for m_id in id_iter:
             pipeline = m.pipeline
@@ -293,7 +293,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
             for id_list in self.inspector.spreadsheet_cells:
                 pipeline = self.pipeline
                 id_iter = iter(id_list)
-                m = pipeline.modules[id_iter.next()]
+                m = pipeline.modules[next(id_iter)]
                 m_id = m.id
                 for m_id in id_iter:
                     pipeline = m.pipeline

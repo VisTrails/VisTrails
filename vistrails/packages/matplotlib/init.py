@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from __future__ import absolute_import
 
 import matplotlib
 matplotlib.use('Qt4Agg', warn=False)
@@ -44,10 +45,10 @@ import vistrails.core.db.action
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from bases import _modules as _base_modules, MplFigureOutput
-from plots import _modules as _plot_modules
-from artists import _modules as _artist_modules
-from identifiers import identifier
+from .bases import _modules as _base_modules, MplFigureOutput
+from .plots import _modules as _plot_modules
+from .artists import _modules as _artist_modules
+from .identifiers import identifier
 
 ################################################################################
 
@@ -58,7 +59,7 @@ def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('org.vistrails.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from figure_cell import MplFigureCell, MplFigureToSpreadsheet
+        from .figure_cell import MplFigureCell, MplFigureToSpreadsheet
         _modules.append(MplFigureCell)
         MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
 

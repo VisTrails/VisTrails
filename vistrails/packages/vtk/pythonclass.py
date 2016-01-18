@@ -82,7 +82,7 @@ class BaseClassModule(Module):
         method = getattr(instance, method_name)
         try:
             method(*(prepend_params + params))
-        except Exception, e:
+        except Exception as e:
             raise
 
     def call_get_method(self, instance, port):
@@ -92,7 +92,7 @@ class BaseClassModule(Module):
             value = method(*(port.get_prepend_params()))
             # convert params
             return convert_output(value, self.output_specs[port.name].signature)
-        except Exception, e:
+        except Exception as e:
             raise
 
     def call_inputs(self, instance):

@@ -36,8 +36,9 @@
 
 """generated automatically by auto_dao.py"""
 from __future__ import division
+from __future__ import absolute_import
 
-from sql_dao import SQLDAO
+from .sql_dao import SQLDAO
 from vistrails.db.versions.v0_9_3.domain import *
 
 class DBPortSpecSQLDAOBase(SQLDAO):

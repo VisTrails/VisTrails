@@ -304,7 +304,7 @@ class Vistrail(DBVistrail):
         """
         try:
             return Vistrail.getPipelineDispatcher[type(version)](self, version)
-        except Exception, e:
+        except Exception as e:
             raise InvalidPipeline([e])
     
     def getPipelineVersionName(self, version):
@@ -1018,7 +1018,7 @@ class Vistrail(DBVistrail):
     # Dispatch in runtime according to type
     getPipelineDispatcher = {}
     getPipelineDispatcher[type(0)] = getPipelineVersionNumber
-    getPipelineDispatcher[type(0L)] = getPipelineVersionNumber
+    getPipelineDispatcher[type(0)] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
 
     class InvalidAbstraction(Exception):
@@ -1045,7 +1045,7 @@ class Vistrail(DBVistrail):
                 try:
                     if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
-                except AttributeError, e:
+                except AttributeError as e:
                     debug.unexpected_exception(e)
         return package_list
 

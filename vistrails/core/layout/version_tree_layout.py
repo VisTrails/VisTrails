@@ -39,8 +39,9 @@ Originally written by Lauro D. Lins.
 
 """
 from __future__ import division
+from __future__ import absolute_import
 
-from tree_layout import TreeLW, NodeLW, TreeLayoutLW
+from .tree_layout import TreeLW, NodeLW, TreeLayoutLW
 from vistrails.core.data_structures.point import Point
 
 ################################################################################

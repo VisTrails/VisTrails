@@ -83,6 +83,7 @@ Example usage:
 """
 
 from __future__ import division
+from __future__ import print_function
 
 import httplib, urllib2, socket
 from httplib import NotConnected
@@ -116,14 +117,14 @@ class _StreamingHTTPMixin(object):
         # NOTE: we DO propagate the error, though, because we cannot simply
         #       ignore the error... the caller will know if they can retry.
         if self.debuglevel > 0:
-            print "send:", repr(value)
+            print("send:", repr(value))
         try:
             blocksize = 8192
             if hasattr(value, 'read') :
                 if hasattr(value, 'seek'):
                     value.seek(0)
                 if self.debuglevel > 0:
-                    print "sendIng a read()able"
+                    print("sendIng a read()able")
                 data = value.read(blocksize)
                 while data:
                     self.sock.sendall(data)
@@ -132,12 +133,12 @@ class _StreamingHTTPMixin(object):
                 if hasattr(value, 'reset'):
                     value.reset()
                 if self.debuglevel > 0:
-                    print "sendIng an iterable"
+                    print("sendIng an iterable")
                 for data in value:
                     self.sock.sendall(data)
             else:
                 self.sock.sendall(value)
-        except socket.error, v:
+        except socket.error as v:
             if v[0] == 32:      # Broken pipe
                 self.close()
             raise

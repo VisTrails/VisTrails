@@ -34,13 +34,15 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import shutil
 import sys
 
-from compute_hash import compute_hash
-from identifiers import identifier as persistence_pkg, \
+from .compute_hash import compute_hash
+from .identifiers import identifier as persistence_pkg, \
     old_identifiers as persistence_old_ids
 persistence_pkg_ids = set(persistence_old_ids)
 persistence_pkg_ids.add(persistence_pkg)
@@ -123,13 +125,13 @@ if __name__ == '__main__':
     vt_finds = find_workflows(path_name, vistrail_dir)
 
     for fname, (execs, tags) in vt_finds.iteritems():
-        print fname + ':'
+        print(fname + ':')
         for version, exec_list in execs.iteritems():
             for (exec_time, cache_fname) in exec_list:
                 if version in tags:
-                    print ' ', unicode(version) + ' (' + tags[version] + '):', \
-                        exec_time
-                    print '   ', cache_fname
+                    print(' ', unicode(version) + ' (' + tags[version] + '):', \
+                        exec_time)
+                    print('   ', cache_fname)
                 else:
-                    print ' ', unicode(version) + ':', exec_time
-                    print '   ', cache_fname
+                    print(' ', unicode(version) + ':', exec_time)
+                    print('   ', cache_fname)

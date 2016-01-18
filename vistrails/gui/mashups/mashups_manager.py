@@ -74,7 +74,7 @@ class MashupsManager(object):
         if not MashupsManager._instance:
             MashupsManager._instance = self
         else:
-            raise RuntimeError, 'Only one instance of MashupsManager is allowed'
+            raise RuntimeError('Only one instance of MashupsManager is allowed')
 
     def createMashupController(self, vt_controller, version, view=DummyView()):
         #print "Manager creating mashup controller ", vt_controller, version
@@ -87,7 +87,7 @@ class MashupsManager(object):
             (p_mashuptrail, p_version) = \
                      MashupsManager.findClosestParentMashuptrail(vt_controller, 
                                                                  version)
-            id_scope = IdScope(1L)
+            id_scope = IdScope(1)
             if p_mashuptrail is not None:
                 version_name = vt_controller.get_pipeline_name(p_version)
                 (res, mshpv) = MashupsManager.showFoundMashupsDialog(p_mashuptrail, 
@@ -163,7 +163,7 @@ class MashupsManager(object):
                                               newvt_controller, 
                                               version, mashuptrail)
             mshpController.setCurrentVersion(mashuptrail.currentVersion)
-            if mshpController.currentVersion == 1L:
+            if mshpController.currentVersion == 1:
                 mshpController.updateCurrentTag("ROOT")
         else:
             #print "----> found mashuptrail ", mashuptrail.currentVersion
@@ -397,14 +397,14 @@ class MashupsManager(object):
                     action = vistrails.core.db.action.create_paste_action(pip, 
                                                         vistrail.idScope,
                                                         id_remap)
-                    vistrail.add_action(action, 0L, 0)
+                    vistrail.add_action(action, 0, 0)
                    
                     tag = vtcontroller.vistrail.get_tag(version)
                     if tag is None:
                         tag = "Imported workflow"
                     vistrail.addTag(tag, action.id)
                     node.set('version', unicode(action.id))
-                    id_scope = IdScope(1L)
+                    id_scope = IdScope(1)
                     newmashuptrail = Mashuptrail(
                                      MashupsManager.getNewMashuptrailId(), 
                                      action.id, 

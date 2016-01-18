@@ -259,7 +259,7 @@ class ExtractColumn(Module):
             self.set_output('value', table.get_column(
                     column_idx,
                     self.get_input('numeric', allow_default=True)))
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
 
 

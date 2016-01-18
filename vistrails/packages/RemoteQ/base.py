@@ -36,8 +36,9 @@
 """ Base classes for all Hadoop Modules """
 
 from __future__ import division
+from __future__ import absolute_import
 
-from init import configuration
+from .init import configuration
 from vistrails.core.utils import unquote
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.gui.modules.python_source_configure import \
@@ -52,7 +53,7 @@ from remoteq.batch.directories import CreateDirectory
 import urllib
 import xml.etree.cElementTree as ET
 
-from init import RQModule
+from .init import RQModule
 
 ################################################################################
 class HadoopBaseModule(RQModule):

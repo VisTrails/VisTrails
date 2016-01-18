@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 from __future__ import division
+from __future__ import print_function
 
 import copy
 from itertools import izip
@@ -903,7 +904,7 @@ class VistrailController(object):
         return op_list
 
     def update_function_ops(self, module, function_name, param_values=[],
-                            old_id=-1L, should_replace=True, aliases=[],
+                            old_id=-1, should_replace=True, aliases=[],
                             query_methods=[]):
         """NOTE: aliases will be removed in the future!"""
         op_list = []
@@ -1158,7 +1159,7 @@ class VistrailController(object):
         return function
 
     @vt_action
-    def update_function(self, module, function_name, param_values, old_id=-1L,
+    def update_function(self, module, function_name, param_values, old_id=-1,
                         aliases=[], query_methods=[], should_replace=True):
         op_list = self.update_function_ops(module, function_name, param_values,
                                            old_id, aliases=aliases,
@@ -1805,7 +1806,7 @@ class VistrailController(object):
         # save vistrail
         abs_vistrail = self.create_vistrail_from_pipeline(pipeline)
         abs_vistrail.name = name
-        abs_vistrail.change_description("Copied from pipeline", 1L)
+        abs_vistrail.change_description("Copied from pipeline", 1)
         abs_fname = self.save_abstraction(abs_vistrail)
 
         # need to late enable stuff on the abstraction_pkg package
@@ -1815,7 +1816,7 @@ class VistrailController(object):
         (avg_x, avg_y) = self.get_avg_location([full_pipeline.modules[m_id]
                                                 for m_id in module_ids])
         abstraction = self.create_module(abstraction_pkg, name, namespace, 
-                                         avg_x, avg_y, 1L)
+                                         avg_x, avg_y, 1)
         connections = self.get_connections_to_subpipeline(abstraction, 
                                                           outside_connections)
         return (abstraction, connections)
@@ -1826,7 +1827,7 @@ class VistrailController(object):
         group = self.current_pipeline.modules[group_id]
         abs_vistrail = self.create_vistrail_from_pipeline(group.pipeline)
         abs_vistrail.name = name
-        abs_vistrail.change_description("Created from group", 1L)
+        abs_vistrail.change_description("Created from group", 1)
         abs_fname = self.save_abstraction(abs_vistrail)
 
         group_connections = self.get_connections_to_and_from(full_pipeline,
@@ -1850,7 +1851,7 @@ class VistrailController(object):
         namespace = get_cur_abs_namespace(abs_vistrail)
         abstraction = self.create_module(abstraction_pkg, name, namespace, 
                                          group.location.x, group.location.y, 
-                                         1L)
+                                         1)
         connections = self.get_connections_to_subpipeline(abstraction, 
                                                           outside_connections)
         return (abstraction, connections)
@@ -1862,7 +1863,7 @@ class VistrailController(object):
         action = vistrails.core.db.action.create_paste_action(pipeline, 
                                                     abs_vistrail.idScope,
                                                     id_remap)
-        abs_vistrail.add_action(action, 0L, 0)
+        abs_vistrail.add_action(action, 0, 0)
         return abs_vistrail
         
     def get_abstraction_dir(self):
@@ -1891,13 +1892,13 @@ class VistrailController(object):
         if namespace is None:
             namespace = cur_namespace
         if module_version is None:
-            module_version = -1L
+            module_version = -1
 
         self.ensure_abstractions_loaded(abs_vistrail, avail_fnames)
         try:
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                           long(module_version))
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             # handle_invalid_pipeline will raise it's own InvalidPipeline
             # exception if it fails
             
@@ -1912,7 +1913,7 @@ class VistrailController(object):
             try:
                 abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                               new_version)
-            except InvalidPipeline, e:
+            except InvalidPipeline as e:
                 # we need to process a second InvalidPipeline exception
                 # because the first may be simply for a missing package,
                 # then we hit upgrades with the second one
@@ -1940,7 +1941,7 @@ class VistrailController(object):
                     old_desc = desc
                     # print "found old_desc", old_desc.name, old_desc.version
                     break
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 pass
             
         global_hide = not is_global or old_desc is not None
@@ -2167,7 +2168,7 @@ class VistrailController(object):
                 if test_only:
                     return (len(missing_ports) == 0, missing_ports)
                 failed = False
-            except UpgradeWorkflowError, e:
+            except UpgradeWorkflowError as e:
                 if test_only:
                     missing_ports.append((e._port_type, e._port_name))
                 if e._module is None or e._port_type is None or \
@@ -2292,17 +2293,17 @@ class VistrailController(object):
                 for abstraction in abstraction_list[:]:
                     try:
                         vistrail = abstraction.vistrail
-                    except MissingPackageVersion, e:
+                    except MissingPackageVersion as e:
                         try:
                             reg = vistrails.core.modules.module_registry.get_module_registry()
                             abstraction._module_descriptor = \
                                 reg.get_similar_descriptor(
                                                  *abstraction.descriptor_info)
                             vistrail = abstraction.vistrail
-                        except Exception, e:
+                        except Exception as e:
                             # ignore because there will be a load attempt later 
                             continue
-                    except Exception, e:
+                    except Exception as e:
                         # ignore because there will be a load attempt later 
                         continue
                     r_abstractions = self.find_abstractions(vistrail, recurse)
@@ -2324,7 +2325,7 @@ class VistrailController(object):
                                     descriptor_tuple[2],
                                     descriptor_tuple[4])
             return descriptor
-        except MissingPackageVersion, e:
+        except MissingPackageVersion as e:
             if descriptor_tuple[3] != '':
                 new_desc = (descriptor_tuple[0],
                             descriptor_tuple[1],
@@ -2334,7 +2335,7 @@ class VistrailController(object):
                 return self.check_abstraction(new_desc, lookup)
             else:
                 raise
-        except MissingModuleVersion, e:
+        except MissingModuleVersion as e:
             if descriptor_tuple[4] != '':
                 other_desc = reg.get_descriptor_by_name(descriptor_tuple[0],
                                                         descriptor_tuple[1],
@@ -2351,7 +2352,7 @@ class VistrailController(object):
                 return self.check_abstraction(descriptor_tuple, lookup)
             else:
                 raise
-        except MissingModule, e:
+        except MissingModule as e:
             if (descriptor_tuple[1], descriptor_tuple[2]) not in lookup:
                 if (descriptor_tuple[1], None) not in lookup:
                     raise
@@ -2391,7 +2392,7 @@ class VistrailController(object):
                                                     lookup)
                 for abstraction in abstraction_list:
                     abstraction.module_descriptor = descriptor
-            except InvalidPipeline, e:
+            except InvalidPipeline as e:
                 debug.critical("Error loading abstraction '%s'" %
                                descriptor_info[1], e)
 
@@ -2402,7 +2403,7 @@ class VistrailController(object):
         elif group.vtType == Abstraction.vtType:
             pipeline = group.summon().pipeline
         else:
-            print 'not a group or abstraction?'
+            print('not a group or abstraction?')
             return
 
         pipeline.ensure_connection_specs()
@@ -2588,7 +2589,7 @@ class VistrailController(object):
             error = None
             (locator, version, pipeline, view, aliases, params, reason, sinks, extra_info) = vis
             temp_folder_used = False
-            if (not extra_info or not extra_info.has_key('pathDumpCells') or 
+            if (not extra_info or 'pathDumpCells' not in extra_info or 
                 not extra_info['pathDumpCells']):
                 if extra_info is None:
                     extra_info = {}
@@ -2705,7 +2706,7 @@ class VistrailController(object):
                                                     reason,
                                                     sinks,
                                                     extra_info)])
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 raise
 
@@ -3155,9 +3156,9 @@ class VistrailController(object):
                     if hasattr(pkg.module, "can_handle_identifier") and \
                         pkg.module.can_handle_identifier(identifier):
                         pkg.init_module.load_from_identifier(identifier)
-            except pkg.MissingDependency, e:
+            except pkg.MissingDependency as e:
                 for dependency in e.dependencies:
-                    print 'MISSING DEPENDENCY:', dependency
+                    print('MISSING DEPENDENCY:', dependency)
                 return False
             except pkg.InitializationFailed:
                 self._asked_packages.add(pkg.identifier)
@@ -3324,7 +3325,7 @@ class VistrailController(object):
                     if self.try_to_enable_package(identifier):
                         for err in missing_packages[identifier]:
                             err._was_handled = True
-                except Exception, new_e:
+                except Exception as new_e:
                     debug.unexpected_exception(new_e)
                     new_exceptions.append(new_e)
                     if not report_all_errors:
@@ -3422,7 +3423,7 @@ class VistrailController(object):
                             new_actions.extend(actions)
                             for err in err_list:
                                 err._was_handled = True
-                    except Exception, new_e:
+                    except Exception as new_e:
                         debug.unexpected_exception(new_e)
                         new_exceptions.append(new_e)
                         if not report_all_errors:
@@ -3439,7 +3440,7 @@ class VistrailController(object):
                                     pipeline.perform_action(action)
                                 new_actions.extend(actions)
                                 err._was_handled = True
-                        except Exception, new_e:
+                        except Exception as new_e:
                             debug.unexpected_exception(new_e)
                             new_exceptions.append(new_e)
 
@@ -3464,7 +3465,7 @@ class VistrailController(object):
                                             pipeline.perform_action(action)
                                         new_actions.extend(actions)
                                         err._was_handled = True
-                            except Exception, new_e:
+                            except Exception as new_e:
                                 debug.unexpected_exception(new_e)
                                 new_exceptions.append(new_e)
                                 if not report_all_errors:
@@ -3691,7 +3692,7 @@ class VistrailController(object):
         try:
             self.current_pipeline = switch_version(new_version)
             self.current_version = new_version
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             new_error = None
 
             start_version = new_version
@@ -3718,7 +3719,7 @@ class VistrailController(object):
                                                      report_all_errors)
                     try:
                         self.validate(pipeline)
-                    except InvalidPipeline, e:
+                    except InvalidPipeline as e:
                         new_version, pipeline = \
                             self.handle_invalid_pipeline(e, new_version,
                                                          self.vistrail,
@@ -3726,7 +3727,7 @@ class VistrailController(object):
                     self.validate(pipeline)
                     self.current_pipeline = pipeline
                     self.current_version = new_version
-                except InvalidPipeline, e:
+                except InvalidPipeline as e:
                     debug.unexpected_exception(e)
                     new_error = e
 
@@ -3746,7 +3747,7 @@ class VistrailController(object):
         try:
             self.do_version_switch(new_version, report_all_errors, 
                                    do_validate, from_root)
-        except InvalidPipeline, e:
+        except InvalidPipeline as e:
             # FIXME: do error handling through central switch that produces gui
             # or core.debug messages as specified
             def process_err(err):
@@ -3774,8 +3775,8 @@ class VistrailController(object):
                 for err in e._exception_set:
                     process_err(err)
             elif len(e._exception_set) > 0:
-                process_err(e._exception_set.__iter__().next())
-        except Exception, e:
+                process_err(next(e._exception_set.__iter__()))
+        except Exception as e:
             debug.critical("Unhandled exception", debug.format_exc())
 
     def write_temporary(self):
@@ -3978,7 +3979,7 @@ class VistrailController(object):
                         for name in files:
                             os.remove(os.path.join(root, name))
                     os.rmdir(abs_save_dir)
-                except OSError, e:
+                except OSError as e:
                     raise VistrailsDBException("Can't remove %s: %s" % (
                                                abs_save_dir,
                                                debug.format_exception(e)))
@@ -4206,29 +4207,29 @@ class TestTerseGraph(unittest.TestCase):
         controller = self.get_workflow('upgrades1.xml')
         controller.recompute_terse_graph(True)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(1L, (False, False)), (5L, (False, False)), (16L, (True, False))],
-            1L: [(3L, (True, False))],
-            3L: [(4L, (False, False))],
-            5L: [(8L, (True, False)), (10L, (True, False))],
-            10L: [(11L, (False, False)), (13L, (True, False))],
-            4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
+            0: [(1, (False, False)), (5, (False, False)), (16, (True, False))],
+            1: [(3, (True, False))],
+            3: [(4, (False, False))],
+            5: [(8, (True, False)), (10, (True, False))],
+            10: [(11, (False, False)), (13, (True, False))],
+            4: [], 8: [], 11: [], 13: [], 16: [],
         })
         controller.expand_all_versions_below(0)
         controller.recompute_terse_graph(True)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, True))],
-            1L: [(2L, (False, True))],
-            2L: [(3L, (False, False))],
-            3L: [(4L, (False, False))],
-            5L: [(6L, (False, True)), (9L, (False, True))],
-            6L: [(7L, (False, False))],
-            7L: [(8L, (False, False))],
-            9L: [(10L, (False, False))],
-            10L: [(11L, (False, False)), (12L, (False, True))],
-            12L: [(13L, (False, False))],
-            14L: [(15L, (False, False))],
-            15L: [(16L, (False, False))],
-            4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
+            0: [(1, (False, False)), (5, (False, False)), (14, (False, True))],
+            1: [(2, (False, True))],
+            2: [(3, (False, False))],
+            3: [(4, (False, False))],
+            5: [(6, (False, True)), (9, (False, True))],
+            6: [(7, (False, False))],
+            7: [(8, (False, False))],
+            9: [(10, (False, False))],
+            10: [(11, (False, False)), (12, (False, True))],
+            12: [(13, (False, False))],
+            14: [(15, (False, False))],
+            15: [(16, (False, False))],
+            4: [], 8: [], 11: [], 13: [], 16: [],
         })
 
     def test_workflow1_no_upgrades(self):
@@ -4236,22 +4237,22 @@ class TestTerseGraph(unittest.TestCase):
         controller = self.get_workflow('upgrades1.xml')
         controller.recompute_terse_graph(False)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
-            1L: [(3L, (False, False))],
-            3L: [(4L, (False, False))],
-            5L: [(8L, (False, False)), (9L, (False, False))],
-            9L: [(11L, (False, False)), (13L, (False, False))],
-            4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
+            0: [(1, (False, False)), (5, (False, False)), (14, (False, False))],
+            1: [(3, (False, False))],
+            3: [(4, (False, False))],
+            5: [(8, (False, False)), (9, (False, False))],
+            9: [(11, (False, False)), (13, (False, False))],
+            4: [], 8: [], 11: [], 13: [], 14: [],
         })
         controller.expand_all_versions_below(0)
         controller.recompute_terse_graph(False)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
-            1L: [(3L, (False, False))],
-            3L: [(4L, (False, False))],
-            5L: [(8L, (False, False)), (9L, (False, False))],
-            9L: [(11L, (False, False)), (13L, (False, False))],
-            4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
+            0: [(1, (False, False)), (5, (False, False)), (14, (False, False))],
+            1: [(3, (False, False))],
+            3: [(4, (False, False))],
+            5: [(8, (False, False)), (9, (False, False))],
+            9: [(11, (False, False)), (13, (False, False))],
+            4: [], 8: [], 11: [], 13: [], 14: [],
         })
 
     def test_workflow2_upgrades(self):
@@ -4259,28 +4260,28 @@ class TestTerseGraph(unittest.TestCase):
         controller = self.get_workflow('upgrades2.xml')
         controller.recompute_terse_graph(True)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(3L, (True, False)), (9L, (True, False)), (12L, (False, False))],
-            3L: [(7L, (True, False)), (6L, (True, False))],
-            9L: [(10L, (False, False)), (11L, (False, False))],
-            12L: [(13L, (False, False)), (15L, (False, False))],
-            13L: [(14L, (False, False)), (17L, (True, False))],
-            7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
+            0: [(3, (True, False)), (9, (True, False)), (12, (False, False))],
+            3: [(7, (True, False)), (6, (True, False))],
+            9: [(10, (False, False)), (11, (False, False))],
+            12: [(13, (False, False)), (15, (False, False))],
+            13: [(14, (False, False)), (17, (True, False))],
+            7: [], 6: [], 10: [], 11: [], 14: [], 15: [], 17: [],
         })
         controller.expand_all_versions_below(0)
         controller.recompute_terse_graph(True)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, False)))],
-            1L: [(2L, (False, False))],
-            2L: [(3L, (False, False))],
-            3L: [(4L, (False, True)), (5L, (False, True))],
-            4L: [(7L, (False, False))],
-            5L: [(6L, (False, False))],
-            8L: [(9L, (False, False))],
-            9L: [(10L, (False, False)), (11L, (False, False))],
-            12L: [(13L, (False, False)), (15L, (False, False))],
-            13L: [(14L, (False, False)), (16L, (False, True))],
-            16L: [(17L, (False, False))],
-            7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
+            0: [(1, (False, True)), (8, (False, True)), (12, ((False, False)))],
+            1: [(2, (False, False))],
+            2: [(3, (False, False))],
+            3: [(4, (False, True)), (5, (False, True))],
+            4: [(7, (False, False))],
+            5: [(6, (False, False))],
+            8: [(9, (False, False))],
+            9: [(10, (False, False)), (11, (False, False))],
+            12: [(13, (False, False)), (15, (False, False))],
+            13: [(14, (False, False)), (16, (False, True))],
+            16: [(17, (False, False))],
+            7: [], 6: [], 10: [], 11: [], 14: [], 15: [], 17: [],
         })
 
     def test_workflow2_no_upgrades(self):
@@ -4288,22 +4289,22 @@ class TestTerseGraph(unittest.TestCase):
         controller = self.get_workflow('upgrades2.xml')
         controller.recompute_terse_graph(False)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(2L, (True, False)), (9L, (True, False)), (13L, (True, False))],
-            2L: [(4L, (False, False)), (6L, (True, False))],
-            9L: [(10L, (False, False))],
-            13L: [(14L, (False, False)), (17L, (False, False))],
-            4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
+            0: [(2, (True, False)), (9, (True, False)), (13, (True, False))],
+            2: [(4, (False, False)), (6, (True, False))],
+            9: [(10, (False, False))],
+            13: [(14, (False, False)), (17, (False, False))],
+            4: [], 6: [], 10: [], 14: [], 17: [],
         })
         controller.expand_all_versions_below(0)
         controller.recompute_terse_graph(False)
         self.assertEqual(controller._current_terse_graph.adjacency_list, {
-            0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, True)))],
-            1L: [(2L, (False, False))],
-            2L: [(4L, (False, False)), (5L, (False, True))],
-            5L: [(6L, (False, False))],
-            8L: [(9L, (False, False))],
-            9L: [(10L, (False, False))],
-            12L: [(13L, (False, False))],
-            13L: [(14L, (False, False)), (17L, (False, False))],
-            4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
+            0: [(1, (False, True)), (8, (False, True)), (12, ((False, True)))],
+            1: [(2, (False, False))],
+            2: [(4, (False, False)), (5, (False, True))],
+            5: [(6, (False, False))],
+            8: [(9, (False, False))],
+            9: [(10, (False, False))],
+            12: [(13, (False, False))],
+            13: [(14, (False, False)), (17, (False, False))],
+            4: [], 6: [], 10: [], 14: [], 17: [],
         })

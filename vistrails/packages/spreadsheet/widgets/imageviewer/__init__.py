@@ -37,10 +37,11 @@
 # ImageViewer plugin for VisTrails Spreadsheet
 ################################################################################
 from __future__ import division
+from __future__ import absolute_import
 
 from vistrails.core.modules.output_modules import ImageOutput
 
-from imageviewer import ImageViewerCell, ImageFileToSpreadsheet
+from .imageviewer import ImageViewerCell, ImageFileToSpreadsheet
 
 ################################################################################
 

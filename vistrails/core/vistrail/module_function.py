@@ -38,6 +38,7 @@
     * ModuleFunction
 """
 from __future__ import division
+from __future__ import print_function
 
 from vistrails.db.domain import DBFunction
 from vistrails.core.modules.utils import create_port_spec_string
@@ -164,23 +165,23 @@ class ModuleFunction(DBFunction):
 
     def show_comparison(self, other):
         if type(self) != type(other):
-            print "type mismatch"
+            print("type mismatch")
             return
         if self.name != other.name:
-            print "name mismatch"
+            print("name mismatch")
             return
         if self.returnType != other.returnType:
-            print "return type mismatch"
+            print("return type mismatch")
             return
         if len(self.params) != len(other.params):
-            print "params length mismatch"
+            print("params length mismatch")
             return
         for p,q in izip(self.params, other.params):
             if p != q:
-                print "params mismatch"
+                print("params mismatch")
                 p.show_comparison(q)
                 return
-        print "no difference found"
+        print("no difference found")
         assert self == other
         return
 
