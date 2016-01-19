@@ -49,6 +49,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
     CIPort
 import vistrails.core.system
 from vistrails.core.utils import unquote, InstanceObject
+from vistrails.core.utils.run_code import run_exec
 
 from abc import ABCMeta
 from ast import literal_eval
@@ -1054,7 +1055,7 @@ class CodeRunnerMixin(object):
         if 'source' in locals_:
             del locals_['source']
         # Python 2.6 needs code to end with newline
-        exec(code_str + '\n', locals_, locals_)
+        run_exec(code_str + '\n', locals_)
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) is not None:

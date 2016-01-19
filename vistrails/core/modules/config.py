@@ -38,13 +38,16 @@ from __future__ import division
 
 from collections import namedtuple as _namedtuple, Mapping
 from itertools import izip
+from vistrails.core.utils.run_code import run_exec
 
 _docs = {}
+
 
 def get_field_name(v):
     if isinstance(v[0], tuple):
         return v[0][0]
     return v[0]
+
 
 def namedtuple(typename, fields):
     field_names = [get_field_name(f) for f in fields]
@@ -110,7 +113,7 @@ def namedtuple(typename, fields):
 
     init_template = "def __init__(self, %s): pass" % ', '.join(args)
     d = {}
-    exec(init_template, d)
+    run_exec(init_template, d)
     T.__init__ = d['__init__']
     T.__init__.__func__.__doc__ = init_docstring
     T._vistrails_fields = fields

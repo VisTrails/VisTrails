@@ -39,6 +39,7 @@ from __future__ import division
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core.utils.color import rgb2hsv, hsv2rgb
+from vistrails.core.utils.run_code import run_exec
 
 
 class BaseLinearInterpolator(object):
@@ -159,13 +160,12 @@ class UserDefinedFunctionInterpolator(object):
         self._ptype = ptype
         self._code = code
         self._steps = steps
+
     def get_values(self):
         def get():
-            import code
-            values = []
             d = {}
             try:
-                exec((self._code), {}, d)
+                run_exec(self._code, {}, d)
             except Exception as e:
                 return [self._ptype.default_value] * self._steps
             def evaluate(i):

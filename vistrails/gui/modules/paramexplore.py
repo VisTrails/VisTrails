@@ -45,6 +45,7 @@ from vistrails.core.modules.basic_modules import Color
 from vistrails.core import debug
 from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator
+from vistrails.core.utils.run_code import run_exec
 
 from vistrails.gui.common_widgets import QStringEdit
 from vistrails.gui.modules.constant_configuration import ColorChooserButton
@@ -671,7 +672,7 @@ class QUserFunctionEditor(QtGui.QFrame):
             values = []
             d = {}
             try:
-                exec((self.function), {}, d)
+                run_exec(self.function, d)
             except Exception as e:
                 return [module.default_value] * count
             def evaluate(i):
