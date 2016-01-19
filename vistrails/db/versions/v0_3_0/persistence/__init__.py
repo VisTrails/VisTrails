@@ -38,7 +38,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from .xml.auto_gen import XMLDAOListBase
-from . import xml.io
+from .xml import io
 
 class DAOList(dict):
     def __init__(self):

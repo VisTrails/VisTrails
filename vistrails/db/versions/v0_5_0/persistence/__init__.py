@@ -39,7 +39,7 @@ from __future__ import absolute_import
 
 from .xml.auto_gen import XMLDAOListBase
 from .sql.auto_gen import SQLDAOListBase
-from . import xml.io
+from .xml import io
 
 class DAOList(dict):
     def __init__(self):
