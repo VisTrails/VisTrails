@@ -1017,8 +1017,8 @@ class Vistrail(DBVistrail):
 
     # Dispatch in runtime according to type
     getPipelineDispatcher = {}
-    getPipelineDispatcher[type(0)] = getPipelineVersionNumber
-    getPipelineDispatcher[type(0)] = getPipelineVersionNumber
+    for t in [int, long]: # 2to3 removes long
+      getPipelineDispatcher[t] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
 
     class InvalidAbstraction(Exception):
