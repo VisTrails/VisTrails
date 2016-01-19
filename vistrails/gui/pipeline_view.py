@@ -569,7 +569,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         _pen = CurrentTheme.CONFIGURE_PEN
         _brush = CurrentTheme.CONFIGURE_BRUSH
         _shape = CurrentTheme.CONFIGURE_SHAPE
-        QtGui.QGraphicsPolygonItem.__init__(self, _shape, parent, scene)
+        QtGui.QGraphicsPolygonItem.__init__(self, _shape, parent)
         self.setZValue(1)
         self.setPen(_pen)
         self.setBrush(_brush)
@@ -1036,7 +1036,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsItem.__init__(self, parent, scene)
+        QtGui.QGraphicsItem.__init__(self, parent)
         self.paddedRect = QtCore.QRectF()
         if QtCore.QT_VERSION >= 0x40600:
             #Qt 4.6 specific flags

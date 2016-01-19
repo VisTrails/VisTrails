@@ -38,6 +38,7 @@ view and a version tree for each opened Vistrail """
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+from xml.sax.saxutils import escape
 import copy
 
 from vistrails.core.configuration import (get_vistrails_configuration,
@@ -1841,7 +1842,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             if name=='':
                 name = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
             text = ('Vistrail ' +
-                    QtCore.Qt.escape(name) +
+                    escape(name) +
                     ' contains unsaved changes.\n Do you want to '
                     'save changes before closing it?')
             res = QtGui.QMessageBox.information(window,

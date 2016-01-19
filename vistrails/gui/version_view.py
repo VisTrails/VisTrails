@@ -81,7 +81,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
+        QtGui.QGraphicsPolygonItem.__init__(self, parent)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
         self.linkPen = CurrentTheme.LINK_PEN
@@ -273,7 +273,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         Create the shape, intialize its drawing style
 
         """
-        QtGui.QGraphicsTextItem.__init__(self, parent, scene)
+        QtGui.QGraphicsTextItem.__init__(self, parent)
         self.timer = None
         self.isEditable = None
         self.setEditable(False)
@@ -407,7 +407,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsEllipseItem.__init__(self, parent, scene)
+        QtGui.QGraphicsEllipseItem.__init__(self, parent)
         self.setZValue(1)
         self.setAcceptDrops(True)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
