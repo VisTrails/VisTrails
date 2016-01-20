@@ -79,7 +79,6 @@ if 'vistrails' not in sys.modules:
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
 tempfile.tempdir = test_temp_dir
-@apply
 class clean_tempdir(object):
     def __init__(self):
         atexit.register(self.clean)
@@ -283,13 +282,13 @@ print("Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(
 print("Running on %s" % ', '.join(platform.uname()))
 print("Python is %s" % sys.version)
 try:
-    from PyQt4 import QtCore
-    print("Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion()))
+    from PyQt5 import QtCore
+    print("Using PyQt5 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion()))
 except ImportError:
-    print("PyQt4 not available")
+    print("PyQt5 not available")
 for pkg in ('numpy', 'scipy', 'matplotlib'):
     try:
-        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        ipkg = __import__(pkg, globals(), locals(), [], 0)
         print("Using %s %s" % (pkg, ipkg.__version__))
     except ImportError:
         print("%s not available" % pkg)

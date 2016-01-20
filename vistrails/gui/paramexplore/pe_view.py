@@ -33,9 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget
@@ -45,6 +43,8 @@ from vistrails.core import debug
 class QParamExploreView(QParameterExplorationWidget, BaseView):
     explorationId = 0
     
+    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+
     def __init__(self, parent=None):
         QParameterExplorationWidget.__init__(self, parent)
         BaseView.__init__(self)

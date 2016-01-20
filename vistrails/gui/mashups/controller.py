@@ -87,3 +87,4 @@ class MashupController(BaseController, QtCore.QObject):
         from vistrails.gui.vistrails_window import _app
         result = BaseController.execute(self, params)
         _app.notify('execution_updated')
+        return result

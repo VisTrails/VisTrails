@@ -33,20 +33,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-
-
 from PyQt5 import QtCore, QtWidgets
-
 
 class BaseView(object):
     """ BaseView is the base class for the views in VisTrails.
 
 
     """
-
-    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.controller = None

@@ -36,11 +36,9 @@
 
 """Widgets to display/edit configuration objects."""
 
-
 import os
 import os.path
 from PyQt5 import QtGui, QtCore, QtWidgets
-
 
 from vistrails.core.configuration import ConfigurationObject, \
     ConfigFieldParent, ConfigPath, \

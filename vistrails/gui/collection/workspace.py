@@ -33,10 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 import glob
 from itertools import chain
@@ -624,7 +621,6 @@ class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.open_list.remove_vt_window(vistrail_window)
 
 class QVistrailEntityItem(QBrowserWidgetItem):
-
     def __init__(self, entity, window=None):
         QBrowserWidgetItem.__init__(self, entity)
         if window:
@@ -679,7 +675,6 @@ class QVistrailListLatestItem(QtWidgets.QTreeWidgetItem):
                                 self.parent().parent().window.tabs.currentIndex())
 
 class QVistrailList(QtWidgets.QTreeWidget):
-    vistrailChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
     def __init__(self, parent=None):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.searchMode = False

@@ -1677,7 +1677,7 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
         
         """
         if self.module.is_valid:
-            configureShape = QGraphicsConfigureItem(self, self.scene())
+            configureShape = QGraphicsConfigureItem(self)
             configureShape.controller = self.controller
             configureShape.moduleId = self.id
             configureShape.setGhosted(self.ghosted)

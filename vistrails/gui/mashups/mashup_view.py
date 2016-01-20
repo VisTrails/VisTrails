@@ -46,8 +46,10 @@ from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUT
 
 class QMashupView(QtWidgets.QMainWindow, BaseView):
     #signals
-    #mashupChanged = pyqtSignal()
-    
+    #mashupChanged = QtCore.pyqtSignal()
+
+    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         QtWidgets.QMainWindow.__init__(self, parent, f)
         BaseView.__init__(self)

@@ -33,8 +33,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-
 from PyQt5 import QtCore, QtWidgets
 
 
@@ -400,6 +398,9 @@ class QQueryBox(QtWidgets.QWidget):
         self.searchBox.setManualResetEnabled(boolVal)
 
 class QQueryView(QtWidgets.QWidget, BaseView):
+
+    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+
     VISUAL_SEARCH_VIEW = 0
     GLOBAL_RESULT_VIEW = 1
     VERSION_RESULT_VIEW = 2

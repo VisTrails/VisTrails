@@ -54,7 +54,7 @@ def qt_available():
 
 
 def require_pyqt5():
-    # Forces the use of PyQt4 (avoid PySide even if installed)
+    # Forces the use of PyQt5 (avoid PySide even if installed)
     # This is necessary at least for IPython
     if os.environ.get('QT_API', None) not in (None, 'pyqt'):
         sys.stderr.write("Warning: QT_API was set to %r, changing to 'pyqt'\n" %

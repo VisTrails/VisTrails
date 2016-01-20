@@ -58,7 +58,7 @@ def package_requirements():
             'linux-debian': 'python-vtk',
             'linux-ubuntu': 'python-vtk',
             'linux-fedora': 'vtk-python'})
-    if not python_module_exists('PyQt4'):
+    if not python_module_exists('PyQt5'):
         from vistrails.core import debug
-        debug.warning('PyQt4 is not available. There will be no interaction '
+        debug.warning('PyQt5 is not available. There will be no interaction '
                       'between VTK and the spreadsheet.')

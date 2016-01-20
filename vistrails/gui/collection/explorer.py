@@ -33,8 +33,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -313,28 +311,28 @@ class ExecutionSearchWidget(QtWidgets.QSplitter):
         self.offset = 0
         self.vistrail = None
         if self.vistrailEditCheckBox.isChecked():
-            self.vistrail = str(self.vistrailEdit.text()).strip()
+            self.vistrail = self.vistrailEdit.text().strip()
         self.version = None
         if self.versionEditCheckBox.isChecked():
-            self.version = str(self.versionEdit.text()).strip()
+            self.version = self.versionEdit.text().strip()
         self.fromTime = None
         if self.fromTimeEditCheckBox.isChecked():
-            self.fromTime = str(
-                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.fromTime = \
+                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.toTime = None
         if self.toTimeEditCheckBox.isChecked():
-            self.toTime = str(
-                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.toTime = \
+                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.user = None
         if self.userEditCheckBox.isChecked():
-            self.user = str(self.userEdit.text()).strip()
+            self.user = self.userEdit.text().strip()
         self.completed = None
         if self.completedEditCheckBox.isChecked():
-            self.completed = str(self.completedEdit.currentText()).strip()
+            self.completed = self.completedEdit.currentText().strip()
         self.modules = []
         if self.moduleEditCheckBox.isChecked():
             # create list of [moduleType, completed] pairs
-            modules = str(self.moduleEdit.text()).strip()
+            modules = self.moduleEdit.text().strip()
             for k in [i.strip() for i in modules.split(',')]:
                 v = k.split(':')
                 if len(v)>1:
@@ -579,25 +577,25 @@ class WorkflowSearchWidget(QtWidgets.QSplitter):
         self.offset = 0
         self.vistrail = None
         if self.vistrailEditCheckBox.isChecked():
-            self.vistrail = str(self.vistrailEdit.text()).strip()
+            self.vistrail = self.vistrailEdit.text().strip()
         self.version = None
         if self.versionEditCheckBox.isChecked():
-            self.version = str(self.versionEdit.text()).strip()
+            self.version = self.versionEdit.text().strip()
         self.fromTime = None
         if self.fromTimeEditCheckBox.isChecked():
-            self.fromTime = str(
-                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.fromTime = \
+                self.fromTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.toTime = None
         if self.toTimeEditCheckBox.isChecked():
-            self.toTime = str(
-                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss'))
+            self.toTime = \
+                self.toTimeEdit.dateTime().toString('yyyy-MM-d H:mm:ss')
         self.user = None
         if self.userEditCheckBox.isChecked():
-            self.user = str(self.userEdit.text()).strip()
+            self.user = self.userEdit.text().strip()
         self.modules = []
         if self.moduleEditCheckBox.isChecked():
             # create list of [moduleType, connected to previous] pairs
-            groups = str(self.moduleEdit.text()).strip()
+            groups = self.moduleEdit.text().strip()
             groups = [i.strip() for i in groups.split(',')]
             for group in [i.split('->') for i in groups]:
                 if len(group):

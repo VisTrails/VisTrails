@@ -47,6 +47,9 @@ class StandardModuleConfigurationWidget(QtWidgets.QWidget):
     stateChanged = QtCore.pyqtSignal()
     doneConfigure = QtCore.pyqtSignal(bool)
 
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal(int)
+
     def __init__(self, module, controller, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.module = module

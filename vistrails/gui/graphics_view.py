@@ -41,13 +41,12 @@ QInteractiveGraphicsView
 QPIPGraphicsView
 """
 
-
-from vistrails.core import debug
 from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
 
 from vistrails.gui.theme import CurrentTheme
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.system
+from vistrails.core import debug
 import math
 from vistrails.gui.qt import qt_super
 ################################################################################
@@ -225,8 +224,8 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
     zoom/span with right/mid click
     
     """
-
     resetQuery = QtCore.pyqtSignal()
+    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
 
     def __init__(self, parent=None, **kwargs):
         """ QInteractiveGraphicsView(parent: QWidget)
