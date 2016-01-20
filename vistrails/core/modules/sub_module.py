@@ -193,7 +193,7 @@ class Group(Module):
             # so we need to use the the final normalized value
             value = self.get_input(iport_name)
             temp_conn = ModuleConnector(create_constant(value),
-                                        'value', conn[0].spec)
+                                        'value', self.input_specs[iport_name])
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
             iport_obj.set_input_port('ExternalPipe', temp_conn)
@@ -274,10 +274,14 @@ def coalesce_port_specs(neighbors, type):
                 raise VistrailsInternalError("Cannot have single port "
                                              "connect to incompatible "
                                              "types")
-            if cur_depth != next_depth:
-                raise VistrailsInternalError("Cannot have single port "
-                                             "connect to types with "
-                                             "different list depth")
+            if 'input' == type and cur_depth > next_depth:
+                # use least depth
+                cur_depth = next_depth
+                cur_descs = next_descs
+            if 'output' == type and cur_depth < next_depth:
+                # use least depth
+                cur_depth = next_depth
+                cur_descs = next_descs
             descs = []
             for cur_desc, next_desc in izip(cur_descs, next_descs):
                 if cur_desc is Variant_desc:
