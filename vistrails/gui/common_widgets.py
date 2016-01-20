@@ -588,9 +588,9 @@ class QSearchBox(QtGui.QWidget):
         else:
             self.searchEdit.editTextChanged.connect(self.resetToggle)
 
-    def resetSearch(self):
+    def _resetSearch(self):
         """
-        resetSearch() -> None
+        _resetSearch() -> None
         Emit a signal to clear the search.
 
         """
@@ -617,9 +617,9 @@ class QSearchBox(QtGui.QWidget):
         """
         self.refineMode.emit(False)
     
-    def refineMode(self):
+    def _refineMode(self):
         """
-        refineMode() -> None
+        _refineMode() -> None
 
         """
         self.refineMode.emit(True)
@@ -628,9 +628,9 @@ class QSearchBox(QtGui.QWidget):
         self.resetButton.setEnabled((unicode(text) != '') or
                                     self.manualResetEnabled)
 
-    def executeIncrementalSearch(self, text):
+    def _executeIncrementalSearch(self, text):
         """
-        executeIncrementalSearch(text: QString) -> None
+        _executeIncrementalSearch(text: QString) -> None
         The text is changing, so update the search.
 
         """
@@ -641,9 +641,9 @@ class QSearchBox(QtGui.QWidget):
     def executeTextSearch(self, text):
         self.executeSearch.emit(text)
 
-    def executeSearch(self, index):
+    def _executeSearch(self, index):
         """
-        executeSearch(index: int) -> None
+        _executeSearch(index: int) -> None
         The text is finished changing or a different item was selected.
 
         """
@@ -651,7 +651,7 @@ class QSearchBox(QtGui.QWidget):
         if index == count-1: 
             for i in range(count-1): 
                 self.searchEdit.removeItem(0) 
-            self.resetSearch()
+            self._resetSearch()
         else: 
             self.resetButton.setEnabled(True) 
             self.executeSearch.emit(self.searchEdit.currentText())

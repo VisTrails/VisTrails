@@ -1825,7 +1825,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         if current_view:
             locator = current_view.controller.locator
 
-        MB = QtWidgets.QMessageBox
+        MB = QtGui.QMessageBox
 
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()

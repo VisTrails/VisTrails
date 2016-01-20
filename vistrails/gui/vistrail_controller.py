@@ -60,6 +60,7 @@ from vistrails.core.query.version import TrueSearch
 from vistrails.core.query.visual import VisualQuery
 from vistrails.core.utils import DummyView, VistrailsInternalError, InvalidPipeline
 import vistrails.core.system
+from vistrails.core.vistrail.action import Action
 from vistrails.core.vistrail.controller import VistrailController as BaseController
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
@@ -147,7 +148,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
     invalidateSingleNodeInVersionTree = QtCore.pyqtSignal(int,int)
     vistrailChanged = QtCore.pyqtSignal()
-    new_action = QtCore.pyqtSignal(QtGui.QAction)
+    new_action = QtCore.pyqtSignal(vistrails.core.vistrail.action.Action)
     notesChanged = QtCore.pyqtSignal()
     versionWasChanged = QtCore.pyqtSignal(int)
     searchChanged = QtCore.pyqtSignal()

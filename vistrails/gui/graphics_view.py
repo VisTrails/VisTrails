@@ -225,6 +225,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
     
     """
     resetQuery = QtCore.pyqtSignal()
+    windowTitleWasChanged = QtCore.pyqtSignal(QtGui.QWidget)
+
     def __init__(self, parent=None):
         """ QInteractiveGraphicsView(parent: QWidget)
                                      -> QInteractiveGraphicsView
@@ -235,9 +237,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setInteractive(True)
 #        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
-        self.setRenderHints (QtGui.QPainter.Antialiasing |
-                             QtGui.QPainter.TextAntialiasing |
-                             QtGui.QPainter.SmoothPixmapTransform)
+        self.setRenderHints(QtGui.QPainter.Antialiasing |
+                            QtGui.QPainter.TextAntialiasing |
+                            QtGui.QPainter.SmoothPixmapTransform)
         self.scaleMax = 2000
         self.scaleRatio = self.scaleMax/10
         self.scaleOffset = 700

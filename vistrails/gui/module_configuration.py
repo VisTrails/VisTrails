@@ -80,7 +80,9 @@ class QConfigurationWidget(QtGui.QWidget):
 ################################################################################
         
 class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
+
     doneConfigure = QtCore.pyqtSignal(int)
+
     def __init__(self, parent=None, scene=None):
         """QModuleConfiguration(parent: QWidget) -> QModuleConfiguration
         Initialize widget constraints

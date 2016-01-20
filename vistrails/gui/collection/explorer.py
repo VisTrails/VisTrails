@@ -407,11 +407,11 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         for wf_exec in wf_exec_list:
             item = QExecutionItem(wf_exec)
             self.itemView.addTopLevelItem(item)
-        self.itemView.header().setSectionResizeMode(4, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setSectionResizeMode(3, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setSectionResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-        self.itemView.header().setSectionResizeMode(1, QtGui.QHeaderView.Interactive)
-        self.itemView.header().setSectionResizeMode(0, QtGui.QHeaderView.Interactive)
+        self.itemView.header().setResizeMode(4, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        self.itemView.header().setResizeMode(1, QtGui.QHeaderView.Interactive)
+        self.itemView.header().setResizeMode(0, QtGui.QHeaderView.Interactive)
         self.itemView.header().resizeSections(QtGui.QHeaderView.Stretch)
         conn_id = self.connectionList.getCurrentItemId()
         if conn_id < 0:

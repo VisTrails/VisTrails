@@ -466,9 +466,9 @@ class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
 
 class QConfigurationPane(QtGui.QWidget):
     def __init__(self, parent, persistent_config, temp_config, cat_fields):
-        Qtgui.QWidget.__init__(self, parent)
+        QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QFormLayout()
-        layout.setContentsMargins(1, 0, 1, 0, 1, 0, 1, 0)
+        layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(4)
         self.setLayout(layout)
         self._configuration = persistent_config

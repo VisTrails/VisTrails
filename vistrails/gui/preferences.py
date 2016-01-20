@@ -118,7 +118,7 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 class QPackagesWidget(QtGui.QWidget):
 
     # Signals that a package should be selected after the event loop updates (to remove old references)
-    select_package_after_update_signal = QtCore.pyqtSignal()
+    select_package_after_update_signal = QtCore.pyqtSignal(str)
     ##########################################################################
     # Initialization
 
@@ -407,7 +407,7 @@ class QPackagesWidget(QtGui.QWidget):
         # Selecting the package causes self._current_package to be set,
         # which reference prevents the package from being freed, so we
         # queue it to select after the event loop completes.
-        self.emit(self.select_package_after_update_signal, codepath)
+        self.select_package_after_update_signal.emit(codepath)
 
     def select_package_after_update_slot(self, codepath):
         inst = self._enabled_packages_list

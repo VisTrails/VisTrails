@@ -50,8 +50,6 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
     the 'head' input ports should be sufficient.
 
     """
-    stateChanged = QtCore.pyqtSignal()
-    doneConfigure = QtCore.pyqtSignal(int)
     def __init__(self, module, controller, parent=None):
         """ ListConfigurationWidget(module: Module,
                                      controller: VistrailController,

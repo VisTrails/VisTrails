@@ -81,8 +81,6 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
     """
     Configuration widget allowing to create the ports of the BuildTable module.
     """
-    stateChanged = pyqtSignal()
-    doneConfigure = pyqtSignal(QVariant)
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)

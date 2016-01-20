@@ -399,6 +399,9 @@ class QQueryBox(QtGui.QWidget):
         self.searchBox.setManualResetEnabled(boolVal)
 
 class QQueryView(QtGui.QWidget, BaseView):
+
+    windowTitleWasChanged = QtCore.pyqtSignal(QtGui.QWidget)
+
     VISUAL_SEARCH_VIEW = 0
     GLOBAL_RESULT_VIEW = 1
     VERSION_RESULT_VIEW = 2

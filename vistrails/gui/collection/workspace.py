@@ -473,6 +473,10 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         Collection.getInstance().commit()
 
 class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
+
+    detachVistrail = QtCore.pyqtSignal(QtGui.QWidget)
+    vistrailChanged = QtCore.pyqtSignal(QtGui.QWidget)
+
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
@@ -619,7 +623,6 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.open_list.remove_vt_window(vistrail_window)
 
 class QVistrailEntityItem(QBrowserWidgetItem):
-    detachVistrail = QtCore.pyqtSignal(QtCore.QObject)
     def __init__(self, entity, window=None):
         QBrowserWidgetItem.__init__(self, entity)
         if window:

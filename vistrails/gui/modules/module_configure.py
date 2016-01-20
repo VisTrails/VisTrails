@@ -44,6 +44,9 @@ from vistrails.gui.common_widgets import QPromptWidget
 
 class StandardModuleConfigurationWidget(QtGui.QWidget):
 
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal(int)
+
     def __init__(self, module, controller, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.module = module
