@@ -763,12 +763,14 @@ class PackageManager(object):
                     MissingRequirement):
                 pass
             except Exception, e:
-                pass
+                debug.warning(
+                    "Error loading package <codepath %s>" % pkg.codepath,
+                    e)
         if len(matches) == 0:
             return None
         elif len(matches) == 1:
             return matches[0]
-        # return package version that pass requirements
+        # return package version that passes requirements
         valids = []
         for pkg in matches:
             try:
@@ -778,12 +780,15 @@ class PackageManager(object):
                     MissingRequirement):
                 pass
             except Exception, e:
-                pass
-        if len(valids) == 0:
-            # return latest invalid package
-            valids = matches
+                debug.warning(
+                    "Package <codepath %s> raised an exception while "
+                    "querying requirements" % pkg.codepath,
+                    e)
         if len(valids) == 1:
             return valids[0]
+        elif len(valids) == 0:
+            # return latest invalid package
+            valids = matches
         # return latest version
         return sorted(valids, key=lambda x: LooseVersion(x.version))[-1]
 
