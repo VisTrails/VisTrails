@@ -964,14 +964,14 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         # draw multiple connections depending on list depth
         def diff(i, depth):
             return QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
-        
+
         srcParent = self.srcPortItem.parentItem()
         startDepth = srcParent.module.list_depth + 1 if srcParent else 1
         dstParent = self.dstPortItem.parentItem()
         endDepth = dstParent.module.list_depth + 1 if dstParent else 1
         starts = [diff(i, startDepth) for i in xrange(startDepth)]
         ends = [diff(i, endDepth) for i in xrange(endDepth)]
-    
+
         first = True
         for start in starts:
             for end in ends:
@@ -2864,11 +2864,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                         m.dependingConnectionItems().iterkeys())
                 # remove_connection updates the dependency list on the
                 # other side of connections, cannot use removeItem
-                for c_id in dep_connection_ids:
-                    self.remove_connection(c_id)
-                for m_id in module_ids:
-                    self.remove_module(m_id)
-                self.controller.delete_module_list(module_ids)
+                try:
+                    skip_update = True
+                    for c_id in dep_connection_ids:
+                        self.remove_connection(c_id)
+                    for m_id in module_ids:
+                        self.remove_module(m_id)
+                    self.controller.delete_module_list(module_ids)
+                finally:
+                    self.skip_update = False
+                    self.update_connections()
                 self.updateSceneBoundingRect()
                 self.reset_module_colors()
                 self.update()
@@ -2881,12 +2886,17 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 # module ids, and the for loop above takes care of
                 # connection ids. So we don't need to call anything.
             else:
-                for c_id in connection_ids:
-                    self.remove_connection(c_id)
-                self.controller.reset_pipeline_view = False
-                self.controller.delete_connection_list(connection_ids)
-                self.reset_module_colors()
-                self.controller.reset_pipeline_view = True
+                try:
+                    self.skip_update = False
+                    for c_id in connection_ids:
+                        self.remove_connection(c_id)
+                    self.controller.reset_pipeline_view = False
+                    self.controller.delete_connection_list(connection_ids)
+                    self.reset_module_colors()
+                    self.controller.reset_pipeline_view = True
+                finally:
+                    self.skip_update = False
+                    self.update_connections()
                 # Current pipeline changed, so we need to change the
                 # _old_connection_ids. However, remove_connection
                 # above takes care of connection ids, so we don't need
