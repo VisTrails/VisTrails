@@ -166,8 +166,6 @@ def choose_column(nb_columns, column_names=None, name=None, index=None):
     same column.
     """
     if name is not None:
-        if isinstance(name, str):
-            name = name.encode('utf-8')
         if column_names is None:
             raise ValueError("Unable to get column by name: table doesn't "
                              "have column names")
@@ -205,8 +203,6 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
                              "doesn't have column names")
         result = []
         for name in names:
-            if isinstance(name, str):
-                name = name.encode('utf-8')
             try:
                 idx = column_names.index(name)
             except ValueError:
@@ -260,7 +256,7 @@ class ExtractColumn(Module):
                     column_idx,
                     self.get_input('numeric', allow_default=True)))
         except ValueError as e:
-            raise ModuleError(self, e.message)
+            raise ModuleError(self, str(e))
 
 
 class BuildTable(Module):

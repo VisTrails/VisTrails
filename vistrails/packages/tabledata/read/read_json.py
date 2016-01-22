@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-
+import contextlib
 
 try:
     import simplejson as json
@@ -46,7 +45,7 @@ from .convert import DictToTable, ListToTable
 class JSONTable(object):
     def compute(self):
         json_file = self.get_input('file').name
-        with open(json_file, 'rb') as fp:
+        with open(json_file) as fp:
             obj = json.load(fp)
 
         self.convert_to_table(obj)
@@ -127,8 +126,10 @@ class TestJSON(unittest.TestCase):
             ]
 
         for json_file, has_names in json_files:
-            with intercept_results(JSONObject, 'value', 'column_count',
-                                   'column_names') as results:
+            with contextlib.ExitStack() as stack:
+                results = [stack.enter_context(c) for c in
+                    intercept_results(JSONObject, 'value', 'column_count',
+                                   'column_names')]
                 self.assertFalse(execute([
                         ('WriteFile', 'org.vistrails.vistrails.basic', [
                             ('in_value', [('String', json_file)]),
@@ -180,8 +181,10 @@ class TestJSON(unittest.TestCase):
             ]
 
         for nb, json_file in enumerate(json_files):
-            with intercept_results(JSONList, 'value', 'column_count',
-                                   'column_names') as results:
+            with contextlib.ExitStack() as stack:
+                results = [stack.enter_context(c) for c in
+                    intercept_results(JSONList, 'value', 'column_count',
+                                   'column_names')]
                 self.assertFalse(execute([
                         ('WriteFile', 'org.vistrails.vistrails.basic', [
                             ('in_value', [('String', json_file)]),

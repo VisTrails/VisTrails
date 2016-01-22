@@ -76,7 +76,7 @@ class CSVTable(TableObject):
             raise InternalModuleError("Must set delimiter if not using sniffer")
 
         try:
-            with open(filename, 'rb') as fp:
+            with open(filename, newline='') as fp:
                 if use_sniffer:
                     first_lines = ""
                     line = fp.readline()
@@ -135,7 +135,7 @@ class CSVTable(TableObject):
                     skiprows=self.skip_lines,
                     usecols=[index])
         else:
-            with open(self.filename, 'rb') as fp:
+            with open(self.filename, newline='') as fp:
                 for i in range(self.skip_lines):
                     line = fp.readline()
                     if not line:
@@ -165,7 +165,7 @@ class CSVTable(TableObject):
     def rows(self):
         if self._rows is not None:
             return self._rows
-        with open(self.filename, 'rb') as fp:
+        with open(self.filename, newline='') as fp:
             self._rows = count_lines(fp)
         self._rows -= self.skip_lines
         return self._rows

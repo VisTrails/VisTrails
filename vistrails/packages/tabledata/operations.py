@@ -45,15 +45,6 @@ from .common import get_numpy, TableObject, Table, \
 # FIXME use pandas?
 
 
-def utf8(obj):
-    if isinstance(obj, bytes):
-        return obj
-    elif isinstance(obj, str):
-        return obj.encode('utf-8')
-    else:
-        return bytes(obj)
-
-
 class JoinedTables(TableObject):
     def __init__(self, left_t, right_t, left_key_col, right_key_col,
                  case_sensitive=False, always_prefix=False):
@@ -125,10 +116,10 @@ class JoinedTables(TableObject):
         def build_key_dict(table, key_col):
             column = table.get_column(key_col)
             if self.case_sensitive:
-                key_dict = dict((utf8(val).strip(), i)
+                key_dict = dict((val.strip(), i)
                                 for i, val in enumerate(column))
             else:
-                key_dict = dict((utf8(val).strip().upper(), i)
+                key_dict = dict((str(val).strip().upper(), i)
                                 for i, val in enumerate(column))
             return key_dict
 
@@ -137,7 +128,7 @@ class JoinedTables(TableObject):
         self.row_map = {}
         for left_row_idx, key in enumerate(
                 self.left_t.get_column(self.left_key_col)):
-            key = utf8(key).strip()
+            key = str(key).strip()
             if not self.case_sensitive:
                 key = key.upper()
             if key in right_keys:
@@ -231,7 +222,7 @@ class ProjectTable(Table):
                     names=self.force_get_input('column_names', None),
                     indexes=self.force_get_input('column_indexes', None))
         except ValueError as e:
-            raise ModuleError(self, e.message)
+            raise ModuleError(self, str(e))
         if self.has_input('new_column_names'):
             column_names = self.get_input('new_column_names')
             if len(column_names) != len(indexes):
@@ -550,7 +541,7 @@ class TestProjection(unittest.TestCase):
                 ])
         if error is not None:
             self.assertEqual([1], list(errors.keys()))
-            self.assertIn(error, errors[1].message)
+            self.assertIn(error, str(errors[1]))
             return None
         else:
             self.assertFalse(errors)
@@ -636,7 +627,7 @@ class TestSelect(unittest.TestCase):
                 ])
         if error is not None:
             self.assertEqual([2], list(errors.keys()))
-            self.assertIn(error, errors[2].message)
+            self.assertIn(error, str(errors[2]))
             return None
         else:
             self.assertFalse(errors)
