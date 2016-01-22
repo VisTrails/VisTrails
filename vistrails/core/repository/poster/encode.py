@@ -77,7 +77,7 @@ except ImportError:
     def gen_boundary():
         """Returns a random string to use as the boundary for a message"""
         bits = random.getrandbits(160)
-        return sha.new(str(bits)).hexdigest()
+        return sha.new(str(bits).encode()).hexdigest()
 
 import urllib.request, urllib.parse, urllib.error, re, os, mimetypes
 
@@ -88,7 +88,7 @@ def encode_and_quote(data):
         return None
 
     if isinstance(data, str):
-        data = data.encode("utf-8")
+        data = data.encode()
     return urllib.parse.quote_plus(data)
 
 def _strify(s):
@@ -97,8 +97,8 @@ def _strify(s):
     if s is None:
         return None
     if isinstance(s, str):
-        return s.encode("utf-8")
-    return str(s)
+        return s.encode()
+    return s
 
 class MultipartParam(object):
     """Represents a single parameter in a multipart/form-data request

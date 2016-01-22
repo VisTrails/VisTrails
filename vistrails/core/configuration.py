@@ -611,6 +611,12 @@ class ConfigField(object):
             return ""
         return str(val)
 
+    def __hash__(self):
+        return self.name
+
+    def __lt__(self, other):
+        return self.__hash__() < other.__hash__()
+
 class ConfigFieldParent(object):
     def __init__(self, name, sub_fields):
         self.name = name
@@ -1577,7 +1583,7 @@ class TestConfiguration(unittest.TestCase):
         conf1 = default()
         conf2 = copy.copy(conf1)
         self.assertEqual(conf1, conf2)
-        self.assertItemsEqual(list(conf1._unset_keys.keys()),
+        self.assertCountEqual(list(conf1._unset_keys.keys()),
                               list(conf2._unset_keys.keys()))
 
     def test_parser(self):

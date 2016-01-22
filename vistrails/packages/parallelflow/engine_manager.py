@@ -42,8 +42,7 @@ import sys
 import time
 
 from IPython.utils.path import get_ipython_dir, locate_profile
-from IPython.parallel import Client
-from IPython.parallel import error
+from ipyparallel import Client, error
 
 from vistrails.core.system import vistrails_root_directory
 
@@ -185,7 +184,7 @@ class EngineManager(object):
                     lambda: os.path.exists(ctrl_pid),
                     sys.executable,
                     '-m',
-                    'IPython.parallel.apps.ipcontrollerapp',
+                    'ipyparallel.apps.ipcontrollerapp',
                     '--profile=%s' % self.profile)
             if code is not None:
                 if qt_available:
@@ -271,7 +270,7 @@ class EngineManager(object):
                         None,
                         sys.executable,
                         '-m',
-                        'IPython.parallel.apps.ipengineapp',
+                        'ipyparallel.apps.ipengineapp',
                         '--profile=%s' % self.profile)
                 starting.add(proc)
             # Wait for each one to either fail or connect

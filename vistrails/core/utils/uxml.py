@@ -51,7 +51,7 @@ def eval_xml_value(node):
     """
     
     key_name = node.nodeName
-    type_ = getattr(__builtin__, key_name)
+    type_ = getattr(builtins, key_name)
     str_value = str(node.attributes['value'].value)
 
     # Tricky case bool('False') == True

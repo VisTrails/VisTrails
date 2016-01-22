@@ -262,7 +262,7 @@ if custom_input_list:
 else:
     cartesian_product = self.force_get_input('UseCartesianProduct', False)
     if cartesian_product:
-        input_lists = [self.get_input(input_ports[x]) for x in xrange(len(input_ports))]
+        input_lists = [self.get_input(input_ports[x]) for x in range(len(input_ports))]
         InputList = [[]]
         pools = map(tuple, input_lists)
         for pool in pools:
@@ -275,7 +275,7 @@ else:
             for p in input_ports[1:]:
                 if len(self.get_input(p)) != length:
                     fail('One or more of the input lists have different lengths.')
-        for x in xrange(length):
+        for x in range(length):
             element_list = []
             for p in input_ports:
                 element_list.append(self.get_input(p)[x])

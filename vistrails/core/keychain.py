@@ -44,21 +44,13 @@ Use this at your own risk!
 
 
 import inspect
-import os
-import sys
 from vistrails.core import debug
-from vistrails.core.utils import VistrailsInternalError
 
 
 import struct
 
 import unittest
-try:
-    import hashlib
-    md5_hash = hashlib.md5
-except ImportError:
-    import md5
-    md5_hash = md5.new
+from  hashlib import md5 as md5_hash
 
 ##############################################################################
 
@@ -75,7 +67,7 @@ class KeyChain(object):
         Returns the number of keys
 
         """
-        return len(list(self.__keys.keys()))
+        return len(self.__keys.keys())
 
     def clear(self):
         """clear() -> None
@@ -94,8 +86,8 @@ class KeyChain(object):
             #this will return the instance of the object that called us
             caller = id(args['self'])
             newkey = str(caller)+str(key)
-            hashkey = md5_hash(newkey).hexdigest()[:16]
-            cryptvalue = crypt(hashkey,value)
+            hashkey = md5_hash(newkey.encode()).hexdigest()[:16].encode()
+            cryptvalue = crypt(hashkey,value.encode())
             self.__keys[hashkey] = cryptvalue
             
         except KeyError:
@@ -115,9 +107,9 @@ class KeyChain(object):
             #this will return the instance of the object that called us
             caller = id(args['self'])
             newkey = str(caller)+str(key)
-            hashkey = md5_hash(newkey).hexdigest()[:16]
+            hashkey = md5_hash(newkey.encode()).hexdigest()[:16].encode()
             if hashkey in self.__keys:
-                return crypt(hashkey,self.__keys[hashkey])
+                return crypt(hashkey,self.__keys[hashkey]).decode()
             else:
                 debug.debug("KeyChain: the key is not present or only the"
                               " object that set the key can get it")
@@ -167,7 +159,7 @@ exchanged securely)
 """ 
 
 
-def crypt(key,data,iv='\00\00\00\00\00\00\00\00',n=32):
+def crypt(key,data,iv=b'\00\00\00\00\00\00\00\00',n=32):
     """
         Encrypt/decrypt variable length string using XTEA cypher as
         key generator (OFB mode)
@@ -188,9 +180,9 @@ def crypt(key,data,iv='\00\00\00\00\00\00\00\00',n=32):
         while True:
             iv = xtea_encrypt(key,iv,n)
             for k in iv:
-                yield ord(k)
-    xor = [ chr(x^y) for (x,y) in zip(list(map(ord,data)),keygen(key,iv,n))]
-    return "".join(xor)
+                yield k
+    xor = [ x^y for (x,y) in zip(list(data),keygen(key,iv,n))]
+    return bytes(xor)
 
 def xtea_encrypt(key,block,n=32,endian="!"):
     """
@@ -200,14 +192,14 @@ def xtea_encrypt(key,block,n=32,endian="!"):
         * n = rounds (default 32)
         * endian = byte order (see 'struct' doc - default big/network) 
 
-        >>> z = xtea_encrypt('0123456789012345','ABCDEFGH')
-        >>> z.encode('hex')
+        >>> z = xtea_encrypt(b'0123456789012345',b'ABCDEFGH')
+        >>> z.encode(b'hex')
         'b67c01662ff6964a'
 
         Only need to change byte order if sending/receiving from 
         alternative endian implementation 
 
-        >>> z = xtea_encrypt('0123456789012345','ABCDEFGH',endian="<")
+        >>> z = xtea_encrypt(b'0123456789012345',b'ABCDEFGH',endian="<")
         >>> z.encode('hex')
         'ea0c3d7c1c22557f'
 
@@ -229,15 +221,15 @@ def xtea_decrypt(key,block,n=32,endian="!"):
         * n = rounds (default 32)
         * endian = byte order (see 'struct' doc - default big/network) 
 
-        >>> z = 'b67c01662ff6964a'.decode('hex')
-        >>> xtea_decrypt('0123456789012345',z)
+        >>> z = b'b67c01662ff6964a'.decode('hex')
+        >>> xtea_decrypt(b'0123456789012345',z)
         'ABCDEFGH'
 
         Only need to change byte order if sending/receiving from 
         alternative endian implementation 
 
-        >>> z = 'ea0c3d7c1c22557f'.decode('hex')
-        >>> xtea_decrypt('0123456789012345',z,endian="<")
+        >>> z = b'ea0c3d7c1c22557f'.decode('hex')
+        >>> xtea_decrypt(b'0123456789012345',z,endian="<")
         'ABCDEFGH'
 
     """
@@ -273,7 +265,7 @@ class TestKeyChain(unittest.TestCase):
         self.assertEquals(value, "value")
         #test key protection
         value = other.get_key(keyChain, "mykey.name")
-        self.assertEquals(value, "")   
+        self.assertEquals(value, "")
 
 if __name__ == '__main__':
     unittest.main()

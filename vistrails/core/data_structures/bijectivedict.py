@@ -73,7 +73,7 @@ class Bidict(dict):
         return r
 
     def update(self, other):
-        if hasattr(other, 'iterkeys'):
+        if hasattr(other, 'keys'):
             for i in other.keys():
                 self[i] = other[i]
         else:

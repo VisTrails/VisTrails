@@ -287,14 +287,14 @@ class TimeSearchStmt(SearchStmt):
             lst[3] = 0
             lst[4] = 0
             lst[5] = 0
-            return time.mktime(lst)
+            return time.mktime(tuple(lst))
         if dateStr == "today":
             lst = list(time.localtime())
             # Reset hour, minute, second
             lst[3] = 0
             lst[4] = 0
             lst[5] = 0
-            return time.mktime(lst)
+            return time.mktime(tuple(lst))
         if dateStr.startswith("this "):
             rest = dateStr[5:]
             lst = list(time.localtime(round(time.time())))
@@ -312,7 +312,7 @@ class TimeSearchStmt(SearchStmt):
                 lst[4]  = 0
                 lst[3]  = 0
                 # This hack saves me the hassle of computing negative days, months, etc
-                lst = list(time.localtime(time.mktime(lst) - TimeSearchStmt.oneDay * lst[6]))
+                lst = list(time.localtime(time.mktime(tuple(lst)) - TimeSearchStmt.oneDay * lst[6]))
             elif rest == "month":
                 lst[5]  = 0
                 lst[4]  = 0
@@ -324,7 +324,7 @@ class TimeSearchStmt(SearchStmt):
                 lst[3]  = 0
                 lst[2]  = 1
                 lst[1]  = 1
-            return time.mktime(lst)
+            return time.mktime(tuple(lst))
                 
         result = [x.match(dateStr) for x in TimeSearchStmt.dateRE]
         this = list(time.localtime())
@@ -390,7 +390,7 @@ class TimeSearchStmt(SearchStmt):
             setThreeDate([g[3], g[4],g[5]])
         else:
             raise SearchParseError("Expected a date, got '%s'" % dateStr)
-        return time.mktime(this)
+        return time.mktime(tuple(this))
         
 class BeforeSearchStmt(TimeSearchStmt):
     def match(self, vistrail, action):

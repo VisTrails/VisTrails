@@ -504,12 +504,10 @@ class Ref(object):
         except AttributeError: #it's not a bound method
             self._obj = None
             self._func = fn
-            self._clas = None
         else: #it's a bound method
             if o is None: self._obj = None #... actually UN-bound
             else: self._obj = weakref.ref(o)
             self._func = f
-            self._clas = None
             
     def __call__(self):
         if self._obj is None: return self._func
@@ -521,7 +519,7 @@ class Ref(object):
             #new is deprecated in python 2.6
             import new
             instance_method = new.instancemethod
-        return instance_method(self._func, self._obj(), self._clas)
+        return instance_method(self._func, self._obj())
 
 ###############################################################################
 

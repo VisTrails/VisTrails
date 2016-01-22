@@ -130,7 +130,7 @@ def parallel_map(function, *args, **kwargs):
         raise TypeError("map() got unexpected keyword arguments")
 
     try:
-        import IPython.parallel
+        import ipyparallel
     except ImportError:
         result, ipython = list(map(function, *args)), False
     else:

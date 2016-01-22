@@ -413,7 +413,7 @@ class ${obj.getClassName()}(object):
         ## childObj = field.getReferencedObject()
         % if field.getReferencedObject().getKey() is not None:
         found = False
-        for i in xrange(len(self.${field.getPrivateName()})):
+        for i in range(len(self.${field.getPrivateName()})):
             if self.${field.getPrivateName()}[i]. \!
                 ${field.getReferencedObject().getKey().getPythonName()} == \
                     ${field.getName()}. \!
@@ -446,7 +446,7 @@ class ${obj.getClassName()}(object):
         % if field.getReferencedObject().getKey() is None:
         raise Exception('Cannot delete a non-keyed object')
         % else:
-        for i in xrange(len(self.${field.getPrivateName()})):
+        for i in range(len(self.${field.getPrivateName()})):
             if self.${field.getPrivateName()}[i]. \!
                 ${field.getReferencedObject().getKey().getPythonName()} == \
                     ${field.getName()}. \!
@@ -479,7 +479,7 @@ class ${obj.getClassName()}(object):
         return None
         % else:
         % if field.getReferencedObject().getKey() is not None:
-        for i in xrange(len(self.${field.getPrivateName()})):
+        for i in range(len(self.${field.getPrivateName()})):
             if self.${field.getPrivateName()}[i]. \!
                 ${field.getReferencedObject().getKey().getPythonName()} == key:
                 return self.${field.getPrivateName()}[i]

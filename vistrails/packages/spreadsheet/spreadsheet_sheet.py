@@ -70,10 +70,10 @@ class StandardWidgetHeaderView(QtWidgets.QHeaderView):
 
         """
         QtWidgets.QHeaderView.__init__(self, orientation, parent)
-        self.setMovable(True)
+        self.setSectionsMovable(True)
         self.setFont(QtGui.QFont("Helvetica",12,QtGui.QFont.Bold))
         self.resizeSections(QtWidgets.QHeaderView.Stretch)
-        self.setClickable(True)
+        self.setSectionsClickable(True)
         self.setHighlightSections(True)
         if orientation==QtCore.Qt.Vertical:
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter |

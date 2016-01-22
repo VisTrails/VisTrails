@@ -88,8 +88,6 @@ def _eintr_retry_call(func, *args):
 def _add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
-    if isinstance(tool_name, str):
-        tool_name = tool_name.encode('utf-8')
     if not tool_name.endswith(SUFFIX): # pragma: no cover
         return
     (tool_name, _) = os.path.splitext(tool_name)

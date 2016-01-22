@@ -60,12 +60,7 @@ import shutil
 import zipfile
 import urllib.request, urllib.parse, urllib.error
 
-try:
-    import hashlib
-    sha_hash = hashlib.sha1
-except ImportError:
-    import sha
-    sha_hash = sha.new
+from hashlib import sha1 as sha_hash
 
 ###############################################################################
 
@@ -422,7 +417,7 @@ def path_parameter_hasher(p):
         return h
     hasher = sha_hash()
     hasher.update(h)
-    hasher.update(str(t))
+    hasher.update(str(t).encode())
     return hasher.digest()
 
 class File(Path):
@@ -617,9 +612,9 @@ class WriteFile(Converter):
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
         if self.has_input('encoding'):
-            contents = contents.decode('utf-8') # VisTrails uses UTF-8
-                                                # internally (I hope)
             contents = contents.encode(self.get_input('encoding'))
+        else:
+            contents = contents.encode()
         with open(result.name, 'wb') as fp:
             fp.write(contents)
         self.set_output('out_value', result)
@@ -637,8 +632,8 @@ class ReadFile(Converter):
             contents = fp.read()
         if self.has_input('encoding'):
             contents = contents.decode(self.get_input('encoding'))
-            contents = contents.encode('utf-8') # VisTrails uses UTF-8
-                                                # internally (for now)
+        else:
+            contents = contents.decode()
         self.set_output('out_value', contents)
 
 ##############################################################################
@@ -681,7 +676,7 @@ class Color(Constant):
 
     @staticmethod
     def to_string(r, g, b):
-        return "%s,%s,%s" % (r,g,b)        
+        return "%g,%g,%g" % (r,g,b)
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):

@@ -67,7 +67,7 @@ import re
 import sys
 import tempfile
 
-from IPython.parallel.error import CompositeError
+from ipyparallel.error import CompositeError
 
 from .api import get_client
 

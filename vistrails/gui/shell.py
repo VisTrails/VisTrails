@@ -64,33 +64,33 @@ def get_shell_dialog():
         return _shell_dialog
 
     try:
-        deps = {'pip': 'ipython>=1.0',
-                'linux-ubuntu': 'ipython-qtconsole',
-                'linux-debian': 'ipython-qtconsole'}
+        deps = {'pip': 'qtconsole>=4.0',
+                'linux-ubuntu': 'qtconsole',
+                'linux-debian': 'qtconsole'}
 
-        IPython = py_import('IPython.qt.console.rich_ipython_widget', deps,
+        qtconsole = py_import('qtconsole.rich_jupyter_widget', deps,
                             True)
-        RichIPythonWidget = \
-                IPython.qt.console.rich_ipython_widget.RichIPythonWidget
-        py_import('IPython.qt.inprocess', deps, True)
+        RichJupyterWidget = \
+                qtconsole.rich_jupyter_widget.RichJupyterWidget
+        py_import('qtconsole.inprocess', deps, True)
         QtInProcessKernelManager = \
-                IPython.qt.inprocess.QtInProcessKernelManager
+                qtconsole.inprocess.QtInProcessKernelManager
     except ImportError:
         return None
 
     km = QtInProcessKernelManager()
     km.start_kernel()
     kernel = km.kernel
-    kernel.gui = 'qt4'
+    kernel.gui = 'qt5'
 
     kernel_client = km.client()
     kernel_client.start_channels()
 
-    class IPythonDialog(RichIPythonWidget, QVistrailsPaletteInterface):
+    class IPythonDialog(RichJupyterWidget, QVistrailsPaletteInterface):
         """This class incorporates an  IPython shell into a dockable widget for use in the
         VisTrails environment"""
         def __init__(self, parent=None):
-            RichIPythonWidget.__init__(self, parent)
+            RichJupyterWidget.__init__(self, parent)
             self.old_streams = None
             self.running_workflow = False
             self.kernel_manager = km
@@ -119,7 +119,7 @@ def get_shell_dialog():
             if self.old_streams is not None:
                 sys.stdout, sys.stderr, sys.stdin = self.old_streams
                 self.old_streams = None
-            RichIPythonWidget.hide(self)
+            RichJupyterWidget.hide(self)
 
         def show(self):
             """show() -> None
@@ -133,7 +133,7 @@ def get_shell_dialog():
                 sys.stdout   = self
                 sys.stderr   = self
                 sys.stdin    = self
-            RichIPythonWidget.show(self)
+            RichJupyterWidget.show(self)
 
         def showEvent(self, e):
             """showEvent(e) -> None
@@ -186,7 +186,7 @@ def get_shell_dialog():
             etype = event.type()
             if etype == QtCore.QEvent.KeyPress:
                 self.running_workflow = False
-            return RichIPythonWidget.eventFilter(self, obj, event)
+            return RichJupyterWidget.eventFilter(self, obj, event)
 
     _shell_dialog = IPythonDialog
     return IPythonDialog

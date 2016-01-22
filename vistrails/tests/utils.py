@@ -45,10 +45,7 @@ import sys
 import traceback
 import unittest
 
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 from vistrails.core.modules.vistrails_module import Module
 
@@ -306,7 +303,7 @@ def intercept_results(*args):
             ctx.append(intercept_result(current_module, arg))
         else:
             raise TypeError
-    return contextlib.nested(*ctx)
+    return ctx
 
 
 @contextlib.contextmanager
