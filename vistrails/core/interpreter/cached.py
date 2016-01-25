@@ -155,7 +155,7 @@ class ViewUpdatingLogController(object):
         elif error is None:
             self.view.set_module_success(i)
         else:
-            self.view.set_module_error(i, error)
+            self.view.set_module_error(i, error.msg, error.errorTrace)
 
         if i in self.ids:
             self.ids.remove(i)
@@ -637,13 +637,19 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         self.clean_modules(to_delete)
 
-        def dict2set(s):
-            return set(k for k, v in s.iteritems() if v)
         if view is not None:
-            persistent = set(objs) - (dict2set(errs) | dict2set(execs) |
-                                      dict2set(suspended) | dict2set(cached))
-            for i in persistent:
-                view.set_module_persistent(i)
+            for i in objs:
+                if i in errs:
+                    print "set_module_error(i=%r, errmsg=%r, errorTrace=%r)" % (i, errs[i].msg, errs[i].errorTrace)
+                    view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
+                elif i in suspended and suspended[i]:
+                    view.set_module_suspended(i, suspended[i])
+                elif i in execs and execs[i]:
+                    view.set_module_success(i)
+                elif i in cached and cached[i]:
+                    view.set_module_not_executed(i)
+                else:
+                    view.set_module_persistent(i)
 
         if reset_computed:
             for module in self._objects.itervalues():
@@ -746,7 +752,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             res = (to_delete, res[0], errors, {}, {}, {}, [])
             for (i, error) in errors.iteritems():
-                view.set_module_error(i, error)
+                view.set_module_error(i, error.msg, error.errorTrace)
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
         result = InstanceObject(objects=res[1],
