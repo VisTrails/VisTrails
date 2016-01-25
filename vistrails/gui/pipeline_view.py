@@ -638,52 +638,52 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Create actions related to context menu 
 
         """
-        self.configureAct = QtGui.QAction("Edit Configuration\tCtrl+E", self.scene())
+        self.configureAct = QtGui.QAction("Edit &Configuration\tCtrl+E", self.scene())
         self.configureAct.setStatusTip("Edit the Configure of the module")
         QtCore.QObject.connect(self.configureAct, 
                                QtCore.SIGNAL("triggered()"),
                                self.configure)
-        self.annotateAct = QtGui.QAction("Annotate", self.scene())
+        self.annotateAct = QtGui.QAction("&Annotate", self.scene())
         self.annotateAct.setStatusTip("Annotate the module")
         QtCore.QObject.connect(self.annotateAct,
                                QtCore.SIGNAL("triggered()"),
                                self.annotate)
-        self.viewDocumentationAct = QtGui.QAction("View Documentation", self.scene())
+        self.viewDocumentationAct = QtGui.QAction("View &Documentation", self.scene())
         self.viewDocumentationAct.setStatusTip("View module documentation")
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
-        self.editLoopingAct = QtGui.QAction("Execution Options", self.scene())
+        self.editLoopingAct = QtGui.QAction("Execution &Options", self.scene())
         self.editLoopingAct.setStatusTip("Edit module execution options")
         QtCore.QObject.connect(self.editLoopingAct,
                                QtCore.SIGNAL("triggered()"),
                                self.editLooping)
-        self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
+        self.changeModuleLabelAct = QtGui.QAction("Set Module &Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
         QtCore.QObject.connect(self.changeModuleLabelAct,
                                QtCore.SIGNAL("triggered()"),
                                self.changeModuleLabel)
-        self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
+        self.setBreakpointAct = QtGui.QAction("Set &Breakpoint", self.scene())
         self.setBreakpointAct.setStatusTip("Set Breakpoint")
         QtCore.QObject.connect(self.setBreakpointAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_breakpoint)
-        self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
+        self.setWatchedAct = QtGui.QAction("&Watch Module", self.scene())
         self.setWatchedAct.setStatusTip("Watch Module")
         QtCore.QObject.connect(self.setWatchedAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_watched)
-        self.runModuleAct = QtGui.QAction("Run this module", self.scene())
+        self.runModuleAct = QtGui.QAction("&Run this module", self.scene())
         self.runModuleAct.setStatusTip("Run this module")
         QtCore.QObject.connect(self.runModuleAct,
                                QtCore.SIGNAL("triggered()"),
                                self.run_module)
-        self.setErrorAct = QtGui.QAction("Show Error", self.scene())
+        self.setErrorAct = QtGui.QAction("Show &Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_error)
-        self.upgradeAbstractionAct = QtGui.QAction("Upgrade Module", self.scene())
+        self.upgradeAbstractionAct = QtGui.QAction("&Upgrade Module", self.scene())
         self.upgradeAbstractionAct.setStatusTip("Upgrade the subworkflow module")
         QtCore.QObject.connect(self.upgradeAbstractionAct,
                    QtCore.SIGNAL("triggered()"),
