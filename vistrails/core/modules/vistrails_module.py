@@ -601,9 +601,9 @@ class Module(object):
         except Exception, e:
             debug.unexpected_exception(e)
             raise ModuleError(
-                    self,
-                    "Uncaught exception: %s" % debug.format_exception(e),
-                    errorTrace=traceback.format_exc())
+                self,
+                "Uncaught exception: %s" % debug.format_exception(e).rstrip(),
+                errorTrace=traceback.format_exc())
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
