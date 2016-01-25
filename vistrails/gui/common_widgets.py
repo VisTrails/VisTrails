@@ -566,7 +566,7 @@ class QSearchBox(QtWidgets.QWidget):
             pix = CurrentTheme.QUERY_VIEW_ICON.pixmap(QtCore.QSize(16,16))
             self.searchLabel.setPixmap(pix)
             self.searchLabel.setAlignment(QtCore.Qt.AlignCenter)
-            self.searchLabel.setMargin(4)
+            self.searchLabel.setContentsMargins(4,4,4,4)
             hLayout.addWidget(self.searchLabel)
         
         hLayout.addWidget(self.searchEdit)

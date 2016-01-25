@@ -718,7 +718,7 @@ class TestHTTPDirectory(unittest.TestCase):
                         addfiles(os.path.join(dirpath, name))
                     else:
                         with open(filename, 'rb') as f:
-                            files[dn.replace(os.sep, '/')] = f.read()
+                            files[dn.replace(os.sep, '/')] = f.read().decode()
             addfiles('')
             self.assertEqual(len(files), 4)
             del files['f.html']

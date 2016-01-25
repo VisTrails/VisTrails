@@ -741,8 +741,8 @@ class QVistrailList(QtWidgets.QTreeWidget):
         self.itemClicked.connect(self.item_changed)
 
     def disconnect_current_changed(self):
-        self.currentItemChanged.connect(self.item_changed)
-        self.itemClicked.connect(self.item_changed)
+        self.currentItemChanged.disconnect(self.item_changed)
+        self.itemClicked.disconnect(self.item_changed)
     
     def show_search_results(self):
         self.searchResultsItem = QtWidgets.QTreeWidgetItem(['Search Results'])

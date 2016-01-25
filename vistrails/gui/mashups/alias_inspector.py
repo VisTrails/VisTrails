@@ -376,7 +376,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
                 
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
-                self.disconnect()
+                self.dv_widget.contentsChanged.disconnect(self.widgetContentsChanged)
                 self.dv_widget.deleteLater()
             
             self.dv_widget = QAliasDetailsWidget.createAliasWidget(self.alias, self.controller, self)
@@ -385,7 +385,7 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
         
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
-                self.disconnect()
+                self.vl_editor.valuesChanged.disconnect(self.valuesListChanged)
                 self.vl_editor.deleteLater()
                 self.vl_editor = None
            
@@ -400,13 +400,13 @@ class QAliasDetailsWidget(QtWidgets.QWidget):
             
             if self.dv_widget:
                 self.dv_layout.removeWidget(self.dv_widget)
-                self.disconnect()
+                self.dv_widget.contentsChanged.disconnect(self.widgetContentsChanged)
                 self.dv_widget.deleteLater()
                 self.dv_widget = None
                 
             if self.vl_editor:
                 self.vl_layout.removeWidget(self.vl_editor)
-                self.disconnect()
+                self.vl_editor.valuesChanged.disconnect(self.valuesListChanged)
                 self.vl_editor.deleteLater()
                 self.vl_editor = None
                 
@@ -570,7 +570,7 @@ class QListEditDialog(QtWidgets.QDialog):
         label = QtWidgets.QLabel("Please enter values in boxes below. "
                              "'Add' appends an empty value to the list. "
                              "And 'Del' removes the selected values.")
-        label.setMargin(5)
+        label.setContentsMargins(5,5,5,5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 

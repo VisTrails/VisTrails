@@ -141,7 +141,7 @@ class QMashupView(QtWidgets.QMainWindow, BaseView):
                     self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
                     self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
                     if self.mshpController.vtController is not None:
-                        self.disconnect()
+                        self.mshpController.vtController.vistrailChanged.disconnect(self.mshpControllerVistrailChanged)
                 except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()

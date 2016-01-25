@@ -72,7 +72,7 @@ class SourceWidget(PortTableConfigurationWidget):
         self.codeEditor = editor_class(parent)
         self.setWindowTitle('%s Configuration' % module.name)
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
         self.has_inputs = has_inputs
         self.has_outputs = has_outputs
@@ -97,7 +97,7 @@ class SourceWidget(PortTableConfigurationWidget):
                                                  True)
             self.layout().addWidget(self.outputPortTable)
         if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            self.performPortConnection('connect')
         if has_inputs:
             self.inputPortTable.fixGeometry()
         if has_outputs:
@@ -118,7 +118,7 @@ class SourceWidget(PortTableConfigurationWidget):
                 code, = port.defaults
         if code is not None:
             if self.sourceEncode:
-                code = urllib.parse.unquote(code).decode('utf-8')
+                code = urllib.parse.unquote(code)
             self.codeEditor.setPlainText(code)
         if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.document().setModified(False)
@@ -158,20 +158,18 @@ class SourceWidget(PortTableConfigurationWidget):
         return QtCore.QSize(512, 512)
 
     def performPortConnection(self, operation):
-        operation(self.inputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-        operation(self.outputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
+        getattr(self.inputPortTable.horizontalHeader().sectionResized,
+                operation)(self.portTableResize)
+        getattr(self.outputPortTable.horizontalHeader().sectionResized,
+                operation)(self.portTableResize)
 
     def portTableResize(self, logicalIndex, oldSize, newSize):
-        self.performPortConnection(self.disconnect)
+        self.performPortConnection('disconnect')
         if self.inputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.inputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
-        self.performPortConnection(self.connect)
+        self.performPortConnection('connect')
 
     def activate(self):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
@@ -215,7 +213,7 @@ class SourceViewerWidget(SourceWidget):
                                  self.module.output_port_specs, True)
             self.layout().addWidget(self.outputPortTable)
         if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            self.performPortConnection('connect')
 
         if has_inputs:
             self.fixTableGeometry(self.inputPortTable)

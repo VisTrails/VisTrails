@@ -105,8 +105,8 @@ def download_directory(url, target, insecure=False):
     opener = build_opener(insecure=insecure)
     response = opener.open(url)
 
-    if response.info().type == 'text/html':
-        contents = response.read()
+    if response.info().get_content_type() == 'text/html':
+        contents = response.read().decode()
 
         parser = ListingParser(url)
         parser.feed(contents)
@@ -129,7 +129,7 @@ def download_directory(url, target, insecure=False):
                 if not (end.endswith('.htm') or end.endswith('.html')):
                     target = target + '.html'
                 with open(target, 'wb') as fp:
-                    fp.write(contents)
+                    fp.write(contents.encode())
     else:
         buffer_size = 4096
         with open(target, 'wb') as fp:

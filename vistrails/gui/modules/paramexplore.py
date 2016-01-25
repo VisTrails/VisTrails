@@ -421,7 +421,7 @@ class QListEditDialog(QtWidgets.QDialog):
                              "rows up and down to arrange your list values. "
                              "'Add' appends an empty value to the list. "
                              "And 'Del' removes the selected values.")
-        label.setMargin(5)
+        label.setContentsMargins(5,5,5,5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 
@@ -752,7 +752,7 @@ class QUserFunctionDialog(QtWidgets.QDialog):
                              "'value(i)' function will be iteratively called "
                              "for <step count> numbers. For each step, "
                              "it should return a value of parameter type.")
-        label.setMargin(5)
+        label.setContentsMargins(5,5,5,5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 

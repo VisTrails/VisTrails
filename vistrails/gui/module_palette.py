@@ -520,6 +520,9 @@ class QModuleTreeWidgetItem(QtWidgets.QTreeWidgetItem):
         if descriptor:
             descriptor.set_widget(self)
 
+    def __hash__(self):
+        return id(self)
+
 class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
     def __init__(self, parent, name):
         QModuleTreeWidgetItem.__init__(self, None, parent, [name], False)

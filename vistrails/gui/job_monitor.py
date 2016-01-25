@@ -578,10 +578,10 @@ class QWorkflowItem(QtWidgets.QTreeWidgetItem):
         try:
             name = self.parent().controller.get_pipeline_name(
                                                            self.workflow.version)
-            self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
-                               (name, self.workflow.version))
-        except KeyError:
+        except (KeyError, TypeError):
             name = self.workflow.version
+        self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id "%s"' %
+                           (name, self.workflow.version))
         self.setText(0, name)
         self.setToolTip(1, "Log id: %s" % self.workflow.id)
         changed = False
@@ -664,7 +664,7 @@ class QJobItem(QtWidgets.QTreeWidgetItem):
         else:
             self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
             self.setToolTip(0, "This Job is Running")
-        self.setToolTip(1, self.job.id)
+        self.setToolTip(1, self.job.id.decode())
         return changed
 
     def stdout(self):
@@ -696,7 +696,7 @@ class QParentItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, id, name, parent=None):
         QtWidgets.QTreeWidgetItem.__init__(self, parent, [name, ''])
         self.id = id
-        self.setToolTip(0, self.id)
+        self.setToolTip(0, self.id.decode())
 
 
 class LogMonitor(QtWidgets.QDialog):

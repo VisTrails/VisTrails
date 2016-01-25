@@ -655,7 +655,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtWidgets.QGraphicsEllipseIte
         drag = QtGui.QDrag(self.scene().views()[0])
         drag.setMimeData(data)
         drag.setPixmap(CurrentTheme.VERSION_DRAG_PIXMAP)
-        drag.start()
+        drag.exec_()
 
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -1084,13 +1084,12 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
 
     vistrailChanged = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, **kwargs):
         """ QVersionTreeView(parent: QWidget) -> QVersionTreeView
         Initialize the graphics view and its properties
         
         """
-        QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        super().__init__(parent=parent, **kwargs)
         self.controller = None
         self.set_title('Version Tree')
         self.setScene(QVersionTreeScene(self))
@@ -1190,9 +1189,9 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
-                oldController.vistrailChanged.connect(self._vistrailChanged)
-                oldController.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
-                oldController.notesChanged.connect(self.notesChanged)
+                oldController.vistrailChanged.disconnect(self._vistrailChanged)
+                oldController.invalidateSingleNodeInVersionTree.disconnect(self.single_node_changed)
+                oldController.notesChanged.disconnect(self.notesChanged)
             self.controller = controller
             self.scene().controller = controller
             controller.vistrailChanged.connect(self._vistrailChanged)
@@ -1205,7 +1204,6 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
                 # self.versionProp.updateController(controller)
                 # self.versionView.versionProp.updateController(controller)
 
-    @QtCore.pyqtSlot()
     def _vistrailChanged(self):
         """ vistrailChanged() -> None
         An action was performed on the current vistrail

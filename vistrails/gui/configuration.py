@@ -101,6 +101,9 @@ class QConfigurationTreeWidgetItem(QtWidgets.QTreeWidgetItem):
         return self._name
     name = property(_get_name)
 
+    def __hash__(self):
+        return id(self)
+
 class QConfigurationTreeWidgetItemDelegate(QtWidgets.QItemDelegate):
     """
     QConfigurationTreeWidgetItemDelegate allows a custom editor for

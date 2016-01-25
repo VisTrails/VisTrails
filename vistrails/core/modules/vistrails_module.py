@@ -1061,7 +1061,7 @@ class Module(object):
             # The fake signature is
             # XOR(signature(loop module), iteration, hash(inputPort))
             inputPort_hash = sha1_hash()
-            inputPort_hash.update(inputPort)
+            inputPort_hash.update(inputPort.encode())
             module.signature = b16encode(xor(
                     b16decode(self.signature.upper()),
                     long2bytes(iteration, 20),

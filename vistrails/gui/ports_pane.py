@@ -242,7 +242,7 @@ class ParameterEntry(QtWidgets.QTreeWidgetItem):
                                               params)):
             if psi.entry_type is not None:
                 # !!only pull off the prefix!! options follow in camelcase
-                prefix_end = len(psi.entry_type.lstrip(string.lowercase))
+                prefix_end = len(psi.entry_type.lstrip(string.ascii_lowercase))
                 if prefix_end == 0:
                     entry_type = psi.entry_type
                 else:

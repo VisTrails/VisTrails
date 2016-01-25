@@ -516,7 +516,7 @@ class QVirtualCellLabel(QtWidgets.QLabel):
 
         """
         QtWidgets.QLabel.__init__(self, parent)
-        self.setMargin(2)
+        self.setContentsMargins(2,2,2,2)
         self.cellType = None
         self.setCellData(label, id)
         self.setAcceptDrops(True)
@@ -536,6 +536,7 @@ class QVirtualCellLabel(QtWidgets.QLabel):
         """
         self.type = cellType
         self.id = cellId
+        size = QtCore.QSize(*CurrentTheme.VIRTUAL_CELL_LABEL_SIZE)
         size = QtCore.QSize(*CurrentTheme.VIRTUAL_CELL_LABEL_SIZE)
         image = QtGui.QImage(size.width() + 12,
                              size.height()+ 12,
@@ -591,7 +592,7 @@ class QVirtualCellLabel(QtWidgets.QLabel):
             
             self.setCellData('', -1)
             
-            drag.start(QtCore.Qt.MoveAction)
+            drag.exec_(QtCore.Qt.MoveAction)
             if mimeData.cellData!=('', -1):
                 self.setCellData(*mimeData.cellData)
             self.finishedDragAndDrop.emit()

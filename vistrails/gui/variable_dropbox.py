@@ -328,7 +328,7 @@ class QVariableInputForm(QtWidgets.QGroupBox):
         """
         QtWidgets.QGroupBox.__init__(self, parent)
         self.setLayout(QtWidgets.QGridLayout())
-        self.layout().setMargin(5)
+        self.layout().setContentsMargins(5,5,5,5)
         self.layout().setSpacing(5)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
@@ -446,7 +446,7 @@ class QDragVariableLabel(QtWidgets.QLabel):
             drag.setMimeData(mimeData)
             drag.setHotSpot(pixmap.rect().bottomRight())
             drag.setPixmap(pixmap)
-            drag.start(QtCore.Qt.MoveAction)
+            drag.exec_(QtCore.Qt.MoveAction)
 
 class QHoverVariableLabel(QtWidgets.QLabel):
     """

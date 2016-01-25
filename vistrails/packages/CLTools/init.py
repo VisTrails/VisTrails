@@ -36,6 +36,7 @@
 
 
 
+import contextlib
 import errno
 import json
 import os
@@ -199,12 +200,11 @@ def _add_tool(path):
                 elif "string" == type:
                     if file_std:
                         file = self.interpreter.filePool.create_file()
-                        f = open(file.name, 'wb')
-                        f.write(value)
-                        f.close()
+                        with open(file.name, 'wb') as f:
+                            f.write(value.encode())
                         f = open(file.name, 'rb')
                     else:
-                        stdin = value
+                        stdin = value.encode()
                 else: # pragma: no cover
                     raise ValueError
                 if file_std:
@@ -557,10 +557,11 @@ class TestCLTools(unittest.TestCase):
         reload_scripts()
 
     def do_the_test(self, toolname):
-        with intercept_results(
+        with contextlib.ExitStack() as stack:
+            return_code, f_out, stdout = [stack.enter_context(c) for c in
+                intercept_results(
                 self._tools[toolname],
-                'return_code', 'f_out', 'stdout') as (
-                return_code, f_out, stdout):
+                'return_code', 'f_out', 'stdout')]
             self.assertFalse(execute([
                     (toolname, 'org.vistrails.vistrails.cltools', [
                         ('f_in', [('File', self.testdir + '/test_1.cltest')]),
@@ -572,8 +573,8 @@ class TestCLTools(unittest.TestCase):
                     ]),
                 ]))
         self.assertEqual(return_code, [0])
-        self.assertEqual(f_out, ['ok\nmessage received'])
-        self.assertEqual(stdout, ['program output here'])
+        self.assertEqual(f_out, [b'ok\nmessage received']) # FIXME: Should this be string?
+        self.assertEqual(stdout, [b'program output here']) # FIXME: Should this be string?
 
     def test_with_pipes(self):
         """Without std_using_files: use pipes instead of files.

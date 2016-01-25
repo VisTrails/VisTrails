@@ -310,7 +310,7 @@ class QCellToolBar(QtWidgets.QToolBar):
         self.sheet = sheet
         self.row = -1
         self.col = -1
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
@@ -822,7 +822,7 @@ class QCellPresenter(QtWidgets.QLabel):
         QtWidgets.QLabel.__init__(self, parent)
         self.setAutoFillBackground(True)
         self.setScaledContents(True)
-        self.setMargin(0)
+        self.setContentsMargins(0,0,0,0)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.cellWidget = None
 
@@ -1256,7 +1256,7 @@ class QCellDragLabel(QtWidgets.QLabel):
 
         """
         QtWidgets.QLabel.__init__(self, parent)
-        self.setMargin(0)
+        self.setContentsMargins(0,0,0,0)
         self.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
         self.setPixmap(pixmap)
         self.setScaledContents(True)

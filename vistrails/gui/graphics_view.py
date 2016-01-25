@@ -689,7 +689,7 @@ class QPIPGraphicsView(QtWidgets.QWidget):
         self.palette().setColor(QtGui.QPalette.Base,
                                 CurrentTheme.PIP_FRAME_COLOR)
         self.setLayout(QtWidgets.QHBoxLayout(self))
-        self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+        self.layout().setContentsMargins(*[CurrentTheme.PIP_OUT_FRAME_WIDTH]*4)
         self.graphicsView = QInteractiveGraphicsView()
         self.layout().addWidget(self.graphicsView)
         self.firstShow = True
@@ -817,7 +817,7 @@ class QPIPGraphicsView(QtWidgets.QWidget):
         resizing
         
         """
-        self.layout().setMargin(CurrentTheme.PIP_IN_FRAME_WIDTH)
+        self.layout().setContentsMargins(*[CurrentTheme.PIP_IN_FRAME_WIDTH]*4)
 
     def leaveEvent(self, event):
         """ leaveEvent(event: QLeaveEvent) -> None        
@@ -825,7 +825,7 @@ class QPIPGraphicsView(QtWidgets.QWidget):
         more view
         
         """
-        self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+        self.layout().setContentsMargins(*[CurrentTheme.PIP_OUT_FRAME_WIDTH]*4)
 
 
 class QResetQueryButton(QtWidgets.QLabel):

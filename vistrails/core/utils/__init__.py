@@ -551,10 +551,10 @@ def long2bytes(nb, length=None):
     else:
         result = b''
         while nb > 0:
-            result += chr(nb & 0xFF)
+            result += bytes([nb & 0xFF])
             nb = nb >> 8
     if length is not None and len(result) < length:
-        result += '\x00' * (length - len(result))
+        result += b'\x00' * (length - len(result))
     return result
 
 ################################################################################
