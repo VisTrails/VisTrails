@@ -123,7 +123,7 @@ class Run(Module):
         with open(stdout.name, 'wb') as stdout_fp:
             with open(stderr.name, 'wb') as stderr_fp:
                 proc = subprocess.Popen(args,
-                                        )#stdout=stdout_fp, stderr=stderr_fp)
+                                        stdout=stdout_fp, stderr=stderr_fp)
 
         with open(stderr.name, 'rb') as stderr_fp:
             while True:
@@ -140,6 +140,8 @@ class Run(Module):
             self.set_output(name, file)
 
         self.set_output('experiment', experiment)
+        self.set_output('stdout', stdout)
+        self.set_output('stderr', stderr)
 
 
 _modules = [Directory, Run]
