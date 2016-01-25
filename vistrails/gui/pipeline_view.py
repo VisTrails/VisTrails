@@ -2030,6 +2030,24 @@ def choose_converter(converters, parent=None):
     else:
         return None
 
+class StacktracePopup(QtGui.QDialog):
+    def __init__(self, errorTrace='', parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.resize(700, 400)
+        self.setWindowTitle('Module Error')
+        layout = QtGui.QVBoxLayout()
+        self.setLayout(layout)
+        text = QtGui.QTextEdit('')
+        text.insertPlainText(errorTrace)
+        text.setReadOnly(True)
+        text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        layout.addWidget(text)
+        close = QtGui.QPushButton('Close', self)
+        close.setFixedWidth(100)
+        layout.addWidget(close)
+        self.connect(close, QtCore.SIGNAL('clicked()'),
+                     self, QtCore.SLOT('close()'))
+
 ##############################################################################
 # QPipelineScene
 
@@ -3132,24 +3150,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         text = toolTip
         if errorTrace and errorTrace.strip() != 'None':
             text += '\n\n' + errorTrace
-        class StackPopup(QtGui.QDialog):
-            def __init__(self, errorTrace='', parent=None):
-                QtGui.QDialog.__init__(self, parent)
-                self.resize(700, 400)
-                self.setWindowTitle('Module Error')
-                layout = QtGui.QVBoxLayout()
-                self.setLayout(layout)
-                text = QtGui.QTextEdit('')
-                text.insertPlainText(errorTrace)
-                text.setReadOnly(True)
-                text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
-                layout.addWidget(text)
-                close = QtGui.QPushButton('Close', self)
-                close.setFixedWidth(100)
-                layout.addWidget(close)
-                self.connect(close, QtCore.SIGNAL('clicked()'),
-                             self, QtCore.SLOT('close()'))
-        sp = StackPopup(text)
+        sp = StacktracePopup(text)
         sp.exec_()
 
     def open_annotations_window(self, id):
