@@ -108,23 +108,8 @@ class PortSpec(DBPortSpec):
             else:
                 raise VistrailsInternalError("Cannot parse 'optional' kw "
                                              "-- must be an int or bool")
-        if 'min_conns' not in kwargs:
-            kwargs['min_conns'] = 0
-        elif kwargs['optional'] == 1 and kwargs['min_conns'] > 0:
-            raise VistrailsInternalError("A mandatory port cannot be set "
-                                         "to optional")
-        if 'max_conns' not in kwargs:
-            kwargs['max_conns'] = -1
-        if kwargs['min_conns'] >= 0 and kwargs['max_conns'] >= 0 and \
-                kwargs['min_conns'] > kwargs['max_conns']:
-            raise VistrailsInternalError("Minimum number of connections "
-                                         "cannot be greater than maximum "
-                                         "number of connections")
-            
         if 'sort_key' not in kwargs:
             kwargs['sort_key'] = -1
-        if 'depth' not in kwargs:
-            kwargs['depth'] = 0
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'tooltip' in kwargs:
@@ -145,6 +130,8 @@ class PortSpec(DBPortSpec):
             self._shape = None
 
         DBPortSpec.__init__(self, *args, **kwargs)
+
+        self.validate()
 
         if sum(1 for container in (self.port_spec_items, signature, sigstring)
                if container) > 1:
@@ -191,6 +178,7 @@ class PortSpec(DBPortSpec):
         if _port_spec.__class__ == PortSpec:
             return
         _port_spec.__class__ = PortSpec
+        _port_spec.validate()
         for _port_spec_item in _port_spec.db_portSpecItems:
             PortSpecItem.convert(_port_spec_item)
         _port_spec._short_sigstring = None
@@ -209,6 +197,23 @@ class PortSpec(DBPortSpec):
 
         """
         return PortSpec(sigstring=sigstring)
+
+    def validate(self):
+        """ Fixes new attributes missing in upgrade translation <=1.0.4  """
+        if self.min_conns is None:
+            self.min_conns = 0
+        elif self.optional == 1 and self.min_conns > 0:
+            raise VistrailsInternalError("A mandatory port cannot be set "
+                                         "to optional")
+        if self.max_conns is None:
+            self.max_conns = -1
+        if self.min_conns >= 0 and self.max_conns >= 0 and \
+                self.min_conns > self.max_conns:
+            raise VistrailsInternalError("Minimum number of connections "
+                                         "cannot be greater than maximum "
+                                         "number of connections")
+        if self.depth is None:
+            self.depth = 0
 
     ##########################################################################
     # Properties
