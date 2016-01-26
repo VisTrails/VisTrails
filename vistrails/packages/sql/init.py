@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-
+import contextlib
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.url import URL
@@ -269,7 +269,9 @@ class TestSQL(unittest.TestCase):
                     VALUES(:name, :lastname, :age)
                     ''')
 
-            with intercept_results(DBConnection, 'connection', SQLSource, 'result') as (connection, table):
+            with contextlib.ExitStack() as stack:
+                connection, table = [stack.enter_context(c) for c in
+                    intercept_results(DBConnection, 'connection', SQLSource, 'result')]
                 self.assertFalse(execute([
                         ('DBConnection', identifier, [
                             ('protocol', [('String', 'sqlite')]),
@@ -301,7 +303,9 @@ class TestSQL(unittest.TestCase):
 
             source = "SELECT name, lastname, age FROM test WHERE age > :age"
 
-            with intercept_results(DBConnection, 'connection', SQLSource, 'result') as (connection, table):
+            with contextlib.ExitStack() as stack:
+                connection, table = [stack.enter_context(c) for c in
+                    intercept_results(DBConnection, 'connection', SQLSource, 'result')]
                 self.assertFalse(execute([
                         ('DBConnection', identifier, [
                             ('protocol', [('String', 'sqlite')]),
