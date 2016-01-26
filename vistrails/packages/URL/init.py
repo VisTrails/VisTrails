@@ -239,6 +239,8 @@ class HTTPDownloader(Downloader):
     def post_download(self, response):
         try:
             etag = response.headers['ETag']
+            if not etag:
+                raise KeyError
         except KeyError:
             pass
         else:
