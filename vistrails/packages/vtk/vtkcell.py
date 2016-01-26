@@ -47,8 +47,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sip
 from vistrails.core import system
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar, SpreadsheetAction
+from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -359,7 +359,6 @@ class QVTKWidget(QCellWidget):
                     # Qt5 does not have QX11Info
                     visApp = QtCore.QCoreApplication.instance()
                     display = visApp.desktop().screenNumber()
-                    print "dissed", display
                 if display is not None:
                     v = vtk.vtkVersion()
                     version = [v.GetVTKMajorVersion(),
@@ -1040,7 +1039,7 @@ class QVTKWidget(QCellWidget):
         else:
             self.saveToPNG(filename)
 
-class QVTKWidgetSaveCamera(QtWidgets.QAction):
+class QVTKWidgetSaveCamera(SpreadsheetAction):
     """
     QVTKWidgetSaveCamera is the action to capture the current camera
     of the vtk renderers and save it back to the pipeline
@@ -1051,9 +1050,7 @@ class QVTKWidgetSaveCamera(QtWidgets.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtWidgets.QAction.__init__(self,
-                               "Save &Camera",
-                               parent)
+        super().__init__("Save &Camera", parent)
         self.setStatusTip("Save current camera views to the pipeline")
 
     def setCamera(self, controller):

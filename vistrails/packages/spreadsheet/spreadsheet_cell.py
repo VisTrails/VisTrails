@@ -298,7 +298,6 @@ class QCellToolBar(QtWidgets.QToolBar):
     for interacting with CellHelpers
 
     """
-    needUpdateStatus = QtCore.pyqtSignal(tuple)
     def __init__(self, sheet):
         """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar
         Initialize the cell toolbar by calling the user-defined
@@ -476,7 +475,11 @@ class QCellToolBar(QtWidgets.QToolBar):
             return None
 
 
-class QCellToolBarSelectedCell(QtWidgets.QAction):
+class SpreadsheetAction(QtWidgets.QAction):
+    needUpdateStatus = QtCore.pyqtSignal(tuple)
+
+
+class QCellToolBarSelectedCell(SpreadsheetAction):
     """
     QCellToolBarSelectedCell is an action only visible if the cell isn't empty.
     """
@@ -521,7 +524,7 @@ class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
             self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
 
 
-class QCellToolBarMergeCells(QtWidgets.QAction):
+class QCellToolBarMergeCells(SpreadsheetAction):
     """
     QCellToolBarMergeCells is the action to merge selected cells to a
     single cell if they are in consecutive poisitions
@@ -613,7 +616,7 @@ class QCellToolBarMergeCells(QtWidgets.QAction):
                 self.setVisible(False)
 
 
-class QCellToolBarCaptureToHistory(QtWidgets.QAction):
+class QCellToolBarCaptureToHistory(SpreadsheetAction):
     """
     QCellToolBarCaptureToHistory is the action to capture the
     underlying widget to history for play back. The cell type must
@@ -656,7 +659,7 @@ class QCellToolBarCaptureToHistory(QtWidgets.QAction):
             self.setVisible(False)
 
 
-class QCellToolBarPlayHistory(QtWidgets.QAction):
+class QCellToolBarPlayHistory(SpreadsheetAction):
     """
     QCellToolBarPlayHistory is the action to play the history as an
     animation
@@ -709,7 +712,7 @@ class QCellToolBarPlayHistory(QtWidgets.QAction):
             self.setVisible(False)
 
 
-class QCellToolBarClearHistory(QtWidgets.QAction):
+class QCellToolBarClearHistory(SpreadsheetAction):
     """
     QCellToolBarClearHistory is the action to reset cell history
 

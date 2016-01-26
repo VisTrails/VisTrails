@@ -620,8 +620,8 @@ class ColorChooserButton(QtWidgets.QPushButton):
             self.setColor(self.qcolor)
 
 class QColorWidget(QtWidgets.QToolButton):
-    def __init__(self, parent=None):
-        QtWidgets.QToolButton.__init__(self, parent)
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.setIconSize(QtCore.QSize(26,18))        
         self.color_str = '1.0,1.0,1.0'

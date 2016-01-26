@@ -46,6 +46,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_elementtree_library
 from vistrails.core.utils.color import ColorByName
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+import binascii
 import vtk
 import math
 import pickle
@@ -176,7 +177,7 @@ class TransferFunction(object):
             colorNode.set('G', str(color[1]))
             colorNode.set('B', str(color[2]))
             
-        return ElementTree.tostring(node)
+        return ElementTree.tostring(node, encoding='unicode')
    
     @staticmethod
     def parse(strNode):
@@ -186,14 +187,14 @@ class TransferFunction(object):
         """
         try:
             node = ElementTree.fromstring(strNode)
-        except SyntaxError:
+        except SyntaxError as e:
             #it was serialized using pickle
             class FixUnpickler(pickle.Unpickler):
                 def find_class(self, module, name):
                     if module == 'packages.vtk.tf_widget':
                         module = 'vistrails.packages.vtk.tf_widget'
                     return pickle.Unpickler.find_class(self, module, name)
-            tf = FixUnpickler(io.StringIO(strNode.decode('hex'))).load()
+            tf = FixUnpickler(io.BytesIO(bytes.fromhex(strNode))).load()
             tf._pts.sort()
             return tf
         
@@ -509,6 +510,7 @@ class QGraphicsTransferFunction(QtWidgets.QGraphicsWidget, ConstantWidgetMixin):
         QtWidgets.QGraphicsWidget.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         self.setAcceptHoverEvents(True)
+        self._last_contents = None
         if not param.strValue:
             self._tf = copy.copy(default_tf)
         else:
@@ -638,26 +640,32 @@ class TransferFunctionView(QtWidgets.QGraphicsView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         
     def resizeEvent(self, event):
-        self.resetMatrix()
-        self.setMatrix(QtGui.QTransform(event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
-                                     0, event.size().height() / (GLOBAL_SCALE*10.0/9), GLOBAL_SCALE, 0))
-        self.scene().tf.update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
+        self.resetTransform()
+        self.setTransform(QtGui.QTransform(
+            event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
+            0, event.size().height() / (GLOBAL_SCALE*10.0/9), GLOBAL_SCALE, 0))
+        self.scene().tf.update_scale(event.size().width()/(2000.0/9),
+                                     event.size().height()/(2000.0/9))
         
     def focusOutEvent(self, event):
         self.parent().update_parent()
         QtWidgets.QGraphicsView.focusOutEvent(self, event)
 
+
 default_tf = TransferFunction()
 default_tf.add_point(0.0, 0.0, (0.0, 0.0, 0.0))
 default_tf.add_point(1.0, 0.0, (0.0, 0.0, 0.0))
 
+
 class TransferFunctionWidget(QtWidgets.QWidget, ConstantWidgetMixin):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
 
     GraphicsItem = QGraphicsTransferFunction
 
-    def __init__(self, param, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+    def __init__(self, param, parent=None, **kwargs):
+        self._scene = None
+        super().__init__(parent=parent, **kwargs)
         self._scene = TransferFunctionScene(param, self)
         self._scene.tf.update_parent = self.update_parent
         layout = QtWidgets.QVBoxLayout()
@@ -670,7 +678,7 @@ class TransferFunctionWidget(QtWidgets.QWidget, ConstantWidgetMixin):
         self._view.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                  QtWidgets.QSizePolicy.Expanding)
         # TODO remove this
-        self._view.setMatrix(QtGui.QTransform(1, 0, 0, -1, GLOBAL_SCALE, 0))
+        self._view.setTransform(QtGui.QTransform(1, 0, 0, -1, GLOBAL_SCALE, 0))
         self.setMinimumSize(260,240)
         caption = QtWidgets.QLabel("Double-click on the line to add a point")
         font = QtGui.QFont('Arial', 11)
@@ -683,11 +691,15 @@ class TransferFunctionWidget(QtWidgets.QWidget, ConstantWidgetMixin):
         return self._scene.tf.contents()
 
     def setContents(self, strValue, silent=True):
-        self._scene.tf.setContents(strValue, silent)
+        if self._scene is not None:
+            self._scene.tf.setContents(strValue, silent)
 
     def set_last_contents(self, contents):
-        self._scene.tf._last_contents = contents
+        if self._scene is not None:
+            self._scene.tf._last_contents = contents
     def get_last_contents(self):
+        if self._scene is None:
+            return None
         return self._scene.tf._last_contents
     _last_contents = property(get_last_contents, set_last_contents)
 
@@ -762,8 +774,8 @@ class TestTransferFunction(unittest.TestCase):
         tf._pts.sort()
         
         #simulate old serialization method
-        ser1 = pickle.dumps(tf).encode('hex')
-        
+        ser1 = binascii.hexlify(pickle.dumps(tf)).decode()
+
         ser2 = tf.serialize()
         
         tf1 = TransferFunction.parse(ser1)

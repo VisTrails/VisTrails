@@ -64,8 +64,6 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
 
     """
 
-    cellActivated = QtCore.pyqtSignal(int,int,bool)
-
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
                               -> SpreadsheetWindow

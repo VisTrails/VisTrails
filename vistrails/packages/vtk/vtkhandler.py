@@ -169,7 +169,7 @@ class vtkInteractionHandler(NotCacheable, Module):
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
                 f = f.replace('Event', 'Handler')
-                source += ('\nif locals().has_key("%s"):\n' % f +
+                source += ('\nif "%s" in locals():\n' % f +
                            '\tobserver.AddObserver("%s", ' % e +
                            'self.eventHandler)\n')
             exec(source)

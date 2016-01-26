@@ -240,13 +240,13 @@ class SpreadsheetCell(NotCacheable, Module):
 
 class SpreadsheetModeConfig(OutputModeConfig):
     mode_type = "spreadsheet"
-    _fields = [ConfigField('row', None, int),
-               ConfigField('col', None, int),
+    _fields = [ConfigField('row', -1, int),
+               ConfigField('col', -1, int),
                ConfigField('sheetName', None, str),
                ConfigField('sheetRowCount', None, int),
                ConfigField('sheetColCount', None, int),
-               ConfigField('rowSpan', None, int),
-               ConfigField('colSpan', None, int)]
+               ConfigField('rowSpan', -1, int),
+               ConfigField('colSpan', -1, int)]
 
 
 class SpreadsheetMode(OutputMode):

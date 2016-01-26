@@ -37,7 +37,7 @@
 
 
 import matplotlib
-matplotlib.use('Qt4Agg', warn=False)
+matplotlib.use('Qt5Agg', warn=False)
 
 import vistrails.core.modules.module_registry
 import vistrails.core.db.action

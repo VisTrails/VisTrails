@@ -37,7 +37,7 @@
 """Matplotlib package for VisTrails.
 
 This package wrap Matplotlib to provide a plotting tool for
-VisTrails. We are going to use the 'Qt4Agg' backend of the library.
+VisTrails. We are going to use the 'Qt5Agg' backend of the library.
 """
 
 

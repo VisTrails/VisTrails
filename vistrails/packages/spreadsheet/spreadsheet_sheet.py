@@ -251,6 +251,8 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
     VTK sheet need to be derived from this one
 
     """
+    cellActivated = QtCore.pyqtSignal(int,int,bool)
+
     def __init__(self, rows=0, cols=0, parent=None):
         """ StandardWidgetSheet(rows: int, cols: int, parent: QWidget)
                                 -> StandardWidgetSheet
@@ -548,7 +550,7 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
             if len(self.selectionModel().selectedIndexes())<=1:
                 self.selectionModel().setCurrentIndex(
                     self.model().index(row, col),
-                    QtGui.QItemSelectionModel.ClearAndSelect)
+                    QtCore.QItemSelectionModel.ClearAndSelect)
             self.setActiveCell(row, col)
         self.viewport().repaint()
 
