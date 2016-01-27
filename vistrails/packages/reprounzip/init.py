@@ -6,8 +6,10 @@ from __future__ import division
 
 import os
 import pickle
+import platform
 import subprocess
 import sys
+import warnings
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
@@ -100,6 +102,19 @@ class Run(Module):
         else:
             python = 'python'
 
+        environ = dict(os.environ)
+        removed = []
+        for bad_var in ('PYTHONPATH', 'PYTHONHOME'):
+            if bad_var in os.environ:
+                removed.append(bad_var)
+                del environ[bad_var]
+        if removed:
+            warnings.warn("Removing variables from environment before "
+                          "calling reprounzip: %s" % ' '.join(removed))
+        if (platform.system() == 'Darwin' and
+                '/usr/local/bin' not in environ['PATH'].split(os.pathsep)):
+            environ['PATH'] += os.pathsep + '/usr/local/bin'
+
         stdout = self.interpreter.filePool.create_file(prefix='vt_rpz_stdout_',
                                                        suffix='.txt')
         stderr = self.interpreter.filePool.create_file(prefix='vt_rpz_stderr_',
@@ -123,7 +138,8 @@ class Run(Module):
         with open(stdout.name, 'wb') as stdout_fp:
             with open(stderr.name, 'wb') as stderr_fp:
                 proc = subprocess.Popen(args,
-                                        stdout=stdout_fp, stderr=stderr_fp)
+                                        stdout=stdout_fp, stderr=stderr_fp,
+                                        env=environ)
 
         with open(stderr.name, 'rb') as stderr_fp:
             while True:

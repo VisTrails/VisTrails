@@ -640,7 +640,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if view is not None:
             for i in objs:
                 if i in errs:
-                    print "set_module_error(i=%r, errmsg=%r, errorTrace=%r)" % (i, errs[i].msg, errs[i].errorTrace)
                     view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
                 elif i in suspended and suspended[i]:
                     view.set_module_suspended(i, suspended[i])

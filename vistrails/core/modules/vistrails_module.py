@@ -1619,7 +1619,7 @@ class Module(object):
 
     @deprecated("update_upstream_port")
     def updateUpstreamPort(self, *args, **kwargs):
-        return self.updateUpstreamPort(*args, **kwargs)
+        return self.update_upstream_port(*args, **kwargs)
 
 ################################################################################
 
