@@ -46,11 +46,14 @@ import os
 
 import matplotlib
 import pylab
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
-from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, \
+    NavigationToolbar2QT
+from matplotlib.backend_bases import NavigationToolbar2
 
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
+    SpreadsheetMode
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
+    QCellToolBar, SpreadsheetAction
 
 FigureCanvasQTAgg.DEBUG = True
 
@@ -148,7 +151,7 @@ class MplFigureCellWidget(QCellWidget):
         Widget special grabbing function
         
         """
-        return QtGui.QPixmap.grabWidget(self.canvas)
+        return QtGui.QPixmap.grab(self.canvas)
 
     def dumpToFile(self, filename):
         previous_size = tuple(self.figure.get_size_inches())
@@ -208,7 +211,7 @@ class MplFigureCellToolBar(QCellToolBar):
         actions = {}
         for (text, tooltip_text, image_file, callback, checkable) in toolitems:
             icon = QtGui.QIcon(os.path.join(icondir, image_file))
-            action = QtWidgets.QAction(icon, text, self)
+            action = SpreadsheetAction(icon, text, self)
             action.setStatusTip(tooltip_text)
             action.setCheckable(checkable)
             actions[text] = action

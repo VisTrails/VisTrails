@@ -637,7 +637,7 @@ class IPythonMode(OutputMode):
         try:
             import IPython.core.display
             from IPython import get_ipython
-            from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+            from ipykernel.zmq.zmqshell import ZMQInteractiveShell
         except ImportError:
             return False
         else:

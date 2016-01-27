@@ -224,7 +224,7 @@ class QCellWidget(QtWidgets.QWidget):
         Widget special grabbing function
 
         """
-        return QtGui.QPixmap.grabWidget(self)
+        return self.grab()
 
     def dumpToFile(self, filename):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
@@ -536,10 +536,7 @@ class QCellToolBarMergeCells(SpreadsheetAction):
         Setup the image, status tip, etc. of the action
 
         """
-        QtWidgets.QAction.__init__(self,
-                               icon,
-                               "&Merge cells",
-                               parent)
+        super().__init__(icon, "&Merge cells", parent)
         self.setStatusTip("Merge selected cells to a single cell if "
                           "they are in consecutive poisitions")
         self.setCheckable(True)
@@ -629,10 +626,9 @@ class QCellToolBarCaptureToHistory(SpreadsheetAction):
         Setup the image, status tip, etc. of the action
 
         """
-        QtWidgets.QAction.__init__(self,
-                               QtGui.QIcon(":/images/camera_mount.png"),
-                               "&Capture image to history",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/camera_mount.png"),
+                         "&Capture image to history",
+                         parent)
         self.setStatusTip("Capture the cell contents to the history for "
                           "playback later")
 
@@ -677,7 +673,7 @@ class QCellToolBarPlayHistory(SpreadsheetAction):
                          "Pa&use the history playback"]
         self.statusTips = ["Playback all image files kept in the history",
                            "Pause the playback"]
-        QtWidgets.QAction.__init__(self, self.icons[0], self.toolTips[0], parent)
+        super().__init__(self.icons[0], self.toolTips[0], parent)
         self.setStatusTip(self.statusTips[0])
         self.status = 0
 
@@ -723,10 +719,9 @@ class QCellToolBarClearHistory(SpreadsheetAction):
         Setup the image, status tip, etc. of the action
 
         """
-        QtWidgets.QAction.__init__(self,
-                               QtGui.QIcon(":/images/noatunloopsong.png"),
-                               "&Clear this cell history",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/noatunloopsong.png"),
+                         "&Clear this cell history",
+                         parent)
         self.setStatusTip("Clear the cell history and its temporary "
                           "image files on disk")
 
@@ -851,11 +846,11 @@ class QCellPresenter(QtWidgets.QLabel):
             if hasattr(cellWidget, 'grabWindowPixmap'):
                 bgPixmap = cellWidget.grabWindowPixmap()
             else:
-                bgPixmap = QtGui.QPixmap.grabWidget(cellWidget)
+                bgPixmap = cellWidget.grab()
             self.info.show()
         else:
             self.info.hide()
-            bgPixmap = QtGui.QPixmap.grabWidget(self)
+            bgPixmap = self.grab()
         self.thumbnail = QtGui.QPixmap(bgPixmap)
         painter = QtGui.QPainter(bgPixmap)
         painter.fillRect(bgPixmap.rect(),
