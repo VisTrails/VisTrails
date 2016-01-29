@@ -2988,7 +2988,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if items is not None:
             cb = QtWidgets.QApplication.clipboard()
             text = self.controller.copy_modules_and_connections(items[0],items[1])
-            cb.setText(text)
+            cb.setText(text.decode())
             
     def pasteFromClipboard(self, center):
         """ pasteFromClipboard(center: (float, float)) -> None

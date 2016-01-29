@@ -149,12 +149,11 @@ def get_load_file_locator_from_gui(parent, obj_type):
         "VisTrails files (%s)\nOther files (*)" % suffixes)[0]
     if not fileName:
         return None
-    filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
-    dirName = os.path.dirname(filename)
+    dirName = os.path.dirname(fileName)
     setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
     setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
-    return FileLocator(filename)
+    return FileLocator(fileName)
 
 def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     # Ignore current locator for now
@@ -169,21 +168,19 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
     if not fileName:
         return None
-    f = str(QtCore.QFile.encodeName(fileName))
-
     # check for proper suffix
     found_suffix = False
     for suffix in suffix_map[obj_type]:
-        if f.endswith(suffix):
+        if fileName.endswith(suffix):
             found_suffix = True
             break
     if not found_suffix:
         if obj_type == 'vistrail':
-            f += get_vistrails_configuration().defaultFileType
+            fileName += get_vistrails_configuration().defaultFileType
         else:
-            f += suffix_map[obj_type][0]
+            fileName += suffix_map[obj_type][0]
 
-    if os.path.isfile(f):
+    if os.path.isfile(fileName):
         msg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
                                 "VisTrails",
                                 "File exists. Overwrite?",
@@ -192,11 +189,11 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
                                 parent)
         if msg.exec_() == QtWidgets.QMessageBox.No:
             return None
-    dirName = os.path.dirname(f)
+    dirName = os.path.dirname(fileName)
     setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
     setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
-    return FileLocator(f)
+    return FileLocator(fileName)
    
 def get_autosave_prompt(parent):
     """ get_autosave_prompt(parent: QWidget) -> bool
