@@ -290,7 +290,7 @@ Let's do a simple example to show how this module works.
 
 Lets do a more advanced example from the bioinformatics domain. This workflow
 will take a string as the input.  If this string is a structure identifier, a
-web service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/)
+REST service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/)
 is used to put the structure into PDB format (a standard representation for
 macromolecular structure) and the ``VTK`` package is used to show the protein in
 the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and a
@@ -298,10 +298,10 @@ message is generated in the Spreadsheet.
 
 .. topic:: Try it Now!
 
-  First, the EBI's web service must be enabled. For this, you need to add the following url to the ``wsdlList`` configuration:
+  We will use the EBI's pdb REST service. For this, you need to add the following url:
 
 
-  ``http://www.ebi.ac.uk/Tools/webservices/wsdl/WSDbfetch.wsdl``
+  ``http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=pdb&format=pdb&style=raw&id=``
 
 
   Don't forget to ensure that the ``SudsWebServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
@@ -309,8 +309,8 @@ message is generated in the Spreadsheet.
   Now, you're going to drag the following modules to the canvas:
 
   * ``If``
-  * ``fetchData`` (under "Methods" for the current web service)
-  * ``WriteFile`` (under "Basic Modules")
+  * ``ConcatenateString`` (under Basic Modules)
+  * ``DownloadFile`` (under "URL")
   * ``vtkPDBReader`` (under "VTK")
   * ``vtkDataSetMapper`` (under "VTK")
   * ``vtkActor`` (under "VTK")
@@ -320,12 +320,13 @@ message is generated in the Spreadsheet.
   * ``String`` (under "Basic Modules")
   * ``RichTextCell`` (under "|vistrails| Spreadsheet")
 
-  Set some paremeters of ``fetchData``:
+  Set the REST URL as a paremeters to ``ConcatenateString``:
 
-  * "format": *pdb*
-  * "style": *raw*
+  * "str1": ``http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=pdb&format=pdb&style=raw&id=``
 
   Next, connect some modules as shown in Figure :ref:`fig-controlflow-if_group`.
+
+.. FIXME: Update figures.
 
 .. _fig-controlflow-if_group:
 
@@ -346,24 +347,16 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   if "\n" in Structure:
-       lineLen = Structure.index("\n")
-   else:
-       lineLen = -1
-   if lineLen < 1:
-       lineLen = len(Structure)
+    if Structure != Structure.strip():
+        Is_ID = False
+    elif len(Structure) < 1:
+        Is_ID = False
+    elif ":" in Structure:
+        Is_ID = False
+    else:
+        Is_ID = True
 
-   if ":" in Structure:
-       index = Structure.index(":")
-   else:
-       index = -1
-
-   if Structure[0] != "ID " and index > 0 and index < lineLen:
-       Is_ID = True
-   else:
-       Is_ID = False
-
-.. FIXME: there is no way a 1-character string could be equal to "ID "
+.. FIXME: This is just basic sanity checks, I am not sure what is a valid ID.
 
 .. topic:: Next Step!
 
@@ -425,7 +418,7 @@ and ``RichTextCell`` will create an error message in the |vistrails| Spreadsheet
 
 .. topic:: Next Step!
 
-  For the workflow execution, set the parameter "value" of the ``Workflow_Input`` module to *PDB:3BG0*. This entry is an ID from a protein; so, the condition will be ``True``, and the ``Generate_Visualization`` group will be executed, generating the visualization shown in Figure :ref:`fig-controlflow-if_spreadsheet_true`.
+  For the workflow execution, set the parameter "value" of the ``Workflow_Input`` module to *3BG0*. This entry is an ID from a protein; so, the condition will be ``True``, and the ``Generate_Visualization`` group will be executed, generating the visualization shown in Figure :ref:`fig-controlflow-if_spreadsheet_true`.
 
 .. _fig-controlflow-if_spreadsheet_true:
 
