@@ -81,7 +81,7 @@ def get_shell_dialog():
     km = QtInProcessKernelManager()
     km.start_kernel()
     kernel = km.kernel
-    kernel.gui = 'qt5'
+    kernel.gui = 'qt'
 
     kernel_client = km.client()
     kernel_client.start_channels()

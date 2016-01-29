@@ -208,7 +208,7 @@ class PackageManager(object):
             if globals is None:
                 raise KeyError
             module = globals['__name__']
-        except KeyError:
+        except (KeyError, TypeError):
             # Another method of getting the caller module, using the stack
             caller = inspect.currentframe().f_back
             module = inspect.getmodule(caller)
