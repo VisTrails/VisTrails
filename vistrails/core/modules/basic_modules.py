@@ -64,7 +64,7 @@ from hashlib import sha1 as sha_hash
 
 ###############################################################################
 
-version = '2.1.1'
+version = '3.0'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -1377,8 +1377,32 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         ops.append(('add', new_conn_2))
         return ops
 
+    def src2to3(name):
+        def remap(old_func, new_module):
+            src = old_func.params[0].strValue
+            code = urllib.parse.unquote(src)
+            try:
+                if code[-1] != '\n':
+                    code += '\n'
+                # NOTE: lib2to3 is not a stable api!
+                from lib2to3.refactor import RefactoringTool,\
+                                             get_fixers_from_package
+                refactoring_tool = RefactoringTool(
+                         fixer_names=get_fixers_from_package('lib2to3.fixes'))
+                node3 = refactoring_tool.refactor_string(code, 'script')
+                new_code = str(node3)
+                if new_code != code:
+                    code = '# Edited by 2to3\n' + new_code
+            except:
+                pass
+            src = urllib.parse.unquote(code)
+
+            new_function = controller.create_function(new_module, name, [src])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
     module_remap = {'FileSink':
-    [(None, '1.6', None,
+                        [(None, '1.6', None,
                           {'dst_port_remap':
                                {'overrideFile': 'overwrite',
                                 'outputName': outputName_remap},
@@ -1399,19 +1423,20 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         [(None, '1.6', None,
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
-                        [(None, '1.6', None, {})],
+                        [(None, '3.0', None,
+                          {'function_remap':
+                               {'source': src2to3('source')}})],
                     'Tuple':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '3.0', None, {})],
                     'StandardOutput':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '3.0', None, {})],
                     'List':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '3.0', None, {})],
                     'AssertEqual':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '3.0', None, {})],
                     'Converter':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '3.0', None, {})],
                     }
-
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
 
