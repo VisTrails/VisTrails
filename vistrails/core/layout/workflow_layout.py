@@ -545,7 +545,7 @@ class WorkflowLayout(object):
 
         # sort modules by the current value of layout_layer_index
         for layer in layers.layers:
-            layer.modules.sort(lambda a,b: a.layout_layer_index - b.layout_layer_index)
+            layer.modules.sort(key=lambda a: a.layout_layer_index)
             for i in range(len(layer.modules)):
                 layer.modules[i].layout_layer_index = i
 
