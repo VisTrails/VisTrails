@@ -60,8 +60,8 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
            gui.debug.watch_signal(my_signal)
      """
     messagesView = QtCore.pyqtSignal(bool)
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+    def __init__(self, parent=None, *args, **kwargs):
+        super().__init__(parent=parent, *args, **kwargs)
         ui = logging.StreamHandler(debugStream(self.write))
         ui.setFormatter(logging.Formatter(
                 '%(levelname)s\n%(asctime)s\n%(message)s'))

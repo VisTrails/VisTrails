@@ -684,8 +684,9 @@ class UpgradeWorkflowHandler(object):
         # try to determine whether new module is an abstraction
         if (hasattr(new_descriptor, 'module') and
             hasattr(new_descriptor.module, "vistrail") and 
-            hasattr(new_descriptor.module, "internal_version")):
-            internal_version = new_descriptor.version
+            hasattr(new_descriptor.module, "internal_version") and
+            new_descriptor.version is not None):
+            internal_version = int(new_descriptor.version)
         new_module = \
             controller.create_module_from_descriptor(new_descriptor,
                                                      old_module.location.x,

@@ -39,6 +39,8 @@
 import matplotlib
 matplotlib.use('Qt5Agg', warn=False)
 
+import urllib
+
 import vistrails.core.modules.module_registry
 import vistrails.core.db.action
 from vistrails.core.vistrail.module import Module
@@ -63,9 +65,12 @@ def initialize(*args, **kwargs):
         MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
+                                       UpgradeModuleRemap, UpgradePackageRemap
     create_new_connection = UpgradeWorkflowHandler.create_new_connection
     reg = vistrails.core.modules.module_registry.get_module_registry()
+
+    _remap = UpgradePackageRemap()
 
     def find_module_in_upgrade_action(action):
         for op in action.operations:
@@ -151,53 +156,99 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         old_loc = module.location
         old_figure = find_figure(module)
 
-    module_remap = {'MplPlot':
-                    [(None, '1.0.0', 'MplSource',
-                      {'dst_port_remap': {'source': 'source',
-                                          'Hide Toolbar': None},
-                       'src_port_remap': {'source': 'value',
-                                          'self': 'value'}})],
-                    'MplFigure':
-                    [(None, '1.0.0', None,
-                      {'dst_port_remap': {'Script': 'addPlot'},
-                       'src_port_remap': {'FigureManager': 'figure',
-                                          'File': 'file'}}),
-                     ('1.0.0', '1.0.6', None,
-                      {'src_port_remap': {'self': 'figure'}})],
-                    'MplFigureCell':
-                    [(None, '1.0.0', None,
-                      {'dst_port_remap': {'FigureManager': 'figure'}})],
-                    # we will delete parts of this but add back later
-                    'MplScatterplot':
-                    [(None, '1.0.0', 'MplScatter',
-                      {'dst_port_remap': {'xData': 'x',
-                                          'yData': 'y',
-                                          'facecolor': None,
-                                          'title': None,
-                                          'xlabel': None,
-                                          'ylabel': None,
-                                          'self': 'value'},
-                       'src_port_remap': {'source': 'value'}})],
-                    'MplHistogram':
-                    [(None, '1.0.0', 'MplHist',
-                      {'dst_port_remap': {'columnData': 'x',
-                                          'bins': 'bins',
-                                          'facecolor': None,
-                                          'title': None,
-                                          'xlabel': None,
-                                          'ylabel': None,
-                                          'self': 'value'},
-                       'src_port_remap': {'source': 'value'}})],
-                }
+    def src2to3(name):
+        def remap(old_func, new_module):
+            src = old_func.params[0].strValue
+            code = urllib.parse.unquote(src)
+            try:
+                if code[-1] != '\n':
+                    code += '\n'
+                # NOTE: lib2to3 is not a stable api!
+                from lib2to3.refactor import RefactoringTool,\
+                                             get_fixers_from_package
+                refactoring_tool = RefactoringTool(
+                         fixer_names=get_fixers_from_package('lib2to3.fixes'))
+                node3 = refactoring_tool.refactor_string(code, 'script')
+                new_code = str(node3)
+                if new_code != code:
+                    code = '# Edited by 2to3\n' + new_code
+            except:
+                pass
+            src = urllib.parse.unquote(code)
+
+            new_function = controller.create_function(new_module, name, [src])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
+                               module_name='MplPlot', new_module='MplSource')
+    remap.add_remap('dst_port_remap', 'source', 'source')
+    remap.add_remap('dst_port_remap', 'Hide Toolbar', None)
+    remap.add_remap('src_port_remap', 'source', 'value')
+    remap.add_remap('src_port_remap', 'self', 'value')
+    _remap.add_module_remap(remap)
+    remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0', module_name='MplFigure')
+    remap.add_remap('dst_port_remap', 'Script', 'addPlot')
+    remap.add_remap('src_port_remap', 'FigureManager', 'figure')
+    remap.add_remap('src_port_remap', 'File', 'file')
+    _remap.add_module_remap(remap)
+    remap = UpgradeModuleRemap('1.0.0', '1.1', '1.1', module_name='MplFigure')
+    remap.add_remap('src_port_remap', 'self', 'figure')
+    _remap.add_module_remap(remap)
+    remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0', module_name='MplFigureCell')
+    remap.add_remap('dst_port_remap', 'FigureManager', 'figure')
+    _remap.add_module_remap(remap)
+
+    # we will delete parts of this but add back later
+    remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0', module_name='MplScatterplot')
+    remap.add_remap('dst_port_remap', 'xData', 'x')
+    remap.add_remap('dst_port_remap', 'yData', 'y')
+    remap.add_remap('dst_port_remap', 'facecolor', None)
+    remap.add_remap('dst_port_remap', 'title', None)
+    remap.add_remap('dst_port_remap', 'xlabel', None)
+    remap.add_remap('dst_port_remap', 'ylabel', None)
+    remap.add_remap('dst_port_remap', 'self', 'value')
+    remap.add_remap('src_port_remap', 'source', 'value')
+    _remap.add_module_remap(remap)
+
+    remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0', module_name='MplHistogram')
+    remap.add_remap('dst_port_remap', 'columnData', 'x')
+    remap.add_remap('dst_port_remap', 'bins', 'bins')
+    remap.add_remap('dst_port_remap', 'facecolor', None)
+    remap.add_remap('dst_port_remap', 'title', None)
+    remap.add_remap('dst_port_remap', 'xlabel', None)
+    remap.add_remap('dst_port_remap', 'ylabel', None)
+    remap.add_remap('dst_port_remap', 'self', 'value')
+    remap.add_remap('src_port_remap', 'source', 'value')
+    _remap.add_module_remap(remap)
 
     # '1.0.2' -> '1.0.3' changes 'self' output port to 'value'
-    module_remap.setdefault('MplSource', []).append(
-                (None, '1.0.3', None, {
-                 'src_port_remap': {'self': 'value'}}))
+    remap = UpgradeModuleRemap(None, '1.0.3', '1.0.3', module_name='MplSource')
+    remap.add_remap('src_port_remap', 'self', 'value')
+    _remap.add_module_remap(remap)
+    _remap.add_module_remap(UpgradeModuleRemap('1.0.3', '1.0.4', '1.0.4',
+                                               module_name='MplSource'))
+    _remap.add_module_remap(UpgradeModuleRemap('1.0.4', '1.0.5', '1.0.5',
+                                               module_name='MplSource'))
+    _remap.add_module_remap(UpgradeModuleRemap('1.0.5', '1.0.6', '1.0.6',
+                                               module_name='MplSource'))
+    # 1.0.6 -> 1.1: Python 2to3
+    remap = UpgradeModuleRemap('1.0.6', '1.1', '1.1', module_name='MplSource')
+    remap.add_remap('function_remap', 'source', src2to3('source'))
+    _remap.add_module_remap(remap)
+
     if module.name in (m.__name__ for m in _plot_modules + _artist_modules):
-        module_remap.setdefault(module.name, []).append(
-                (None, '1.0.3', None, {
-                 'src_port_remap': {'self': 'value'}}))
+        remap = UpgradeModuleRemap(None, '1.0.3', '1.0.3', module_name=module.name)
+        remap.add_remap('src_port_remap', 'self', 'value')
+        _remap.add_module_remap(remap)
+        _remap.add_module_remap(UpgradeModuleRemap('1.0.3', '1.0.4', '1.0.4',
+                                               module_name=module.name))
+        _remap.add_module_remap(UpgradeModuleRemap('1.0.4', '1.0.5', '1.0.5',
+                                               module_name=module.name))
+        _remap.add_module_remap(UpgradeModuleRemap('1.0.5', '1.0.6', '1.0.6',
+                                               module_name=module.name))
+        _remap.add_module_remap(UpgradeModuleRemap('1.0.6', '1.1', '1.1',
+                                               module_name=module.name))
 
     action_list = []
     if old_figure[1] is not None and \
@@ -214,7 +265,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         pass
     else:
         module_remap = upgrade_cell_to_output(
-                module_remap, module_id, pipeline,
+                _remap, module_id, pipeline,
                 'MplFigureCell', 'MplFigureOutput',
                 '1.0.5', 'figure')
 
