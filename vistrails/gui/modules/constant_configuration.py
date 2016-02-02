@@ -150,14 +150,14 @@ class ConstantWidgetBase(ConstantWidgetMixin):
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
 class ConstantEnumWidgetBase(ConstantWidgetBase):
-    def __init__(self, param, parent=None, **kwargs):
+    def __init__(self, param, **kwargs):
         psi = param.port_spec_item
         self.setValues(psi.values)
 
         self.setFree(psi.entry_type == "enumFree")
         self.setNonEmpty(psi.entry_type == "enumNonEmpty")
 
-        super().__init__(parent=parent, param=param, **kwargs)
+        super().__init__(param=param, **kwargs)
 
     def setValues(self, values):
         raise NotImplementedError("Subclass must implement this method.")
@@ -468,7 +468,7 @@ class PathChooserWidget(QtWidgets.QWidget, ConstantWidgetMixin):
         Initializes the line edit with contents
 
         """
-        super().__init__(parent=parent, param=param.strValue, **kwargs)
+        super().__init__(parent=parent, **kwargs)
         layout = QtWidgets.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = self.create_browse_button()
