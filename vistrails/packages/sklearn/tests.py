@@ -34,6 +34,7 @@
 
 
 
+import contextlib
 import numpy as np
 import unittest
 from vistrails.tests.utils import execute, intercept_results
@@ -57,7 +58,9 @@ def class_by_name(name):
 class TestSklearn(unittest.TestCase):
     def test_digits(self):
         # check that the digits dataset can be loaded
-        with intercept_results(Digits, 'data', Digits, 'target') as (data, target):
+        with contextlib.ExitStack() as stack:
+            data, target = [stack.enter_context(c) for c in
+                intercept_results(Digits, 'data', Digits, 'target')]
             self.assertFalse(execute([
                 ('datasets|Digits', identifier, [])
             ]))
@@ -68,7 +71,9 @@ class TestSklearn(unittest.TestCase):
 
     def test_iris(self):
         # check that the iris dataset can be loaded
-        with intercept_results(Iris, 'data', Iris, 'target') as (data, target):
+        with contextlib.ExitStack() as stack:
+            data, target = [stack.enter_context(c) for c in
+                intercept_results(Iris, 'data', Iris, 'target')]
             self.assertFalse(execute([
                 ('datasets|Iris', identifier, [])
             ]))
@@ -79,10 +84,11 @@ class TestSklearn(unittest.TestCase):
 
     def test_train_test_split(self):
         # check that we can split the iris dataset
-        with intercept_results(TrainTestSplit, 'training_data', TrainTestSplit,
+        with contextlib.ExitStack() as stack:
+            X_train, y_train, X_test, y_test = [stack.enter_context(c) for c in
+                intercept_results(TrainTestSplit, 'training_data', TrainTestSplit,
                                'training_target', TrainTestSplit, 'test_data',
-                               TrainTestSplit, 'test_target') as results:
-            X_train, y_train, X_test, y_test = results
+                               TrainTestSplit, 'test_target')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -104,10 +110,11 @@ class TestSklearn(unittest.TestCase):
         self.assertEqual(y_test.shape, (50,))
 
     def test_classifier_training_predict(self):
-        with intercept_results(Predict, 'prediction', Predict,
-                               'decision_function', TrainTestSplit, 'test_target',
-                               Score, 'score') as results:
-            y_pred, decision_function, y_test, score = results
+        with contextlib.ExitStack() as stack:
+            y_pred, decision_function, y_test, score = [stack.enter_context(c) for c in
+                intercept_results(Predict, 'prediction', Predict,
+                                  'decision_function', TrainTestSplit, 'test_target',
+                                  Score, 'score')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -158,7 +165,9 @@ class TestSklearn(unittest.TestCase):
 
     def test_transformer_supervised_transform(self):
         # test feature selection
-        with intercept_results(Transform, 'transformed_data') as (transformed_data,):
+        with contextlib.ExitStack() as stack:
+            transformed_data, = [stack.enter_context(c) for c in
+                intercept_results(Transform, 'transformed_data')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -178,7 +187,9 @@ class TestSklearn(unittest.TestCase):
 
     def test_transformer_unsupervised_transform(self):
         # test PCA
-        with intercept_results(Transform, 'transformed_data') as (transformed_data,):
+        with contextlib.ExitStack() as stack:
+            transformed_data, = [stack.enter_context(c) for c in
+                intercept_results(Transform, 'transformed_data')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -197,7 +208,9 @@ class TestSklearn(unittest.TestCase):
 
     def test_manifold_learning(self):
         # test Isomap
-        with intercept_results(class_by_name("Isomap"), 'transformed_data') as (transformed_data,):
+        with contextlib.ExitStack() as stack:
+            transformed_data, = [stack.enter_context(c) for c in
+                intercept_results(class_by_name("Isomap"), 'transformed_data')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -212,7 +225,9 @@ class TestSklearn(unittest.TestCase):
 
     def test_cross_val_score(self):
         # chech that cross_val score of LinearSVC has the right length
-        with intercept_results(CrossValScore, 'scores') as (scores,):
+        with contextlib.ExitStack() as stack:
+            scores, = [stack.enter_context(c) for c in
+                intercept_results(CrossValScore, 'scores')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -232,8 +247,10 @@ class TestSklearn(unittest.TestCase):
     def test_gridsearchcv(self):
         # check that gridsearch on DecisionTreeClassifier does the right number of runs
         # and gives the correct result.
-        with intercept_results(GridSearchCV, 'scores', GridSearchCV,
-                               'best_parameters') as (scores, parameters):
+        with contextlib.ExitStack() as stack:
+            scores, parameters = [stack.enter_context(c) for c in
+                intercept_results(GridSearchCV, 'scores', GridSearchCV,
+                               'best_parameters')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -251,7 +268,9 @@ class TestSklearn(unittest.TestCase):
         self.assertTrue(parameters[0]['max_depth'], 2)
 
     def test_pipeline(self):
-        with intercept_results(Iris, 'target', Predict, 'prediction') as (y_true, y_pred):
+        with contextlib.ExitStack() as stack:
+            y_true, y_pred = [stack.enter_context(c) for c in
+                intercept_results(Iris, 'target', Predict, 'prediction')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -280,7 +299,9 @@ class TestSklearn(unittest.TestCase):
             self.assertTrue(np.mean(y_true == y_pred) > .8)
 
     def test_nested_cross_validation(self):
-        with intercept_results(CrossValScore, 'scores') as (scores, ):
+        with contextlib.ExitStack() as stack:
+            scores, = [stack.enter_context(c) for c in
+                intercept_results(CrossValScore, 'scores')]
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
