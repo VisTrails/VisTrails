@@ -1077,15 +1077,17 @@ class TestLocators(unittest.TestCase):
         os.path.abspath = lambda x: x
         try:
             systemType = 'Linux'
+            # Changed from '%E9' to '%C3%A9'
+            # due to https://bugs.python.org/issue3300
             self.assertEqual(
                     BaseLocator.convert_filename_to_url(
                             '/a dir/test.vt?v=a\xE9&b'),
-                    'file:///a%20dir/test.vt?v=a%E9&b')
+                    'file:///a%20dir/test.vt?v=a%C3%A9&b')
             systemType = 'Windows'
             self.assertEqual(
                     BaseLocator.convert_filename_to_url(
                             'C:\\a dir\\test.vt?v=a\xE9&b'),
-                    'file:///C:/a%20dir/test.vt?v=a%E9&b')
+                    'file:///C:/a%20dir/test.vt?v=a%C3%A9&b')
         finally:
             systemType = old_systemType
             os.path.abspath = old_abspath
@@ -1147,7 +1149,8 @@ class TestLocators(unittest.TestCase):
         if enc.lower() in ('mbcs', 'latin-1', 'iso-8859-1', 'iso-8859-15'):
             fname = "test_short_names \xE9 \xEA"
         elif enc.lower() in ('utf8', 'utf-8'):
-            fname = "test_short_names \xC3\xA9 \xC3\xAA"
+            # Not needed since https://bugs.python.org/issue3300?
+            fname = "test_short_names \xE9 \xEA"
         else:
             self.skipTest("unusual encoding on this system: %r" % enc)
         loc = BaseLocator.from_url("../%s.xml" % fname)
