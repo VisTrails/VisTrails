@@ -1483,8 +1483,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # Original ids:
         #     module_ids = [1, 2, 3]
         #     connection_ids = [1, 2, 3]
-        module_ids = [15, 13, 14]
-        connection_ids = [21, 18, 20]
+        module_ids = [16, 17, 19]
+        connection_ids = [25, 26, 27]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
