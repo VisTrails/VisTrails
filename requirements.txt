@@ -1,27 +1,10 @@
 backports.ssl_match_hostname
 certifi
-docutils
 dulwich
-IPython
-qtconsole
-ipykernel
-Mako
-matplotlib
 # mysql-python
-numpy
-paramiko
-# PyQt>=5.0
 pyth
-python-dateutil
-scipy
 scp
 Sphinx
 sphinx-argparse
-SQLAlchemy
-VTK
-xlrd
-xlwt
-scikit-learn
-nose
 file_archive>=0.6
 tej
