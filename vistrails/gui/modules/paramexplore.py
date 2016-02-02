@@ -252,7 +252,7 @@ IntegerExploreWidget = make_interpolator(QIntegerLineEdit,
 class PEColorChooserButton(ColorChooserButton, BasePEWidget):
 
     def __init__(self, param_info, parent=None):
-        ColorChooserButton.__init__(self, parent)
+        ColorChooserButton.__init__(self, parent=parent)
         try:
             r,g,b = [int(float(i) * 255) for i in param_info.value.split(',')]
         except ValueError:

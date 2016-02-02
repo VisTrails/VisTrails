@@ -150,7 +150,7 @@ class QVersionProp(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.use_custom_colors = configuration.check('enableCustomVersionColors')
 
         if self.use_custom_colors:
-            self.customColor = ColorChooserButton(self)
+            self.customColor = ColorChooserButton(parent=self)
             editLayout.addWidget(self.customColor)
             self.customColor.color_selected.connect(self.custom_color_selected)
 

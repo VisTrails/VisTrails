@@ -265,7 +265,7 @@ class ParameterEntry(QtWidgets.QTreeWidgetItem):
                 layout.addWidget(label, i, 0)
                 layout.setAlignment(label, QtCore.Qt.AlignLeft)
 
-            param_widget = widget_class(obj, self.group_box)
+            param_widget = widget_class(obj, parent=self.group_box)
             self.my_widgets.append(param_widget)
             layout.addWidget(param_widget, i, 1)
             layout.addItem(QtWidgets.QSpacerItem(0,0, QtWidgets.QSizePolicy.MinimumExpanding), i, 2)

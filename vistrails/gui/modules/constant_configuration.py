@@ -584,7 +584,7 @@ class ColorChooserButton(QtWidgets.QPushButton):
     color_selected = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        QtWidgets.QPushButton.__init__(self, parent)
+        QtWidgets.QPushButton.__init__(self, parent=parent)
         # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
         # self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setFlat(True)
