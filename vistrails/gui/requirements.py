@@ -47,6 +47,7 @@ def qt_available():
         require_python_module('sip')
         require_python_module('PyQt5.QtGui')
         require_python_module('PyQt5.QtOpenGL')
+        require_python_module('PyQt5.QtSvg')
     except MissingRequirement:
         return False
     else:
@@ -64,10 +65,10 @@ def require_pyqt5():
     if not qt_available():
         from vistrails.gui.bundles.installbundle import install
         r = install({
-            'linux-debian': ['python3-pyqt5',
-                             'python3-pyqt5.qtopengl', 'python3-pyqt5.qtsql'],
-            'linux-ubuntu': ['python3-pyqt5',
-                             'python3-pyqt5.qtopengl', 'python3-pyqt5.qtsql'],
+            'linux-debian': ['python3-pyqt5', 'python3-pyqt5.qtopengl',
+                             'python3-pyqt5.qtsql', 'python3-pyqt5.qtsvg'],
+            'linux-ubuntu': ['python3-pyqt5', 'python3-pyqt5.qtopengl',
+                             'python3-pyqt5.qtsql', 'python3-pyqt5.qtsvg'],
             'linux-fedora': ['PyQt5'],
             'pip': ['PyQt>=5.0']})
         if not r:
