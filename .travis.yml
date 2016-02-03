@@ -42,7 +42,6 @@ install:
 # FIXME: What installs qt4?
   - conda uninstall qt
 
-  - pip install -U pip wheel setuptools
   - pip install -r requirements.txt
   - pip install "$(pwd)"
 
