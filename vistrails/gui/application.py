@@ -724,8 +724,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception, e:
-                import traceback
-                traceback.print_exc()
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()

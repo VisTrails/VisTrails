@@ -579,8 +579,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     logging_obj.signalError(mb.module, mb)
                     abort = True
                 except Exception, e:
-                    import traceback
-                    traceback.print_exc()
+                    debug.unexpected_exception(e)
+                    debug.critical("Exception running generators: %s" % e,
+                                   debug.format_exc())
                     abort = True
                 if stop_on_error or abort:
                     break
