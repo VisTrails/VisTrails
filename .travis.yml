@@ -16,8 +16,6 @@ addons:
       - python-vtk
       - python-xlrd
       - python-xlwt
-      - zip
-      - unzip
       - xvfb
       - python-rpy2
       - python-zsi
