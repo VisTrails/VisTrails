@@ -482,9 +482,9 @@ class InvalidPortSpec(ModuleRegistryException):
 
     def __str__(self):
         return ('%s port "%s" from module %s in package %s '
-                'has bad specification\n  %s' % \
-            (self._port_type, self._port_name, self._module_name,
-             self._package_name, unicode(self._exc)))
+                'has bad specification\n  %s' % (
+                    self._port_type, self._port_name, self._module_name,
+                    self._package_name, self._exc))
     __repr__ = __str__
 
 class MissingBaseClass(Exception):

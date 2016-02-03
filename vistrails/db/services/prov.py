@@ -261,7 +261,7 @@ def create_prov_activity_from_exec(id_scope, module_exec, machine_id, is_part_of
     else:
         # something is wrong...
         raise Exception('Unknown exec type: %s' % module_exec.vtType)
-    return DBProvActivity(id='a' + unicode(id_scope.getNewId(DBProvActivity.vtType)),
+    return DBProvActivity(id='a%s' % id_scope.getNewId(DBProvActivity.vtType),
                           vt_id=module_exec._db_id,
                           startTime=module_exec._db_ts_start,
                           endTime=module_exec._db_ts_end,

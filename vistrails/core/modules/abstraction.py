@@ -128,7 +128,7 @@ def initialize(*args, **kwargs):
                                                         {'package': identifier,
                                                          'package_version': version,
                                                          'namespace': ns,
-                                                         'version': str(module_version),
+                                                         'version': unicode(module_version),
                                                          'hide_namespace': True,
                                                          'hide_descriptor': hide_descriptor,
                                                          }))

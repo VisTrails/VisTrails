@@ -110,7 +110,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
         add_ports = []
         delete_ports = []
         for i in xrange(self._list.count()):
-            name = str(self._list.item(i).text())
+            name = self._list.item(i).text()
 
             if name in seen_new_ports:
                 QtGui.QMessageBox.critical(
