@@ -40,7 +40,6 @@ from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import ModuleError
 
 
-@apply
 class StoreHolder(object):
     def __init__(self):
         self.store = None
@@ -50,6 +49,7 @@ class StoreHolder(object):
 
     def set_store(self, store):
         self.store = store
+StoreHolder = StoreHolder()
 
 set_default_store = StoreHolder.set_store
 get_default_store = StoreHolder.get_store
