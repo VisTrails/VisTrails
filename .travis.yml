@@ -1,5 +1,6 @@
 language: python
-sudo: false
+sudo: required
+dist: trusty
 python:
   - "3.5"
 addons:
@@ -35,7 +36,7 @@ install:
 
 #conda install -c https://conda.anaconda.org/mmcauliffe pyqt5
   - conda config --add channels https://conda.anaconda.org/mmcauliffe
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION glib pyqt5 matplotlib numpy scipy xlrd xlwt qtconsole ipykernel ipython scikit-learn paramiko sqlalchemy python-dateutil mako docutils nose
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyqt5 matplotlib numpy scipy xlrd xlwt qtconsole ipykernel ipython scikit-learn paramiko sqlalchemy python-dateutil mako docutils nose
 
   - source activate test-environment
 # FIXME: What installs qt4?
