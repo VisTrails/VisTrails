@@ -6,23 +6,25 @@ python:
 addons:
   apt:
     packages:
-      - python-matplotlib
-      - python-mysqldb
-      - python-numpy
-      - python-qt4
-      - python-qt4-gl
-      - python-qt4-sql
-      - python-scipy
-      - python-vtk
-      - python-xlrd
-      - python-xlwt
+# Might be needed for pyqt to work:
+#      - libqt4-network
+#      - libqt4-svg
+#      - libqt4-xmlpatterns
+#      - libqtgui4
+#      - libqtwebkit4
+#      - libqtcore4
       - xvfb
-      - python-rpy2
-      - python-zsi
-# python-zmq is needed by parallelflow, but Travis has a bug right now (2015-01-12)
 install:
-  - virtualenv --system-site-packages venv && source venv/bin/activate
-  - pip install -U pip wheel setuptools
+  - curl -Lo miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh && bash miniconda.sh -b -p $HOME/conda
+  - export PATH="$HOME/conda/bin:$PATH" && hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda && conda info -a
+
+  - conda config --add channels vida-nyu
+  - conda config --add channels remram
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyqt matplotlib numpy scipy vtk xlrd xlwt
+  - conda install --channel r rpy2
+  - source activate test-environment
   - pip install -r requirements.txt
   - pip install "$(pwd)"
 script:
