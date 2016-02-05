@@ -536,9 +536,10 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 class FileLocator(CoreLocator):
     def __new__(self, filename=None, **kwargs):
         if filename:
-            if filename.endswith('.vt'):
+            lname = filename.lower()
+            if lname.endswith('.vt'):
                 return ZIPFileLocator(filename, **kwargs)
-            elif filename.endswith('.vtl'):
+            elif lname.endswith('.vtl'):
                 return FileLocator.from_link_file(filename)
             else:
                 return XMLFileLocator(filename, **kwargs)

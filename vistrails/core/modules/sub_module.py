@@ -527,7 +527,7 @@ def parse_abstraction_name(filename, get_all_parts=False):
     uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
     prepat = '|'.join(prefixes).replace('.','\\.')
     sufpat = '|'.join(suffixes).replace('.','\\.')
-    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL | re.IGNORECASE)
     matchobj = pattern.match(fname)
     prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
     if get_all_parts:

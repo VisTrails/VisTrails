@@ -285,7 +285,7 @@ def main(argv=None):
     use_base_specs = True
     if options['n'] and os.path.exists(versionDirs['specs']):
         for file in os.listdir(versionDirs['specs']):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 # assume we've already copied the specs
                 use_base_specs = False
 
@@ -293,7 +293,7 @@ def main(argv=None):
         # copy specs to version        
         print "copying base specs to version directory..."
         for file in os.listdir(baseDirs['specs']):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 print 'copying %s' % file
                 filename = os.path.join(baseDirs['specs'], file)
                 toFile = os.path.join(versionDirs['specs'], file)
