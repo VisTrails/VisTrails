@@ -536,12 +536,13 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 class FileLocator(CoreLocator):
     def __new__(self, filename=None, **kwargs):
         if filename:
-            if filename.endswith('.vt'):
-                return ZIPFileLocator(filename, **kwargs)
-            elif filename.endswith('.vtl'):
+            lname = filename.lower()
+            if lname.endswith('.xml'):
+                return XMLFileLocator(filename, **kwargs)
+            elif lname.endswith('.vtl'):
                 return FileLocator.from_link_file(filename)
             else:
-                return XMLFileLocator(filename, **kwargs)
+                return ZIPFileLocator(filename, **kwargs)
         else:
             #return class based on default file type
             if vistrails_default_file_type() == '.vt':

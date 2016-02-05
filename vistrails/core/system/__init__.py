@@ -209,6 +209,7 @@ def set_vistrails_default_file_type(t):
 
     """
     global __defaultFileType
+    t = t.lower()
     if t in ['.vt', '.xml']:
         __defaultFileType = t
     else:

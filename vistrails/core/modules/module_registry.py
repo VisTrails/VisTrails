@@ -114,7 +114,7 @@ def _parse_abstraction_name(filename):
             name = name[len(prefix):]
             break
     for suffix in suffixes:
-        if name.endswith(suffix):
+        if name.lower().endswith(suffix):
             name = name[:-len(suffix)]
             break
     return name

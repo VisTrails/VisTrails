@@ -194,10 +194,10 @@ class BaseLocator(object):
             scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
-            if path.endswith(".vt"):
-                return ZIPFileLocator.from_url(url)
-            elif path.endswith(".xml"):
+            if path.lower().endswith(".xml"):
                 return XMLFileLocator.from_url(url)
+            else:
+                return ZIPFileLocator.from_url(url)
         return None
 
     @staticmethod

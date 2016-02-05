@@ -63,7 +63,7 @@ def update_db(config, new_version=None, tmp_dir=None, restore=False):
     if restore:
         for dirpath, dirname, files in os.walk(restore):
             for fname in files:
-                if fname.endswith('.vt'):
+                if fname.lower().endswith('.vt'):
                     filenames.append(os.path.join(restore, fname))
     else:
         for obj_type in obj_types:

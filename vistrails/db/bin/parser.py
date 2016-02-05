@@ -47,7 +47,7 @@ class AutoGenParser(object):
     def parse(self, dir):
         objects = {}
         for file in os.listdir(dir):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 filename = os.path.join(dir, file)
                 # print filename
                 dom = minidom.parse(filename)
