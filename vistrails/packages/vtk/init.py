@@ -216,7 +216,8 @@ def _get_pipeline():
     global _pipeline
     return _pipeline
 
-module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
+module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader',
+                     'vtkVolumeTextureMapper3D': 'vtkSmartVolumeMapper'}
 
 def base_name(name):
     """Returns name without overload index.
