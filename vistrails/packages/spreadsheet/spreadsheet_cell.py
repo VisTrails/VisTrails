@@ -58,10 +58,10 @@ from . import cell_rc
 from . import celltoolbar_rc
 
 
-class QCellWidget(QtWidgets.QWidget):
+class QCellWidgetBase:
     """
-    QCellWidget is the base cell class. All types of spreadsheet cells
-    should inherit from this.
+    QCellWidgetBase is the base cell class. Use this if you use a
+    different qt base class.
 
     """
     save_formats = ["Images (*.png *.xpm *.jpg)",
@@ -72,7 +72,6 @@ class QCellWidget(QtWidgets.QWidget):
         Instantiate the cell and helper properties
 
         """
-        QtWidgets.QWidget.__init__(self, parent, flags)
         self._historyImages = []
         self._player = QtWidgets.QLabel(self.parent())
         self._player.setAutoFillBackground(True)
@@ -291,6 +290,21 @@ class QCellWidget(QtWidgets.QWidget):
             mode_config['format'] = save_format
         mode.compute_output(self._output_module, mode_config)
 
+
+class QCellWidget(QCellWidgetBase, QtWidgets.QWidget):
+    """
+    QCellWidget is the base cell class. Most types of spreadsheet cells
+    should inherit from this.
+
+    If you need a different Qt base class, e.g. QGLWidget, use
+    QCellWidgetBase instead.
+    """
+    def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
+        """ QCellWidget(parent: QWidget) -> QCellWidget
+        Instantiate the cell and helper properties
+
+        """
+        super().__init__(parent=parent, flags=flags)
 
 class QCellToolBar(QtWidgets.QToolBar):
     """
