@@ -1463,30 +1463,27 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEquals(len(p_module.functions), 4)
 
     def test_abstraction_create(self):
-        from vistrails.core.db.locator import XMLFileLocator
-        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
-        filename = os.path.join(d, '__TestFloatList.xml')
-        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/test_abstraction.xml')
-        v = locator.load()
-        controller = VistrailController(v, locator, pipeline_view=DummyView(),
-                                        auto_save=False)
-        # DAK: version is different because of upgrades
-        # controller.change_selected_version(9L)
-        controller.select_latest_version()
+        from vistrails import api
+
+        api.new_vistrail()
+        f1 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'Float', '')
+        f2 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'Float', '')
+        L1 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'List', '')
+        L2 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'List', '')
+        c1 = api.add_connection(f1.id, 'value', L2.id, 'head')
+        c2 = api.add_connection(f2.id, 'value', L1.id, 'head')
+        c3 = api.add_connection(L1.id, 'value', L2.id, 'tail')
+
+        controller = api.get_current_controller()
         self.assertNotEqual(controller.current_pipeline, None)
 
-        # If getting a KeyError here, run the upgrade on the vistrail and
-        # update the ids
-        # TODO : rewrite test so we don't have to update this unrelated code
-        # each time new upgrades are introduced
-        # Original ids:
-        #     module_ids = [1, 2, 3]
-        #     connection_ids = [1, 2, 3]
-        module_ids = [16, 17, 19]
-        connection_ids = [25, 26, 27]
+        module_ids = [f1.id, L1.id, L2.id]
+        connection_ids = [c1.id, c2.id, c3.id]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
+
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         self.assert_(os.path.exists(filename))
 
     def test_abstraction_execute(self):
