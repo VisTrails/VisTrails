@@ -47,7 +47,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sip
 from vistrails.core import system
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar, SpreadsheetAction
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidgetBase, QCellToolBar, SpreadsheetAction
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
@@ -55,6 +55,12 @@ from vistrails.core.modules.vistrails_module import ModuleError
 
 from .identifiers import identifier as vtk_pkg_identifier
 
+# vtkDataSetMapper does not render correctly on some systems without using QGLWidget
+# http://public.kitware.com/pipermail/vtkusers/2016-February/094016.html
+try:
+    from PyQt5.QtWidgets import QOpenGLWidget
+except ImportError:
+    from PyQt5.QtOpenGL import QGLWidget as QOpenGLWidget
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
@@ -149,7 +155,8 @@ AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None)
 
-class QVTKWidget(QCellWidget):
+
+class QVTKWidget(QOpenGLWidget, QCellWidgetBase):
     """
     QVTKWidget is the actual rendering widget that can display
     vtkRenderer inside a Qt QWidget
@@ -163,7 +170,7 @@ class QVTKWidget(QCellWidget):
         context
         
         """
-        QCellWidget.__init__(self, parent, f | QtCore.Qt.MSWindowsOwnDC)
+        super().__init__(parent=parent, flags=f | QtCore.Qt.MSWindowsOwnDC)
 
         self.interacting = None
         self.mRenWin = None
@@ -224,7 +231,7 @@ class QVTKWidget(QCellWidget):
         
         self.SetRenderWindow(None)
 
-        QCellWidget.deleteLater(self)
+        QCellWidgetBase.deleteLater(self)
 
     def updateContents(self, inputPorts, cameralist = None):
         """ updateContents(inputPorts: tuple)
@@ -309,7 +316,7 @@ class QVTKWidget(QCellWidget):
 
         # Capture window into history for playback
         # Call this at the end to capture the image after rendering
-        QCellWidget.updateContents(self, inputPorts)
+        QCellWidgetBase.updateContents(self, inputPorts)
 
     def GetRenderWindow(self):
         """ GetRenderWindow() -> vtkRenderWindow
