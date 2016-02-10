@@ -34,7 +34,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 import imp
 import sys
 
@@ -54,7 +54,7 @@ def copy_dir(src, dst):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print "Usage: python extract.py resource_rc"
+        print("Usage: python extract.py resource_rc")
         sys.exit(0)
 
     module_name = sys.argv[1]
