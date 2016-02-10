@@ -756,6 +756,13 @@ import unittest
 
 # Test vtl files in usersguide
 class TestUsersGuideVTL(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            import vtk
+        except ImportError:
+            raise unittest.SkipTest("vtk is not installed")
+
     vtl_path = os.path.join(vistrails_root_directory(), '..', 'doc',
                             'usersguide', 'vtl')
     @unittest.skipIf(not os.path.isdir(vtl_path), 'Could not find vtl dir')
