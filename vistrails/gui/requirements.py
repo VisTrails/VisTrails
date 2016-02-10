@@ -42,6 +42,9 @@ import sys
 from vistrails.core.requirements import MissingRequirement, require_python_module
 
 
+# This needs updating
+
+
 def qt_available():
     try:
         require_python_module('sip')
