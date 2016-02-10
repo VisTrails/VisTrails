@@ -34,9 +34,59 @@
 ##
 ###############################################################################
 
-from PyQt5 import QtCore, QtWidgets
-
+import importlib.util
+import os
 import types
+
+
+################################################################################
+
+qtapi = None
+qtapi_env = os.environ.get('QT_API', 'pyqt')
+
+# Try PyQt5
+if qtapi is None and qtapi_env == 'pyqt5':
+    if (importlib.util.find_spec('QtCore', 'PyQt4') is not None and
+            importlib.util.find_spec('QtGui', 'PyQt4') is not None):
+        from PyQt5 import QtCore
+        from PyQt5 import QtGui
+        from PyQt5 import QtWidgets
+        qtapi = os.environ['QT_API'] = 'pyqt5'
+# Try PyQt4
+if qtapi is None and (qtapi_env == 'pyqt' or qtapi_env == 'pyqt4'):
+    try:
+        if (importlib.util.find_spec('QtCore', 'PyQt4') is None or
+                importlib.util.find_spec('QtGui', 'PyQt4') is None):
+            raise ImportError
+        import sip
+    except ImportError:
+        pass
+    else:
+        api2_classes = [
+            'QData', 'QDateTime', 'QString', 'QTextStream',
+            'QTime', 'QUrl', 'QVariant'
+        ]
+        for cl in api2_classes:
+            try:
+                sip.setapi(cl, 2)
+            except ValueError:
+                pass
+        from PyQt4 import QtCore
+        from PyQt4 import QtGui
+        QtWidgets = QtGui
+        qtapi = os.environ['QT_API'] = 'pyqt'
+# Oh no
+if qtapi is None:
+    if 'QT_API' in os.environ:
+        if qtapi_env in ('pyqt', 'pyqt4', 'pyqt5'):
+            raise ImportError("QT_API is currently set to '%s', which is not "
+                              "available" % qtapi_env)
+        else:
+            raise ImportError("QT_API is currently set to '%s', which is not "
+                              "supported" % qtapi_env)
+    else:
+        raise ImportError("No suitable version of PyQt was found; PyQt4 or "
+                          "PyQt5 is required")
 
 ################################################################################
 
