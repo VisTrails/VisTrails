@@ -199,8 +199,3 @@ def testHook():
 #     f.write('slots: \n')
 #     for (k,v) in sls:
 #         f.write('%s: %s\n' % (k, v))
-
-
-# This line hooks connectHandler to Qt's signals. You can use user-defined
-# code here.
-# qt.enableSignalDebugging(connectCall = connectHandler)

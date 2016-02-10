@@ -2092,7 +2092,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver = None
         self.pingserver = None
         self.images_url = "http://vistrails.sci.utah.edu/medleys/images/"
-        qt.allowQObjects()
 
     def is_running_gui(self):
         return True
