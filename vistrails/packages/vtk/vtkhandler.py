@@ -188,7 +188,7 @@ class vtkInteractionHandler(NotCacheable, Module):
             f = f.replace('Event', 'Handler')
             myGlobals = globals()
             myGlobals.update({'self':self})
-            exec((source + ('\nif locals().has_key("%s"):\n' % f)+
+            exec((source + ('\nif "%s" in locals():\n' % f)+
                  ('\t%s(obj, self.shareddata)' % f)), myGlobals, locals())
 
     def clear(self):
