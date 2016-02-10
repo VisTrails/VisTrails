@@ -51,6 +51,12 @@ if qtapi is None and qtapi_env == 'pyqt5':
         from PyQt5 import QtCore
         from PyQt5 import QtGui
         from PyQt5 import QtWidgets
+        from PyQt5 import QAxContainer
+        from PyQt5 import QtPrintSupport
+        from PyQt5 import QtXmlPatterns
+        from PyQt5 import QtSvg
+        from PyQt5 import QtWebKitWidgets
+        from PyQt5 import QtOpenGL
         qtapi = os.environ['QT_API'] = 'pyqt5'
 # Try PyQt4
 if qtapi is None and (qtapi_env == 'pyqt' or qtapi_env == 'pyqt4'):
@@ -74,6 +80,12 @@ if qtapi is None and (qtapi_env == 'pyqt' or qtapi_env == 'pyqt4'):
         from PyQt4 import QtCore
         from PyQt4 import QtGui
         QtWidgets = QtGui
+        from PyQt4 import QAxContainer
+        from PyQt4 import QtPrintSupport
+        from PyQt4 import QtXmlPatterns
+        from PyQt4 import QtSvg
+        from PyQt4 import QtWebKitWidgets
+        from PyQt4 import QtOpenGL
         qtapi = os.environ['QT_API'] = 'pyqt'
 # Oh no
 if qtapi is None:
