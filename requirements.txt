@@ -9,3 +9,4 @@ Sphinx
 sphinx-argparse
 file_archive>=0.6
 tej
+zmq
