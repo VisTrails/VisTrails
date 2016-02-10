@@ -68,15 +68,17 @@ def get_shell_dialog():
                 'linux-ubuntu': 'qtconsole',
                 'linux-debian': 'qtconsole'}
 
-        qtconsole = py_import('qtconsole.rich_jupyter_widget', deps,
+        qtconsole = py_import('qtconsole', deps,
                             True)
+        from qtconsole import rich_jupyter_widget
         RichJupyterWidget = \
-                qtconsole.rich_jupyter_widget.RichJupyterWidget
+                rich_jupyter_widget.RichJupyterWidget
         py_import('qtconsole.inprocess', deps, True)
         QtInProcessKernelManager = \
                 qtconsole.inprocess.QtInProcessKernelManager
     except ImportError:
-        return None
+        raise
+        #return None
 
     km = QtInProcessKernelManager()
     km.start_kernel()
@@ -90,7 +92,7 @@ def get_shell_dialog():
         """This class incorporates an  IPython shell into a dockable widget for use in the
         VisTrails environment"""
         def __init__(self, parent=None):
-            RichJupyterWidget.__init__(self, parent)
+            super().__init__(parent=parent)
             self.old_streams = None
             self.running_workflow = False
             self.kernel_manager = km
