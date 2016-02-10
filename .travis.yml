@@ -36,7 +36,7 @@ install:
 
 #conda install -c https://conda.anaconda.org/mmcauliffe pyqt5
   - conda config --add channels https://conda.anaconda.org/mmcauliffe
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyqt5 matplotlib numpy scipy xlrd xlwt ipykernel ipyparallel ipython scikit-learn paramiko sqlalchemy python-dateutil mako docutils nose
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pyqt5 matplotlib numpy scipy xlrd xlwt ipykernel ipyparallel ipython scikit-learn paramiko sqlalchemy python-dateutil mako docutils nose pymongo
 
   - source activate test-environment
 # FIXME: What installs qt4?
