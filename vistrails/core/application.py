@@ -173,8 +173,8 @@ class VistrailsApplicationInterface(object):
     def check_all_requirements(self):
         # check scipy
         vistrails.core.requirements.require_python_module('scipy', {
-                'linux-debian': 'python-scipy',
-                'linux-ubuntu': 'python-scipy',
+                'linux-debian': 'python3-scipy',
+                'linux-ubuntu': 'python3-scipy',
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
 
