@@ -913,6 +913,11 @@ def parse(filename="vtk_raw.xml"):
     inheritance_graph = ClassTree(vtk)
     inheritance_graph.create()
 
+    # Skip all deprecated messages
+    warnings = vtk.vtkObject.GetGlobalWarningDisplay()
+
+    vtk.vtkObject.SetGlobalWarningDisplay(False)
+
     v = vtk.vtkVersion()
     version = [v.GetVTKMajorVersion(),
                v.GetVTKMinorVersion(),
@@ -934,6 +939,8 @@ def parse(filename="vtk_raw.xml"):
                 if child.name in disallowed_classes:
                     continue
                 specs_list.extend(create_module("vtkObjectBase", child))
+
+    vtk.vtkObject.SetGlobalWarningDisplay(warnings)
 
     specs = SpecList(specs_list)
     specs.write_to_xml(filename)
