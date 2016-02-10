@@ -39,7 +39,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     with open(fout, 'wb') as fpout:
-        fpout.write('ok\nmessage received')
+        fpout.write(b'ok\nmessage received')
 
     sys.stdout.write("program output here")
 
