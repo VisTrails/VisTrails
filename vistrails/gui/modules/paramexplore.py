@@ -40,7 +40,7 @@ API in the classes.
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core import debug

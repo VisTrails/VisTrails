@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore
+from vistrails.gui.qt import QtCore
 
 from vistrails.gui.common_widgets import QToolWindowInterface
 

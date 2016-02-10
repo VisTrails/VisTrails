@@ -41,7 +41,7 @@
 from vistrails.core.modules.basic_modules import PathObject
 from vistrails.core.modules.vistrails_module import Module
 # Requires: python3-pyqt5.qtsvg
-from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets, QtPrintSupport
+from vistrails.gui.qt import QtCore, QtGui, QtSvg, QtWidgets, QtPrintSupport
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReference

@@ -39,7 +39,7 @@ Includes login and upload tabs
 """
 
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
 from vistrails.core.repository.poster.encode import multipart_encode

@@ -37,7 +37,7 @@
 Parameter Exploration Tab """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface

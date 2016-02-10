@@ -43,7 +43,7 @@ others:
 
 
 
-from PyQt5 import QtWidgets
+from vistrails.gui.qt import QtWidgets
 
 
 from .spreadsheet_helpers import CellHelpers

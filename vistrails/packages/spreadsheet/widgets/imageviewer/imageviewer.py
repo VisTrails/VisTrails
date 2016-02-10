@@ -39,7 +39,7 @@
 
 
 import os
-from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar

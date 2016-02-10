@@ -43,7 +43,7 @@
 
 
 
-from PyQt5 import QtCore
+from vistrails.gui.qt import QtCore
 
 from vistrails.core.configuration import ConfigField, \
     get_vistrails_configuration

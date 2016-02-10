@@ -260,7 +260,7 @@ class ThumbnailCache(object):
         Generates a single image formed by all the images in the fnames list.
         
         """
-        from PyQt5 import QtCore, QtGui
+        from vistrails.gui.qt import QtCore, QtGui
 
         height = 0
         width = 0

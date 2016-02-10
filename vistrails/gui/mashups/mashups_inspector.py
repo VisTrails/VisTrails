@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 import vistrails.core.system
 from vistrails.gui.common_widgets import QDockPushButton

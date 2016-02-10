@@ -44,7 +44,7 @@
 
 
 
-from PyQt5 import QtCore
+from vistrails.gui.qt import QtCore
 
 qt_resource_data = b"\
 \x00\x00\x07\x77\

@@ -40,7 +40,7 @@ should have no interaction with VisTrail core"""
 
 import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget

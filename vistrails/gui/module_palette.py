@@ -44,7 +44,7 @@ QModuleTreeWidgetItem
 
 import os
 import traceback
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug

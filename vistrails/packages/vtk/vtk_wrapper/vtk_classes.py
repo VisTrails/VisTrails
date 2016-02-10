@@ -157,7 +157,7 @@ def patch_methods(base_module, cls):
 
         widget = None
         if system() == 'Darwin':
-            from PyQt5 import QtCore, QtWidgets
+            from vistrails.gui.qt import QtCore, QtWidgets
 
             widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)

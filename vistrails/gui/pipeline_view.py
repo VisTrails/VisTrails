@@ -48,7 +48,7 @@ QPipelineView
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug

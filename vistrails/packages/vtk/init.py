@@ -88,7 +88,7 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     # dependency...
     widget = None
     if systemType=='Darwin':
-        from PyQt5 import QtCore, QtWidgets
+        from vistrails.gui.qt import QtCore, QtWidgets
 
         widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
         widget.resize(w, h)

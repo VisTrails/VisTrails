@@ -85,7 +85,7 @@ def unexpected_exception(e, tb=None, frame=None):
 
     # Removes PyQt's input hook
     try:
-        from PyQt5 import QtCore
+        from vistrails.gui.qt import QtCore
     except ImportError:
         pass
     else:

@@ -39,7 +39,7 @@
 # create_module_appearance.py helps VisTrails package developers customize
 # the appearance of modules in their packages.
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 from module_appearance import Ui_MainWindow
 import sys
 

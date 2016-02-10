@@ -40,7 +40,7 @@ QModuleDocumentation
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.modules.module_registry import ModuleRegistryException
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface

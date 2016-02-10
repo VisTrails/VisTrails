@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.port import PortEndPoint

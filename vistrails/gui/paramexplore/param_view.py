@@ -39,7 +39,7 @@ QParameterView
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.modules.module_registry import get_module_registry

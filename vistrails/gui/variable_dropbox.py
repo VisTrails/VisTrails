@@ -45,7 +45,7 @@ QHoverVariableLabel
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction

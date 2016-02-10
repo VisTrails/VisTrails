@@ -119,7 +119,7 @@ class RQModule(JobMixin, Module):
             return RQModule.default_machine[3]
         if password:
             text = 'Enter password for %s@%s' % (username, server)
-            from PyQt5 import QtWidgets
+            from vistrails.gui.qt import QtWidgets
 
             (password, ok) = QtWidgets.QInputDialog.getText(None, text, text,
                                                      QtWidgets.QLineEdit.Password)

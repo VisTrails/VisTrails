@@ -39,12 +39,12 @@
 
 
 import os
-from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
 
-from PyQt5.QtCore import QUrl
+from vistrails.gui.qt.QtCore import QUrl
 # FIXME QtXml is no longer supported.
 # [TE] It seems to be supported but requires: python3-pyqt5.qtxmlpatterns
-from PyQt5.QtXmlPatterns import QXmlQuery
+from vistrails.gui.qt.QtXmlPatterns import QXmlQuery
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError

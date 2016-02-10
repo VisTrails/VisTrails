@@ -39,7 +39,7 @@
 
 
 
-from PyQt5 import QtCore
+from vistrails.gui.qt import QtCore
 
 
 # A list of newly added events starting from QtCore.QEvent.User

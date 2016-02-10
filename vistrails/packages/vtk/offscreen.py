@@ -56,7 +56,7 @@ class VTKRenderOffscreen(Module):
 
         widget = None
         if system.systemType=='Darwin':
-            from PyQt5 import QtCore, QtWidgets
+            from vistrails.gui.qt import QtCore, QtWidgets
 
             widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)

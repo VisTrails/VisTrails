@@ -38,7 +38,7 @@
 without exposing Qt codes """
 
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.theme

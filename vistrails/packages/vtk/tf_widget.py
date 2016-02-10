@@ -38,7 +38,7 @@
 # Transfer Function Widget for VTK
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.basic_modules import Constant

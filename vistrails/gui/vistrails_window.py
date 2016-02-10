@@ -36,7 +36,7 @@
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 import copy
 

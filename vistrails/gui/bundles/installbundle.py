@@ -184,7 +184,7 @@ def show_question(which_files, has_distro_pkg, has_pip):
     if isinstance(which_files, str):
         which_files = [which_files]
     if qt_available():
-        from PyQt5 import QtCore, QtWidgets
+        from vistrails.gui.qt import QtCore, QtWidgets
 
         dialog = QtWidgets.QDialog()
         dialog.setWindowTitle("Required packages missing")

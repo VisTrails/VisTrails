@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager

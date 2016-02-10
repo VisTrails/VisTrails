@@ -40,7 +40,7 @@ QMethodDocumentation
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.utils import VistrailsInternalError

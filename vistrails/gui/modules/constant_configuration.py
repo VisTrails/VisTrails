@@ -43,7 +43,7 @@ constants.
 
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system

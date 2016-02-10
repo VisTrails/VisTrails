@@ -45,7 +45,7 @@ http://gerard.vermeulen.free.fr/html/pycute-intro.html
 """
 
 
-from PyQt5 import QtGui, QtCore
+from vistrails.gui.qt import QtGui, QtCore
 
 import sys
 

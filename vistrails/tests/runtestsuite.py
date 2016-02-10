@@ -282,7 +282,7 @@ print("Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(
 print("Running on %s" % ', '.join(platform.uname()))
 print("Python is %s" % sys.version)
 try:
-    from PyQt5 import QtCore
+    from vistrails.gui.qt import QtCore
     print("Using PyQt5 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion()))
 except ImportError:
     print("PyQt5 not available")

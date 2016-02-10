@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore
+from vistrails.gui.qt import QtCore
 
 from vistrails.core.mashup.controller import MashupController as BaseController
 from vistrails.core.mashup.alias import Alias

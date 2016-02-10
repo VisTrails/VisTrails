@@ -41,7 +41,7 @@
 
 import copy
 import os
-from PyQt5 import QtCore
+from vistrails.gui.qt import QtCore
 
 import sys
 

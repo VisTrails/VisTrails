@@ -37,7 +37,7 @@
 import os
 import uuid
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 import vistrails.core.analogy
 from vistrails.core.configuration import get_vistrails_configuration

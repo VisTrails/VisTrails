@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.theme import CurrentTheme

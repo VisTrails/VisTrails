@@ -46,7 +46,7 @@ QAliasList
 
 
 import copy
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.mashup.alias import Alias

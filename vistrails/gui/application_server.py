@@ -54,7 +54,7 @@ import urllib.request, urllib.parse, urllib.error
 import xmlrpc.client
 import configparser
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 import socketserver
 from xmlrpc.server import SimpleXMLRPCServer

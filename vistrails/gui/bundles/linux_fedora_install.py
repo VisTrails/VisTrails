@@ -63,7 +63,7 @@
 
 # ##############################################################################
 
-# from PyQt5 import Qt, QtCore
+# from vistrails.gui.qt import Qt, QtCore
 
 
 # class GUIInstallProgress(InstallProgress):

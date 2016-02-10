@@ -41,7 +41,7 @@ QModuleOptions
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.gui.theme import CurrentTheme

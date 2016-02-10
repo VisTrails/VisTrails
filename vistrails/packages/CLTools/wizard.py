@@ -48,7 +48,7 @@ import string
 import subprocess
 import sys
 import threading
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 
 encode_list = [['\xe2\x80\x90', '-'],

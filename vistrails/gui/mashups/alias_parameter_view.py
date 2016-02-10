@@ -41,7 +41,7 @@ QAliasParameterView
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.vistrail.module_param import ModuleParam

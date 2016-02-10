@@ -40,7 +40,7 @@ import copy
 import os
 import tempfile
 import uuid
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.core.db.action

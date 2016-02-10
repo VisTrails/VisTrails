@@ -48,7 +48,7 @@ import time
 from apt_pkg import gettext as _
 from apt.progress.base import InstallProgress, OpProgress, AcquireProgress
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 
 

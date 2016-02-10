@@ -37,7 +37,7 @@
 
 import cgi
 import logging
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 
 from vistrails.core.configuration import get_vistrails_configuration

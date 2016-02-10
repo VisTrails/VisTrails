@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug

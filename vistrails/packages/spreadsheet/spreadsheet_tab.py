@@ -47,7 +47,7 @@ a container of a sheet:
 
 
 import os.path
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 
 from vistrails.core.inspector import PipelineInspector

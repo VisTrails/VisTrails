@@ -48,7 +48,7 @@ from vistrails.core.system import vistrails_root_directory
 
 
 try:
-    from PyQt5 import QtCore, QtWidgets
+    from vistrails.gui.qt import QtCore, QtWidgets
 
 except ImportError:
     qt_available = False

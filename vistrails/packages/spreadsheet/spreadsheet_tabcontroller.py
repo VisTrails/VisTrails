@@ -44,7 +44,7 @@ from ast import literal_eval
 import copy
 import gc
 import os.path
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator

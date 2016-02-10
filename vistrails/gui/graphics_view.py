@@ -41,7 +41,7 @@ QInteractiveGraphicsView
 QPIPGraphicsView
 """
 
-from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets, QtPrintSupport
 
 from vistrails.gui.theme import CurrentTheme
 from vistrails.core.configuration import get_vistrails_configuration

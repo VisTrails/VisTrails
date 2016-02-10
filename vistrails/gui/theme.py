@@ -39,7 +39,7 @@ specifies colors, background images and other measurements
 """
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 
 from vistrails.core.utils.color import ColorByName

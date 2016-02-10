@@ -37,7 +37,7 @@
 
 from getpass import getuser
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from ast import literal_eval
 from xml.dom.minidom import parseString

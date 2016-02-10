@@ -39,7 +39,7 @@
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.packagemanager import get_package_manager
-from PyQt5 import QtWidgets
+from vistrails.gui.qt import QtWidgets
 
 
 

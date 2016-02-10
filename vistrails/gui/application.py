@@ -48,7 +48,7 @@ import re
 import sys
 import io
 
-from PyQt5 import QtGui, QtCore, QtNetwork, QtWidgets
+from vistrails.gui.qt import QtGui, QtCore, QtNetwork, QtWidgets
 
 
 from vistrails.core.application import VistrailsApplicationInterface, \

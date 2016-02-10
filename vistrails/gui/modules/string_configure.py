@@ -38,7 +38,7 @@
 from vistrails.core.bundles.pyimport import py_import
 import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 from vistrails.gui.theme import CurrentTheme
 
@@ -53,7 +53,7 @@ def TextEditor(parent=None):
 
 def NewTextEditor(parent):
     vistrails.core.requirements.require_python_module('PyQt5.Qsci')
-    from PyQt5.Qsci import QsciScintilla
+    from vistrails.gui.qt.Qsci import QsciScintilla
     class _TextEditor(QsciScintilla):
     
         def __init__(self, parent=None):

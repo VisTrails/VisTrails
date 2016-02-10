@@ -42,7 +42,7 @@
 
 import vtk
 import os
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 import sip
 from vistrails.core import system
@@ -58,9 +58,9 @@ from .identifiers import identifier as vtk_pkg_identifier
 # vtkDataSetMapper does not render correctly on some systems without using QGLWidget
 # http://public.kitware.com/pipermail/vtkusers/2016-February/094016.html
 try:
-    from PyQt5.QtWidgets import QOpenGLWidget
+    from vistrails.gui.qt.QtWidgets import QOpenGLWidget
 except ImportError:
-    from PyQt5.QtOpenGL import QGLWidget as QOpenGLWidget
+    from vistrails.gui.qt.QtOpenGL import QGLWidget as QOpenGLWidget
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):

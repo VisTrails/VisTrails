@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 class BaseView(object):
     """ BaseView is the base class for the views in VisTrails.

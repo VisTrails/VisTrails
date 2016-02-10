@@ -1,6 +1,6 @@
 
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 
 from vistrails.gui.modules.module_configure import \

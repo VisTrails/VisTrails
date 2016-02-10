@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtGui, QtCore, QtWidgets
+from vistrails.gui.qt import QtGui, QtCore, QtWidgets
 
 
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow

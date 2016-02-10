@@ -35,7 +35,7 @@
 ###############################################################################
 
 
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell

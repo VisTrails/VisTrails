@@ -38,7 +38,7 @@
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from ast import literal_eval
-from PyQt5 import QtCore, QtGui, QtWidgets
+from vistrails.gui.qt import QtCore, QtGui, QtWidgets
 
 import vistrails.api
 

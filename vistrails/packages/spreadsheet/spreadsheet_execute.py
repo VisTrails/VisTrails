@@ -43,7 +43,7 @@ spreadsheet:
 
 
 import copy
-from PyQt5 import QtCore, QtWidgets
+from vistrails.gui.qt import QtCore, QtWidgets
 
 
 from vistrails.core.inspector import PipelineInspector

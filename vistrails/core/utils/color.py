@@ -435,7 +435,7 @@ class TestColorConversion(unittest.TestCase):
 
     def test_hsv_with_qt(self):
         try:
-            from PyQt5 import QtGui
+            from vistrails.gui.qt import QtGui
 
         except ImportError:
             self.skipTest("QtGui not available")
