@@ -133,7 +133,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         for i in range(self.list.count()):
             item = self.list.item(i)
             level = item.data(32).split('\n')[0]
-            item.setHidden(self.levels[level].isChecked())
+            item.setHidden(not self.levels[level].isChecked())
 
     def copyMessage(self):
         """ copy selected message to clipboard """
@@ -266,10 +266,9 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         """write(s) -> None
         adds the string s to the message list and displays it
         """
-        # adds the string s to the list and 
         s = s.strip()
         if not s:
-            # FIXME: Why is empty messages sent?
+            # A newline is sent after each message?
             return
         msgs = s.split('\n')
 
@@ -285,7 +284,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
         self.list.addItem(item)
         item.setForeground(CurrentTheme.DEBUG_COLORS[msgs[0]])
-        item.setHidden(self.levels[msgs[0]].isChecked())
+        item.setHidden(not self.levels[msgs[0]].isChecked())
         alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
                                        'showDebugPopups',
                                        False)
