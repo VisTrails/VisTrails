@@ -55,7 +55,7 @@ class QDebugger(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """
     debuggerHidden = QtCore.pyqtSignal()
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent=parent)
+        super().__init__(parent=parent)
         self.app = vistrails.gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
         layout = QtWidgets.QVBoxLayout()
@@ -196,7 +196,7 @@ class QObjectInspector(QtWidgets.QTreeWidget):
         dict_item = QDebugModuleItem(parent_item)
         dict_item.setText(0, "__dict__")
         dict_item.setText(1, "")
-        for k in list(m.__dict__.keys()):
+        for k in m.__dict__.keys():
             d_val = QDebugModuleItem(dict_item)
             d_val.setText(0, str(k))
             d_val.setText(1, str(m.__dict__[k]))
