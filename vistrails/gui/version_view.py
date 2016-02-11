@@ -765,7 +765,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     """
 
     diffRequested = QtCore.pyqtSignal(int,int)
-    selectionChanged = QtCore.pyqtSignal()
     versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
     twoVersionsSelected = QtCore.pyqtSignal(int,int)
 
