@@ -317,6 +317,7 @@ for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
     if p.find('.svn') != -1 or p.find('.git') != -1 :
         continue
+    files.sort()
     for filename in files:
         # skip files that don't look like VisTrails python modules
         if not filename.endswith('.py'):
