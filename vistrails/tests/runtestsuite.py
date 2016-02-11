@@ -479,7 +479,12 @@ def image_test_generator(vtfile, version):
     return test
 
 class TestVistrailImages(unittest.TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls):
+        try:
+            import vtk
+        except ImportError:
+            raise unittest.SkipTest("vtk is not installed")
 
 if test_images:
     for vt, t in image_tests:
