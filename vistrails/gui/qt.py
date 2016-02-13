@@ -42,12 +42,14 @@ import types
 ################################################################################
 
 qtapi = None
-qtapi_env = os.environ.get('QT_API', 'pyqt')
+qtapi_env = os.environ.get('QT_API')
+
+import pdb; pdb.set_trace()
 
 # Try PyQt5
-if qtapi is None and qtapi_env == 'pyqt5':
-    if (importlib.util.find_spec('QtCore', 'PyQt4') is not None and
-            importlib.util.find_spec('QtGui', 'PyQt4') is not None):
+if qtapi is None and qtapi_env in (None, 'pyqt5'):
+    if (importlib.util.find_spec('QtCore', 'PyQt5') is not None and
+            importlib.util.find_spec('QtGui', 'PyQt5') is not None):
         from PyQt5 import QtCore
         from PyQt5 import QtGui
         from PyQt5 import QtWidgets
@@ -59,7 +61,7 @@ if qtapi is None and qtapi_env == 'pyqt5':
         from PyQt5 import QtOpenGL
         qtapi = os.environ['QT_API'] = 'pyqt5'
 # Try PyQt4
-if qtapi is None and (qtapi_env == 'pyqt' or qtapi_env == 'pyqt4'):
+if qtapi is None and qtapi_env in (None, 'pyqt', 'pyqt4'):
     try:
         if (importlib.util.find_spec('QtCore', 'PyQt4') is None or
                 importlib.util.find_spec('QtGui', 'PyQt4') is None):
@@ -89,7 +91,7 @@ if qtapi is None and (qtapi_env == 'pyqt' or qtapi_env == 'pyqt4'):
         qtapi = os.environ['QT_API'] = 'pyqt'
 # Oh no
 if qtapi is None:
-    if 'QT_API' in os.environ:
+    if qtapi_env is not None:
         if qtapi_env in ('pyqt', 'pyqt4', 'pyqt5'):
             raise ImportError("QT_API is currently set to '%s', which is not "
                               "available" % qtapi_env)
