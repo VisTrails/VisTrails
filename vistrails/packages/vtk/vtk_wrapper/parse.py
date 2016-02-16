@@ -507,16 +507,6 @@ disallowed_get_set_ports = set(['ReferenceCount',
 color_ports = set(["DiffuseColor", "Color", "AmbientColor", "SpecularColor",
                    "EdgeColor", "Background", "Background2"])
 
-to_vtk6_names = {'AddInput':  'AddInputData',
-                 'SetInput':  'SetInputData',
-                'AddSource': 'AddSourceData',
-                'SetSource': 'SetSourceData'}
-def get_vtk6_name(cls, name):
-    # Return SetInputData for SetInput etc.
-    if name == 'AddInput' and cls == vtk.vtkXYPlotActor:
-        return 'AddDataSetInput'
-    return to_vtk6_names.get(name, name)
-
 # FIXME use defaults and ranges!
 def get_get_set_ports(cls, get_set_dict):
     """get_get_set_ports(cls: class, get_set_dict: dict) -> None
@@ -571,14 +561,6 @@ def get_get_set_ports(cls, get_set_dict):
         if len(setter_sig) > 1:
             prune_signatures(cls, setter_name, setter_sig)
         docstring = get_doc(cls, setter_name)
-        v = vtk.vtkVersion()
-        version = [v.GetVTKMajorVersion(),
-                   v.GetVTKMinorVersion(),
-                   v.GetVTKBuildVersion()]
-        if version < [6, 0, 0]:
-            # Always use VTK6-style names for InputData-style types
-            setter_name = get_vtk6_name(cls, setter_name)
-            name = setter_name[3:]
         for ix, setter in enumerate(setter_sig):
             if setter[1] is None:
                 continue
@@ -778,13 +760,6 @@ def get_other_ports(cls, other_list):
             if len(signatures) > 1:
                 prune_signatures(cls, name, signatures)
             docstring = get_doc(cls, name)
-            v = vtk.vtkVersion()
-            version = [v.GetVTKMajorVersion(),
-                       v.GetVTKMinorVersion(),
-                       v.GetVTKBuildVersion()]
-            if version < [6, 0, 0]:
-                # Always use VTK6-style names for InputData-style types
-                name = get_vtk6_name(cls, name)
             for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 port_types = get_port_types(params)
@@ -893,7 +868,6 @@ def get_ports(cls):
     Search all metamethods of module and add appropriate ports
 
     """
-
     parser.parse(cls)
     ports_tuples = []
     ports_tuples.append(get_algorithm_ports(cls))
@@ -909,36 +883,21 @@ def get_ports(cls):
     output_ports = chain(*next(zipped_ports))
     return input_ports, output_ports
 
+
 def parse(filename="vtk_raw.xml"):
     inheritance_graph = ClassTree(vtk)
     inheritance_graph.create()
 
     # Skip all deprecated messages
     warnings = vtk.vtkObject.GetGlobalWarningDisplay()
-
     vtk.vtkObject.SetGlobalWarningDisplay(False)
 
-    v = vtk.vtkVersion()
-    version = [v.GetVTKMajorVersion(),
-               v.GetVTKMinorVersion(),
-               v.GetVTKBuildVersion()]
-    if version < [5, 7, 0]:
-        assert len(inheritance_graph.tree[0]) == 1
-        base = inheritance_graph.tree[0][0]
-        assert base.name == 'vtkObjectBase'
-
     specs_list = []
-    if version < [5, 7, 0]:
+    for base in inheritance_graph.tree[0]:
         for child in base.children:
             if child.name in disallowed_classes:
                 continue
             specs_list.extend(create_module("vtkObjectBase", child))
-    else:
-        for base in inheritance_graph.tree[0]:
-            for child in base.children:
-                if child.name in disallowed_classes:
-                    continue
-                specs_list.extend(create_module("vtkObjectBase", child))
 
     vtk.vtkObject.SetGlobalWarningDisplay(warnings)
 

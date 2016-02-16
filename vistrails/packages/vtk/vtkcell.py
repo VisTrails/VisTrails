@@ -367,16 +367,7 @@ class QVTKWidget(QOpenGLWidget, QCellWidgetBase):
                     visApp = QtCore.QCoreApplication.instance()
                     display = visApp.desktop().screenNumber()
                 if display is not None:
-                    v = vtk.vtkVersion()
-                    version = [v.GetVTKMajorVersion(),
-                               v.GetVTKMinorVersion(),
-                               v.GetVTKBuildVersion()]
-                    if version < [5, 7, 0]:
-                        vp = ('_%s_void_p\0x00' % display)
-                    elif version < [6, 2, 0]:
-                        vp = ('_%s_void_p' % display)
-                    else:
-                        vp = ('_%s_p_void' % display)
+                    vp = ('_%s_p_void' % display)
                     self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))

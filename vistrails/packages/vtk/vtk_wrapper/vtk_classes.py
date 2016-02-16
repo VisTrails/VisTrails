@@ -130,13 +130,6 @@ def patch_methods(base_module, cls):
                     vtk.vtkImageReader,
                     vtk.vtkDICOMImageReader,
                     vtk.vtkTIFFReader]
-            # vtkPLOT3DReader does not exist from version 6.0.0
-            v = vtk.vtkVersion()
-            version = [v.GetVTKMajorVersion(),
-                       v.GetVTKMinorVersion(),
-                       v.GetVTKBuildVersion()]
-            if version < [6, 0, 0]:
-                skip.append(vtk.vtkPLOT3DReader)
             if not any(issubclass(cls, x) for x in skip):
                 filename = self.vtkInstance.GetFileName()
                 if not os.path.isfile(filename):
@@ -239,22 +232,6 @@ class VTKInstancePatcher(object):
         locale.setlocale(locale.LC_ALL, self._previous_locale)
 
     def __getattr__(self, name):
-        v = vtk.vtkVersion()
-        version = [v.GetVTKMajorVersion(),
-                   v.GetVTKMinorVersion(),
-                   v.GetVTKBuildVersion()]
-        if version < [6, 0, 0]:
-            # Translate vtk6 method names to vtk5 method names
-            to_vtk5_names = {'AddInputData':  'AddInput',
-                          'AddDataSetInput':  'AddInput',
-                             'SetInputData':  'SetInput',
-                            'AddSourceData': 'AddSource',
-                            'SetSourceData': 'SetSource'}
-            for new, old in to_vtk5_names.items():
-                if name.startswith(new):
-                    # Keep suffix
-                    name = old + name[len(new):]
-                    break
         # redirect calls to vtkInstance
         def call_wrapper(*args):
             args = list(args)

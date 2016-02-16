@@ -395,8 +395,7 @@ image_tests = [("terminator.vt", [("terminator_isosurface", "Isosurface"),
 compare_use_vtk = False
 try:
     import vtk
-    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= LooseVersion('5.8.0'):
-        compare_use_vtk = True
+    compare_use_vtk = True
 except ImportError:
     pass
 if compare_use_vtk:
@@ -414,13 +413,8 @@ if compare_use_vtk:
         a = removeAlpha(prev)
         b = removeAlpha(next)
         idiff = vtk.vtkImageDifference()
-        if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
-           LooseVersion('6.0.0'):
-            idiff.SetInputData(a)
-            idiff.SetImageData(b)
-        else:
-            idiff.SetInput(a)
-            idiff.SetImage(b)
+        idiff.SetInputData(a)
+        idiff.SetImageData(b)
         idiff.Update()
         return idiff.GetThresholdedError()
 else:
