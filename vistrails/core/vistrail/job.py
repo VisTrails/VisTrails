@@ -629,22 +629,14 @@ class JobMonitor(object):
         """ isDone(self, monitor) -> bool
 
             A job is done when it reaches finished or failed state
-            val() is used by stable batchq branch
         """
-        finished = handle.finished()
-        if hasattr(finished, 'val'):
-            finished = finished.val()
-        if finished:
+        if handle.finished():
             return True
 
-        # FIXME : deprecate this, remove from RemoteQ
-        # finished should just return True here too
         if hasattr(handle, 'failed'):
-            failed = handle.failed()
-            if hasattr(failed, 'val'):
-                failed = failed.val()
-            if failed:
+            if handle.failed():
                 return True
+
         return False
 
 

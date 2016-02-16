@@ -142,19 +142,12 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, handle=None, children=None,
-                 queue=None):
+    def __init__(self, module, errormsg, handle=None, children=None):
         ModuleError.__init__(self, module, errormsg)
         if handle is not None:
             self.handle = handle
         else:
-            if queue is not None:
-                warnings.warn("Use of deprecated argument 'queue' replaced by "
-                              "'handle'",
-                              category=VistrailsDeprecation,
-                              stacklevel=2)
-                self.handle = queue
-            elif children is None:
+            if children is None:
                 raise TypeError("__init__(): 'handle' argument not set")
             else:
                 # parent exceptions has no handle
@@ -163,9 +156,6 @@ class ModuleSuspended(ModuleError):
         self.children = children
         self.name = None
 
-    @property
-    def queue(self):
-        return self.handle
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
