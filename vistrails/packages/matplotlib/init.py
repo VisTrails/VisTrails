@@ -43,6 +43,7 @@ import urllib
 
 import vistrails.core.modules.module_registry
 import vistrails.core.db.action
+from vistrails.core.modules.basic_modules import src2to3
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
@@ -53,8 +54,10 @@ from .identifiers import identifier
 
 ################################################################################
 
+
 #list of modules to be displaced on matplotlib.new package
 _modules = _base_modules + _plot_modules + _artist_modules
+
 
 def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
@@ -156,30 +159,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         old_loc = module.location
         old_figure = find_figure(module)
 
-    def src2to3(name):
-        def remap(old_func, new_module):
-            src = old_func.params[0].strValue
-            code = urllib.parse.unquote(src)
-            try:
-                if code[-1] != '\n':
-                    code += '\n'
-                # NOTE: lib2to3 is not a stable api!
-                from lib2to3.refactor import RefactoringTool,\
-                                             get_fixers_from_package
-                refactoring_tool = RefactoringTool(
-                         fixer_names=get_fixers_from_package('lib2to3.fixes'))
-                node3 = refactoring_tool.refactor_string(code, 'script')
-                new_code = str(node3)
-                if new_code != code:
-                    code = '# Edited by 2to3\n' + new_code
-            except:
-                pass
-            src = urllib.parse.unquote(code)
-
-            new_function = controller.create_function(new_module, name, [src])
-            return [('add', new_function, 'module', new_module.id)]
-        return remap
-
     remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                module_name='MplPlot', new_module='MplSource')
     remap.add_remap('dst_port_remap', 'source', 'source')
@@ -234,7 +213,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                                module_name='MplSource'))
     # 1.0.6 -> 1.1: Python 2to3
     remap = UpgradeModuleRemap('1.0.6', '1.1', '1.1', module_name='MplSource')
-    remap.add_remap('function_remap', 'source', src2to3('source'))
+    remap.add_remap('function_remap', 'source', src2to3(controller, 'source'))
     _remap.add_module_remap(remap)
 
     if module.name in (m.__name__ for m in _plot_modules + _artist_modules):

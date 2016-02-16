@@ -49,14 +49,15 @@ from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
-from vistrails.core.utils import VistrailsDeprecation, deprecated, \
-                                 xor, long2bytes
+from vistrails.core.utils import deprecated, xor, long2bytes
+
 try:
     import hashlib
     sha1_hash = hashlib.sha1
 except ImportError:
     import sha
     sha1_hash = sha.new
+
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -127,6 +128,7 @@ class ModuleError(Exception):
         self.msg = errormsg
         self.errorTrace = errorTrace
 
+
 class ModuleSuspended(ModuleError):
     """Exception representing a VisTrails module being suspended.
 
@@ -168,6 +170,7 @@ class ModuleErrors(Exception):
         """
         Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
         self.module_errors = module_errors
+
 
 class _InvalidOutput(object):
     """ Specify an invalid result
@@ -1554,63 +1557,6 @@ class Module(object):
     @classmethod
     def provide_output_port_documentation(cls, port_name):
         return None
-
-    ####################################################################
-    # Deprecated methods
-
-    @deprecated("get_input")
-    def getInputFromPort(self, *args, **kwargs):
-        if 'allowDefault' in kwargs:
-            kwargs['allow_default'] = kwargs.pop('allowDefault')
-        return self.get_input(*args, **kwargs)
-
-    @deprecated("get_input_list")
-    def getInputListFromPort(self, *args, **kwargs):
-        return self.get_input_list(*args, **kwargs)
-
-    @deprecated("force_get_input")
-    def forceGetInputFromPort(self, *args, **kwargs):
-        return self.force_get_input(*args, **kwargs)
-
-    @deprecated("force_get_input_list")
-    def forceGetInputListFromPort(self, *args, **kwargs):
-        return self.force_get_input_list(*args, **kwargs)
-
-    @deprecated("has_input")
-    def hasInputFromPort(self, *args, **kwargs):
-        return self.has_input(*args, **kwargs)
-
-    @deprecated("check_input")
-    def checkInputPort(self, *args, **kwargs):
-        return self.check_input(*args, **kwargs)
-
-    @deprecated("set_output")
-    def setResult(self, *args, **kwargs):
-        return self.set_output(*args, **kwargs)
-
-    @deprecated("get_input_connector")
-    def getInputConnector(self, *args, **kwargs):
-        return self.get_input_connector(*args, **kwargs)
-
-    @deprecated("get_default_value")
-    def getDefaultValue(self, *args, **kwargs):
-        return self.get_default_value(*args, **kwargs)
-
-    @deprecated("enable_output_port")
-    def enableOutputPort(self, *args, **kwargs):
-        return self.enable_output_port(*args, **kwargs)
-
-    @deprecated("remove_input_connector")
-    def removeInputConnector(self, *args, **kwargs):
-        return self.remove_input_connector(*args, **kwargs)
-
-    @deprecated("update_upstream")
-    def updateUpstream(self, *args, **kwargs):
-        return self.update_upstream(*args, **kwargs)
-
-    @deprecated("update_upstream_port")
-    def updateUpstreamPort(self, *args, **kwargs):
-        return self.update_upstream_port(*args, **kwargs)
 
 ################################################################################
 

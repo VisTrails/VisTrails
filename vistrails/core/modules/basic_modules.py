@@ -1348,6 +1348,52 @@ def initialize(*args, **kwargs):
     _modules.extend(vistrails.core.modules.output_modules._modules)
 
 
+method_updates = {
+    'getInputFromPort': 'get_input',
+    'getInputListFromPort': 'get_input_list',
+    'forceGetInputFromPort': 'force_get_input',
+    'forceGetInputListFromPort': 'force_get_input_list',
+    'hasInputFromPort': 'has_input',
+    'checkInputPort': 'check_input',
+    'setResult': 'set_output',
+    'getInputConnector': 'get_input_connector',
+    'getDefaultValue': 'get_default_value',
+    'enableOutputPort': 'enable_output_port',
+    'removeInputConnector': 'remove_input_connector',
+    'updateUpstream': 'update_upstream',
+    'updateUpstreamPort': 'update_upstream_port'}
+
+
+def src2to3(controller, name):
+    def remap(old_func, new_module):
+        src = old_func.params[0].strValue
+        code = urllib.parse.unquote(src)
+        try:
+            if code[-1] != '\n':
+                code += '\n'
+            # NOTE: lib2to3 is not a stable api!
+            from lib2to3.refactor import RefactoringTool,\
+                                         get_fixers_from_package
+            refactoring_tool = RefactoringTool(
+                     fixer_names=get_fixers_from_package('lib2to3.fixes'))
+            node3 = refactoring_tool.refactor_string(code, 'script')
+            new_code = str(node3)
+
+            # Replace deprecated methods
+            for old_name, new_name in method_updates.items():
+                new_code = new_code.replace(old_name, new_name)
+
+            if new_code != code:
+                code = '# Edited by 2to3\n' + new_code
+        except:
+            pass
+        src = urllib.parse.unquote(code)
+
+        new_function = controller.create_function(new_module, name, [src])
+        return [('add', new_function, 'module', new_module.id)]
+    return remap
+
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
     reg = get_module_registry()
@@ -1376,30 +1422,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         ops.append(('add', new_conn_2))
         return ops
 
-    def src2to3(name):
-        def remap(old_func, new_module):
-            src = old_func.params[0].strValue
-            code = urllib.parse.unquote(src)
-            try:
-                if code[-1] != '\n':
-                    code += '\n'
-                # NOTE: lib2to3 is not a stable api!
-                from lib2to3.refactor import RefactoringTool,\
-                                             get_fixers_from_package
-                refactoring_tool = RefactoringTool(
-                         fixer_names=get_fixers_from_package('lib2to3.fixes'))
-                node3 = refactoring_tool.refactor_string(code, 'script')
-                new_code = str(node3)
-                if new_code != code:
-                    code = '# Edited by 2to3\n' + new_code
-            except:
-                pass
-            src = urllib.parse.unquote(code)
-
-            new_function = controller.create_function(new_module, name, [src])
-            return [('add', new_function, 'module', new_module.id)]
-        return remap
-
     module_remap = {'FileSink':
                         [(None, '1.6', None,
                           {'dst_port_remap':
@@ -1424,7 +1446,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'PythonSource':
                         [(None, '3.0', None,
                           {'function_remap':
-                               {'source': src2to3('source')}})],
+                               {'source': src2to3(controller, 'source')}})],
                     'Tuple':
                         [(None, '3.0', None, {})],
                     'StandardOutput':
