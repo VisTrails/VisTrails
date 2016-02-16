@@ -872,7 +872,10 @@ def load_vistrail(filename, version=None):
     controller = VistrailController(loaded_objs[0], locator,
                                     *loaded_objs[1:])
 
-    return Vistrail(controller)
+    vistrail = Vistrail(controller)
+    if version is not None:
+        vistrail.select_version(version)
+    return vistrail
 
 
 def load_pipeline(filename):
