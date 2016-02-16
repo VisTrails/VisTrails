@@ -709,6 +709,8 @@ class Module(object):
 
             ## Getting the result from the output port
             for nameOutput in module.outputPorts:
+                if nameOutput == 'self':
+                    continue
                 if nameOutput not in outputs:
                     outputs[nameOutput] = []
                 output = module.get_output(nameOutput)
@@ -1264,16 +1266,15 @@ class Module(object):
             root = value
             for i in xrange(1, src_depth):
                 try:
-                    # flatten
-                    root = [item for sublist in root for item in sublist]
+                    # only check first item
+                    root = root[0]
                 except TypeError:
                     raise ModuleError(self, "List on port %s has wrong"
                                             " depth %s, expected %s." %
                                             (port_name, i-1, src_depth))
 
             if src_depth and root is not None:
-                self.typeChecking(self, [port_name],
-                                  [[r] for r in root] if src_depth else [[root]])
+                self.typeChecking(self, [port_name], [[root]])
             ports.append(value)
         return ports
 
@@ -1734,7 +1735,7 @@ class ModuleConnector(object):
             # flatten list
             for i in xrange(1, depth):
                 try:
-                    value = [item for sublist in value for item in sublist]
+                    value = value[0]
                 except TypeError:
                     raise ModuleError(self.obj, "List on port %s has wrong"
                                       " depth %s, expected %s." %
