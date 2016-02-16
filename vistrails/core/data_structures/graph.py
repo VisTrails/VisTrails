@@ -43,7 +43,6 @@ from itertools import chain
 
 from vistrails.core.data_structures.queue import Queue
 from vistrails.core.data_structures.stack import Stack
-from vistrails.core.utils import all
 
 ################################################################################
 # Graph

@@ -57,11 +57,10 @@ from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
 from vistrails.core.modules.utils import create_port_spec_item_string
-from vistrails.core.utils import VistrailsInternalError, memo_method, \
-    InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-    all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
-from vistrails.core.system import vistrails_root_directory, vistrails_version, \
-    get_vistrails_basic_pkg_id
+from vistrails.core.utils import VistrailsInternalError, InvalidModuleClass, \
+    ModuleAlreadyExists, versions_increasing, InvalidPipeline, \
+    VistrailsDeprecation
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 import vistrails.core.cache.hasher
@@ -114,7 +113,7 @@ def _parse_abstraction_name(filename):
             name = name[len(prefix):]
             break
     for suffix in suffixes:
-        if name.endswith(suffix):
+        if name.lower().endswith(suffix):
             name = name[:-len(suffix)]
             break
     return name

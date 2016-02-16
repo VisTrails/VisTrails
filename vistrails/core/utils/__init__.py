@@ -353,30 +353,6 @@ def debug(func):
 
 ################################################################################
 
-# Write our own all() and any() if python version < 2.5
-if sys.version_info < (2, 5):
-    def any(iterable):
-        """any(iterable) -> Boolean - Returns true if any element
-        is true. This is meant to be the equivalent of python 2.5's any
-        when running on python < 2.5"""
-        for b in iterable:
-            if b:
-                return True
-        return False
-
-    def all(iterable):
-        """all(iterable) -> Boolean - Returns true if no elements are
-        False.  This is meant to be the equivalent of python 2.5's
-        all() when running on python < 2.5"""
-        for b in iterable:
-            if not b:
-                return False
-        return True
-else:
-    import builtins
-    any = builtins.any
-    all = builtins.all
-
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator
     until item is found, and returns the index inside the iterator.
@@ -491,8 +467,6 @@ class DummyView(object):
 ################################################################################
 # class for creating weak references to bound methods
 # based on recipe http://code.activestate.com/recipes/81253/
-# converted to work also in python 2.6.x without using deprecated methods
-# not tested in python 2.5.x but it should work
 class Ref(object):
     """ Wraps any callable, most importantly a bound method, in a way that
     allows a bound method's object to be GC'ed, while providing the same
@@ -505,20 +479,19 @@ class Ref(object):
             self._obj = None
             self._func = fn
         else: #it's a bound method
-            if o is None: self._obj = None #... actually UN-bound
-            else: self._obj = weakref.ref(o)
+            if o is None:
+                self._obj = None #... actually UN-bound
+            else:
+                self._obj = weakref.ref(o)
             self._func = f
             
     def __call__(self):
-        if self._obj is None: return self._func
-        elif self._obj() is None: return None
-        try:
-            import types
-            instance_method = types.MethodType
-        except ImportError:
-            #new is deprecated in python 2.6
-            import new
-            instance_method = new.instancemethod
+        if self._obj is None:
+            return self._func
+        elif self._obj() is None:
+            return None
+        import types
+        instance_method = types.MethodType
         return instance_method(self._func, self._obj())
 
 ###############################################################################

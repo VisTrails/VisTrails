@@ -1587,8 +1587,6 @@ class TestConfiguration(unittest.TestCase):
                               list(conf2._unset_keys.keys()))
 
     def test_parser(self):
-        if sys.version_info < (2, 7):
-            self.skipTest("argparse on Python 2.6: bug 10680")
         from vistrails.tests.utils import capture_stdout, capture_stderr
         p = build_command_line_parser(base_config)
         err = []

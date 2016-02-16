@@ -38,7 +38,6 @@ initializations to the theme, packages and the builder...
 
 """
 
-
 from ast import literal_eval
 import copy
 import os.path
@@ -613,7 +612,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             ["%s %s %s" %(i.name,
                           i.start,
                           "FINISHED" if i.finished else "RUNNING")
-             for i in list(workflow.jobs.values())])
+             for i in workflow.jobs.values()])
         print(text)
         return text
 
@@ -719,8 +718,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception as e:
-                import traceback
-                traceback.print_exc()
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()

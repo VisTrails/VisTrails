@@ -53,7 +53,7 @@ from vistrails.gui.modules.python_source_configure import PythonEditor
 from vistrails.gui.modules.utils import get_param_explore_widget_list
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
-from vistrails.core.utils import all, unimplemented
+from vistrails.core.utils import unimplemented
 
 ##############################################################################
 

@@ -53,7 +53,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import all
 from vistrails.core.vistrail.controller import custom_color_key, \
     parse_custom_color
 from vistrails.gui.theme import CurrentTheme

@@ -41,8 +41,6 @@
 # uses emacs via subprocess call for python indentation
 # the emacs call is slow because it checks all of the indentation
 
-
-
 from mako.template import Template
 
 import os
@@ -237,7 +235,7 @@ def main(argv=None):
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}
 
-    optStr = ''.join(list(optionsUsage.keys()))
+    optStr = ''.join(optionsUsage.keys())
     optKeys = optStr.replace(':','')
     for idx in range(len(optKeys)):
         options[optKeys[idx]] = False
@@ -285,7 +283,7 @@ def main(argv=None):
     use_base_specs = True
     if options['n'] and os.path.exists(versionDirs['specs']):
         for file in os.listdir(versionDirs['specs']):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 # assume we've already copied the specs
                 use_base_specs = False
 
@@ -293,7 +291,7 @@ def main(argv=None):
         # copy specs to version        
         print("copying base specs to version directory...")
         for file in os.listdir(baseDirs['specs']):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 print('copying %s' % file)
                 filename = os.path.join(baseDirs['specs'], file)
                 toFile = os.path.join(versionDirs['specs'], file)

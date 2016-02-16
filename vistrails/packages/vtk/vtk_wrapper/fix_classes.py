@@ -46,7 +46,7 @@ import vtk
 # patched class. VTK, however, doesn't like class attributes.
 description = {}
 
-# VTK 7 does not allow changing __doc__
+# VTK 7 does not allow changing __doc__, so we use a metaclass
 class Meta(type):
     @property
     def __doc__(self):
@@ -55,27 +55,11 @@ class Meta(type):
 # http://www.vtk.org/doc/nightly/html/classvtkImagePlaneWidget.html
 # SetUserControlledLookupTable needs to be set before calling
 # SetLookupTable.  VTK should do it automatically, so let's fix it
-
-
-# This fix seems to break on VTK versions larger than 5.0.3. It might also
-# be because of an interaction with python 2.6, but I haven't checked that.
 class vtkImagePlaneWidget_fixed(vtk.vtkImagePlaneWidget):
-
     __metaclass__ = Meta
-
     def SetLookupTable(self, lookup_table):
         self.UserControlledLookupTableOn()
         vtk.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
-v = vtk.vtkVersion()
-version = [v.GetVTKMajorVersion(),
-           v.GetVTKMinorVersion(),
-           v.GetVTKBuildVersion()]
 
-if version < [5, 0, 4]:
-    description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
-else:
-    description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget
-
-# Set docstring to wrap it correctly
-#vtkImagePlaneWidget_fixed.SetLookupTable.__doc__ = vtk.vtkImagePlaneWidget.SetLookupTable.__doc__
+description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget
 

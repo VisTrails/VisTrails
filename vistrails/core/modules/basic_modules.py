@@ -1042,8 +1042,7 @@ class CodeRunnerMixin(object):
                         'self': self})
         if 'source' in locals_:
             del locals_['source']
-        # Python 2.6 needs code to end with newline
-        exec(code_str + '\n', locals_, locals_)
+        exec(code_str, locals_, locals_)
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) is not None:
@@ -1885,10 +1884,6 @@ class TestStringFormat(unittest.TestCase):
         self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
                         a=('Integer', '42'),
                         c=('Integer', '12'))
-
-    # Python 2.6 doesn't support {}
-    @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
-    def test_format_27(self):
         self.run_format('{} {}', 'a b',
                         _0=('String', 'a'), _1=('String', 'b'))
         self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',

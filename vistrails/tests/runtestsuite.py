@@ -57,16 +57,6 @@ import platform
 import re
 import shutil
 import tempfile
-
-# This makes sure we use unittest2 everywhere
-# If we are running 2.6, since our tests are in the same files as our code,
-# VisTrails might choke up because of missing unittest features
-try:
-    import unittest2
-except ImportError:
-    pass
-else:
-    sys.modules['unittest'] = unittest2
 import unittest
 
 if 'vistrails' not in sys.modules:

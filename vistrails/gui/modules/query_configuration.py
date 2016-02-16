@@ -37,9 +37,7 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-from vistrails.core.utils import any, expression
-from vistrails.core import system
-
+from .constant_configuration import StandardConstantWidget, ColorWidget
 from .constant_configuration import StandardConstantWidget, ColorWidget
 
 ############################################################################

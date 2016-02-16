@@ -64,7 +64,7 @@ def find_workflows(path_name, vistrail_dir):
             name = os.path.join(dir, base)
             if os.path.isdir(name):
                 dir_stack.append(name)
-            elif name.endswith('.vt'):
+            elif name.lower().endswith('.vt'):
                 vt_files.append(name)
 
     vt_finds = {}

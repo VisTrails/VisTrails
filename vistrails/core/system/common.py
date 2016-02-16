@@ -124,11 +124,7 @@ def current_processor():
     return proc
 
 def get_elementtree_library():
-    try:
-        import cElementTree as ElementTree
-    except ImportError:
-        # try python 2.5-style
-        import xml.etree.cElementTree as ElementTree
+    from xml.etree import ElementTree
     return ElementTree
 
 def temporary_directory():

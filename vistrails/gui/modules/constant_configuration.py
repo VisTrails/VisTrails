@@ -45,12 +45,9 @@ constants.
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from vistrails.core.utils import any, expression, versions_increasing
+from vistrails.core.utils import expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
-
-import copy
-import os
 
 ############################################################################
 

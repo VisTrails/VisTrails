@@ -47,9 +47,7 @@ QPipelineScene
 QPipelineView
 """
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import GraphContainsCycles
@@ -212,7 +210,7 @@ class QAbstractGraphicsPortItem(QtWidgets.QAbstractGraphicsShapeItem):
             self.setPainterState()
 
     def setSelected(self, selected):
-        # QtGui.QAbstractGraphicsShapeItem.setSelected(self, selected)
+        # QtWidgets.QAbstractGraphicsShapeItem.setSelected(self, selected)
         if self._selected != selected:
             self._selected = selected
             self.setPainterState()
@@ -287,7 +285,7 @@ class QAbstractGraphicsPortItem(QtWidgets.QAbstractGraphicsShapeItem):
             return remove_action
 
         for (action, callback) in self.removeVarActions:
-            action.disconnect()
+            action.triggered.disconnect(callback)
         self.removeVarActions = []
         if len(self.vistrail_vars) > 1:
             removeAllVarsAct = \
@@ -635,34 +633,34 @@ class QGraphicsConfigureItem(QtWidgets.QGraphicsPolygonItem):
         Create actions related to context menu 
 
         """
-        self.configureAct = QtWidgets.QAction("Edit Configuration\tCtrl+E", self.scene())
+        self.configureAct = QtWidgets.QAction("Edit &Configuration\tCtrl+E", self.scene())
         self.configureAct.setStatusTip("Edit the Configure of the module")
         self.configureAct.triggered.connect(self.configure)
-        self.annotateAct = QtWidgets.QAction("Annotate", self.scene())
+        self.annotateAct = QtWidgets.QAction("&Annotate", self.scene())
         self.annotateAct.setStatusTip("Annotate the module")
         self.annotateAct.triggered.connect(self.annotate)
-        self.viewDocumentationAct = QtWidgets.QAction("View Documentation", self.scene())
+        self.viewDocumentationAct = QtWidgets.QAction("View &Documentation", self.scene())
         self.viewDocumentationAct.setStatusTip("View module documentation")
         self.viewDocumentationAct.triggered.connect(self.viewDocumentation)
-        self.editLoopingAct = QtWidgets.QAction("Execution Options", self.scene())
+        self.editLoopingAct = QtWidgets.QAction("Execution &Options", self.scene())
         self.editLoopingAct.setStatusTip("Edit module execution options")
         self.editLoopingAct.triggered.connect(self.editLooping)
-        self.changeModuleLabelAct = QtWidgets.QAction("Set Module Label...", self.scene())
+        self.changeModuleLabelAct = QtWidgets.QAction("Set Module &Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
         self.changeModuleLabelAct.triggered.connect(self.changeModuleLabel)
-        self.setBreakpointAct = QtWidgets.QAction("Set Breakpoint", self.scene())
+        self.setBreakpointAct = QtWidgets.QAction("Set &Breakpoint", self.scene())
         self.setBreakpointAct.setStatusTip("Set Breakpoint")
         self.setBreakpointAct.triggered.connect(self.set_breakpoint)
-        self.setWatchedAct = QtWidgets.QAction("Watch Module", self.scene())
+        self.setWatchedAct = QtWidgets.QAction("&Watch Module", self.scene())
         self.setWatchedAct.setStatusTip("Watch Module")
         self.setWatchedAct.triggered.connect(self.set_watched)
-        self.runModuleAct = QtWidgets.QAction("Run this module", self.scene())
+        self.runModuleAct = QtWidgets.QAction("&Run this module", self.scene())
         self.runModuleAct.setStatusTip("Run this module")
         self.runModuleAct.triggered.connect(self.run_module)
-        self.setErrorAct = QtWidgets.QAction("Show Error", self.scene())
+        self.setErrorAct = QtWidgets.QAction("Show &Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         self.setErrorAct.triggered.connect(self.set_error)
-        self.upgradeAbstractionAct = QtWidgets.QAction("Upgrade Module", self.scene())
+        self.upgradeAbstractionAct = QtWidgets.QAction("&Upgrade Module", self.scene())
         self.upgradeAbstractionAct.setStatusTip("Upgrade the subworkflow module")
         self.upgradeAbstractionAct.triggered.connect(self.upgradeAbstraction)
 
@@ -2223,7 +2221,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.clear()
         if not pipeline: return 
 
-        needReset = len(list(self.items()))==0
+        needReset = len(self.items())==0
         try:
             self.skip_update = True
             new_modules = set(pipeline.modules)
@@ -2322,7 +2320,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.skip_update = False
             self.update_connections()
 
-        if needReset and len(list(self.items()))>0:
+        if needReset and len(self.items())>0:
             self.fitToAllViews()
 
     def findModuleUnder(self, pos):
@@ -2492,13 +2490,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def updateTmpInputConnection(self, pos):
         self.tmp_input_conn = \
             self.updateTmpConnection(pos, self.tmp_input_conn, 
-                                     list(self.tmp_module_item.inputPorts.values()), 
+                                     list(self.tmp_module_item.inputPorts.values()),
                                      -1, lambda x: x)
             
     def updateTmpOutputConnection(self, pos):
         self.tmp_output_conn = \
             self.updateTmpConnection(pos, self.tmp_output_conn, 
-                                     list(self.tmp_module_item.outputPorts.values()), 
+                                     list(self.tmp_module_item.outputPorts.values()),
                                      1, reversed)
 
     def dragEnterEvent(self, event):
@@ -2840,7 +2838,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 dep_connection_ids = set()
                 for m in modules:
                     dep_connection_ids.update(
-                        iter(m.dependingConnectionItems().keys()))
+                        m.dependingConnectionItems().keys())
                 # remove_connection updates the dependency list on the
                 # other side of connections, cannot use removeItem
                 for c_id in dep_connection_ids:
@@ -2944,7 +2942,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.setupScene(self.controller.current_pipeline)
         
     def layout(self):
-        if len(list(self.items())) <= 0:
+        if len(self.items()) <= 0:
             return
         
         def _func(module):
@@ -3046,7 +3044,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Select all module items in the scene
         
         """
-        for item in list(self.items()):
+        for item in self.items():
             if isinstance(item, QGraphicsModuleItem) or \
                     isinstance(item, QGraphicsConnectionItem):
                 item.setSelected(True)
@@ -3189,7 +3187,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QtWidgets.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error.msg,
+                                     QModuleStatusEvent(moduleId, 1, error,
                                                         errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
@@ -3379,7 +3377,6 @@ class QGraphicsFunctionWidget(QtWidgets.QGraphicsWidget):
                 name += '...'
             editRect = bounds(name)
             width = max(width, editRect.width())
-            # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
             fname = QtWidgets.QGraphicsSimpleTextItem(name, self)
             fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
             fname.setPos(-1, -1)
@@ -3423,7 +3420,6 @@ class QGraphicsFunctionWidget(QtWidgets.QGraphicsWidget):
                 if scale>MAX_WIDTH:
                     param_widget.setScale(MAX_WIDTH/scale)
                     rect.setSize(rect.size()*MAX_WIDTH/scale)
-                # FIXME Can't identify the QGraphicsScene in the arguments of the QGraphicsItem
                 bg = QtWidgets.QGraphicsRectItem(rect, self)
                 # TODO COLOR
                 bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
