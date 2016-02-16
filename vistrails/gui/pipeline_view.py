@@ -2046,13 +2046,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.tmp_input_conn = None
         self.tmp_output_conn = None
 
-    def _get_pipeline(self):
-        warnings.warn("Use of deprecated field 'pipeline' replaced by "
-                      "'current_pipeline'",
-                      category=VistrailsDeprecation)
-        return self.current_pipeline
-    pipeline = property(_get_pipeline)
-
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
         Add a module to the scene

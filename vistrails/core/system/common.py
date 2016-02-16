@@ -41,17 +41,14 @@ import getpass
 import socket
 import datetime
 import platform
-import tempfile
-import warnings
 
 from vistrails.core import debug
-from vistrails.core.utils import VistrailsDeprecation
 
 
 __all__ = ['touch', 'mkdir', 'python_version',
            'current_user', 'current_ip', 'current_time',
            'current_machine', 'current_architecture', 'current_processor',
-           'get_elementtree_library', 'temporary_directory']
+           'get_elementtree_library']
 
 ###############################################################################
 
@@ -126,10 +123,3 @@ def current_processor():
 def get_elementtree_library():
     from xml.etree import ElementTree
     return ElementTree
-
-def temporary_directory():
-    warnings.warn(
-            "temporary_directory() is deprecated; use the tempfile module "
-            "instead",
-            category=VistrailsDeprecation)
-    return tempfile.gettempdir()
