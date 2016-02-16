@@ -657,8 +657,6 @@ class ModuleClass(type):
         raise TypeError("Don't use module_class(....), call "
                         "vistrail.add_module(module_class, ...) instead")
 
-    # Ignored by IPython because of bug 6709
-    # https://github.com/ipython/ipython/issues/6709
     def __repr__(self):
         return "<Module class %r from %s>" % (self.descriptor.name,
                                               self.descriptor.identifier)
