@@ -707,6 +707,8 @@ class Module(object):
 
             ## Getting the result from the output port
             for nameOutput in module.outputPorts:
+                if nameOutput == 'self':
+                    continue
                 if nameOutput not in outputs:
                     outputs[nameOutput] = []
                 output = module.get_output(nameOutput)
