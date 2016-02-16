@@ -137,7 +137,8 @@ class Vistrail(object):
             # Copied from VistrailsApplicationInterface#open_vistrail()
             locator = UntitledLocator()
             loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-            self.controller = VistrailController(*loaded_objs)
+            self.controller = VistrailController(loaded_objs[0], locator,
+                                                 *loaded_objs[1:])
         elif isinstance(arg, (_Pipeline, Pipeline)):
             if isinstance(arg, Pipeline):
                 pipeline = arg.pipeline
