@@ -63,7 +63,7 @@ class TableCellWidget(QCellWidget):
     save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
 
     def __init__(self, parent=None):
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)

@@ -72,6 +72,7 @@ class QCellWidgetBase:
         Instantiate the cell and helper properties
 
         """
+        super().__init__(parent=parent, flags=flags)
         self._historyImages = []
         self._player = QtWidgets.QLabel(self.parent())
         self._player.setAutoFillBackground(True)

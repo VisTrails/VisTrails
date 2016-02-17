@@ -42,8 +42,7 @@
 from PyQt5 import QtCore, QtGui, QAxContainer, QtWidgets, QtPrintSupport
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
-    QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import os
 import shutil
 ############################################################################
@@ -80,7 +79,7 @@ class IECellWidget(QCellWidget):
         Create a ActiveX Container pointing to the IE Cell
         
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)

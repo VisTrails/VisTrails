@@ -43,7 +43,7 @@ from PyQt5 import (QtCore, QtGui, QtWebKit, QtWidgets, QtWebKitWidgets,
                    QtPrintSupport)
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
-    QCellToolBar
+    QCellToolBar, SpreadsheetAction
 import os
 import webbrowser
 ############################################################################
@@ -80,7 +80,7 @@ class WebViewCellWidget(QCellWidget):
         Create a rich text cell without a toolbar
         
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setLayout(QtWidgets.QVBoxLayout(self))
         self.toolBarType = WebViewCellToolBar
         QtWebKit.QWebSettings.globalSettings().setAttribute(
@@ -122,12 +122,11 @@ class WebViewCellWidget(QCellWidget):
         self.browser.print_(printer)
 
 
-class OpenInBrowserAction(QtWidgets.QAction):
+class OpenInBrowserAction(SpreadsheetAction):
     def __init__(self, parent):
-        QtWidgets.QAction.__init__(self,
-                               QtGui.QIcon(":/images/new-window.png"),
-                               "Open in &Browser",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/new-window.png"),
+                         "Open in &Browser",
+                         parent)
         self._view = None
         self.setEnabled(False)
         self.setStatusTip("Open this page in the system web browser")

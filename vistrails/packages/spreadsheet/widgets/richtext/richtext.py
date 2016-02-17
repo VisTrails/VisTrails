@@ -128,7 +128,7 @@ class RichTextCellWidget(QCellWidget):
         Create a rich text cell without a toolbar
 
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setLayout(QtWidgets.QVBoxLayout(self))
         self.browser = QtWidgets.QTextBrowser()
         self.layout().addWidget(self.browser)

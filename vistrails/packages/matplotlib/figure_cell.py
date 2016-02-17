@@ -99,7 +99,7 @@ class MplFigureCellWidget(QCellWidget):
         Initialize the widget with its central layout
         
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)

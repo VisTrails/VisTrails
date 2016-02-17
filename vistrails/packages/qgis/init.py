@@ -110,7 +110,7 @@ class QGISCellWidget(QCellWidget):
         Initialize the widget with its central layout
         
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)
         centralLayout.setContentsMargins(0, 0, 0, 0)

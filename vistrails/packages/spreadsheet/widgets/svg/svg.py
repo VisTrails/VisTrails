@@ -48,7 +48,7 @@ from vistrails.packages.spreadsheet.spreadsheet_base import StandardSingleCellSh
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
 from vistrails.packages.spreadsheet.spreadsheet_event import (DisplayCellEvent,
                                                     BatchDisplayCellEvent)
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import os
 import shutil
 ################################################################################
@@ -84,7 +84,7 @@ class SVGCellWidget(QCellWidget):
         """ SVGCellWidget(parent: QWidget) -> SVGCellWidget
         Create a SVGCellWidget without any toolbar
         """
-        QCellWidget.__init__(self, parent)        
+        super().__init__(parent=parent)
         self.setLayout(QtWidgets.QVBoxLayout(self))
 
         self.svgWidget = QtSvg.QSvgWidget()

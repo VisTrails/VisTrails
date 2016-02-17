@@ -41,9 +41,12 @@
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
 
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell,\
+    SpreadsheetMode
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget,\
+    QCellToolBar, SpreadsheetAction
+from vistrails.packages.spreadsheet.spreadsheet_controller import \
+    spreadsheetController
 from . import imageviewer_rc
 
 ################################################################################
@@ -85,7 +88,7 @@ class ImageViewerCellWidget(QCellWidget):
         Initialize the widget with its toolbar type and aligment
         
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setLayout(QtWidgets.QVBoxLayout(self))
         self.setAnimationEnabled(True)
         
@@ -167,7 +170,7 @@ class ImageViewerCellWidget(QCellWidget):
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
                 
-class ImageViewerFitToCellAction(QtWidgets.QAction):
+class ImageViewerFitToCellAction(SpreadsheetAction):
     """
     ImageViewerFitToCellAction is the action to stretch the image to
     fit inside a cell
