@@ -194,7 +194,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def found_another_instance_running(self, local_socket, args):
         debug.critical("Found another instance of VisTrails running")
-        msg = bytes(args)
+        msg = str(args).encode()
         debug.critical("Will send parameters to main instance %s" % msg)
         res = self.send_message(local_socket, msg)
         if res is True:
@@ -713,7 +713,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 # redirect stdout
                 old_stdout = sys.stdout
                 sys.stdout = io.StringIO()
-                result = self.parse_input_args_from_other_instance(str(byte_array))
+                result = self.parse_input_args_from_other_instance(str(byte_array, encoding='utf-8'))
                 output = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
@@ -733,7 +733,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if result == "Command Completed" and output:
                 result += '\n' + output
             self.shared_memory.lock()
-            local_socket.write(bytes(result))
+            local_socket.write(result.encode())
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
@@ -754,7 +754,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                            local_socket.errorString())
             return False
         byte_array = local_socket.readAll()
-        result = str(byte_array)
+        result = str(byte_array, 'utf-8')
         print("Other instance processed input (%s)" % result)
         if not result.startswith('Command Completed'):
             debug.critical(result)
