@@ -49,7 +49,6 @@ import io
 
 from PyQt5 import QtGui, QtCore, QtNetwork, QtWidgets
 
-
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
 from vistrails.core import debug

@@ -73,7 +73,7 @@ def run_and_get_results(w_list, parameters='',
     params = []
     result = []
     for locator, workflow in w_list:
-        (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
+        v, abstractions, thumbnails, mashups = load_vistrail(locator)
         controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
         if isinstance(workflow, str):
@@ -172,9 +172,11 @@ def get_wf_graph(w_list, output_dir, pdf=False):
              GUIVistrailController
         for locator, workflow in w_list:
             try:
-                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController(v, locator, abstractions, 
-                                                   thumbnails, mashups,
+                v, abstractions, thumbnails, mashups = load_vistrail(locator)
+                controller = GUIVistrailController(v, locator,
+                                                   abstractions=abstractions,
+                                                   thumbnails=thumbnails,
+                                                   mashups=mashups,
                                                    auto_save=False)
                 # FIXME TE: why is this needed
                 controller.current_pipeline_view.set_controller(controller)
@@ -227,9 +229,11 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
              GUIVistrailController
         for locator in vt_list:
             try:
-                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController(v, locator, abstractions, 
-                                                   thumbnails, mashups)
+                v, abstractions, thumbnails, mashups = load_vistrail(locator)
+                controller = GUIVistrailController(v, locator,
+                                                   abstractions=abstractions,
+                                                   thumbnails=thumbnails,
+                                                   mashups=mashups)
                 if tree_info is not None:
                     from vistrails.gui.version_view import QVersionTreeView
                     version_view = QVersionTreeView()
@@ -284,9 +288,11 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
         from vistrails.gui.vistrail_controller import VistrailController as \
              GUIVistrailController
         try:
-            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-            controller = GUIVistrailController(v, locator, abstractions, 
-                                               thumbnails, mashups)
+            v, abstractions, thumbnails, mashups = load_vistrail(locator)
+            controller = GUIVistrailController(v, locator,
+                                               abstractions=abstractions,
+                                               thumbnails=thumbnails,
+                                               mashups=mashups)
             try:
                 pe_id = int(pe_id)
                 pe = controller.vistrail.get_paramexp(pe_id)

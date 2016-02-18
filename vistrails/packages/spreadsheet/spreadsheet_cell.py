@@ -67,12 +67,12 @@ class QCellWidgetBase:
     save_formats = ["Images (*.png *.xpm *.jpg)",
                     "Portable Document Format (*.pdf)"]
 
-    def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
+    def __init__(self, **kwargs):
         """ QCellWidget(parent: QWidget) -> QCellWidget
         Instantiate the cell and helper properties
 
         """
-        super().__init__(parent=parent, flags=flags)
+        super().__init__(**kwargs)
         self._historyImages = []
         self._player = QtWidgets.QLabel(self.parent())
         self._player.setAutoFillBackground(True)

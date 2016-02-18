@@ -51,9 +51,9 @@
 import sys
 import os.path
 import os
-from httplib import HTTP
-from urlparse import urlparse
-import urllib2
+from http.client import HTTP
+from urllib.parse import urlparse
+import urllib.request, urllib.error, urllib.parse
 import re
 import logging
 
@@ -70,8 +70,8 @@ def log(msg):
 ###############################################################################
 
 def usage():
-    print "Usage: "
-    print "   %s path/to/options_file" % sys.argv[0]
+    print("Usage: ")
+    print("   %s path/to/options_file" % sys.argv[0])
     sys.exit(1)
 
 ###############################################################################
@@ -165,7 +165,7 @@ def generate_latex_error(error_msg):
 
 def download(url,filename):
     try:
-        furl = urllib2.urlopen(url)
+        furl = urllib.request.urlopen(url)
         f = file(filename,'wb')
         f.write(furl.read())
         f.close()
@@ -177,7 +177,7 @@ def download(url,filename):
 
 def download_as_text(url):
     try:
-        furl = urllib2.urlopen(url)
+        furl = urllib.request.urlopen(url)
         s = furl.read()
         return s
     except:
@@ -245,7 +245,7 @@ def download_workflow(url_crowdlabs, wfid, path_to_figures, wgraph=False,
                     log("failed: %s"%msg)
                     return (False, generate_latex_error(msg))
             
-            except Exception, e:
+            except Exception as e:
                 log("failed with exception: %s"%str(e))
                 return (False, generate_latex_error(str(e)))
         else:
@@ -312,7 +312,7 @@ def download_tree(url_crowdlabs, vtid, path_to_figures, pdf=False,
                     log("failed: %s"%msg)
                     return (False, generate_latex_error(msg))
             
-            except Exception, e:
+            except Exception as e:
                 log("failed with exception: %s"%str(e))
                 return (False, generate_latex_error(str(e)))
         else:
@@ -424,7 +424,7 @@ else:
     result, latex = (False, generate_latex_error("Invalid url %s." % urlcrowdlabs))
     
 # the printed answer will be included inline by the latex compiler.
-print latex
+print(latex)
 if result == True:
     log("********** SESSION END ************")
     log("***********************************")
