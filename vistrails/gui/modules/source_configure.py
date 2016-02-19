@@ -350,7 +350,7 @@ class SourceConfigurationWidget(SourceWidget):
             modified = self.codeEditor.isModified()
 
         if (self.codeEditor is not None and modified):
-            code = self.codeEditor.toPlainText().encode('utf-8')
+            code = self.codeEditor.toPlainText()
             if self.sourceEncode:
                 code = urllib.parse.quote(code)
             functions.append((self.sourcePortName, [code]))

@@ -114,7 +114,7 @@ def NewTextEditor(parent):
             self.setText(text)
         
         def toPlainText(self):
-            """ setPlainText(text: str) -> None
+            """ toPlainText(text: str) -> None
             redirect to self.text()
             
             """
