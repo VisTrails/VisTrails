@@ -54,6 +54,13 @@ import re
 import urllib
 import urllib2
 
+try:
+    import hashlib
+    sha_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha_hash = sha.new
+
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.core import debug
@@ -76,6 +83,20 @@ from .https_if_available import build_opener
 
 package_directory = None
 
+MAX_CACHE_FILENAME = 100
+
+
+###############################################################################
+
+def cache_filename(url):
+    url = urllib.quote_plus(url)
+    if len(url) <= MAX_CACHE_FILENAME:
+        return url
+    else:
+        hasher = sha_hash()
+        hasher.update(url)
+        return url[:MAX_CACHE_FILENAME - 41] + "_" + hasher.hexdigest()
+
 
 ###############################################################################
 
@@ -91,7 +112,7 @@ class Downloader(object):
         Returns the path to the local file.
         """
         self.local_filename = os.path.join(package_directory,
-                                           urllib.quote_plus(self.url))
+                                           cache_filename(self.url))
 
         # Before download
         self.pre_download()
@@ -325,7 +346,7 @@ class SSHDownloader(object):
                 'pip': 'scp'})
 
         local_filename = os.path.join(package_directory,
-                                      urllib.quote_plus(self.url))
+                                      cache_filename(self.url))
 
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
@@ -522,8 +543,8 @@ class RepoSync(Module):
                 # local file not present or out of date, download or use cache
                 self.url = "%s/datasets/download/%s" % (self.base_url,
                                                        self.checksum)
-                local_filename = package_directory + '/' + \
-                        urllib.quote_plus(self.url)
+                local_filename = os.path.join(package_directory,
+                                              cache_filename(self.url))
                 if not self._file_is_in_local_cache(local_filename):
                     # file not in cache, download.
                     try:
