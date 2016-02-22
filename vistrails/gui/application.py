@@ -200,6 +200,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         Create the application with a dict of settings
         
         """
+        reportusage.record_usage(gui=True)
+
         vistrails.gui.theme.initializeCurrentTheme()
         VistrailsApplicationInterface.init(self, optionsDict, args)
         
@@ -229,6 +231,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # The window does not get maximized. If we do it too early,
         # there are no created windows during spreadsheet initialization.
         if interactive:
+            reportusage.record_usage(gui_interactive=True)
             if  self.temp_configuration.check('maximizeWindows'):
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
