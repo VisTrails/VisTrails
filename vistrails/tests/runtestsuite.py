@@ -180,6 +180,11 @@ if debug_mode:
 import vistrails.core.debug
 vistrails.core.debug.DebugPrint.getInstance().log_to_console()
 
+# Disable usage reporting
+os.environ['VISTRAILS_USAGE_STATS'] = 'off'
+from vistrails.core import reportusage
+reportusage.setup_usage_report()
+
 import vistrails.tests
 import vistrails.core
 import vistrails.core.db.io
