@@ -672,6 +672,18 @@ def initialize(*args, **keywords):
             raise RuntimeError("Failed to create cache directory: %s" %
                                package_directory, e)
 
+    # Migrate files to new naming scheme: max 100 characters, with a hash if
+    # it's too long
+    renamed = 0
+    for filename in list(os.listdir(package_directory)):
+        if len(filename) > MAX_CACHE_FILENAME:
+            new_name = cache_filename(filename)
+            os.rename(os.path.join(package_directory, filename),
+                      os.path.join(package_directory, new_name))
+            renamed += 1
+    if renamed:
+        debug.warning("Renamed %d downloaded cache files" % renamed)
+
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     module_remap = {
