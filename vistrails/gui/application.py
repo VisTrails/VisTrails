@@ -46,6 +46,7 @@ import getpass
 import re
 import sys
 import StringIO
+import usagestats
 
 from PyQt4 import QtGui, QtCore, QtNetwork
 
@@ -56,6 +57,7 @@ from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core import reportusage
 import vistrails.core.requirements
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
@@ -234,6 +236,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         self._initialized = True
 
+        # usage statistics
+        if reportusage.usage_report.status is usagestats.Stats.UNSET:
+            self.ask_enable_usage_report()
+
         # default handler installation
         if system.systemType == 'Linux':
             if not (self.temp_configuration.check('handlerDontAsk') or
@@ -247,6 +253,46 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             r = self.noninteractiveMode()
             return APP_SUCCESS if r is True else APP_FAIL
         return APP_SUCCESS
+
+    def ask_enable_usage_report(self):
+        if hasattr(self, 'splashScreen') and self.splashScreen:
+            self.splashScreen.hide()
+        dialog = QtGui.QDialog()
+        dialog.setWindowTitle(u"Anonymous usage statistics")
+        layout = QtGui.QVBoxLayout()
+        dialog.setLayout(layout)
+        descr = QtGui.QTextBrowser()
+        descr.setOpenExternalLinks(True)
+        descr.setHtml(
+            u"<p>Please help us by reporting anonymous statistics about how "
+            u"you use VisTrails.</p>"
+            u"<p>We would like to collect high-level details like which "
+            u"packages you use, which features, the size of your workflows "
+            u"and version trees, ... This information is reported anonymously "
+            u"and will only be used by the VisTrails team, to help guide our "
+            u"efforts.</p>"
+            u"<p><a href=\"http://www.vistrails.org/\" target=\"_blank\">We are also conducting "
+            u"a survey of VisTrails users. If you have a minute, please "
+            u"consider helping us by visiting this page.</a></p>")
+        layout.addWidget(descr)
+        layout.addWidget(QtGui.QLabel(
+            u"Send anonymous reports to the developers?"))
+        dont_ask = QtGui.QCheckBox(u"Don't ask again")
+        layout.addWidget(dont_ask)
+        buttons = QtGui.QDialogButtonBox(
+                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        layout.addWidget(buttons)
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                     dialog, QtCore.SLOT('accept()'))
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                     dialog, QtCore.SLOT('reject()'))
+
+        res = dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            reportusage.usage_report.enable_reporting()
+        else:
+            if dont_ask.isChecked():
+                reportusage.usage_report.disable_reporting()
 
     def ask_update_default_application(self, dont_ask_checkbox=True):
         if hasattr(self, 'splashScreen') and self.splashScreen:
