@@ -704,6 +704,35 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 import unittest
 
 
+class TestNaming(unittest.TestCase):
+    def test_short(self):
+        self.assertEqual(cache_filename('http://www.google.com/search'),
+                         'http%3A%2F%2Fwww.google.com%2Fsearch')
+        self.assertEqual(cache_filename('scp://admin@machine:/etc/passwd'),
+                         'scp%3A%2F%2Fadmin%40machine%3A%2Fetc%2Fpasswd')
+
+    def test_long(self):
+        self.assertEqual(cache_filename('https://www.google.com/url?sa=t&rct=j'
+                                        '&q=&esrc=s&source=web&cd=1&cad=rja&ua'
+                                        'ct=8&ved=0ahUKEwjFlbDQ1ovLAhVsv4MKHcr'
+                                        'LAjMQFggcMAA&url=http%3A%2F%2Fwww.vis'
+                                        'trails.org%2Fusersguide%2Fdev%2Fhtml%'
+                                        '2Fjob_submission.html&usg=AFQjCNHc6W3'
+                                        'lWQShmPfYOMsT21kwckBEzw&sig2=3i2AMtOw'
+                                        'njJQsKtnqOSfQg&bvm=bv.114733917,d.dm'
+                                        'o'),
+                         'https%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3D'
+                         'j%26q%3'
+                         '_f7d14d30f12413851cc222a61618d5bad6119f77')
+        self.assertEqual(cache_filename('ssh://admin@machine.domain.tld:22022/'
+                                        'var/lib/apt/lists/security.debian.org'
+                                        '_dists_jessie_updates_main_binary-amd'
+                                        '64_Packages'),
+                         'ssh%3A%2F%2Fadmin%40machine.domain.tld%3A22022%2Fvar'
+                         '%2Flib%'
+                         '_e1f69dccfec6f14cdb08f6041a2a43e63d21863d')
+
+
 class TestDownloadFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
