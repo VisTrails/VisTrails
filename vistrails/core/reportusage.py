@@ -44,6 +44,7 @@ import os
 import tempfile
 import usagestats
 
+from vistrails.core import debug
 from vistrails.core.system import vistrails_version
 
 
@@ -93,12 +94,14 @@ def record_usage(**kwargs):
     """Records some info in the current usage report.
     """
     if usage_report is not None:
+        debug.debug("record_usage %r" % (kwargs,))
         usage_report.note(kwargs)
 
 
 def submit_usage_report(**kwargs):
     """Submits the current usage report to the usagestats server.
     """
+    debug.debug("submit_usage_report %r" % (kwargs,))
     usage_report.submit(kwargs,
                         usagestats.OPERATING_SYSTEM,
                         usagestats.SESSION_TIME,
