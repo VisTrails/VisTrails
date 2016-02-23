@@ -60,10 +60,8 @@ class PortTable(QtWidgets.QTableWidget):
     def __init__(self, **kwargs):
         super().__init__(1, 3, **kwargs)
         horiz = self.horizontalHeader()
-        horiz.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+        horiz.setSectionResizeMode(horiz.Interactive)
         horiz.setSectionsMovable(False)
-        #horiz.setStretchLastSection(True)
-        horiz.setSectionResizeMode(1, horiz.Stretch)
         self.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.delegate = PortTableItemDelegate(self)

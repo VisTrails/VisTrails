@@ -99,6 +99,18 @@ class SourceWidget(PortTableConfigurationWidget):
             self.outputPortTable.initializePorts(self.module.output_port_specs,
                                                  True)
             self.layout().addWidget(self.outputPortTable)
+        if has_inputs or has_outputs:
+            if has_outputs:
+                horiz = self.outputPortTable.horizontalHeader()
+            else:
+                horiz = self.inputPortTable.horizontalHeader()
+            # This will sync with both ports
+            horiz.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            horiz.setSectionsMovable(False)
+            horiz.setSectionResizeMode(0,
+                                       QtWidgets.QHeaderView.ResizeToContents)
+            horiz.setSectionResizeMode(1,
+                              self.outputPortTable.horizontalHeader().Stretch)
         if has_inputs and has_outputs:
             self.performPortConnection('connect')
         if has_inputs:
@@ -192,30 +204,38 @@ class SourceViewerWidget(SourceWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = QtWidgets.QTableWidget(1, 3, self)
+            self.inputPortTable.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            self.inputPortTable.setFrameStyle(QtWidgets.QFrame.NoFrame)
+            horiz = self.inputPortTable.horizontalHeader()
+            horiz.setSectionResizeMode(horiz.Interactive)
+            horiz.setSectionsMovable(False)
             labels = ["Input Port Name", "Type", "List Depth"]
-            self.inputPortTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
-            self.inputPortTable.horizontalHeader().setSectionsMovable(False)
-            #self.inputPortTable.horizontalHeader().setStretchLastSection(True)
-            self.inputPortTable.horizontalHeader().setSectionResizeMode(1, self.inputPortTable.horizontalHeader().Stretch)
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.initializePorts(self.inputPortTable,
                                  self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
             self.outputPortTable = QtWidgets.QTableWidget(1, 3, self)
+            self.outputPortTable.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            self.outputPortTable.setFrameStyle(QtWidgets.QFrame.NoFrame)
+            horiz = self.outputPortTable.horizontalHeader()
+            horiz.setSectionResizeMode(horiz.Interactive)
+            horiz.setSectionsMovable(False)
             labels = ["Output Port Name", "Type", "List Depth"]
-            self.outputPortTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
-            self.outputPortTable.horizontalHeader().setSectionsMovable(False)
-            #self.outputPortTable.horizontalHeader().setStretchLastSection(True)
-            self.outputPortTable.horizontalHeader().setSectionResizeMode(1, self.outputPortTable.horizontalHeader().Stretch)
-
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.initializePorts(self.outputPortTable,
                                  self.module.output_port_specs, True)
             self.layout().addWidget(self.outputPortTable)
+        if has_inputs or has_outputs:
+            if has_outputs:
+                horiz = self.outputPortTable.horizontalHeader()
+            else:
+                horiz = self.inputPortTable.horizontalHeader()
+            # This will sync to both tables
+            horiz.setSectionResizeMode(0, horiz.ResizeToContents)
+            horiz.setSectionResizeMode(1, horiz.Stretch)
         if has_inputs and has_outputs:
             self.performPortConnection('connect')
-
         if has_inputs:
             self.fixTableGeometry(self.inputPortTable)
         if has_outputs:
