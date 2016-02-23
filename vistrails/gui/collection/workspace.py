@@ -476,7 +476,7 @@ class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
     detachVistrail = QtCore.pyqtSignal(QtWidgets.QWidget)
 
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         self.setWindowTitle('Workspace')
         # make it possible to ignore updates during updating of workspace list

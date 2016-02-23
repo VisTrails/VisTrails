@@ -66,7 +66,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
 
     """
     def __init__(self, parent=None):
-        QSearchTreeWindow.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setContentsMargins(0,5,0,0)
         self.packages = {}
         self.namespaces = {}

@@ -45,7 +45,8 @@ from .constant_configuration import StandardConstantWidget, ColorWidget
 class QueryWidgetMixin(object):
 
     contentsChanged = QtCore.pyqtSignal(object, object)
-    def __init__(self, contents=None, query_method=None):
+    def __init__(self, contents=None, query_method=None, **kwargs):
+        super().__init__(**kwargs)
         self._last_contents = contents
         self._last_query_method = query_method
 
@@ -66,9 +67,10 @@ class QueryWidgetMixin(object):
             self.contentsChanged.emit((self,new_contents))
 
 class BaseQueryWidget(QtWidgets.QWidget, QueryWidgetMixin):
-    def __init__(self, contents_klass, query_methods, param, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
-        QueryWidgetMixin.__init__(self, param.strValue, param.queryMethod)
+    def __init__(self, contents_klass, query_methods, param, **kwargs):
+        super().__init__(contents=param.strValue,
+                         query_method=param.queryMethod,
+                         **kwargs)
 
         contents = param.strValue
         queryMethod = param.queryMethod
@@ -126,23 +128,21 @@ class BaseQueryWidget(QtWidgets.QWidget, QueryWidgetMixin):
                 return str(action.text())
 
 class StandardQueryWidget(BaseQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, StandardConstantWidget, ["==", "!="],
-                                 param, parent)
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=StandardConstantWidget,
+                         query_methods=["==", "!="], **kwargs)
 
 class StringQueryWidget(StandardQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, StandardConstantWidget, 
-                                 ["*[]*", "==", "=~"],
-                                 param, parent)
-    
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=StandardConstantWidget,
+                         query_methods=["*[]*", "==", "=~"], **kwargs)
+
 class NumericQueryWidget(StandardQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, StandardConstantWidget,
-                                 ["==", "<", ">", "<=", ">="], 
-                                 param, parent)
-    
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=StandardConstantWidget,
+                         query_methods=["==", "<", ">", "<=", ">="], **kwargs)
+
 class ColorQueryWidget(StandardQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, ColorWidget, ["2.3", "5", "10", "50"],
-                                 param, parent)
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=ColorWidget,
+                         query_methods=["2.3", "5", "10", "50"], **kwargs)

@@ -56,8 +56,8 @@ def NewTextEditor(parent):
     from PyQt5.Qsci import QsciScintilla
     class _TextEditor(QsciScintilla):
     
-        def __init__(self, parent=None):
-            QsciScintilla.__init__(self, parent)
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
             ## set the default font of the editor
             ## and take the same font for line numbers
             font = CurrentTheme.PYTHON_SOURCE_EDITOR_FONT
@@ -129,8 +129,8 @@ def NewTextEditor(parent):
 
 class OldTextEditor(QtWidgets.QTextEdit):
 
-    def __init__(self, parent=None):
-        QtWidgets.QTextEdit.__init__(self, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.setAcceptRichText(False)
         self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.formatChanged(None)
@@ -152,6 +152,9 @@ class OldTextEditor(QtWidgets.QTextEdit):
             QtWidgets.QTextEdit.keyPressEvent(self, event)
             
 class TextConfigurationWidget(SourceConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, 
-                                           TextEditor, False, False, parent, False, portName='value')
+    def __init__(self, **kwargs):
+        super().__init__(editor_class=TextEditor,
+                         has_inputs=False,
+                         has_outputs=False,
+                         encode=False,
+                         portName='value', **kwargs)

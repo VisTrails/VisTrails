@@ -248,8 +248,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
     def stop_timer(self):
         if self.timer:
-            self.timer.timeout.connect(self.write_temporary)
             self.timer.stop()
+            self.timer.timeout.disconnect(self.write_temporary)
+            self.timer = None
 
     def reset_redo_stack(self):
         self.redo_stack = []

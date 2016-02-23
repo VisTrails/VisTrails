@@ -280,7 +280,7 @@ class QLegendWindow(QtWidgets.QWidget):
         
 class QDiffProperties(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         self.controller = None
         self.set_title("Diff Properties")
@@ -944,7 +944,7 @@ class QVisualDiff(QtWidgets.QMainWindow):
         self.inspector = QParamInspector(v1Name, v2Name, self)
         self.inspector.resize(QtCore.QSize(
             *CurrentTheme.VISUAL_DIFF_PARAMETER_WINDOW_SIZE))
-        self.legendWindow = QLegendWindow(v1Name, v2Name,self)
+        self.legendWindow = QLegendWindow(v1Name, v2Name, self)
 
     def moduleSelected(self, id, selectedItems):
         """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None

@@ -67,7 +67,7 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
         -> None
 
         """
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setWindowTitle("Module Execution Options")
         self.createButtons()
         self.update_module()

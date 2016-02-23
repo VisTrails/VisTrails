@@ -107,7 +107,7 @@ class QVersionProp(QtWidgets.QWidget, QVistrailsPaletteInterface):
         Initialize the main layout
         
         """
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setWindowTitle('Workflow Info')
 
         vLayout = QtWidgets.QVBoxLayout()

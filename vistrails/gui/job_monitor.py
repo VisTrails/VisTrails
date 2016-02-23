@@ -122,7 +122,7 @@ class QJobTree(QtWidgets.QTreeWidget):
 
 class QJobView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         self.timer_id = None
         self.updating_now = False

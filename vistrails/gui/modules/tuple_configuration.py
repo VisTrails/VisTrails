@@ -57,8 +57,8 @@ from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
 class PortTable(QtWidgets.QTableWidget):
     contentsChanged = QtCore.pyqtSignal()
-    def __init__(self, parent=None):
-        QtWidgets.QTableWidget.__init__(self,1,3,parent)
+    def __init__(self, **kwargs):
+        super().__init__(1, 3, **kwargs)
         horiz = self.horizontalHeader()
         horiz.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
         horiz.setSectionsMovable(False)
@@ -99,7 +99,7 @@ class PortTable(QtWidgets.QTableWidget):
             self.contentsChanged.emit()
 
     def initializePorts(self, port_specs, reverse_order=False):
-        self.model().dataChanged.connect(self.handleDataChanged)
+        self.model().dataChanged.disconnect(self.handleDataChanged)
         if reverse_order:
             port_specs_iter = reversed(port_specs)
         else:
@@ -230,6 +230,7 @@ class PortTableItemDelegate(QtWidgets.QItemDelegate):
 
 ############################################################################
 
+
 class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     """
     PortTableConfigurationWidget is the configuration widget for a
@@ -261,23 +262,15 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     That's it, the rest of the widget will be just like a regular Qt
     widget.
     
-    """
-    def __init__(self, module, controller, parent=None):
-        """ PortTableConfigurationWidget(module: Module,
-                                         controller: VistrailController,
-                                         parent: QWidget)
-                                         -> PortTableConfigurationWidget                                       
-        Let StandardModuleConfigurationWidget constructor store the
-        controller/module object from the builder and set up the
-        configuration widget.        
-        After StandardModuleConfigurationWidget constructor, all of
-        these will be available:
-        self.module : the Module object int the pipeline        
-        self.controller: the current vistrail controller
+    Let StandardModuleConfigurationWidget constructor store the
+    controller/module object from the builder and set up the
+    configuration widget.
+    After StandardModuleConfigurationWidget constructor, all of
+    these will be available:
+    self.module : the Module object int the pipeline
+    self.controller: the current vistrail controller
                                        
-        """
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+    """
 
     def updateVistrail(self):
         msg = "Must implement updateVistrail in subclass"
@@ -305,7 +298,7 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     def sizeHint(self):
         """ sizeHint() -> QSize
         Return the recommended size of the configuration window
-        
+
         """
         return QtCore.QSize(512, 256)
 
@@ -369,12 +362,8 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         return (deleted_ports, added_ports)
     
 class TupleConfigurationWidget(PortTableConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        """ TupleConfigurationWidget(module: Module,
-                                     controller: VistrailController,
-                                     parent: QWidget)
-                                     -> TupleConfigurationWidget
-
+    def __init__(self, **kwargs):
+        """
         Let StandardModuleConfigurationWidget constructor store the
         controller/module object from the builder and set up the
         configuration widget.        
@@ -384,8 +373,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.controller: the current vistrail controller
                                        
         """
-        PortTableConfigurationWidget.__init__(self, module,
-                                              controller, parent)
+        super().__init__(**kwargs)
 
         # Give it a nice window title
         self.setWindowTitle('Tuple Configuration')
@@ -478,22 +466,18 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
 #        QtGui.QWidget.focusOutEvent(self, event)
                 
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        """ UntupleConfigurationWidget(module: Module,
-                                     controller: VistrailController,
-                                     parent: QWidget)
-                                     -> UntupleConfigurationWidget                                       
+    def __init__(self, **kwargs):
+        """
         Let StandardModuleConfigurationWidget constructor store the
         controller/module object from the builder and set up the
-        configuration widget.        
+        configuration widget.
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
-        self.module : the Module object int the pipeline        
+        self.module : the Module object int the pipeline
         self.controller: the current vistrail controller
-                                       
+
         """
-        PortTableConfigurationWidget.__init__(self, module,
-                                              controller, parent)
+        super().__init__(**kwargs)
 
         # Give it a nice window title
         self.setWindowTitle('Untuple Configuration')

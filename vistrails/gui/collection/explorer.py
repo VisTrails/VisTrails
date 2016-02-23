@@ -36,23 +36,18 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-from vistrails.core import debug
-from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.collection.search import SearchCompiler, SearchParseError
-from vistrails.core.db.locator import FileLocator, DBLocator
-from vistrails.core.system import default_connections_file
-from vistrails.core.external_connection import ExtConnectionList
+from vistrails.core.db.locator import DBLocator
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import test_db_connection
 from vistrails.db.services.query import runLogQuery, runWorkflowQuery
-from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.open_db_window import QDBConnectionList, QConnectionDBSetupWindow
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 import vistrails.gui
 
+
 class QExplorerWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)

@@ -58,8 +58,8 @@ class QLatexFigureItem(QtWidgets.QListWidgetItem):
 
 
 class QLatexAssistant(QtWidgets.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtWidgets.QWidget.__init__(self, parent, f)
+    def __init__(self, flags=QtCore.Qt.WindowFlags(), **kwargs):
+        super().__init__(flags=flags, **kwargs)
         
         self.set_title("Export To LaTeX")
 
@@ -437,9 +437,8 @@ class QLatexAssistant(QtWidgets.QWidget, QVistrailsPaletteInterface):
         pass
 
 class QVersionEmbed(QtWidgets.QWidget, QVistrailsPaletteInterface):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtWidgets.QWidget.__init__(self, parent, 
-                               f | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
+    def __init__(self, flags=QtCore.Qt.WindowFlags(), **kwargs):
+        super().__init__(flags=flags | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint, **kwargs)
         self.setWindowTitle('Publish Workflow')
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.versionNumber = None

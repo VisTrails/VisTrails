@@ -57,7 +57,7 @@ class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
         Initialize widget constraints
         
         """
-        QVariableDropBox.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setWindowTitle('Vistrail Variables')
         self.setToolWindowAcceptDrops(True)
 

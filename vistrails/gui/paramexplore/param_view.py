@@ -71,6 +71,7 @@ class ParameterInfo(InstanceObject):
 
 ################################################################################
 
+
 class QParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """
     QParameterView contains the parameter exploration properties and the
@@ -78,7 +79,7 @@ class QParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     
     """
     def __init__(self, controller=None, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.set_title('Pipeline Methods')
         
         self.controller = None
@@ -131,6 +132,7 @@ class QParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def get_palette(self):
         from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
         return QParamExploreInspector.instance()
+
 
 class QParameterWidget(QSearchTreeWindow):
     """

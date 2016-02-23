@@ -81,7 +81,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtWidgets.QGraphicsPolygonItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtWidgets.QGraphicsPolygonItem.__init__(self,  parent)
+        super().__init__(parent=parent)
         self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
         self.linkPen = CurrentTheme.LINK_PEN
@@ -273,7 +273,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtWidgets.QGraphicsTextIt
         Create the shape, intialize its drawing style
 
         """
-        QtWidgets.QGraphicsTextItem.__init__(self,  parent)
+        super().__init__(parent=parent)
         self.timer = None
         self.isEditable = None
         self.setEditable(False)
@@ -408,7 +408,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtWidgets.QGraphicsEllipseIte
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtWidgets.QGraphicsEllipseItem.__init__(self,  parent)
+        super().__init__(parent=parent)
         self.setZValue(1)
         self.setAcceptDrops(True)
         self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
@@ -773,7 +773,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Initialize the graphics scene with no shapes
         
         """
-        QInteractiveGraphicsScene.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setBackgroundBrush(CurrentTheme.VERSION_TREE_BACKGROUND_BRUSH)
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
         self.versions = {}  # id -> version gui object

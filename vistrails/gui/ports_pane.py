@@ -708,7 +708,7 @@ class PortsList(QtWidgets.QTreeWidget):
 
 class QPortsPane(QtWidgets.QWidget, QToolWindowInterface):
     def __init__(self, port_type, parent=None, flags=QtCore.Qt.Widget):
-        QtWidgets.QWidget.__init__(self, parent, flags)
+        super().__init__(parent=parent, flags=flags)
         self.port_type = port_type
         self.build_widget()
         self.controller = None

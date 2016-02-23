@@ -48,7 +48,7 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
     Configuration widget creating the ports corresponding to the format.
 
     """
-    def __init__(self, module, controller, parent=None):
+    def __init__(self, **kwargs):
         """ StringFormatConfigurationWidget(
                 module: Module,
                 controller: VistrailController,
@@ -64,8 +64,7 @@ class StringFormatConfigurationWidget(StandardModuleConfigurationWidget):
         self.controller: the current vistrail controller
 
         """
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+        super().__init__(**kwargs)
 
         # Give it a nice window title
         self.setWindowTitle("StringFormat Configuration")

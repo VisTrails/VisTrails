@@ -52,7 +52,7 @@ import os
 
 class QModuleInfo(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
-        QtWidgets.QWidget.__init__(self, parent, flags)
+        super().__init__(parent=parent, flags=flags)
         self.ports_visible = True
         self.types_visible = True
 

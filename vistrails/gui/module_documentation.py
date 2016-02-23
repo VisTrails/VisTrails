@@ -58,7 +58,7 @@ class QModuleDocumentation(QtWidgets.QDialog, QVistrailsPaletteInterface):
         -> None
 
         """
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent=parent)
         # self.setModal(True)
         self.setWindowTitle("Module Documentation")
         self.setLayout(QtWidgets.QVBoxLayout())

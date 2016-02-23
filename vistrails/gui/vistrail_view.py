@@ -77,7 +77,7 @@ class QVistrailView(QtWidgets.QWidget):
         """ QVistrailView(parent: QWidget) -> QVistrailView
         
         """
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

@@ -47,6 +47,7 @@ from vistrails.gui.modules.tuple_configuration import PortTableConfigurationWidg
 from vistrails.gui.theme import CurrentTheme
 import urllib.request, urllib.parse, urllib.error
 
+
 class SourceEditor(QtWidgets.QTextEdit):
 
     def __init__(self, parent=None):
@@ -62,14 +63,16 @@ class SourceEditor(QtWidgets.QTextEdit):
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)
 
+
 class SourceWidget(PortTableConfigurationWidget):
-    def __init__(self, module, controller, editor_class=None,
+    def __init__(self, module, editor_class=None,
                  has_inputs=True, has_outputs=True, parent=None,
-                 encode=True, portName='source'):
-        PortTableConfigurationWidget.__init__(self, module, controller, parent)
+                 encode=True, portName='source', **kwargs):
+        super().__init__(module=module,
+                         parent=parent, **kwargs)
         if editor_class is None:
             editor_class = SourceEditor
-        self.codeEditor = editor_class(parent)
+        self.codeEditor = editor_class(parent=parent)
         self.setWindowTitle('%s Configuration' % module.name)
         self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setContentsMargins(0,0,0,0)
@@ -84,13 +87,13 @@ class SourceWidget(PortTableConfigurationWidget):
 
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
-            self.inputPortTable = PortTable(self)
+            self.inputPortTable = PortTable(parent=self)
             labels = ["Input Port Name", "Type", "List Depth"]
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.inputPortTable.initializePorts(self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
-            self.outputPortTable = PortTable(self)
+            self.outputPortTable = PortTable(parent=self)
             labels = ["Output Port Name", "Type", "List Depth"]
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.outputPortTable.initializePorts(self.module.output_port_specs,
@@ -174,14 +177,12 @@ class SourceWidget(PortTableConfigurationWidget):
     def activate(self):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
 
+
 class SourceViewerWidget(SourceWidget):
     widgetClosed = QtCore.pyqtSignal()
-    def __init__(self, module, controller, editor_class=None,
-                 has_inputs=True, has_outputs=True, parent=None,
-                 encode=True, portName='source'):
-        SourceWidget.__init__(self, module, controller, editor_class,
-                              has_inputs, has_outputs, parent, encode,
-                              portName)
+
+    def __init__(self, module, **kwargs):
+        super().__init__(module=module, **kwargs)
         self.codeEditor.setReadOnly(True)
         self.createCloseButton()
         self.setWindowTitle('%s Configuration (Read-Only)' % module.name)
@@ -247,6 +248,7 @@ class SourceViewerWidget(SourceWidget):
                                                     table.columnCount()-1))
         table.setFixedHeight(table.horizontalHeader().height()+
                              rect.y()+rect.height()+1)
+
     def createCloseButton(self):
         hboxlayout = QtWidgets.QHBoxLayout()
         self.closeButton = QtWidgets.QPushButton("Close")
@@ -260,13 +262,11 @@ class SourceViewerWidget(SourceWidget):
         self.widgetClosed.emit()
         self.close()
 
+
 class SourceConfigurationWidget(SourceWidget):
-    def __init__(self, module, controller, editor_class=None,
-                 has_inputs=True, has_outputs=True, parent=None,
-                 encode=True, portName='source'):
-        SourceWidget.__init__(self, module, controller, editor_class,
-                              has_inputs, has_outputs, parent, encode,
-                              portName)
+    def __init__(self, has_inputs=True, has_outputs=True, **kwargs):
+        super().__init__(has_inputs=has_inputs,
+                         has_outputs=has_outputs, **kwargs)
         self.detached_windows = []
         self.createButtons()
         #connect signals
@@ -311,11 +311,14 @@ class SourceConfigurationWidget(SourceWidget):
 
     def detachReadOnlyWindow(self):
         from vistrails.gui.vistrails_window import _app
-        widget = SourceViewerWidget(self.module, self.controller,
-                                           type(self.codeEditor),
-                                           self.has_inputs, self.has_outputs,
-                                           None, self.sourceEncode,
-                                           self.sourcePortName)
+        widget = SourceViewerWidget(module=self.module,
+                                    controller=self.controller,
+                                    editor_class=type(self.codeEditor),
+                                    has_inputs=self.has_inputs,
+                                    has_outputs=self.has_outputs,
+                                    parent=None,
+                                    encode=self.sourceEncode,
+                                    portName=self.sourcePortName)
         window = QtWidgets.QMainWindow()
         window.setCentralWidget(widget)
         window.setWindowTitle(widget.windowTitle())
@@ -349,7 +352,7 @@ class SourceConfigurationWidget(SourceWidget):
         else:
             modified = self.codeEditor.isModified()
 
-        if (self.codeEditor is not None and modified):
+        if self.codeEditor is not None and modified:
             code = self.codeEditor.toPlainText()
             if self.sourceEncode:
                 code = urllib.parse.quote(code)

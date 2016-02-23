@@ -218,7 +218,7 @@ class QLegendBox(QtWidgets.QFrame):
 
 class QLegendWidget(QtWidgets.QWidget):
     """
-    QLegendWindow contains a list of QLegendBox and its description
+    QLegendWidget contains a list of QLegendBox and its description
     
     """
     def __init__(self, parent=None):
@@ -242,7 +242,7 @@ class QLegendWidget(QtWidgets.QWidget):
 
 class QLogDetails(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.controller = None
         self.execution = None
         self.parentItem = None
@@ -266,9 +266,6 @@ class QLogDetails(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.setLayout(layout)
         self.executionList.itemSelectionChanged.connect(self.set_execution)
         self.backButton.clicked.connect(self.goBack)
-#        self.connect(self.executionList, QtCore.SIGNAL(
-#         "itemClicked(QTreeWidgetItem *, int)"),
-#         self.singleClick)
         self.executionList.itemDoubleClicked.connect(self.doubleClick)
         self.addButtonsToToolbar()
 

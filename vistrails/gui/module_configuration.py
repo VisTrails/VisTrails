@@ -84,7 +84,7 @@ class QModuleConfiguration(QtWidgets.QScrollArea, QVistrailsPaletteInterface):
         Initialize widget constraints
         
         """
-        QtWidgets.QScrollArea.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowTitle('Module Configuration')
         self.setWidgetResizable(True)
@@ -131,7 +131,7 @@ class QModuleConfiguration(QtWidgets.QScrollArea, QVistrailsPaletteInterface):
                 pass
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
-            widget = widgetType(module, self.controller)
+            widget = widgetType(module=module, controller=self.controller)
         
             self.confWidget.setUpWidget(widget)
             widget.doneConfigure.connect(self.configureDone)

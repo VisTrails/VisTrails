@@ -52,10 +52,12 @@ from vistrails.gui.theme import CurrentTheme
 from vistrails.core.utils import InstanceObject
 
 ################################################################################
+
+
 class QAliasParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.set_title("Mashup Pipeline")
         layout = QtWidgets.QVBoxLayout()
         self.parameter_panel = QAliasParameterPanel()

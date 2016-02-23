@@ -57,8 +57,7 @@ class QMashupsInspector(QtWidgets.QFrame, QVistrailsPaletteInterface):
                             parent: QWidget) -> QMashupsInspector
         
         """
-        QtWidgets.QFrame.__init__(self, parent)
-        QVistrailsPaletteInterface.__init__(self)
+        super().__init__(parent=parent)
         #print "****** Inspector INIT"
         self.set_title("Mashups Inspector")
         self.setFrameStyle(QtWidgets.QFrame.Panel|QtWidgets.QFrame.Sunken)

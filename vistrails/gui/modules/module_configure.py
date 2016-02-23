@@ -42,13 +42,14 @@ from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 from vistrails.gui.common_widgets import QPromptWidget
 
+
 class StandardModuleConfigurationWidget(QtWidgets.QWidget):
 
     stateChanged = QtCore.pyqtSignal()
     doneConfigure = QtCore.pyqtSignal(int)
 
-    def __init__(self, module, controller, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+    def __init__(self, module, controller, **kwargs):
+        super().__init__(**kwargs)
         self.module = module
         self.controller = controller
         self.state_changed = False
@@ -80,9 +81,8 @@ class StandardModuleConfigurationWidget(QtWidgets.QWidget):
         raise VistrailsInternalError(msg)
 
 class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module, controller, 
-                                                   parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.prompt = QPromptWidget()
         self.prompt.setPromptText("Please use the visibility icon (an eye) in" 
                                   " the Module Information panel to show or"
@@ -101,9 +101,8 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     """ This is the Default ModuleConfigurationWidget that shows a list of
         ports to be enabled or disabled """
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module, controller, 
-                                                   parent)
+    def __init__(self, **kwargs):
+        super().__init__(self, **kwargs)
        
         self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setContentsMargin(0,0,0,0)

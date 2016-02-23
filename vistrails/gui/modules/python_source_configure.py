@@ -135,8 +135,8 @@ def NewPythonEditor(parent):
     from PyQt5.Qsci import QsciScintilla, QsciLexerPython
     class _PythonEditor(QsciScintilla):
     
-        def __init__(self, parent=None):
-            QsciScintilla.__init__(self, parent)
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
             ## set the default font of the editor
             ## and take the same font for line numbers
             font = CurrentTheme.PYTHON_SOURCE_EDITOR_FONT
@@ -210,12 +210,12 @@ def NewPythonEditor(parent):
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)
 #            QsciScintilla.focusOutEvent(self, event)
 
-    return _PythonEditor(parent)
+    return _PythonEditor(parent=parent)
 
 class OldPythonEditor(QtWidgets.QTextEdit):
 
-    def __init__(self, parent=None):
-        QtWidgets.QTextEdit.__init__(self, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.setAcceptRichText(False)
         self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.formatChanged(None)
@@ -243,6 +243,5 @@ class OldPythonEditor(QtWidgets.QTextEdit):
 #        QtGui.QTextEdit.focusOutEvent(self, event)
 
 class PythonSourceConfigurationWidget(SourceConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, 
-                                           PythonEditor, True, True, parent)
+    def __init__(self, **kwargs):
+        super().__init__(editor_class=PythonEditor, **kwargs)

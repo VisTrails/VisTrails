@@ -78,8 +78,8 @@ from vistrails.db import VistrailsDBException
 
 class QBaseViewWindow(QtWidgets.QMainWindow):
     viewWasClosed = QtCore.pyqtSignal(QtWidgets.QWidget)
-    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtWidgets.QMainWindow.__init__(self, parent, f)
+    def __init__(self, view=None, parent=None, flags=QtCore.Qt.WindowFlags()):
+        super().__init__(parent=parent, flags=flags)
        
         self.view = view
 
@@ -357,9 +357,9 @@ class QBaseViewWindow(QtWidgets.QMainWindow):
         
 class QVistrailViewWindow(QBaseViewWindow):
     window_closed = QtCore.pyqtSignal(QtWidgets.QWidget)
-    def __init__(self, view=None, parent=None, f=QtCore.Qt.WindowFlags()):
-        QBaseViewWindow.__init__(self, view, parent, f)
-        
+    def __init__(self, view=None, parent=None, flags=QtCore.Qt.WindowFlags()):
+        super().__init__(view=view, parent=parent, flags=flags)
+
         self.setDocumentMode(True)
         self.view = view
 
@@ -867,11 +867,11 @@ class QVistrailViewWindow(QBaseViewWindow):
         #     view_menu.addAction(action)
 
 class QVistrailsWindow(QVistrailViewWindow):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+    def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         global _app
         _app = self
 
-        QVistrailViewWindow.__init__(self, None, parent, f)
+        super().__init__(view=None, parent=parent, flags=flags)
 
         self.stack = QtWidgets.QStackedWidget()
         self.vistrail_widgets = []
@@ -2603,8 +2603,8 @@ _app = None
     
             
 class QPaletteMainWindow(QtWidgets.QMainWindow):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtWidgets.QMainWindow.__init__(self, parent, f)
+    def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
+        super().__init__(parent=parent, flags=flags)
         self.palettes = []
         self.windows = []
         
