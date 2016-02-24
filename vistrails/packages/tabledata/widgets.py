@@ -82,9 +82,8 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
     """
     Configuration widget allowing to create the ports of the BuildTable module.
     """
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # Window title
         self.setWindowTitle("Build table configuration")

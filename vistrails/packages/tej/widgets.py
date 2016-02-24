@@ -15,10 +15,12 @@ class ShellSourceConfigurationWidget(SourceConfigurationWidget):
     Allows the user to edit a shell script that will be run on the server.
     """
     def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller,
-                                           TextEditor,
-                                           has_inputs=False, has_outputs=False,
-                                           parent=parent)
+        super().__init__(module=module,
+                         controller=controller,
+                         editor_class=TextEditor,
+                         has_inputs=False,
+                         has_outputs=False,
+                         parent=parent)
 
 
 class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
@@ -26,9 +28,8 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
     Allows to edit a list of filenames.
     """
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # Window title
         self.setWindowTitle("Directory configuration")

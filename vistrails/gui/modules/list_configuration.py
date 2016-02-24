@@ -51,12 +51,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
     the 'head' input ports should be sufficient.
 
     """
-    def __init__(self, module, controller, parent=None):
-        """ ListConfigurationWidget(module: Module,
-                                     controller: VistrailController,
-                                     parent: QWidget)
-                                     -> TupleConfigurationWidget
-
+    def __init__(self, **kwargs):
+        """
         Let StandardModuleConfigurationWidget constructor store the
         controller/module object from the builder and set up the
         configuration widget.
@@ -66,8 +62,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.controller: the current vistrail controller
 
         """
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+        super().__init__(**kwargs)
 
         # Give it a nice window title
         self.setWindowTitle("List Configuration")

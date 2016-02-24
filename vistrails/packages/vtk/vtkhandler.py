@@ -42,20 +42,22 @@ from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib.request, urllib.parse, urllib.error
 
 ################################################################################
+
+
 class HandlerConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
-        """ HandlerConfigurationWidget(module: Module,
-                                       controller: VistrailController,
-                                       parent: QWidget)
-                                       -> HandlerConfigurationWidget
+        """
         Setup the dialog to similar to PythonSource but with a
         different name
 
         """
-        SourceConfigurationWidget.__init__(self, module, controller,
-                                           PythonEditor, False, False, parent,
-                                           portName='Handler')
-
+        super().__init__(module=module,
+                         controller=controller,
+                         editor_class=PythonEditor,
+                         has_inputs=False,
+                         has_outputs=False,
+                         parent=parent,
+                         portName='Handler')
 
 
 class vtkInteractionHandler(NotCacheable, Module):

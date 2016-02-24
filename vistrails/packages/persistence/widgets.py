@@ -640,18 +640,15 @@ class PersistentRefViewSearch(QtWidgets.QGroupBox):
     
 
 class PersistentPathConfiguration(StandardModuleConfigurationWidget):
-    doneConfigure = QtCore.pyqtSignal(int)
-    def __init__(self, module, controller, parent=None, 
-                 is_input=None, path_type=None):
-        StandardModuleConfigurationWidget.__init__(self, module, controller, 
-                                                   parent)
+    def __init__(self, is_input=None, path_type=None, **kwargs):
+        super().__init__(self, **kwargs)
 
         # set title
-        if module.has_annotation_with_key('__desc__'):
-            label = module.get_annotation_by_key('__desc__').value.strip()
-            title = '%s (%s) Module Configuration' % (label, module.name)
+        if self.module.has_annotation_with_key('__desc__'):
+            label = self.module.get_annotation_by_key('__desc__').value.strip()
+            title = '%s (%s) Module Configuration' % (label, self.module.name)
         else:
-            title = '%s Module Configuration' % module.name
+            title = '%s Module Configuration' % self.module.name
         self.setWindowTitle(title)
 
         self.build_gui(is_input, path_type)
@@ -1001,32 +998,28 @@ class PersistentRefInlineWidget(QtWidgets.QWidget, ConstantWidgetMixin):
             self.update_parent()
 
 class PersistentInputFileConfiguration(PersistentInputPathConfiguration):
-    def __init__(self, module, controller, parent=None):
-        PersistentInputPathConfiguration.__init__(self, module, controller, 
-                                               parent, "blob")
+    def __init__(self, **kwargs):
+        super().__init__(path_type='blob', **kwargs)
     def get_chooser_layout(self):
         return PathChooserLayout(False, self)
     
 class PersistentInputDirConfiguration(PersistentInputPathConfiguration):
-    def __init__(self, module, controller, parent=None):
-        PersistentInputPathConfiguration.__init__(self, module, controller, 
-                                               parent, "tree")
+    def __init__(self, **kwargs):
+        super().__init__(path_type='tree', **kwargs)
 
     def get_chooser_layout(self):
         return PathChooserLayout(True, self)
 
 class PersistentOutputFileConfiguration(PersistentOutputPathConfiguration):
-    def __init__(self, module, controller, parent=None):
-        PersistentOutputPathConfiguration.__init__(self, module, controller, 
-                                               parent, "blob")
+    def __init__(self, **kwargs):
+        super().__init__(path_type='blob', **kwargs)
 
     def get_chooser_layout(self):
         return PathChooserLayout(False, self)
 
 class PersistentOutputDirConfiguration(PersistentOutputPathConfiguration):
-    def __init__(self, module, controller, parent=None):
-        PersistentOutputPathConfiguration.__init__(self, module, controller, 
-                                               parent, "tree")
+    def __init__(self, **kwargs):
+        super().__init__(path_type='tree', **kwargs)
 
     def get_chooser_layout(self):
         return PathChooserLayout(True, self)

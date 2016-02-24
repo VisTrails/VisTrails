@@ -49,9 +49,8 @@ from vistrails.gui.common_widgets import QDirectoryChooserToolButton
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 
 class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module, controller, 
-                                                   parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.update_widget()
 
     def get_configuration(self):

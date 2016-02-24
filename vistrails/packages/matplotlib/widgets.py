@@ -39,6 +39,7 @@
 from vistrails.gui.modules.python_source_configure import PythonEditor
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 
+
 class MplSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         """ MplSourceConfigurationWidget(module: Module,
@@ -49,9 +50,8 @@ class MplSourceConfigurationWidget(SourceConfigurationWidget):
         different name
         
         """
-        SourceConfigurationWidget.__init__(self, module=module,
-                                           controller=controller,
-                                           editor_class=PythonEditor,
-                                           has_inputs=True,
-                                           has_outputs=False,
-                                           parent=parent)
+        super().__init__(module=module,
+                         controller=controller,
+                         editor_class=PythonEditor,
+                         has_outputs=False,
+                         parent=parent)

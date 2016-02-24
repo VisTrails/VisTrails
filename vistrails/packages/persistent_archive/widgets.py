@@ -115,9 +115,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
     It is a visual editor for the strings functions set on the 'metadata' port,
     which have the form EqualString('mkey', 'mvalue') or EqualInt('mkey', 2).
     """
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # Window title
         self.setWindowTitle("Metadata editor")
@@ -271,8 +270,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
 class MetadataConstantWidget(ConstantWidgetBase, QtWidgets.QWidget):
     contentsChanged = QtCore.pyqtSignal(tuple)
 
-    def __init__(self, param, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+    def __init__(self, param, **kwargs):
+        super().__init__(**kwargs)
 
         self._key = QtWidgets.QLineEdit()
         self._key.returnPressed.connect(self.update_parent)
