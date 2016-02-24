@@ -49,5 +49,9 @@ class MplSourceConfigurationWidget(SourceConfigurationWidget):
         different name
         
         """
-        SourceConfigurationWidget.__init__(self, module, controller, 
-                                           PythonEditor, True, False, parent)
+        SourceConfigurationWidget.__init__(self, module=module,
+                                           controller=controller,
+                                           editor_class=PythonEditor,
+                                           has_inputs=True,
+                                           has_outputs=False,
+                                           parent=parent)

@@ -125,7 +125,7 @@ def NewTextEditor(parent):
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)
 #            QsciScintilla.focusOutEvent(self, event)
 
-    return _TextEditor(parent)
+    return _TextEditor(parent=parent)
 
 class OldTextEditor(QtWidgets.QTextEdit):
 
