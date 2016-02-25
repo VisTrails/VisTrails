@@ -346,8 +346,8 @@ class PersistentRefView(QtWidgets.QTreeView):
                     expand_index = self.model().mapFromSource(my_expand_index)
                     self.expand(expand_index)
                 self.selectionModel().select(
-                    index, QtGui.QItemSelectionModel.ClearAndSelect | \
-                        QtGui.QItemSelectionModel.Rows)
+                    index, QtCore.QItemSelectionModel.ClearAndSelect | \
+                        QtCore.QItemSelectionModel.Rows)
                 return True
         return False
 

@@ -299,12 +299,12 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         """
         if (self.selectionModel().isColumnSelected(logicalIndex, QtCore.QModelIndex())):
             self.selectionModel().select(self.model().index(0, logicalIndex),
-                                         QtGui.QItemSelectionModel.Deselect |
-                                         QtGui.QItemSelectionModel.Columns)
+                                         QtCore.QItemSelectionModel.Deselect |
+                                         QtCore.QItemSelectionModel.Columns)
         else:
             self.selectionModel().select(self.model().index(0, logicalIndex),
-                                         QtGui.QItemSelectionModel.Select |
-                                         QtGui.QItemSelectionModel.Columns)
+                                         QtCore.QItemSelectionModel.Select |
+                                         QtCore.QItemSelectionModel.Columns)
 
     def forceRowMultiSelect(self, logicalIndex):
         """ forceRowMultiSelect(logicalIndex: int) -> None
@@ -315,12 +315,12 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         """
         if (self.selectionModel().isRowSelected(logicalIndex, QtCore.QModelIndex())):
             self.selectionModel().select(self.model().index(logicalIndex, 0),
-                                         QtGui.QItemSelectionModel.Deselect |
-                                         QtGui.QItemSelectionModel.Rows)
+                                         QtCore.QItemSelectionModel.Deselect |
+                                         QtCore.QItemSelectionModel.Rows)
         else:
             self.selectionModel().select(self.model().index(logicalIndex, 0),
-                                         QtGui.QItemSelectionModel.Select |
-                                         QtGui.QItemSelectionModel.Rows)
+                                         QtCore.QItemSelectionModel.Select |
+                                         QtCore.QItemSelectionModel.Rows)
 
     def forceSheetSelect(self):
         """ forceSheetSelect() -> None
@@ -330,10 +330,10 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         totalCells = self.rowCount()*self.columnCount()
         if (len(self.selectionModel().selectedIndexes())<totalCells):
             self.selectionModel().select(
-                QtGui.QItemSelection(self.model().index(0,0),
+                QtCore.QItemSelection(self.model().index(0,0),
                                      self.model().index(self.rowCount()-1,
                                                         self.columnCount()-1)),
-                QtGui.QItemSelectionModel.Select)
+                QtCore.QItemSelectionModel.Select)
         else:
             self.selectionModel().clearSelection()
 
@@ -541,7 +541,7 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         (row, col) = self.getRealLocation(row, col, visual=True)
         if toggling:
             self.selectionModel().setCurrentIndex(self.model().index(row, col),
-                                                  QtGui.QItemSelectionModel.Toggle)
+                                                  QtCore.QItemSelectionModel.Toggle)
             if (self.selectionModel().isSelected(self.model().index(row, col))):
                 self.setActiveCell(row, col)
             else:
