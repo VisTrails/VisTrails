@@ -51,6 +51,7 @@ from . import imageviewer_rc
 
 ################################################################################
 
+
 class ImageFileToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration):
         fname = output_module.get_input('value').name
@@ -58,6 +59,7 @@ class ImageFileToSpreadsheet(SpreadsheetMode):
         local_file = window.file_pool.make_local_copy(fname)
         self.display_and_wait(output_module, configuration,
                               ImageViewerCellWidget, (local_file,))
+
 
 class ImageViewerCell(SpreadsheetCell):
     """
@@ -76,6 +78,7 @@ class ImageViewerCell(SpreadsheetCell):
         else:
             fileValue = None
         self.displayAndWait(ImageViewerCellWidget, (fileValue, ))
+
 
 class ImageViewerCellWidget(QCellWidget):
     """
@@ -169,7 +172,8 @@ class ImageViewerCellWidget(QCellWidget):
             self.label.setPixmap(self.originalPix.scaled(self.label.size(),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
-                
+
+
 class ImageViewerFitToCellAction(SpreadsheetAction):
     """
     ImageViewerFitToCellAction is the action to stretch the image to
@@ -182,10 +186,9 @@ class ImageViewerFitToCellAction(SpreadsheetAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtWidgets.QAction.__init__(self,
-                               QtGui.QIcon(":/images/fittocell.png"),
-                               "&Fit To Cell",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/fittocell.png"),
+                         "&Fit To Cell",
+                         parent)
         self.setStatusTip("Scale image content to fit cell frame")
         self.setCheckable(True)
         self.setChecked(True)
@@ -228,7 +231,6 @@ class ImageViewerZoomSlider(QtWidgets.QSlider):
         self.setTracking(True)
         self.setStatusTip("Zoom in the image")
         self.valueChanged.connect(self.updateZoom)
-        self.needUpdateStatus.connect(self.updateStatus)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                            QtWidgets.QSizePolicy.Expanding)
         
@@ -259,14 +261,15 @@ class ImageViewerZoomSlider(QtWidgets.QSlider):
             else:
                 self.setEnabled(False)
                 self.setValue(100)
-                
+
+
 class ImageViewerZoomLabel(QtWidgets.QLabel):
     """
     ImageViewerZoomLabel is the label sitting next to the ImageViewerZoomSlider
     
     """
     def __init__(self, parent=None):
-        """ ImageViewerZoomSlider(parent: QWidget) -> None
+        """ ImageViewerZoomLabel(parent: QWidget) -> None
         Setup the label with a status tip
         
         """
@@ -278,8 +281,9 @@ class ImageViewerZoomLabel(QtWidgets.QLabel):
         Updates the label with the new percentage value
         """
         self.setText(str(value)+"%")
-                
-class ImageViewerRotateAction(QtWidgets.QAction):
+
+
+class ImageViewerRotateAction(SpreadsheetAction):
     """
     ImageViewerRotateAction is the action to rotate the image
     
@@ -290,10 +294,9 @@ class ImageViewerRotateAction(QtWidgets.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtWidgets.QAction.__init__(self,
-                               QtGui.QIcon(":/images/rotate.png"),
-                               "&Rotate CW...",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/rotate.png"),
+                         "&Rotate CW...",
+                         parent)
         self.setStatusTip("Rotate 90 degrees CW")
         self.rotationMatrix = QtGui.QTransform(0,1,-1,0,0,0)
         
@@ -310,7 +313,8 @@ class ImageViewerRotateAction(QtWidgets.QAction):
         cellWidget.label.setPixmap(cellWidget.label.pixmap().transformed(
             self.rotationMatrix))
 
-class ImageViewerFlipAction(QtWidgets.QAction):
+
+class ImageViewerFlipAction(SpreadsheetAction):
     """
     ImageViewerFlipAction is the action to flip the image
     
@@ -320,10 +324,9 @@ class ImageViewerFlipAction(QtWidgets.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtWidgets.QAction.__init__(self,
-                               QtGui.QIcon(":/images/flip.png"),
-                               "&Flip Horizontal...",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/flip.png"),
+                         "&Flip Horizontal...",
+                         parent)
         self.setStatusTip("Flip the image horizontally")
         self.flipMatrix = QtGui.QTransform(-1,0,0,1,0,0)
         
@@ -339,6 +342,7 @@ class ImageViewerFlipAction(QtWidgets.QAction):
         cellWidget.originalPix = cellWidget.originalPix.transformed(
             self.flipMatrix)
         label.setPixmap(label.pixmap().transformed(self.flipMatrix))
+
 
 class ImageViewerToolBar(QCellToolBar):
     """

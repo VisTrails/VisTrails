@@ -415,8 +415,6 @@ class QCellToolBar(QtWidgets.QToolBar):
                                         controller=info['controller'],
                                         sinks=[mId])
 
-
-
     def createToolBar(self):
         """ createToolBar() -> None
         A user-defined method for customizing the toolbar. This is
@@ -468,12 +466,22 @@ class QCellToolBar(QtWidgets.QToolBar):
         self.connectAction(action, action)
         return action
 
+
+    def addSpreadsheetWidget(self, widget):
+        """ Reimplements addWidget using SpreadsheetWidgetAction
+        """
+        action = SpreadsheetWidgetAction(self)
+        action.setDefaultWidget(widget)
+        action.autoCreated = True
+        self.addAction(action)
+        return action
+
     def appendWidget(self, widget):
         """ appendWidget(widget: QWidget) -> QAction
         Setup the widget as an action and add it to the tool bar
 
         """
-        action = self.addWidget(widget)
+        action = self.addSpreadsheetWidget(widget)
         widget.toolBar = self
         action.toolBar = self
         self.connectAction(action, widget)
@@ -490,8 +498,24 @@ class QCellToolBar(QtWidgets.QToolBar):
             return None
 
 
-class SpreadsheetAction(QtWidgets.QAction):
+class SpreadsheetActionMixin:
+    """ Contains attributes common to all spreadsheet actions
+
+    """
     needUpdateStatus = QtCore.pyqtSignal(tuple)
+
+
+class SpreadsheetWidgetAction(QtWidgets.QWidgetAction, SpreadsheetActionMixin):
+    """ Used internally to create an action from a widget
+
+    """
+    pass
+
+class SpreadsheetAction(QtWidgets.QAction, SpreadsheetActionMixin):
+    """ Use this as the base when creating new spreadsheet action types
+
+    """
+    pass
 
 
 class QCellToolBarSelectedCell(SpreadsheetAction):
@@ -1196,10 +1220,8 @@ class QCellManipulator(QtWidgets.QFrame):
                                                            self.cellInfo[1],
                                                            self.cellInfo[2],
                                                            'Apply Analogy')
-
         else:
             event.ignore()
-
 
     def highlight(self, on=True):
         """ highlight(on: bool) -> None
