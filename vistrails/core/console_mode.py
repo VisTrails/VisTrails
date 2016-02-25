@@ -178,9 +178,6 @@ def get_wf_graph(w_list, output_dir, pdf=False):
                                                    thumbnails=thumbnails,
                                                    mashups=mashups,
                                                    auto_save=False)
-                # FIXME TE: why is this needed
-                controller.current_pipeline_view.set_controller(controller)
-
                 version = None
                 if isinstance(workflow, str):
                     version = v.get_version_number(workflow)

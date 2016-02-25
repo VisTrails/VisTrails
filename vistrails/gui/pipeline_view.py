@@ -3705,7 +3705,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def get_controller(self):
         return self.controller
 
-    def version_changed(self):
+    def version_changed(self, version=None):
         self._view_fitted = False
         self.scene().setupScene(self.controller.current_pipeline)
 

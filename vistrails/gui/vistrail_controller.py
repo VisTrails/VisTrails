@@ -206,6 +206,8 @@ class VistrailController(QtCore.QObject, BaseController):
         #BaseController.__init__(self, vistrail, locator, abstractions,
         #                        thumbnails, mashups, id_scope, set_log_on_vt,
         #                        auto_save)
+        self.current_pipeline_view.set_controller(self)
+        self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
 
         if self._auto_save:
             self.setup_timer()
@@ -237,7 +239,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def set_pipeline_view(self, pipeline_view):
         if self.current_pipeline_view is not None:
-            self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
+            self.versionWasChanged.disconnect(self.current_pipeline_view.version_changed)
         self.current_pipeline_view = pipeline_view
         self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
     
@@ -347,6 +349,8 @@ class VistrailController(QtCore.QObject, BaseController):
             locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
+        if self.current_pipeline_view:
+            self.versionWasChanged.disconnect(self.current_pipeline_view.version_changed)
         # close associated mashup apps
         version_prop = QVersionProp.instance()
         for app in list(version_prop.versionMashups.apps.values()):
@@ -639,7 +643,6 @@ class VistrailController(QtCore.QObject, BaseController):
 #                         process_err(exc)
 #                 else:
 #                     process_err(exception_set.__iter__().next())
-
         except Exception:
             debug.critical('Unexpected Exception',
                            debug.format_exc())
@@ -1436,7 +1439,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
             os.remove(filename)
 
     def test_create_functions(self):
-        controller = VistrailController(Vistrail(), None, 
+        controller = VistrailController(Vistrail(), None,
                                         pipeline_view=DummyView(),
                                         auto_save=False)
         controller.change_selected_version(0)

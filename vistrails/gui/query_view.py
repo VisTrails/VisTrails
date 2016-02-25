@@ -417,21 +417,22 @@ class QQueryView(QtWidgets.QWidget, BaseView):
         self.set_title("Search")
 
     def set_controller(self, controller=None):
+        if self.controller == controller:
+            return
         if self.controller:
-            self.controller.stateChanged.connect(self.update_controller)
+            self.controller.stateChanged.disconnect(self.update_controller)
         self.controller = controller
         if controller:
             self.controller.stateChanged.connect(self.update_controller)
         self.vt_controller.vistrail_view = self.version_result_view
-        self.vt_controller.current_pipeline_view = \
-            self.workflow_result_view
+        self.vt_controller.set_pipeline_view(self.workflow_result_view)
         # self.vt_controller.vistrail_view.set_controller(self.vt_controller)
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(controller.vistrail, None,
                                         set_log_on_vt=False)
-        self.vt_controller.change_selected_version(controller.current_version)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
+        self.vt_controller.change_selected_version(controller.current_version)
         self.query_controller.set_vistrail_controller(controller)
 
     def update_controller(self):
@@ -458,7 +459,7 @@ class QQueryView(QtWidgets.QWidget, BaseView):
 
         self.stacked_widget = QtWidgets.QStackedWidget()
         self.pipeline_view = QQueryPipelineView()
-        self.p_controller.current_pipeline_view = self.pipeline_view
+        self.p_controller.set_pipeline_view(self.pipeline_view)
         self.pipeline_view.set_controller(self.p_controller)
         self.pipeline_view.set_query_controller(self.query_controller)
         QQueryView.VISUAL_SEARCH_VIEW = \

@@ -451,6 +451,8 @@ class DummyScene(object):
 class DummyView(object):
     def __init__(self):
         self._scene = DummyScene()
+    def version_changed(self, *args, **kwargs): pass
+    def set_controller(self, *args, **kwargs): pass
     def set_module_active(self, *args, **kwargs): pass
     def set_module_computing(self, *args, **kwargs): pass
     def set_module_success(self, *args, **kwargs): pass
