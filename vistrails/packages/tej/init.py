@@ -64,12 +64,17 @@ class QueueCache(object):
     def __init__(self):
         self._cache = {}
 
-    def get(self, destination, queue):
-        key = destination, queue
+    def get(self, destination, queue, setup_runtime, need_runtime):
+        key = (destination,
+               queue,
+               setup_runtime or None,
+               tuple(sorted(need_runtime)) if need_runtime else None)
         if key in self._cache:
             return self._cache[key]
         else:
-            queue = RemoteQueue(destination, queue)
+            queue = RemoteQueue(destination, queue,
+                                setup_runtime=setup_runtime,
+                                need_runtime=need_runtime)
             self._cache[key] = queue
             return queue
 
@@ -81,6 +86,16 @@ class Queue(Module):
 
     `hostname` can be a hostname or a full destination in the format:
     ``[ssh://][user@]server[:port]``, e.g. ``vistrails@nyu.edu``.
+
+    If `setup_runtime` is set, it should be the name of the runtime to deploy
+    on the server if the queue doesn't already exist. If None (the default),
+    tej will select what is appropriate automatically. If `need_runtime` is
+    set, this should be one of the accepted values.
+
+    If `need_runtime` is set, it is a comma-separated list of runtime names
+    that are acceptable. If the queue already exists on the server and this
+    argument is not None, the installed runtime will be matched against it, and
+    execution will fail if it is not one of the provided values.
     """
     _input_ports = [('hostname', '(basic:String)'),
                     ('username', '(basic:String)',
@@ -88,7 +103,11 @@ class Queue(Module):
                     ('port', '(basic:Integer)',
                      {'optional': True, 'defaults': "['22']"}),
                     ('queue', '(basic:String)',
-                     {'optional': True, 'defaults': "['~/.tej']"})]
+                     {'optional': True, 'defaults': "['~/.tej']"}),
+                    ('setup_runtime', '(basic:String)',
+                     {'optional': True}),
+                    ('need_runtime', '(basic:String)',
+                     {'optional': True})]
     _output_ports = [('queue', '(org.vistrails.extra.tej:Queue)')]
 
     def compute(self):
@@ -99,8 +118,21 @@ class Queue(Module):
                            'port': self.get_input('port')}
             destination_str = tej.destination_as_string(destination)
 
+        if self.has_input('setup_runtime'):
+            setup_runtime = self.get_input('setup_runtime')
+        else:
+            setup_runtime = None
+
+        if self.has_input('need_runtime'):
+            need_runtime = set(
+                e.strip()
+                for e in self.get_input('need_runtime').split(','))
+        else:
+            need_runtime = None
+
         queue = self.get_input('queue')
-        self.set_output('queue', QueueCache.get(destination_str, queue))
+        self.set_output('queue', QueueCache.get(destination_str, queue,
+                                                setup_runtime, need_runtime))
 
 
 class AssembleDirectoryMixin(object):
@@ -258,8 +290,12 @@ class BaseSubmitJob(JobMixin, Module):
     def job_read_inputs(self):
         """Reads the input ports.
         """
-        return {'destination': self.get_input('queue').destination_string,
-                'queue': str(self.get_input('queue').queue),
+        queue = self.get_input('queue')
+        return {'destination': queue.destination_string,
+                'queue': str(queue.queue),
+                'setup_runtime': queue.setup_runtime or '',
+                'need_runtime': (','.join(queue.need_runtime)
+                                 if queue.need_runtime is not None else ''),
                 'job_id': self.make_id()}
 
     def job_start(self, params):
@@ -272,7 +308,9 @@ class BaseSubmitJob(JobMixin, Module):
     def job_get_handle(self, params):
         """Gets a RemoteJob object to monitor a runnning job.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
         return RemoteJob(queue, params['job_id'])
 
     def job_finish(self, params):
@@ -280,7 +318,9 @@ class BaseSubmitJob(JobMixin, Module):
 
         Gets the exit code from the server.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
         with ServerLogger.hide_output():
             status, target, arg = queue.status(params['job_id'])
         assert status == tej.RemoteQueue.JOB_DONE
@@ -290,7 +330,9 @@ class BaseSubmitJob(JobMixin, Module):
     def job_set_results(self, params):
         """Sets the output ports once the job is finished.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
         self.set_output('exitcode', params['exitcode'])
         self.set_output('job', RemoteJob(queue, params['job_id']))
 
@@ -332,7 +374,9 @@ class SubmitJob(AssembleDirectoryMixin, BaseSubmitJob):
     def job_start(self, params):
         """Sends the directory and submits the job.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
 
         # First, check if job already exists
         try:
@@ -377,7 +421,9 @@ class SubmitShellJob(BaseSubmitJob):
     def job_start(self, params):
         """Creates a temporary job with the given source, upload and submit it.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
 
         # First, check if job already exists
         try:
@@ -413,7 +459,9 @@ class SubmitShellJob(BaseSubmitJob):
 
         temp_dir = self.interpreter.filePool.create_directory(
                 prefix='vt_tmp_shelljobout_').name
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
         queue.download(params['job_id'], ['_stderr', '_stdout'],
                        directory=temp_dir)
         self.set_output('stderr',
