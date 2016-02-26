@@ -154,7 +154,7 @@ class Hasher(object):
 # Unit tests
 
 
-class TestVistrailController(unittest.TestCase):
+class TestCacheHash(unittest.TestCase):
     def test_outputportspec_cache(self):
         """
         Test that signature hash includes port specs
