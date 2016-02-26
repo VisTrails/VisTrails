@@ -36,6 +36,7 @@
 """Hasher class for vistrail items."""
 from __future__ import division
 
+import unittest
 from vistrails.core.cache.utils import hash_list
 
 try:
@@ -147,3 +148,34 @@ class Hasher(object):
         for h in sorted(sig_list):
             hasher.update(h)
         return hasher.digest()
+
+
+##############################################################################
+# Unit tests
+
+
+class TestVistrailController(unittest.TestCase):
+    def test_outputportspec_cache(self):
+        """
+        Test that signature hash includes port specs
+
+        If it is not included, a module with different port spec may
+        be used in the cache, leading to an exception.
+        """
+        from vistrails import api
+        from vistrails.core.vistrail.port_spec import PortSpec
+        api.new_vistrail()
+        c = api.get_current_controller()
+        ps = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'PythonSource', '')
+        api.change_parameter(ps.id, 'source', ['a = b = 1\ncache_this()'])
+        so = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'Integer', '')
+
+        api.add_port_spec(ps.id, PortSpec(name='a', type='output', sigstring='org.vistrails.vistrails.basic:Integer'))
+        api.add_connection(ps.id, 'a', so.id, 'value')
+        # adds ps to cache
+        self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
+
+        api.add_port_spec(ps.id, PortSpec(name='b', type='output', sigstring='org.vistrails.vistrails.basic:Integer'))
+        api.add_connection(ps.id, 'b', so.id, 'value')
+        # will fail if outputportspec is not hashed and cache is reused
+        self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
