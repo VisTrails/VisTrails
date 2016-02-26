@@ -187,7 +187,6 @@ class QLegendBox(QtWidgets.QFrame):
         """
         QtWidgets.QFrame.__init__(self, parent, f)
         self.setFrameStyle(QtWidgets.QFrame.Box | QtWidgets.QFrame.Plain)
-        self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
         palette = QtGui.QPalette(self.palette())
         palette.setBrush(QtGui.QPalette.Window, brush)
