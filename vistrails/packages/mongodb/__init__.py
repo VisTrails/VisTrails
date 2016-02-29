@@ -49,6 +49,6 @@ def package_requirements():
     from vistrails.core.requirements import require_python_module
     require_python_module('pymongo', {
             'pip': 'pymongo',
-            'linux-debian': 'python-pymongo',
-            'linux-ubuntu': 'python-pymongo',
+            'linux-debian': 'python3-pymongo',
+            'linux-ubuntu': 'python3-pymongo',
             'linux-fedora': 'pymongo'})
