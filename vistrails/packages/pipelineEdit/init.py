@@ -94,10 +94,11 @@ class QPipelineEditor(QtWidgets.QWidget):
                                                'Load Vistrail',
                                                '.',
                                                'Vistrail (*.vt)')[0]
-        if not fn.isNull():
+        if fn:
             self.filenameLabel.setText('Vistrail: %s' % fn)
-            self.vistrail = vistrails.api.get_vistrail_from_file(str(fn))
-            for item in list(self.vistrail.get_tagMap().items()):
+            self.vistrail = vistrails.api.get_vistrail_from_file(fn)
+            self.versions = []
+            for item in self.vistrail.get_tagMap().items():
                 self.versions.append(item)
             self.pipelineList.clear()
             self.pipelineList.addItems([version for (name, version) in self.versions])
@@ -141,7 +142,10 @@ class QPipelineEditor(QtWidgets.QWidget):
                                            pipeline,
                                            DummyView(),
                                            aliases,
-                                           None)])
+                                           None,
+                                           'pipelineEdit execution',
+                                           None,
+                                           {})])
 
 def initialize(*args, **keywords):
     """ initialize() -> None    
