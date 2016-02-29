@@ -370,7 +370,7 @@ class QJobView(QtWidgets.QWidget, QVistrailsPaletteInterface):
             item.vistrail().controller.set_changed(True)
             item.vistrail().jobMonitor.deleteJob(item.job.id)
 
-class QJobProgressDialog(QtGui.QDialog):
+class QJobProgressDialog(QtWidgets.QDialog):
     def __init__(self, job_name, job_start, parent=None, value=0, max_value=100):
         super(QJobProgressDialog, self).__init__(parent)
         f = self.windowFlags()
@@ -380,21 +380,21 @@ class QJobProgressDialog(QtGui.QDialog):
         self.job_start = job_start
         self.was_cancelled = False
         self.was_checked = False
-        self.progressbar = QtGui.QProgressBar()
+        self.progressbar = QtWidgets.QProgressBar()
         self.progressbar.setMinimum(0)
         self.progressbar.setMaximum(max_value)
         self.progressbar.setValue(value)
-        self.cancel_button = QtGui.QPushButton('&Cancel')
-        self.check_now_button = QtGui.QPushButton('Check &Now')
+        self.cancel_button = QtWidgets.QPushButton('&Cancel')
+        self.check_now_button = QtWidgets.QPushButton('Check &Now')
         self.cancel_button.clicked.connect(lambda :setattr(self,
                                                            'was_cancelled',
                                                            True))
         self.check_now_button.clicked.connect(lambda :setattr(self,
                                                               'was_checked',
                                                               True))
-        self.label = QtGui.QLabel()
+        self.label = QtWidgets.QLabel()
         self.updateLabel()
-        main_layout = QtGui.QGridLayout()
+        main_layout = QtWidgets.QGridLayout()
         main_layout.addWidget(self.label, 0, 0, 2, 2)
         main_layout.addWidget(self.progressbar, 2, 0, 1, 2)
         main_layout.addWidget(self.check_now_button, 3, 0)
