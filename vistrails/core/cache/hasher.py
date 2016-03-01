@@ -95,6 +95,16 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def port_spec_signature(ps, constant_hasher_map={}):
+        hasher = sha_hash()
+        u = hasher.update
+        u(ps.type)
+        u(ps.name)
+        u(ps.sigstring)
+        u('%d' % ps.depth)
+        return hasher.digest()
+
+    @staticmethod
     def connection_subpipeline_signature(c, source_sig, dest_sig):
         """Returns the signature for the connection, including source and dest
         subpipelines
@@ -119,6 +129,8 @@ class Hasher(object):
         u(hash_list(obj.functions, Hasher.function_signature,
                     constant_hasher_map))
         u(hash_list(obj.control_parameters, Hasher.control_param_signature,
+                    constant_hasher_map))
+        u(hash_list(obj.port_spec_list, Hasher.port_spec_signature,
                     constant_hasher_map))
         return hasher.digest()
 
