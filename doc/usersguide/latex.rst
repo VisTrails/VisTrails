@@ -212,7 +212,7 @@ Example
 
 The following is an example command for including the execution results the workflow ``aliases`` from examples/head.vt in a pdf and caching the images. When clicking on the images, the user will start |vistrails| showing only the spreadsheet:
 
-| ``\vistrails[filename=head.vt,``
+| ``\vistrail[filename=head.vt,``
 | ``version=15,``
 | ``pdf,``
 | ``execute,``
