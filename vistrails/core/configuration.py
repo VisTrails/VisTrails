@@ -98,6 +98,7 @@ packageDir: System packages directory
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
+reportUsage: Report anonymous usage statistics to the developers
 repositoryHTTPURL: Remote package repository URL
 repositoryLocalPath: Local package repository directory
 rootDirectory: Directory that contains the VisTrails source code
@@ -338,6 +339,10 @@ pythonPrompt: Boolean
 recentVistrailList: String
 
     Storage for recent vistrails. Users should not edit.
+
+reportUsage: Integer
+
+    Report anonymous usage statistics to the developers
 
 repositoryHTTPURL: URL
 
@@ -666,7 +671,16 @@ base_config = {
                                  "remap": {0: "Critical Errors Only",
                                            1: "Critical Errors and Warnings",
                                            2: "Errors, Warnings, and "
-                                              "Debug Messages"}})],
+                                              "Debug Messages"}}),
+     ConfigField('reportUsage', -1, int,
+                 flag='--usage-reporting',
+                 widget_type="combo",
+                 widget_options={"allowed_values": [-1, 0, 1],
+                                 "label": "Report anonymous usage statistics",
+                                 "remap": {-1: "Ask on next launch",
+                                           0: "Don't record or upload reports",
+                                           1: "Securely send reports to "
+                                              "developers"}})],
     "Startup":
     [ConfigField('maximizeWindows', False, bool, ConfigType.ON_OFF),
      ConfigField('multiHeads', False, bool, ConfigType.ON_OFF),

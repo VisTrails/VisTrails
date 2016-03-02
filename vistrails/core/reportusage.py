@@ -49,6 +49,14 @@ from vistrails.core import debug
 from vistrails.core.system import vistrails_version
 
 
+class VistrailsStats(usagestats.Stats):
+    def read_config(self):
+        TODO
+
+    def write_config(self, enabled):
+        TODO
+
+
 usage_report = None
 
 
@@ -65,7 +73,7 @@ def setup_usage_report():
     os.close(fd)
     atexit.register(os.remove, certificate_file)
 
-    usage_report = usagestats.Stats(
+    usage_report = VistrailsStats(
         '~/.vistrails/usage_stats',
         usagestats.Prompt(
             "\nUploading usage statistics is currently disabled\n"
