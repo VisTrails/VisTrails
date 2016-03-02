@@ -41,6 +41,7 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
+from vistrails.core.reportusage import record_vistrail
 from vistrails.core.system import vistrails_default_file_type, \
     vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
@@ -902,6 +903,7 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         try:
+            record_vistrail('save', self.controller)
             self.controller.write_vistrail(locator, export=export)
         except Exception:
             debug.critical('Failed to save vistrail', debug.format_exc())
@@ -960,6 +962,7 @@ class QVistrailView(QtGui.QWidget):
         locator = gui_get(self, Pipeline.vtType)
         if not locator:
             return False
+        record_vistrail('export_stable', self.controller.current_pipeline)
         self.controller.write_workflow(locator, '1.0.3')
         return True
 
@@ -977,6 +980,7 @@ class QVistrailView(QtGui.QWidget):
             locator = gui_get(self, Pipeline.vtType, self.controller.locator)
         if not locator:
             return False
+        record_vistrail('save_pipeline', self.controller.current_pipeline)
         self.controller.write_workflow(locator)
 
     def save_log(self, locator_class, force_choose_locator=True):
