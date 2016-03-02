@@ -19,7 +19,7 @@ requirements = [
     'certifi',
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
-    'usagestats>=0.3',
+    'usagestats>=0.5',
     'xlrd',
     'xlwt',
 ]
