@@ -98,6 +98,46 @@ def record_usage(**kwargs):
         usage_report.note(kwargs)
 
 
+def record_vistrail(what, vistrail):
+    """Record info about a vistrail we used.
+    """
+    if not usage_report.recording:
+        return
+
+    from vistrails.core.vistrail.controller import VistrailController
+    from vistrails.core.vistrail.pipeline import Pipeline
+    from vistrails.core.vistrail.vistrail import Vistrail
+
+    if isinstance(vistrail, VistrailController):
+        vistrail = vistrail.vistrail
+    if isinstance(vistrail, Vistrail):
+        upgrade_from = set()
+        upgrade_to = set()
+        nb_notes = 0
+        nb_paramexplorations = 0
+        for annotation in vistrail.action_annotations:
+            if annotation.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_from.add(annotation.action_id)
+                upgrade_to.add(int(annotation.value))
+            elif annotation.key == Vistrail.NOTES_ANNOTATION:
+                nb_notes += 1
+            elif annotation.key == Vistrail.PARAMEXP_ANNOTATION:
+                nb_paramexplorations += 1
+        nb_upgrades = len(upgrade_from - upgrade_to)
+        usage_report.note(dict(use_vistrail=what,
+                               nb_versions=len(vistrail.actionMap),
+                               nb_tags=len(vistrail.tags),
+                               nb_notes=nb_notes,
+                               nb_paramexplorations=nb_paramexplorations,
+                               nb_upgrades=nb_upgrades,
+                               nb_variables=len(vistrail.vistrail_variables)))
+    elif isinstance(vistrail, Pipeline):
+        usage_report.note(dict(use_workflow=what,
+                               nb_modules=len(vistrail.module_list)))
+    else:
+        raise TypeError
+
+
 def submit_usage_report(**kwargs):
     """Submits the current usage report to the usagestats server.
     """
