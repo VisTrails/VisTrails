@@ -750,7 +750,7 @@ class QPathChooserToolButton(QtWidgets.QToolButton):
 
     def setDataDirectory(self, path):
         if path:
-            absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
+            absPath = os.path.abspath(path)
             dirName = os.path.dirname(absPath)
             set_vistrails_data_directory(dirName)
             return absPath
