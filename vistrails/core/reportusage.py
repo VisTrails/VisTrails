@@ -43,6 +43,7 @@ import atexit
 import os
 import tempfile
 import usagestats
+import weakref
 
 from vistrails.core import debug
 from vistrails.core.system import vistrails_version
@@ -98,6 +99,9 @@ def record_usage(**kwargs):
         usage_report.note(kwargs)
 
 
+saved_vistrails = weakref.WeakValueDictionary()
+
+
 def record_vistrail(what, vistrail):
     """Record info about a vistrail we used.
     """
@@ -107,6 +111,17 @@ def record_vistrail(what, vistrail):
 
     if isinstance(vistrail, VistrailController):
         vistrail = vistrail.vistrail
+
+    if what == 'save':
+        # Don't report now, but mark it for reporting when it gets closed
+        saved_vistrails[id(vistrail)] = vistrail
+    elif what == 'close':
+        i = id(vistrail)
+        if i in saved_vistrails:
+            del saved_vistrails[i]
+        else:
+            return
+
     if isinstance(vistrail, Vistrail):
         upgrade_from = set()
         upgrade_to = set()
