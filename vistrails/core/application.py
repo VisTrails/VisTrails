@@ -48,16 +48,17 @@ import vistrails.core.configuration
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
+import vistrails.core.db.action
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
+import vistrails.core.requirements
 from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject, VistrailsWarning
+from vistrails.core.utils import VistrailsWarning
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
@@ -557,7 +558,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             locator = self._cur_controller.locator
         del self._controllers[locator]
         if len(self._controllers) > 0:
-            self._cur_controller = self._controllers.itervalues().next()
+            self._cur_controller = next(self._controllers.itervalues())
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:
