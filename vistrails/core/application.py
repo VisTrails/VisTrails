@@ -54,7 +54,6 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
-from vistrails.core.reportusage import record_vistrail
 import vistrails.core.requirements
 from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
@@ -410,7 +409,6 @@ class VistrailsApplicationInterface(object):
                 loaded_objs = vistrails.core.db.io.load_vistrail(locator, is_abstraction)
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
-                record_vistrail('open', controller)
                 if locator.is_untitled():
                     return controller
                 controller.is_abstraction = is_abstraction
