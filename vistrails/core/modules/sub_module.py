@@ -62,7 +62,7 @@ except ImportError:
 
 def random_signature(pipeline, obj, chm):
     hasher = sha_hash()
-    hasher.update(str(random.random()))
+    hasher.update(bytes(random.random()))
     return hasher.digest()
 
 def input_port_signature(pipeline, obj, chm):
@@ -405,7 +405,7 @@ def save_abstraction(vistrail, fname):
     from vistrails.core.db.io import save_vistrail_to_xml
 
     # check if vistrail is changed before calling this!
-    new_namespace = str(uuid.uuid1())
+    new_namespace = unicode(uuid.uuid1())
     annotation_key = get_next_abs_annotation_key(vistrail)
     vistrail.set_annotation(annotation_key, new_namespace)
     save_vistrail_to_xml(vistrail, fname)

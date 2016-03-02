@@ -121,14 +121,14 @@ def initialize(*args, **kwargs):
                                                         abs_name,
                                                         ns,
                                                         version,
-                                                        str(abstraction.internal_version)):
+                                                        unicode(abstraction.internal_version)):
                             # don't add something twice
                             continue
                         new_desc = reg.auto_add_module((abstraction,
                                                         {'package': identifier,
                                                          'package_version': version,
                                                          'namespace': ns,
-                                                         'version': str(module_version),
+                                                         'version': unicode(module_version),
                                                          'hide_namespace': True,
                                                          'hide_descriptor': hide_descriptor,
                                                          }))

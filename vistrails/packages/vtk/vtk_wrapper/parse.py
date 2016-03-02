@@ -241,7 +241,7 @@ def prune_signatures(cls, name, signatures, output=False):
         def convert(entry):
             if isinstance(entry, tuple):
                 return list(entry)
-            elif isinstance(entry, str):
+            elif isinstance(entry, basestring):
                 return [entry]
             else:
                 result = []
@@ -325,7 +325,7 @@ def prune_signatures(cls, name, signatures, output=False):
         stack = list(signatures)
         while (len(stack) != 0):
             curr = stack.pop(0)
-            if (isinstance(curr, str)):
+            if (isinstance(curr, basestring)):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)
@@ -360,7 +360,7 @@ def resolve_overloaded_name(name, ix, signatures):
     if len(signatures) == 1:
         return name
     else:
-        return name + '_' + str(ix+1)
+        return name + '_' + unicode(ix+1)
 
 type_map_dict = {'int': "basic:Integer",
                  'long': "basic:Integer",

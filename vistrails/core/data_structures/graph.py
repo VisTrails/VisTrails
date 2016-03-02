@@ -43,7 +43,6 @@ from itertools import imap, chain, izip
 
 from vistrails.core.data_structures.queue import Queue
 from vistrails.core.data_structures.stack import Stack
-from vistrails.core.utils import all
 
 ################################################################################
 # Graph
@@ -671,7 +670,7 @@ class Graph(object):
               for vto, edgeid in lto]
         al.sort()
         return ("digraph G {\n"
-                + ";".join([str(s) for s in vs])
+                + ";".join([unicode(s) for s in vs])
                 + ";\n"
                 + "\n".join(["%s -> %s [label=\"%s\"];" % s for s in al])
                 + "\n}")

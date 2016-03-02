@@ -66,7 +66,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
     highlightModule = pyqtSignal(int)
     aliasesChanged = pyqtSignal()
     aliasChanged = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal(str)
+    aliasRemoved = pyqtSignal(unicode)
     
     def __init__(self, controller=None, parent=None):
         """ QAliasListPanel(controller: MashupController,
@@ -164,7 +164,7 @@ class QAliasList(QtGui.QTreeWidget):
     """
     #signals
     aliasUpdated = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal(str)
+    aliasRemoved = pyqtSignal(unicode)
     highlightModule = pyqtSignal(int)
     
     def __init__(self, controller, panel, parent=None):
@@ -203,7 +203,7 @@ class QAliasList(QtGui.QTreeWidget):
         item = self.item(row, col)
         if col == 0:
             old_alias = item.alias.alias
-            new_alias = str(item.text())
+            new_alias = unicode(item.text())
             if new_alias in self.aliases.keys():
                 QtGui.QMessageBox.warning(self,
                                           "VisMashup",
@@ -250,8 +250,8 @@ class QAliasList(QtGui.QTreeWidget):
         """
         
         alias.pos = self.topLevelItemCount()
-        labels = [str(alias.component.pos), str(alias.name), \
-                  str(alias.component.type)]
+        labels = [unicode(alias.component.pos), unicode(alias.name), \
+                  unicode(alias.component.type)]
         item = QAliasListItem(self, alias, labels)
         item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable )
         
@@ -285,7 +285,7 @@ class QAliasList(QtGui.QTreeWidget):
         for idx in range(self.topLevelItemCount()):
             item = self.topLevelItem(idx)
             new_order.append(item.alias.component.pos)
-            item.setText(0,str(idx))
+            item.setText(0,unicode(idx))
         return new_order
             
     def moveItemToNewPos(self, old, new):

@@ -254,7 +254,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                                                     'Enter the parameter alias',
                                                     QtGui.QLineEdit.Normal,
                                                     item.parameter.alias)
-            while ok and str(text) in self.aliasNames:
+            while ok and unicode(text) in self.aliasNames:
                 msg =" This alias is already being used.\
  Please enter a different parameter alias "
                 (text, ok) = QtGui.QInputDialog.getText(self,
@@ -262,8 +262,8 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                                                         msg,
                                                         QtGui.QLineEdit.Normal,
                                                         text)
-            if ok and item.parameter.alias != str(text):
-                item.parameter.alias = str(text)
+            if ok and item.parameter.alias != unicode(text):
+                item.parameter.alias = unicode(text)
                 item.updateAlias()
                 self.aliasChanged.emit(item.parameter)
             

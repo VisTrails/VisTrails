@@ -36,8 +36,6 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression
-from vistrails.core import system
 
 from constant_configuration import StandardConstantWidget, ColorWidget
 
@@ -90,7 +88,7 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
             actions.append(action)
         if not checked_exists:
             actions[0].setChecked(True)
-            self._last_query_method = str(actions[0].text())
+            self._last_query_method = unicode(actions[0].text())
             
         menu = QtGui.QMenu(self.op_button)
         menu.addActions(actions)
@@ -124,7 +122,7 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
     def query_method(self):
         for action in self.op_button.menu().actions():
             if action.isChecked():
-                return str(action.text())
+                return unicode(action.text())
 
 class StandardQueryWidget(BaseQueryWidget):
     def __init__(self, param, parent=None):

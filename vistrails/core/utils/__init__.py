@@ -39,24 +39,23 @@ used all over VisTrails.
 """
 from __future__ import division, with_statement
 
-from vistrails.core.utils.enum import enum
-from vistrails.core.utils.timemethod import time_method, time_call
-from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
-     trace_method_options, trace_method_args
-from vistrails.core.utils.color import ColorByName
 import copy
 from distutils.version import LooseVersion
 import errno
 import functools
 import itertools
 import os
-import sys
+import tempfile
+import unittest
 import warnings
 import weakref
 
-
-import unittest
-import tempfile
+from vistrails.core.utils.color import ColorByName
+from vistrails.core.utils.compat import new_type, quote, unquote, memo_method
+from vistrails.core.utils.enum import enum
+from vistrails.core.utils.timemethod import time_method, time_call
+from vistrails.core.utils.tracemethod import trace_method, bump_trace, \
+    report_stack, trace_method_options, trace_method_args
 
 ################################################################################
 
@@ -252,33 +251,10 @@ class InvalidPipeline(Exception):
     def __str__(self):
         return "Pipeline has errors. Please see the detailed message for more information.\n  " + \
             '\n  '.join(line for e in self._exception_set 
-                        for line in str(e).splitlines())
+                        for line in unicode(e).splitlines())
 
     def get_exception_set(self):
         return self._exception_set
-
-################################################################################
-
-# Only works for functions with NO kwargs!
-def memo_method(method):
-    """memo_method is a method decorator that memoizes results of the
-    decorated method, trading off memory for time by caching previous
-    results of the calls."""
-    attrname = "_%s_memo_result" % id(method)
-    memo = {}
-    def decorated(self, *args):
-        try:
-            return memo[args]
-        except KeyError:
-            result = method(self, *args)
-            memo[args] = result
-            return result
-    warn = "(This is a memoized method: Don't mutate the return value you're given.)"
-    if method.__doc__:
-        decorated.__doc__ = method.__doc__ + "\n\n" + warn
-    else:
-        decorated.__doc__ = warn
-    return decorated
 
 ##############################################################################
 # Profiling, utilities
@@ -352,30 +328,6 @@ def debug(func):
 
 ################################################################################
 
-# Write our own all() and any() if python version < 2.5
-if sys.version_info < (2, 5):
-    def any(iterable):
-        """any(iterable) -> Boolean - Returns true if any element
-        is true. This is meant to be the equivalent of python 2.5's any
-        when running on python < 2.5"""
-        for b in iterable:
-            if b:
-                return True
-        return False
-
-    def all(iterable):
-        """all(iterable) -> Boolean - Returns true if no elements are
-        False.  This is meant to be the equivalent of python 2.5's
-        all() when running on python < 2.5"""
-        for b in iterable:
-            if not b:
-                return False
-        return True
-else:
-    import __builtin__
-    any = __builtin__.any
-    all = __builtin__.all
-
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator
     until item is found, and returns the index inside the iterator.
@@ -417,7 +369,7 @@ class InstanceObject(object):
 
     def __str__(self):
         pre = "(%s " % self.__class__.__name__
-        items = [('%s: %s' % (k, str(v)))
+        items = [('%s: %s' % (k, unicode(v)))
                  for (k, v)
                  in sorted(self.__dict__.items())]
         items_str = ('\n' + (' ' * len(pre))).join(items)
@@ -432,11 +384,11 @@ class InstanceObject(object):
                 result += v.write_source(newprefix)
             else:
                 result += prefix
-                result += "." + str(k) + " = " 
+                result += "." + unicode(k) + " = "
                 if isinstance(v, basestring):
-                    result +=  "'" + str(v) + "'\n"
+                    result +=  "'" + unicode(v) + "'\n"
                 else:
-                    result += str(v) + "\n"
+                    result += unicode(v) + "\n"
         return result
 
 def append_to_dict_of_lists(dict, key, value):
@@ -536,7 +488,7 @@ def xor(first, *others):
             raise ValueError("All bytestrings should have the same length: "
                              "%d != %d" % (l, len(oth)))
         first = [c ^ ord(o) for (c, o) in itertools.izip(first, oth)]
-    return ''.join(chr(c) for c in first)
+    return b''.join(chr(c) for c in first)
 
 def long2bytes(nb, length=None):
     """Turns a single integer into a little-endian bytestring.
@@ -556,7 +508,7 @@ def long2bytes(nb, length=None):
             result += chr(nb & 0xFF)
             nb = nb >> 8
     if length is not None and len(result) < length:
-        result += '\x00' * (length - len(result))
+        result += b'\x00' * (length - len(result))
     return result
 
 ################################################################################
@@ -571,9 +523,8 @@ class Chdir(object):
         
     def __exit__(self, *args):
         os.chdir(self._old_dir)
+
 ################################################################################
-
-
 
 class _TestRegularFibo(object):
     def __init__(self):

@@ -411,7 +411,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.vistrail.set_notes(notes_version, None)
 
         # Add notes
-        if self.vistrail.set_notes(self.current_base_version, str(notes)):
+        if self.vistrail.set_notes(self.current_base_version, unicode(notes)):
             self.set_changed(True)
             self.emit(QtCore.SIGNAL('notesChanged()'))
 
@@ -463,7 +463,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
-                locator.clean_temporaries()
+                #locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
             try:
                 return self.execute_workflow_list([(self.locator,
@@ -602,7 +602,7 @@ class VistrailController(QtCore.QObject, BaseController):
 #                 else:
 #                     QtGui.QMessageBox.critical(
 #                         get_vistrails_application().builderWindow,
-#                         'Invalid Pipeline', str(err))
+#                         'Invalid Pipeline', unicode(err))
 
             # VisTrails will not raise upgrade exceptions unless
             # configured to do so. To get the upgrade requests,
@@ -972,7 +972,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 QtGui.QLineEdit.Normal,
                                                 name)
         if ok and text:
-            return str(text).strip().rstrip()
+            return unicode(text).strip().rstrip()
         if not ok:
             return None
         return ""
@@ -995,7 +995,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 QtGui.QLineEdit.Normal,
                                                 '')
         if ok and text:
-            return str(text).strip().rstrip()
+            return unicode(text).strip().rstrip()
         return ''
             
     def do_save_dir_prompt(self):
@@ -1004,7 +1004,7 @@ class VistrailController(QtCore.QObject, BaseController):
                           vistrails.core.system.vistrails_file_directory())
         if not dir_name:
             return None
-        dir_name = os.path.abspath(str(dir_name))
+        dir_name = os.path.abspath(unicode(dir_name))
         setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
@@ -1072,13 +1072,13 @@ class VistrailController(QtCore.QObject, BaseController):
                     print >>f, "%s = '%s'" % (attr, val)
             for attr, val_list in lists.iteritems():
                 if attr not in found_lists:
-                    print >>f, "%s = %s" % (attr, str(val_list))
+                    print >>f, "%s = %s" % (attr, unicode(val_list))
                 else:
                     diff_list = []
                     for val in val_list:
                         if val not in found_lists[attr]:
                             diff_list.append(val)
-                    print >>f, '%s.extend(%s)' % (attr, str(diff_list))
+                    print >>f, '%s.extend(%s)' % (attr, unicode(diff_list))
             f.close()
 
         if os.path.exists(os.path.join(save_dir, '__init__.py')):
@@ -1126,7 +1126,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                         abstraction.package,
                                         abstraction.name, 
                                         abstraction.namespace,
-                                        str(abstraction.internal_version))
+                                        unicode(abstraction.internal_version))
             pkg_subworkflows.append(subworkflow)
             pkg_dependencies.update(dependencies)
 
@@ -1212,7 +1212,7 @@ class VistrailController(QtCore.QObject, BaseController):
     # analogies
 
     def add_analogy(self, analogy_name, version_from, version_to):
-        assert isinstance(analogy_name, str)
+        assert isinstance(analogy_name, basestring)
         assert isinstance(version_from, (int, long))
         assert isinstance(version_to, (int, long))
         if analogy_name in self.analogy:

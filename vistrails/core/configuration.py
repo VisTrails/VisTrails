@@ -43,15 +43,14 @@ import argparse
 import ast
 import copy
 import itertools
+import os
 import re
 import shlex
 import sys
 import weakref
 
-import os
-
 from vistrails.core import system
-from vistrails.core.utils import Ref, append_to_dict_of_lists
+from vistrails.core.utils import Ref, append_to_dict_of_lists, new_type
 from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
     DBConfigInt, DBConfigFloat, DBConfigBool
 
@@ -597,7 +596,10 @@ class ConfigField(object):
         if not str_val:
             return None
         if issubclass(self.val_type, basestring):
-            return str_val
+            if isinstance(str_val, bytes):
+                return str_val.decode('utf-8')
+            else:
+                return str_val
         val = ast.literal_eval(str_val)
         if not isinstance(val, self.val_type):
             raise ValueError('Output setting "%s" cannot be parsed to %s' %
@@ -917,7 +919,9 @@ def nested_action(parser, action_type):
         self.dest = orig_dest
 
     nested_name = "_Nested%s" % cls.__name__[1:]
-    nested_cls = type(nested_name, (cls,), {"__call__": __call__})
+    nested_cls = new_type(nested_name,
+                      (cls,),
+                      {"__call__": __call__})
     return nested_cls
 
 class RawVersionAction(argparse.Action):
@@ -1342,8 +1346,6 @@ class ConfigurationObject(DBConfiguration):
                 return False
             val1 = getattr(self, name)
             val2 = getattr(other, name)
-            if type(val1) != type(val2):
-                return False
             if val1 != val2:
                 return False
         for name in other.keys():

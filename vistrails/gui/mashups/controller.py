@@ -71,7 +71,7 @@ class MashupController(BaseController, QObject):
         else:
             return True
         
-    @pyqtSlot(str)
+    @pyqtSlot(unicode)
     def removeAlias(self, name):
         BaseController.removeAlias(self, name)
     

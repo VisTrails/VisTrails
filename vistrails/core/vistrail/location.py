@@ -85,7 +85,7 @@ class Location(DBLocation, Point):
 
         """
         rep = "<location id=%s x=%s y=%s/>"
-        return  rep % (str(self.id), str(self.x), str(self.y))
+        return  rep % (unicode(self.id), unicode(self.x), unicode(self.y))
 
 
     eq_delta = 0.0001

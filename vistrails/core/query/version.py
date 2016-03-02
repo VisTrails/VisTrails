@@ -250,8 +250,8 @@ class TimeSearchStmt(SearchStmt):
                     return (max(y,d), m, min(y, d))
                 lst = [(e0,0),(e1,1),(e2,2)]
                 lst.sort()
-                return guessDate([str(lst[0][0]),
-                                  str(lst[1][0])],
+                return guessDate([unicode(lst[0][0]),
+                                  unicode(lst[1][0])],
                                  year=e2)
             # We know year, decide month using similar heuristics - try string month first,
             # then decide which is possible

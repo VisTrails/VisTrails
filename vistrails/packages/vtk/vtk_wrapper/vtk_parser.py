@@ -447,7 +447,7 @@ class VTKMethodParser:
                     ret = eval(pat.sub('\"', ret))
                 if arg:
                     arg = eval(pat.sub('\"', arg))
-                    if type(arg) == type('str'):
+                    if isinstance(arg, basestring):
                         arg = [arg]
             except SyntaxError:
                 pass

@@ -50,7 +50,8 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.utils import VistrailsDeprecation, deprecated, \
-                                 xor, long2bytes
+                                 xor, long2bytes, new_type
+
 try:
     import hashlib
     sha1_hash = hashlib.sha1
@@ -176,7 +177,7 @@ class ModuleErrors(Exception):
     def __init__(self, module_errors):
         """ModuleErrors should be passed a list of ModuleError objects
         """
-        Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
+        Exception.__init__(self, unicode(tuple(me.msg for me in module_errors)))
         self.module_errors = module_errors
 
 class _InvalidOutput(object):
@@ -816,7 +817,7 @@ class Module(object):
                     e.loop_iteration = i
                     suspended.append(e)
                 except Exception, e:
-                    raise ModuleError(module, str(e))
+                    raise ModuleError(module, unicode(e))
                 i += 1
                 yield True
 
@@ -863,7 +864,7 @@ class Module(object):
                     try:
                         module.compute()
                     except Exception, e:
-                        raise ModuleError(module, str(e))
+                        raise ModuleError(module, unicode(e))
                     if suspended:
                         raise ModuleSuspended(
                                 self,
@@ -925,7 +926,7 @@ class Module(object):
                     try:
                         module.compute()
                     except Exception, e:
-                        raise ModuleError(module, str(e))
+                        raise ModuleError(module, unicode(e))
                     if suspended:
                         raise ModuleSuspended(
                                 self,
@@ -1396,7 +1397,7 @@ class Module(object):
         return None
 
     def __str__(self):
-        return "<<%s>>" % str(self.__class__)
+        return "<<%s>>" % unicode(self.__class__)
 
     def annotate(self, d):
         """Manually add provenance information to the module's execution
@@ -1527,8 +1528,8 @@ class Module(object):
                     self.logging.update_progress(self, 1.0)
                     yield None
                 except Exception, e:
-                    me = ModuleError(self, "Error generating value: %s"% str(e),
-                                      errorTrace=str(e))
+                    me = ModuleError(self, "Error generating value: %s"% unicode(e),
+                                      errorTrace=unicode(e))
                     raise me
                 if value is None:
                     module.set_output(port, None)
@@ -1806,7 +1807,7 @@ def new_module(base_module, name, class_dict={}, docstring=None):
     d = copy.copy(class_dict)
     if docstring:
         d['__doc__'] = docstring
-    return type(name, superclasses, d)
+    return new_type(name, superclasses, d)
 
 # This is the gist of how type() works. The example is run from a python
 # toplevel
@@ -1851,7 +1852,7 @@ class TestImplicitLooping(unittest.TestCase):
                 with capture_stdout() as c:
                     errs = run(w_list, update_vistrail=False)
                 for err in errs:
-                    self.fail(str(err))
+                    self.fail(unicode(err))
         except Exception, e:
             self.fail(debug.format_exception(e))
 

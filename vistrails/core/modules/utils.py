@@ -37,6 +37,8 @@ from __future__ import division
 
 from vistrails.core.system import _defaultPkgPrefix, \
     get_vistrails_basic_pkg_id, get_module_registry
+from vistrails.core.utils.compat import ascii_s
+
 
 def load_cls(cls_item, prefix=None):
     path = None
@@ -46,12 +48,14 @@ def load_cls(cls_item, prefix=None):
         (path, cls_name) = cls_item
     if path is not None:
         try:
-            module = __import__(path, globals(), locals(), [cls_name])
+            module = __import__(ascii_s(path), globals(), locals(),
+                                [ascii_s(cls_name)])
         except ImportError:
             if prefix is None:
                 raise
             path = '.'.join([prefix, path])
-            module = __import__(path, globals(), locals(), [cls_name])
+            module = __import__(ascii_s(path), globals(), locals(),
+                                [ascii_s(cls_name)])
         return getattr(module, cls_name)
     return cls_item
 
@@ -229,7 +233,7 @@ class UnorderedList(object):
         return 'ul(%s)' % ', '.join(repr(e) for e in self._set)
 
     def __repr__(self):
-        return str(self)
+        return unicode(self)
 
 
 class TestModulesDict(unittest.TestCase):

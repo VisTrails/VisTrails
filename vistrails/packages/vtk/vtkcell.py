@@ -366,7 +366,7 @@ class QVTKWidget(QCellWidget):
                         vp = ('_%s_p_void' % display)
                     self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
-            self.mRenWin.SetWindowInfo(str(int(self.winId())))
+            self.mRenWin.SetWindowInfo(unicode(int(self.winId())))
             if self.isVisible():
                 self.mRenWin.Start()
 
@@ -380,7 +380,7 @@ class QVTKWidget(QCellWidget):
 #                if system.systemType=='Linux':
 #                    system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
 #                                          self.mRenWin.GetGenericWindowId())
-                self.mRenWin.SetWindowInfo(str(int(self.winId())))
+                self.mRenWin.SetWindowInfo(unicode(int(self.winId())))
                 self.resizeWindow(self.width(), self.height())
                 self.mRenWin.SetPosition(self.x(), self.y())
 
@@ -402,7 +402,7 @@ class QVTKWidget(QCellWidget):
         else:
             if e.type()==QtCore.QEvent.ParentChange:
                 if self.mRenWin:
-                    self.mRenWin.SetWindowInfo(str(int(self.winId())))
+                    self.mRenWin.SetWindowInfo(unicode(int(self.winId())))
                     if self.isVisible():
                         self.mRenWin.Start()
         
@@ -1083,7 +1083,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             def convert_to_str(arglist):
                 new_arglist = []
                 for arg in arglist:
-                    new_arglist.append(str(arg))
+                    new_arglist.append(unicode(arg))
                 return new_arglist
             functions = [('Position', convert_to_str(cpos)),
                          ('FocalPoint', convert_to_str(cfol)),

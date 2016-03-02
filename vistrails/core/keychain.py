@@ -93,7 +93,11 @@ class KeyChain(object):
         try:
             #this will return the instance of the object that called us
             caller = id(args['self'])
-            newkey = str(caller)+str(key)
+            if isinstance(key, unicode):
+                key = key.encode('utf-8')
+            else:
+                key = bytes(key)
+            newkey = bytes(caller) + key
             hashkey = md5_hash(newkey).hexdigest()[:16]
             cryptvalue = crypt(hashkey,value)
             self.__keys[hashkey] = cryptvalue
@@ -114,7 +118,7 @@ class KeyChain(object):
         try:
             #this will return the instance of the object that called us
             caller = id(args['self'])
-            newkey = str(caller)+str(key)
+            newkey = unicode(caller)+unicode(key)
             hashkey = md5_hash(newkey).hexdigest()[:16]
             if self.__keys.has_key(hashkey):
                 return crypt(hashkey,self.__keys[hashkey])

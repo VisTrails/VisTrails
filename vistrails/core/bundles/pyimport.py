@@ -43,6 +43,7 @@ import vistrails.core.bundles.installbundle
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
 from vistrails.core import debug
+from vistrails.core.utils.compat import ascii_s
 
 ##############################################################################
 
@@ -55,7 +56,7 @@ class PyImportBug(PyImportException):
     pass
 
 def _vanilla_import(module_name):
-    return __import__(module_name, globals(), locals(), [])
+    return __import__(ascii_s(module_name), globals(), locals(), [])
 
 def py_import(module_name, dependency_dictionary, store_in_config=False):
     """Tries to import a python module, installing if necessary.

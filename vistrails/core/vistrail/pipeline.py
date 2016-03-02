@@ -406,7 +406,7 @@ class Pipeline(DBWorkflow):
           
         """
         if self.has_connection_with_id(c.id):
-            raise VistrailsInternalError("duplicate connection id " + str(c.id))
+            raise VistrailsInternalError("duplicate connection id " + unicode(c.id))
 #         self.connections[c.id] = copy.copy(c)
         self.db_add_object(c)
         if c.source is not None and c.destination is not None:
@@ -681,7 +681,7 @@ class Pipeline(DBWorkflow):
             if what == 'parameter':
                 #FIXME: check if a change parameter action needs to be generated
                 parameter = self.db_get_object(what, oId)
-                parameter.strValue = str(value)
+                parameter.strValue = unicode(value)
             else:
                 raise VistrailsInternalError("only parameters are supported")
         
@@ -1266,8 +1266,8 @@ class Pipeline(DBWorkflow):
 
     def __str__(self):
         return ("(Pipeline Modules: %s Graph:%s)@%X" %
-                ([(m, str(v)) for (m,v) in sorted(self.modules.items())],
-                 str(self.graph),
+                ([(m, unicode(v)) for (m,v) in sorted(self.modules.items())],
+                 unicode(self.graph),
                  id(self)))
 
 
@@ -1531,7 +1531,7 @@ class TestPipeline(unittest.TestCase):
                                 pos=old_param.pos,
                                 name=old_param.name,
                                 alias="",
-                                val=str(1.0),
+                                val=unicode(1.0),
                                 type=old_param.type)
         action_spec = ('change', old_param, new_param,
                        func.vtType, func.real_id)
@@ -1544,7 +1544,7 @@ class TestPipeline(unittest.TestCase):
                                 pos=old_param.pos,
                                 name=old_param.name,
                                 alias="v1",
-                                val=str(v),
+                                val=unicode(v),
                                 type=old_param.type)
         func2 = p2.modules[0].functions[0]
         action2 = vistrails.core.db.action.create_action([('change',
@@ -1633,7 +1633,7 @@ class TestPipeline(unittest.TestCase):
                             package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
-        str(p1)
+        unicode(p1)
 
     def test_pipeline_equality_module_list_out_of_order(self):
         p1 = Pipeline()

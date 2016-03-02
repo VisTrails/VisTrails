@@ -68,7 +68,7 @@ class WriteCSV(Module):
 
             line = 0
             for l in izip(*cols):
-                fp.write(delimiter.join(str(e) for e in l) + '\n')
+                fp.write(delimiter.join(unicode(e) for e in l) + '\n')
                 line += 1
 
         return line

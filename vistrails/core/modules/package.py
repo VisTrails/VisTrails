@@ -48,6 +48,7 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
+from vistrails.core.utils.compat import ascii_s
 from vistrails.db.domain import DBPackage
 
 
@@ -371,7 +372,7 @@ class Package(DBPackage):
             try:
                 # print p_path + self.codepath
                 self.prefix = p_path
-                __import__(p_path + self.codepath,
+                __import__(ascii_s(p_path + self.codepath),
                            globals(),
                            locals(),
                            [])
@@ -424,12 +425,12 @@ class Package(DBPackage):
         try:
             name = self.prefix + self.codepath + '.init'
             try:
-                __import__(name, globals(), locals(), [])
+                __import__(ascii_s(name), globals(), locals(), [])
             except ImportError, e:
                 # FIXME !!! Want to differentiate between .init not
                 # existing and an error with an import in the .init
                 # file !!!
-                if str(e) != 'No module named init':
+                if unicode(e) != 'No module named init':
                     raise
                 else:
                     self._init_module = self._module

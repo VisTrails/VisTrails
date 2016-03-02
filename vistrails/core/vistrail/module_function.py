@@ -41,11 +41,8 @@ from __future__ import division
 
 from vistrails.db.domain import DBFunction
 from vistrails.core.modules.utils import create_port_spec_string
-from vistrails.core.utils import enum, VistrailsInternalError, all, eprint
-from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port_spec import PortSpec
 from itertools import izip
-import copy
 
 import unittest
 import copy
@@ -196,7 +193,7 @@ class ModuleFunction(DBFunction):
                 (self.real_id,
                  self.pos,
                  self.name,
-                 [str(p) for p in self.params],
+                 [unicode(p) for p in self.params],
                  id(self)))
 
     def __eq__(self, other):
@@ -291,7 +288,7 @@ class TestModuleFunction(unittest.TestCase):
                            parameters=[ModuleParam(type='Float',
                                                    val='1.2')],
                            )
-        str(f)
+        unicode(f)
 
 if __name__ == '__main__':
     unittest.main()

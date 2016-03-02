@@ -250,7 +250,7 @@ class Module(DBModule):
         if self._descriptor_info is None:
             self._descriptor_info = (self.package, self.name, 
                                      self.namespace, self.version,
-                                     str(self.internal_version))
+                                     unicode(self.internal_version))
         return self._descriptor_info
     descriptor_info = property(_get_descriptor_info)
 
@@ -382,10 +382,10 @@ class Module(DBModule):
                 (self.package,
                  get_name(),
                  self.id,
-                 [str(f) for f in self.functions],
-                 [str(port_spec) for port_spec in self.db_portSpecs],
-                 [str(a) for a in self.annotations],
-                 [str(c) for c in self.control_parameters],
+                 [unicode(f) for f in self.functions],
+                 [unicode(port_spec) for port_spec in self.db_portSpecs],
+                 [unicode(a) for a in self.annotations],
+                 [unicode(c) for c in self.control_parameters],
                  id(self)))
 
     def __eq__(self, other):
@@ -551,7 +551,7 @@ class TestModule(unittest.TestCase):
                                                                      )],
                                              )],
                    )
-        str(m)
+        unicode(m)
         
 if __name__ == '__main__':
     unittest.main()

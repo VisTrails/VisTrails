@@ -80,7 +80,7 @@ if __name__ == '__main__':
                                                           args=sys.argv[1:])
         app = vistrails.gui.application_server.VistrailsServer()
     except SystemExit, e:
-        print str(e)
+        print unicode(e)
         sys.exit(e)
     except Exception, e:
         import traceback

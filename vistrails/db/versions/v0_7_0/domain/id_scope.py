@@ -54,7 +54,7 @@ class IdScope:
         return cp
 
     def __str__(self):
-        return str(self.ids)
+        return unicode(self.ids)
 
     def getNewId(self, objType):
         if self.remap.has_key(objType):

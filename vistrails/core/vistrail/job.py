@@ -220,7 +220,7 @@ class Workflow(object):
         """
         self.version = version
         self.name = name
-        self.id = id if id else str(uuid1())
+        self.id = id if id else unicode(uuid1())
         self.user = getpass.getuser()
         self.start = start if start else datetime.datetime.now().isoformat()
         self.jobs = jobs if jobs else {}

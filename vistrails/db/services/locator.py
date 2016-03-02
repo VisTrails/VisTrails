@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+from __future__ import division, unicode_literals
 
 from datetime import datetime, date
 import hashlib
@@ -57,28 +57,43 @@ from vistrails.core.system import get_elementtree_library, systemType, \
 ElementTree = get_elementtree_library()
 
 
-_drive_regex = re.compile(r"/*([a-zA-Z]:/.+)$")
+def utf8_b(s):
+    """Encodes unicode objects to UTF-8.
+
+    This should only be used when UTF-8 actually makes sense, like for URLs,
+    not as a generic encoding catch-all that would mask errors.
+    """
+    if isinstance(s, unicode):
+        return s.encode('utf-8')
+    else:
+        return s
+
+
+_drive_regex = re.compile(br"/*([a-zA-Z]:/.+)$")
 def pathname2url(path):
-    """ Takes an absolute filename and turns it into a file:// URL.
+    """Takes an absolute filename and turns it into a file:// URL.
 
     While urllib.pathname2url seems like a good idea, it doesn't appear
     to do anything sensible in practice on Windows.
     """
-    if path.startswith('file://'):
+    path = utf8_b(path)
+    if path.startswith(b'file://'):
         path = urllib.unquote(path[7:])
     if systemType in ('Windows', 'Microsoft'):
-        path = path.replace('\\', '/')
+        path = path.replace(b'\\', b'/')
         match = _drive_regex.match(path)
         if match is not None:
-            path = '/%s' % match.group(1)
-    path = urllib.quote(path, safe='/:')
+            path = b'/%s' % match.group(1)
+    path = urllib.quote(path, safe=b'/:').decode('ascii')
     return path
 
 
 def url2pathname(urlpath):
-    """ Takes a file:// URL and turns it into a filename.
+    """Takes a file:// URL and turns it into a filename.
     """
+    assert isinstance(urlpath, bytes)
     path = urllib.url2pathname(urlpath)
+    path = path.decode('utf-8')
     if systemType in ('Windows', 'Microsoft'):
         path = path.replace('/', '\\')
         path = path.lstrip('\\')
@@ -86,65 +101,72 @@ def url2pathname(urlpath):
 
 
 class BaseLocator(object):
+    """Abstract base class of all the locators.
 
+    Each locator implements a different type of location for objects
+    (workflows, vistrails, ...).
+    """
     def load(self, type):
         raise NotImplementedError("load is not implemented")
 
     def save(self, obj, do_copy=True, version=None):
         """Saves an object in the given place.
-        
         """
         raise NotImplementedError("save is not implemented")
 
     def save_as(self, obj, version=None):
-        return self.save(obj, True, version) # calls save by default
+        """Saves a new version of the object in the given place.
+
+        This might require some more work than save() (e.g. copy cached files).
+        """
+        return self.save(obj, True, version)  # calls save by default
 
     def close(self):
         """Closes locator.
-        
         """
-        pass
 
     def is_valid(self):
         """Returns true if locator refers to a valid object.
-        
         """
         raise NotImplementedError("is_valid is not implemented")
-        
+
     def get_temporary(self):
+        """Returns the temporary file saved, if it exists, or None.
+        """
         return None
 
     def has_temporaries(self):
+        """Whether there are temporaries associated with this locator.
+        """
         return self.get_temporary() is not None
 
     def clean_temporaries(self):
-        pass
+        """Removes the temporaries associated with this locator.
+        """
 
     def save_temporary(self, obj):
-        pass
-    
+        """Saves a temporary associated with this locator.
+        """
+
     def serialize(self, dom, element):
         """Serializes this locator to XML.
-
         """
         raise NotImplementedError("serialize is not implemented")
 
-    def to_xml(self, node=None): 
+    def to_xml(self, node=None):
         """ElementTree port of serialize.
-
         """
         raise NotImplementedError("to_xml is not implemented")
 
     @staticmethod
     def parse(element):
         """Parse an XML object representing a locator and returns a Locator.
-        
         """
         raise NotImplementedError("parse is not implemented")
-    
+
     @staticmethod
     def convert_filename_to_url(filename):
-        """ Converts a local filename to a file:// URL.
+        """Converts a local filename to a file:// URL.
 
         All file:// URLs are absolute, so abspath() will be used on the
         argument.
@@ -162,20 +184,21 @@ class BaseLocator(object):
                     q_mark = True
                     query_str_idx = match.end()
         if q_mark:
-            args_str = filename[query_str_idx-1:]
-            filename = filename[:query_str_idx-1]
+            args_str = filename[query_str_idx - 1:]
+            filename = filename[:query_str_idx - 1]
         else:
             args_str = ""
 
         return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
-                                urllib.quote(args_str, safe='/?=&'))
+                                urllib.quote(utf8_b(args_str), safe=b'/?=&'))
 
     @staticmethod
     def from_url(url):
-        """Assumes a valid URL if the scheme is specified.  For example,
-        'file:///C:/My%20Documents/test.vt'.  If only a filename is
-        specified, it converts the filename to a URL.
+        """Builds a locator from a URL.
 
+        Assumes a valid URL if the scheme is specified.  For example,
+        'file:///C:/My%20Documents/test.vt'.  If only a filename is specified,
+        it will be converted to a file:// URL first.
         """
         if '://' in url:
             scheme = url.split('://', 1)[0]
@@ -190,8 +213,8 @@ class BaseLocator(object):
             return DBLocator.from_url(url)
         elif scheme == 'file':
             old_uses_query = urlparse.uses_query
-            urlparse.uses_query = urlparse.uses_query + ['file']
-            scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
+            urlparse.uses_query = urlparse.uses_query + [b'file']
+            scheme, host, path, args, fragment = urlparse.urlsplit(utf8_b(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
             if path.lower().endswith(".xml"):
@@ -202,6 +225,8 @@ class BaseLocator(object):
 
     @staticmethod
     def parse_args(arg_str):
+        """Parses the arguments part of a URL.
+        """
         args = {}
         parsed_dict = urlparse.parse_qs(arg_str)
         if 'type' in parsed_dict:
@@ -234,6 +259,8 @@ class BaseLocator(object):
 
     @staticmethod
     def generate_args(args):
+        """Builds the arguments part of a URL.
+        """
         generate_dict = {}
         if 'obj_type' in args and args['obj_type']:
             generate_dict['type'] = args['obj_type']
@@ -253,21 +280,25 @@ class BaseLocator(object):
             generate_dict['mashup'] = args['mashup']
         if 'workflow_exec' in args and args['workflow_exec']:
             generate_dict['workflow_exec'] = args['workflow_exec']
-        return urllib.urlencode(generate_dict)
 
+        dict_utf8 = dict((utf8_b(k), utf8_b(v))
+                         for k, v in generate_dict.iteritems())
+        return urllib.urlencode(dict_utf8)
 
     def _get_name(self):
-        return None # Returns a name that will be displayed for the object
+        """Returns a name that will be displayed for the object.
+        """
+        return None
     name = property(_get_name)
 
     def _get_short_filename(self):
-        """ Returns a short name that can be used to derive other filenames
+        """Returns a short name that can be used to derive other filenames.
         """
         return None
     short_filename = property(_get_short_filename)
 
     def _get_short_name(self):
-        """ Returns a short name that can be used for display
+        """Returns a short name that can be used for display.
         """
         return None
     short_name = property(_get_short_name)
@@ -276,21 +307,21 @@ class BaseLocator(object):
     # Operators
 
     def __eq__(self, other):
-        pass # Implement equality
+        pass  # Implement equality
 
     def __ne__(self, other):
-        pass # Implement nonequality
+        pass  # Implement nonequality
 
     def __hash__(self):
         return hash(self.name)
-    
+
     def is_untitled(self):
         return False
+
 
 class SaveTemporariesMixin(object):
     """A mixin class that saves temporary copies of a file.  It requires
     self.name to exist for proper functioning.
-
     """
     @staticmethod
     def get_autosave_dir():
@@ -341,10 +372,18 @@ class SaveTemporariesMixin(object):
         Encodes a file path using urllib.quoteplus
 
         """
-        name = urllib.quote_plus(filename) + '_tmp'
+        name = urllib.quote_plus(utf8_b(filename)) + '_tmp'
         return os.path.join(self.get_autosave_dir(), name)
 
+
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
+    """A locator for temporary (in-memory) storage.
+
+    These are identified by a UUID, allowing for several such storage locations
+    to exist.
+
+    load() just loads the last temporary file.
+    """
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
@@ -387,7 +426,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     short_filename = property(_get_short_filename)
 
     def _get_short_name(self):
-        return self._get_name().decode('ascii')
+        return self._get_name()
     short_name = property(_get_short_name)
 
     @staticmethod
@@ -422,14 +461,14 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     def __eq__(self, other):
         if type(other) != type(self):
             return False
-        return (self._uuid == other._uuid)
+        return self._uuid == other._uuid
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def is_untitled(self):
         return True
-    
+
     @classmethod
     def all_untitled_temporaries(cls):
         autosave_dir = SaveTemporariesMixin.get_autosave_dir()
@@ -441,12 +480,15 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
         locators = {}
         for fname in fnames:
             uuid_start = len(cls.UNTITLED_PREFIX)
-            my_uuid = uuid.UUID(fname[uuid_start:uuid_start+32])
+            my_uuid = uuid.UUID(fname[uuid_start:uuid_start + 32])
             if my_uuid not in locators:
                 locators[my_uuid] = cls(my_uuid)
         return locators.values()
 
+
 class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
+    """A plain XML file.
+    """
     def __init__(self, filename, **kwargs):
         self._name = filename
         self._vnode = kwargs.get('version_node', None)
@@ -486,17 +528,16 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         return os.path.isfile(self._name)
 
     def _get_name(self):
-        return str(self._name)
+        return self._name
     name = property(_get_name)
 
     def _get_short_filename(self):
+        print "HOOPLA", self._name
         return os.path.splitext(os.path.basename(self._name))[0]
     short_filename = property(_get_short_filename)
 
     def _get_short_name(self):
-        name = self._get_short_filename()
-        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
-        return name.decode(enc)
+        return self._get_short_filename()
     short_name = property(_get_short_name)
 
     @classmethod
@@ -509,11 +550,11 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
             url = BaseLocator.convert_filename_to_url(url)
 
         old_uses_query = urlparse.uses_query
-        urlparse.uses_query = urlparse.uses_query + ['file']
-        scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
+        urlparse.uses_query = urlparse.uses_query + [b'file']
+        scheme, host, path, args_str, fragment = urlparse.urlsplit(utf8_b(url))
         urlparse.uses_query = old_uses_query
         # De-urlencode pathname
-        path = url2pathname(str(path))
+        path = url2pathname(path)
         kwargs = BaseLocator.parse_args(args_str)
 
         return cls(os.path.abspath(path), **kwargs)
@@ -526,67 +567,59 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         return urlparse.urlunsplit(url_tuple)
 
     def serialize(self, dom, element):
-        """serialize(dom, element) -> None
-        Convert this object to an XML representation.
-
+        """Serializes this locator to XML.
         """
         locator = dom.createElement('locator')
         locator.setAttribute('type', 'file')
         node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
+        filename = dom.createTextNode(unicode(self._name))
         node.appendChild(filename)
         locator.appendChild(node)
         element.appendChild(locator)
 
     @staticmethod
     def parse(element):
-        """ parse(element) -> XMLFileLocator or None
-        Parse an XML object representing a locator and returns a
-        XMLFileLocator object.
-
+        """Reads a locator from an XML object.
         """
-        if str(element.getAttribute('type')) == 'file':
+        if unicode(element.getAttribute('type')) == 'file':
             for n in element.childNodes:
                 if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    filename = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     return XMLFileLocator(filename)
-            return None
-        else:
-            return None
+        return None
 
     #ElementTree port
     def to_xml(self, node=None):
-        """to_xml(node: ElementTree.Element) -> ElementTree.Element
-        Convert this object to an XML representation.
+        """Serializes this locator to XML.
         """
         if node is None:
             node = ElementTree.Element('locator')
 
         node.set('type', 'file')
-        childnode = ElementTree.SubElement(node,'name')
-        childnode.text = self._name.decode('latin-1')
+        childnode = ElementTree.SubElement(node, 'name')
+        childnode.text = self._name
         return node
 
     @staticmethod
     def from_xml(node):
-        """from_xml(node:ElementTree.Element) -> XMLFileLocator or None
-        Parse an XML object representing a locator and returns a
-        XMLFileLocator object."""
+        """Reads a locator from an XML object.
+        """
         if node.tag != 'locator':
             return None
 
-        #read attributes
+        # Read attributes
         data = node.get('type', '')
-        type = str(data)
-        if type == 'file':
+        type_ = unicode(data)
+        if type_ == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = child.text.encode('latin-1').strip()
+                    filename = child.text.strip()
                     return XMLFileLocator(filename)
         return None
 
     def __str__(self):
-        return '<%s vistrail_name="%s" />' % (self.__class__.__name__, self._name)
+        return '<%s vistrail_name="%s" />' % (self.__class__.__name__,
+                                              self._name)
 
     ###########################################################################
     # Operators
@@ -598,6 +631,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
 
 class ZIPFileLocator(XMLFileLocator):
     """Files are compressed in zip format. The temporaries are
@@ -613,7 +647,8 @@ class ZIPFileLocator(XMLFileLocator):
             obj = io.open_from_xml(fname, type)
             return SaveBundle(DBVistrail.vtType, obj)
         else:
-            (save_bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)
+            (save_bundle, tmp_dir) = io.open_bundle_from_zip_xml(type,
+                                                                 self._name)
             self.tmp_dir = tmp_dir
             for obj in save_bundle.get_db_objs():
                 obj.locator = self
@@ -627,7 +662,8 @@ class ZIPFileLocator(XMLFileLocator):
         else:
             # otherwise, use the existing temp directory if one is set
             tmp_dir = self.tmp_dir
-        (save_bundle, tmp_dir) = io.save_bundle_to_zip_xml(save_bundle, self._name, tmp_dir, version)
+        (save_bundle, tmp_dir) = io.save_bundle_to_zip_xml(
+                save_bundle, self._name, tmp_dir, version)
         self.tmp_dir = tmp_dir
         for obj in save_bundle.get_db_objs():
             obj.locator = self
@@ -653,49 +689,43 @@ class ZIPFileLocator(XMLFileLocator):
 
     @staticmethod
     def parse(element):
-        """ parse(element) -> ZIPFileLocator or None
-        Parse an XML object representing a locator and returns a
-        ZIPFileLocator object.
-
+        """Reads a locator from an XML object.
         """
-        if str(element.getAttribute('type')) == 'file':
+        if unicode(element.getAttribute('type')) == 'file':
             for n in element.childNodes:
                 if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    filename = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     return ZIPFileLocator(filename)
-            return None
-        else:
-            return None
-        
-    #ElementTree port    
+        return None
+
+    #ElementTree port
     @staticmethod
     def from_xml(node):
-        """from_xml(node:ElementTree.Element) -> ZIPFileLocator or None
-        Parse an XML object representing a locator and returns a
-        ZIPFileLocator object."""
+        """Reads a locator from an XML object.
+        """
         if node.tag != 'locator':
             return None
 
         #read attributes
         data = node.get('type', '')
-        type = str(data)
+        type = unicode(data)
         if type == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = child.text.encode('latin-1').strip()
+                    filename = child.text.strip()
                     return ZIPFileLocator(filename)
             return None
         return None
 
-# class URLLocator(ZIPFileLocator):
-#     def load(self, type):
-        
+
 class DBLocator(BaseLocator):
+    """A locator for database servers.
+    """
     cache = {}
     cache_timestamps = {}
     connections = {}
     cache_connections = {}
-        
+
     def __init__(self, host, port, database, user, passwd, name=None,
                  **kwargs):
         self._host = host
@@ -718,8 +748,8 @@ class DBLocator(BaseLocator):
             self._mshpversion = self.kwargs.get('mashupVersion', None)
         else:
             self._mshpversion = self.kwargs.get('mashup', None)
-        self._parameterexploration = self.kwargs.get('parameterExploration', None)
-        
+        self._parameterexploration = self.kwargs.get('parameterExploration')
+
     def _get_host(self):
         return self._host
     host = property(_get_host)
@@ -731,7 +761,7 @@ class DBLocator(BaseLocator):
     def _get_db(self):
         return self._db
     db = property(_get_db)
-    
+
     def _get_obj_id(self):
         return self._obj_id
     obj_id = property(_get_obj_id)
@@ -743,48 +773,43 @@ class DBLocator(BaseLocator):
     def _get_connection_id(self):
         return self._conn_id
     connection_id = property(_get_connection_id)
-    
+
     def _get_name(self):
-        return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
-            str(self._name)
+        return '%s:%d:%s:%s' % (self._host, self._port, self._db, self._name)
     name = property(_get_name)
 
     def _get_short_filename(self):
-        return str(self._name)
+        return self._name
     short_filename = property(_get_short_filename)
 
     def _get_short_name(self):
-        name = self._name
-        if not isinstance(name, unicode):
-            name = name.decode('ascii')
-        return name
+        return self._name
     short_name = property(_get_short_name)
 
     def hash(self):
         node = self.to_xml()
         xml_string = ElementTree.tostring(node)
-        #print "hash", xml_string
         return hashlib.sha224(xml_string).hexdigest()
-    
+
     def is_valid(self):
         if self._conn_id is not None \
                 and self._conn_id in DBLocator.connections:
             return True
         try:
             self.get_connection()
-        except Exception:
+        except VistrailsDBException:
             return False
         return True
-        
+
     def get_connection(self):
         if self._conn_id is not None \
-                and DBLocator.connections.has_key(self._conn_id):
+                and self._conn_id in DBLocator.connections:
             connection = DBLocator.connections[self._conn_id]
             if io.ping_db_connection(connection):
                 return connection
         else:
             if self._conn_id is None:
-                if DBLocator.cache_connections.has_key(self._hash):
+                if self._hash in DBLocator.cache_connections:
                     connection = DBLocator.cache_connections[self._hash]
                     if io.ping_db_connection(connection):
                         debug.log("Reusing cached connection")
@@ -801,42 +826,42 @@ class DBLocator(BaseLocator):
                   'passwd': self._passwd}
         #print "config:", config
         connection = io.open_db_connection(config)
-            
+
         DBLocator.connections[self._conn_id] = connection
         DBLocator.cache_connections[self._hash] = connection
         return connection
 
     def load(self, type, tmp_dir=None):
         self._hash = self.hash()
-        #print "LLoad Big|type", type
-        if DBLocator.cache.has_key(self._hash):
+        if self._hash in DBLocator.cache:
             save_bundle = DBLocator.cache[self._hash]
             obj = save_bundle.get_primary_obj()
 
             ts = self.get_db_modification_time(obj.vtType)
-            #debug.log("cached time: %s, db time: %s"%(DBLocator.cache_timestamps[self._hash],ts))
             if DBLocator.cache_timestamps[self._hash] == ts:
-                #debug.log("using cached vistrail")
                 self._name = obj.db_name
                 # If thumbnail cache was cleared, get thumbs from db
                 if tmp_dir is not None:
                     for absfname in save_bundle.thumbnails:
                         if not os.path.isfile(absfname):
-                            save_bundle.thumbnails = io.open_thumbnails_from_db(self.get_connection(), type, self.obj_id, tmp_dir)
+                            save_bundle.thumbnails = \
+                                io.open_thumbnails_from_db(
+                                        self.get_connection(),
+                                        type,
+                                        self.obj_id,
+                                        tmp_dir)
                             break
                 return save_bundle
-        #debug.log("loading vistrail from db")
         connection = self.get_connection()
         if type == DBWorkflow.vtType:
             return io.open_from_db(connection, type, self.obj_id)
-        save_bundle = io.open_bundle_from_db(type, connection, self.obj_id, tmp_dir)
+        save_bundle = io.open_bundle_from_db(type, connection,
+                                             self.obj_id, tmp_dir)
         primary_obj = save_bundle.get_primary_obj()
         self._name = primary_obj.db_name
-        #print "locator db name:", self._name
         for obj in save_bundle.get_db_objs():
             obj.locator = self
-        
-        _hash = self.hash()
+
         DBLocator.cache[self._hash] = save_bundle.do_copy()
         DBLocator.cache_timestamps[self._hash] = primary_obj.db_last_modified
         return save_bundle
@@ -845,7 +870,8 @@ class DBLocator(BaseLocator):
         connection = self.get_connection()
         for obj in save_bundle.get_db_objs():
             obj.db_name = self._name
-        save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy, version)
+        save_bundle = io.save_bundle_to_db(save_bundle, connection,
+                                           do_copy, version)
         primary_obj = save_bundle.get_primary_obj()
         self._obj_id = primary_obj.db_id
         if self._obj_id is not None:
@@ -862,70 +888,63 @@ class DBLocator(BaseLocator):
     def get_db_modification_time(self, obj_type=None):
         if obj_type is None:
             if self.obj_type is None:
-                obj_type = DBVistrail.vtType 
+                obj_type = DBVistrail.vtType
             else:
                 obj_type = self.obj_type
 
         ts = io.get_db_object_modification_time(self.get_connection(),
                                                 self.obj_id,
                                                 obj_type)
-        ts = datetime(*time_strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        ts = datetime(*time_strptime(ts.strip(),'%Y-%m-%d %H:%M:%S')[0:6])
         return ts
-        
-    def serialize(self, dom, element):
-        """serialize(dom, element) -> None
-        Convert this object to an XML representation.
 
+    def serialize(self, dom, element):
+        """Serializes this locator to XML.
         """
         locator = dom.createElement('locator')
         locator.setAttribute('type', 'db')
-        locator.setAttribute('host', str(self._host))
-        locator.setAttribute('port', str(self._port))
-        locator.setAttribute('db', str(self._db))
-        locator.setAttribute('vt_id', str(self._obj_id))
+        locator.setAttribute('host', unicode(self._host))
+        locator.setAttribute('port', unicode(self._port))
+        locator.setAttribute('db', unicode(self._db))
+        locator.setAttribute('vt_id', unicode(self._obj_id))
         node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
+        filename = dom.createTextNode(unicode(self._name))
         node.appendChild(filename)
         locator.appendChild(node)
         element.appendChild(locator)
 
     @staticmethod
     def parse(element):
-        """ parse(element) -> DBFileLocator or None
-        Parse an XML object representing a locator and returns a
-        DBFileLocator object.
-
+        """Reads a locator from an XML object.
         """
-        if str(element.getAttribute('type')) == 'db':
-            host = str(element.getAttribute('host'))
+        if element.getAttribute('type') == 'db':
+            host = element.getAttribute('host')
             port = int(element.getAttribute('port'))
-            database = str(element.getAttribute('db'))
-            vt_id = str(element.getAttribute('vt_id'))
+            database = element.getAttribute('db')
+            vt_id = element.getAttribute('vt_id')
             user = ""
             passwd = ""
             for n in element.childNodes:
                 if n.localName == "name":
-                    name = str(n.firstChild.nodeValue).strip(" \n\t")
-                    #print host, port, database, name, vt_id
+                    name = unicode(n.firstChild.nodeValue).strip(" \n\t")
+                    # FIXME : too many parameters?
                     return DBLocator(host, port, database,
                                      user, passwd, name, obj_id=vt_id)
-            return None
-        else:
-            return None
-    
+        return None
+
     @staticmethod
     def from_url(url):
         format = re.compile(
                 r"^"
-                "([a-zA-Z0-9_-]+)://"   # scheme
-                "(?:"
-                    "([^:@]+)"          # user name
-                    "(?:([^:@]+))?"     # password
-                "@)?"
-                "([^/]+)"               # net location
-                "/([^?]+)"              # database name
-                "(?:\?(.+))?"           # query arguments
-                "$")
+                r"([a-zA-Z0-9_-]+)://"  # scheme
+                r"(?:"
+                    r"([^:@]+)"         # user name
+                    r"(?:([^:@]+))?"    # password
+                r"@)?"
+                r"([^/]+)"              # net location
+                r"/([^?]+)"             # database name
+                r"(?:\?(.+))?"          # query arguments
+                r"$")
         match = format.match(url)
         if match is None:
             return ValueError
@@ -935,47 +954,45 @@ class DBLocator(BaseLocator):
                 host, port = net_loc.rsplit(':', 1)
             else:
                 host, port = net_loc, None
-            db_name = urllib.unquote(str(db_name))
+            db_name = urllib.unquote(unicode(db_name))
             kwargs = BaseLocator.parse_args(args_str)
             return DBLocator(host, port, db_name, user, passwd, **kwargs)
-    
+
     def to_url(self):
-        # FIXME may also want to allow database type to be encoded in 
+        # FIXME may also want to allow database type to be encoded in
         # scheme (ie mysql://host/db, sqlite3://path/to)
         net_loc = '%s:%s' % (self._host, self._port)
         args_str = BaseLocator.generate_args(self.kwargs)
-        # query_str = '%s=%s' % (self._obj_type, self._obj_id)
-        url_tuple = ('db', net_loc, urllib.quote(self._db, ''), args_str, '')
+        url_tuple = ('db', net_loc,
+                     urllib.quote(utf8_b(self._db), b''),
+                     args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
     #ElementTree port
-    def to_xml(self, node=None, include_name = False):
-        """to_xml(node: ElementTree.Element) -> ElementTree.Element
-        Convert this object to an XML representation.
+    def to_xml(self, node=None, include_name=False):
+        """Serializes this locator to XML.
         """
         if node is None:
             node = ElementTree.Element('locator')
 
         node.set('type', 'db')
-        node.set('host', str(self._host))
-        node.set('port', str(self._port))
-        node.set('db', str(self._db))
-        node.set('vt_id', str(self._obj_id))
-        node.set('user', str(self._user))
+        node.set('host', self._host)
+        node.set('port', self._port)
+        node.set('db', self._db)
+        node.set('vt_id', self._obj_id)
+        node.set('user', self._user)
         if include_name:
-            childnode = ElementTree.SubElement(node,'name')
-            childnode.text = str(self._name)
+            childnode = ElementTree.SubElement(node, 'name')
+            childnode.text = unicode(self._name)
         return node
 
     @staticmethod
     def from_xml(node, include_name=False):
-        """from_xml(node:ElementTree.Element) -> DBLocator or None
-        Parse an XML object representing a locator and returns a
-        DBLocator object."""
-        
-        def convert_from_str(value,type):
+        """Reads a locator from an XML object.
+        """
+        def convert_from_str(value, type):
             def bool_conv(x):
-                s = str(x).upper()
+                s = unicode(x).upper()
                 if s == 'TRUE':
                     return True
                 if s == 'FALSE':
@@ -983,7 +1000,7 @@ class DBLocator(BaseLocator):
 
             if value is not None:
                 if type == 'str':
-                    return str(value)
+                    return unicode(value)
                 elif value.strip() != '':
                     if type == 'long':
                         return long(value)
@@ -996,23 +1013,24 @@ class DBLocator(BaseLocator):
                     elif type == 'date':
                         return date(*time_strptime(value, '%Y-%m-%d')[0:3])
                     elif type == 'datetime':
-                        return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                        return datetime(*time_strptime(
+                                value, '%Y-%m-%d %H:%M:%S')[0:6])
             return None
-    
+
         if node.tag != 'locator':
             return None
 
-        #read attributes
+        # Read attributes
         data = node.get('type', '')
-        type = convert_from_str(data, 'str')
-        
-        if type == 'db':
+        type_ = convert_from_str(data, 'str')
+
+        if type_ == 'db':
             data = node.get('host', None)
             host = convert_from_str(data, 'str')
             data = node.get('port', None)
-            port = convert_from_str(data,'int')
+            port = convert_from_str(data, 'int')
             data = node.get('db', None)
-            database = convert_from_str(data,'str')
+            database = convert_from_str(data, 'str')
             data = node.get('vt_id')
             vt_id = convert_from_str(data, 'str')
             data = node.get('user')
@@ -1022,16 +1040,18 @@ class DBLocator(BaseLocator):
             if include_name:
                 for child in node.getchildren():
                     if child.tag == 'name':
-                        name = str(child.text).strip(" \n\t")
+                        name = unicode(child.text).strip(" \n\t")
             return DBLocator(host, port, database,
-                             user, passwd, name, obj_id=vt_id, obj_type='vistrail')
+                             user, passwd, name,
+                             obj_id=vt_id, obj_type='vistrail')
         else:
             return None
 
     def __str__(self):
-        return '<DBLocator host="%s" port="%s" database="%s" vistrail_id="%s" \
-vistrail_name="%s"/>' % ( self._host, self._port, self._db,
-                          self._obj_id, self._name)
+        return ('<DBLocator host="%s" port="%s" database="%s" '
+                'vistrail_id="%s" vistrail_name="%s"/>' % (
+                    self._host, self._port, self._db,
+                    self._obj_id, self._name))
 
     ###########################################################################
     # Operators
@@ -1053,10 +1073,12 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
 
 import unittest
 
+
 class TestLocators(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
         def assertIsInstance(self, obj, cls, msg=None):
             self.assertTrue(isinstance(obj, cls), msg)
+
         def assertIsNone(self, obj, msg=None):
             self.assertTrue(obj is None, msg)
 
@@ -1066,7 +1088,7 @@ class TestLocators(unittest.TestCase):
         path = path.replace(os.sep, '/')
         if path.startswith('/'):
             path = path[1:]
-        return "file:///%s" % urllib.quote(path, '/:')
+        return "file:///%s" % urllib.quote(utf8_b(path), b'/:')
 
     def test_convert_filename(self):
         # Test both systemTypes
@@ -1080,13 +1102,13 @@ class TestLocators(unittest.TestCase):
             systemType = 'Linux'
             self.assertEqual(
                     BaseLocator.convert_filename_to_url(
-                            '/a dir/test.vt?v=a\xE9&b'),
+                            b'/a dir/test.vt?v=a\xE9&b'),
                     'file:///a%20dir/test.vt?v=a%E9&b')
             systemType = 'Windows'
             self.assertEqual(
                     BaseLocator.convert_filename_to_url(
                             'C:\\a dir\\test.vt?v=a\xE9&b'),
-                    'file:///C:/a%20dir/test.vt?v=a%E9&b')
+                    'file:///C:/a%20dir/test.vt?v=a%C3%A9&b')
         finally:
             systemType = old_systemType
             os.path.abspath = old_abspath
@@ -1096,7 +1118,7 @@ class TestLocators(unittest.TestCase):
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, UntitledLocator)
         self.assertEqual(loc.kwargs['version_node'], 42)
-        self.assertEqual(loc._uuid, 
+        self.assertEqual(loc._uuid,
                          uuid.UUID('e78394a73b87429e952b71b858e03242'))
         self.assertEqual(loc.to_url(), loc_str)
 
@@ -1129,7 +1151,7 @@ class TestLocators(unittest.TestCase):
         loc_str = loc_str.replace(os.sep, '/')
         if loc_str[0] == '/':
             loc_str = loc_str[1:]
-        loc_str = "file:///%s" % urllib.quote(loc_str, '/:?=')
+        loc_str = "file:///%s" % urllib.quote(utf8_b(loc_str), b'/:?=')
         self.assertEqual(loc.to_url(), loc_str)
 
     def test_parse_xml_file(self):
@@ -1161,7 +1183,7 @@ class TestLocators(unittest.TestCase):
             import nturl2path
         except ImportError:
             return self.skipTest("Do not have ntpath or nturl2path installed.")
-            
+
         global systemType
         old_sys_type = systemType
         old_path = os.path
@@ -1200,6 +1222,7 @@ class TestLocators(unittest.TestCase):
         loc_str = "http://blah.com/"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsNone(loc)
+
 
 if __name__ == '__main__':
     unittest.main()

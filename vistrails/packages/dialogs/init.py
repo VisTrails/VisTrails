@@ -79,7 +79,7 @@ class TextDialog(Dialog):
                                                   default)
         if not ok:
             raise ModuleError(self, "Canceled")
-        self.set_output('result', str(result))
+        self.set_output('result', unicode(result))
 
 
 class PasswordDialog(TextDialog):

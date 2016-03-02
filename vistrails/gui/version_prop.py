@@ -52,7 +52,6 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import all
 from vistrails.core.vistrail.controller import custom_color_key, \
     parse_custom_color
 from vistrails.gui.theme import CurrentTheme
@@ -270,7 +269,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         if self.controller:
             name = self.controller.vistrail.getVersionName(self.versionNumber)
-            currentText = str(self.tagEdit.text())
+            currentText = unicode(self.tagEdit.text())
             if name != currentText:    
                 self.controller.update_current_tag(currentText)
 
@@ -349,7 +348,7 @@ class QVersionNotes(QtGui.QTextEdit):
     def commit_changes(self):
         if self.controller and self.document().isModified():
             self.controller.update_notes('' if self.document().isEmpty()
-                                         else str(self.toHtml()))
+                                         else self.toHtml())
 
     def reset_changes(self):
         """ reset_changes() -> None
@@ -845,13 +844,13 @@ class QVersionMashups(QtGui.QWidget):
         
     def createMashupsMenu(self, tagMap):
         tags = tagMap.keys()
-        self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+        self.mashupsButton.setText("Mashups (%s)"%unicode(len(tags)))
         #latestversion = mtrail.getLatestVersion()
         mashupsMenu = QtGui.QMenu(self)
         if len(tags) > 0:
             tags.sort()
             for tag in tags:
-                action = QtGui.QAction(str(tag), self, 
+                action = QtGui.QAction(unicode(tag), self,
                                        triggered=self.mashupSelected)
                 action.setData(tagMap[tag])
                 mashupsMenu.addAction(action)
@@ -884,12 +883,12 @@ class QVersionMashups(QtGui.QWidget):
                     tagMap = self.mtrail.getTagMap()
                     self.mashupsButton.setMenu(self.createMashupsMenu(tagMap))
 #                    tags = tagMap.keys()
-#                    self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
+#                    self.mashupsButton.setText("Mashups (%s)"%unicode(len(tags)))
 #                    #latestversion = mtrail.getLatestVersion()
 #                    if len(tags) > 0:
 #                        tags.sort()
 #                        for tag in tags:
-#                            item = QMashupListPanelItem(str(tag),
+#                            item = QMashupListPanelItem(unicode(tag),
 #                                                        tagMap[tag],
 #                                                        self.mashupsList)
 #                        self.mashupsButton.setEnabled(True)

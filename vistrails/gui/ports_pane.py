@@ -133,7 +133,7 @@ class AliasLabel(QtGui.QLabel):
                                                     'Enter the parameter alias',
                                                     QtGui.QLineEdit.Normal,
                                                     self.alias)
-            while ok and self.parent().check_alias(str(text)):
+            while ok and self.parent().check_alias(unicode(text)):
                 msg =" This alias is already being used.\
  Please enter a different parameter alias "
                 (text, ok) = QtGui.QInputDialog.getText(self,
@@ -141,9 +141,9 @@ class AliasLabel(QtGui.QLabel):
                                                         msg,
                                                         QtGui.QLineEdit.Normal,
                                                         text)
-            if ok and str(text)!=self.alias:
-                if not self.parent().check_alias(str(text)):
-                    self.alias = str(text).strip()
+            if ok and unicode(text)!=self.alias:
+                if not self.parent().check_alias(unicode(text)):
+                    self.alias = unicode(text).strip()
                     self.updateText()
                     self.parent().updateMethod()
 
@@ -639,7 +639,7 @@ class PortsList(QtGui.QTreeWidget):
             str_values = []
             query_methods = []
             for w in widgets:
-                str_values.append(str(w.contents()))
+                str_values.append(unicode(w.contents()))
                 if hasattr(w, 'query_method'):
                     query_methods.append(w.query_method())
             if real_id < 0:
@@ -650,7 +650,7 @@ class PortsList(QtGui.QTreeWidget):
                                             port_name,
                                             str_values,
                                             real_id,
-                                            [str(label.alias)
+                                            [unicode(label.alias)
                                              for label in labels],
                                             query_methods,
                                             should_replace)

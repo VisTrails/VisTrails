@@ -46,13 +46,9 @@ from .queries import QueryCondition, EqualString, EqualInt
 
 
 def str_repr(s):
-    if isinstance(s, unicode):
-        s = (s.replace('\\', '\\\\')
-              .replace("'", "\\'")
-              .encode('ascii', 'backslashreplace'))
-    else:
-        s = (s.replace('\\', '\\\\')
-              .replace("'", "\\'"))
+    assert isinstance(s, unicode)
+    s = (s.replace('\\', '\\\\')
+          .replace("'", "\\'"))
     return "'%s'" % s
 
 

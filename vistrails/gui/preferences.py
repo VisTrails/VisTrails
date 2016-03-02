@@ -291,7 +291,7 @@ class QPackagesWidget(QtGui.QWidget):
     def enable_current_package(self):
         av = self._available_packages_list
         item = av.currentItem()
-        codepath = str(item.text())
+        codepath = unicode(item.text())
         pm = get_package_manager()
 
         try:
@@ -336,7 +336,7 @@ class QPackagesWidget(QtGui.QWidget):
     def disable_current_package(self):
         inst = self._enabled_packages_list
         item = inst.currentItem()
-        codepath = str(item.text())
+        codepath = unicode(item.text())
         pm = get_package_manager()
 
         dependency_graph = pm.dependency_graph()
@@ -363,7 +363,7 @@ class QPackagesWidget(QtGui.QWidget):
             # reverse dependencies, then enables it all again
             item = self._enabled_packages_list.currentItem()
             pm = get_package_manager()
-            codepath = str(item.text())
+            codepath = unicode(item.text())
 
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
@@ -373,7 +373,7 @@ class QPackagesWidget(QtGui.QWidget):
             # module
             item = self._available_packages_list.currentItem()
             pm = get_package_manager()
-            codepath = str(item.text())
+            codepath = unicode(item.text())
             pm._available_packages.pop(codepath).unload()
             self.selected_available_list()
 
@@ -482,7 +482,7 @@ class QPackagesWidget(QtGui.QWidget):
         else:
             self._name_label.setText(p.name)
             try:
-                deps = ', '.join(str(d) for d in p.dependencies()) or \
+                deps = ', '.join(unicode(d) for d in p.dependencies()) or \
                     'No package dependencies.'
             except Exception, e:
                 debug.critical("Failed getting dependencies of package %s" %
@@ -512,7 +512,7 @@ class QPackagesWidget(QtGui.QWidget):
         if item is None:
             return # prevent back and forth looping when clearing selection
         self._available_packages_list.setCurrentItem(None)
-        codepath = str(item.text())
+        codepath = unicode(item.text())
         pm = get_package_manager()
         self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
@@ -527,7 +527,7 @@ class QPackagesWidget(QtGui.QWidget):
         if item is None:
             return # prevent back and forth looping when clearing selection
         self._enabled_packages_list.setCurrentItem(None)
-        codepath = str(item.text())
+        codepath = unicode(item.text())
         pm = get_package_manager()
         self._current_package = pm.look_at_available_package(codepath)
         self.set_buttons_to_available_package()

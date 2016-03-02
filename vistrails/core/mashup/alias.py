@@ -164,4 +164,4 @@ class TestAlias(unittest.TestCase):
         
     def test_str(self):
         a1 = self.create_alias()
-        str(a1)
+        unicode(a1)

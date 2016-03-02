@@ -185,6 +185,7 @@ import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
 from vistrails.core import debug
+from vistrails.core.utils.compat import ascii_s
 import vistrails.gui.application
 from vistrails.core.system import vistrails_root_directory, \
                                   vistrails_examples_directory
@@ -300,7 +301,7 @@ except ImportError:
     print "PyQt4 not available"
 for pkg in ('numpy', 'scipy', 'matplotlib'):
     try:
-        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        ipkg = __import__(ascii_s(pkg), globals(), locals(), [], -1)
         print "Using %s %s" % (pkg, ipkg.__version__)
     except ImportError:
         print "%s not available" % pkg
@@ -367,9 +368,10 @@ for (p, subdirs, files) in os.walk(root_directory):
         m = None
         try:
             if '.' in module:
-                m = __import__(module, globals(), locals(), ['foo'])
+                m = __import__(ascii_s(module), globals(), locals(),
+                               [ascii_s('foo')])
             else:
-                m = __import__(module)
+                m = __import__(ascii_s(module))
         except BaseException:
             print >>sys.stderr, "ERROR: Could not import module: %s" % module
             if verbose >= 1:
@@ -485,7 +487,7 @@ def image_test_generator(vtfile, version):
             if len(errs) > 0:
                 for err in errs:
                     print("   *** Error in %s:%s:%s -- %s" % err)
-                    self.fail(str(err))
+                    self.fail(unicode(err))
         except Exception, e:
             self.fail(debug.format_exception(e))
     return test
@@ -505,7 +507,7 @@ if test_images:
 
 class TestResult(unittest.TextTestResult):
     def addSkip(self, test, reason):
-        self.stream.writeln("skipped '{0}': {1}".format(str(test), reason))
+        self.stream.writeln("skipped '{0}': {1}".format(unicode(test), reason))
         super(TestResult, self).addSkip(test, reason)
 
 runner = unittest.TextTestRunner(

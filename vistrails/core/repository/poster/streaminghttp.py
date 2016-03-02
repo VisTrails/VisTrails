@@ -79,7 +79,7 @@ Example usage:
 >>> f = StringIO(s)
 
 >>> req = urllib2.Request("http://localhost:5000", f,
-...                       {'Content-Length': str(len(s))})
+...                       {'Content-Length': unicode(len(s))})
 """
 
 from __future__ import division

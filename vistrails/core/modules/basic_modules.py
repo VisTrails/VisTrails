@@ -38,6 +38,7 @@ pipelines."""
 from __future__ import division
 
 import vistrails.core.cache.hasher
+from vistrails.core import debug
 from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
@@ -46,8 +47,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
     QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
     CIPort
 import vistrails.core.system
-from vistrails.core.utils import InstanceObject
-from vistrails.core import debug
+from vistrails.core.utils import unquote, InstanceObject
 
 from abc import ABCMeta
 from ast import literal_eval
@@ -58,7 +58,7 @@ import pickle
 import re
 import shutil
 import zipfile
-import urllib
+import warnings
 
 try:
     import hashlib
@@ -173,7 +173,7 @@ class Constant(Module):
 
     @staticmethod
     def translate_to_string(v):
-        return str(v)
+        return unicode(v)
 
     @staticmethod
     def get_widget_class():
@@ -316,13 +316,18 @@ class String(Constant):
     default_value = ""
 
     @staticmethod
-    def translate_to_python(x):
-        assert isinstance(x, (str, unicode))
-        return str(x)
+    def translate_to_python(value):
+        if isinstance(value, bytes):
+            warnings.warn("String module got a bytestring: assuming UTF-8")
+            return value.decode('utf-8')
+        elif isinstance(value, unicode):
+            return value
+        else:
+            raise TypeError
 
     @staticmethod
     def validate(x):
-        return isinstance(x, str)
+        return isinstance(x, basestring)
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):
@@ -381,7 +386,7 @@ class Path(Constant):
 
     @staticmethod
     def translate_to_string(x):
-        return str(x.name)
+        return unicode(x.name)
 
     @staticmethod
     def validate(v):
@@ -424,7 +429,7 @@ def path_parameter_hasher(p):
         return h
     hasher = sha_hash()
     hasher.update(h)
-    hasher.update(str(t))
+    hasher.update(bytes(t))
     return hasher.digest()
 
 class File(Path):
@@ -619,9 +624,8 @@ class WriteFile(Converter):
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
         if self.has_input('encoding'):
-            contents = contents.decode('utf-8') # VisTrails uses UTF-8
-                                                # internally (I hope)
-            contents = contents.encode(self.get_input('encoding'))
+            contents = contents.encode(self.force_get_input('encoding',
+                                                            'utf-8'))
         with open(result.name, 'wb') as fp:
             fp.write(contents)
         self.set_output('out_value', result)
@@ -637,10 +641,9 @@ class ReadFile(Converter):
         filename = self.get_input('in_value').name
         with open(filename, 'rb') as fp:
             contents = fp.read()
-        if self.has_input('encoding'):
-            contents = contents.decode(self.get_input('encoding'))
-            contents = contents.encode('utf-8') # VisTrails uses UTF-8
-                                                # internally (for now)
+        contents = contents.decode(
+                self.force_get_input('encoding', 'utf-8'),
+                'strict' if self.has_input('encoding') else 'replace')
         self.set_output('out_value', contents)
 
 ##############################################################################
@@ -1078,7 +1081,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
-        s = urllib.unquote(str(self.get_input('source')))
+        s = unquote(unicode(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1325,6 +1328,8 @@ class StringFormat(Module):
 
     def compute(self):
         fmt = self.get_input('format')
+        if isinstance(fmt, bytes):
+            fmt = fmt.decode('utf-8')
         args, kwargs = StringFormat.list_placeholders(fmt)
         f_args = [self.get_input('_%d' % n)
                   for n in xrange(args)]
@@ -1448,7 +1453,7 @@ def get_module(value, signature=None):
         return type(value)
     elif isinstance(value, bool):
         return Boolean
-    elif isinstance(value, str):
+    elif isinstance(value, basestring):
         return String
     elif isinstance(value, int):
         return Integer
@@ -1861,7 +1866,9 @@ class TestStringFormat(unittest.TestCase):
                     (0, 'input', n, t)
                     for n, (t, v) in kwargs.iteritems()
                 ]))
-        self.assertEqual(results, [expected])
+        self.assertEqual(len(results), 1)
+        self.assertTrue(isinstance(results[0], unicode))
+        self.assertEqual(results[0], expected)
 
     def test_format(self):
         self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
@@ -1871,12 +1878,16 @@ class TestStringFormat(unittest.TestCase):
     # Python 2.6 doesn't support {}
     @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
     def test_format_27(self):
-        self.run_format('{} {}', 'a b',
+        self.run_format('{} {}', u'a b',
                         _0=('String', 'a'), _1=('String', 'b'))
-        self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
+        self.run_format('{{ {a} {} {b!s}', u'{ 42 b 12',
                         a=('Integer', '42'), _0=('String', 'b'),
                         b=('Integer', '12'))
-        self.run_format('{} {} {!r}{ponc} {:.2f}', "hello dear 'world'! 1.33",
+        if sys.version_info < (3,):
+            expected = u"hello dear u'world'! 1.33"
+        else:
+            expected = u"hello dear 'world'! 1.33"
+        self.run_format('{} {} {!r}{ponc} {:.2f}', expected,
                         _0=('String', 'hello'), _1=('String', 'dear'),
                         _2=('String', 'world'), _3=('Float', '1.333333333'),
                         ponc=('String', '!'))

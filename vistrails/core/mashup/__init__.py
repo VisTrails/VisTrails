@@ -41,8 +41,8 @@ from datetime import date, datetime
 ################################################################################                           
 
 def conv_to_bool(x):
-    if isinstance(x, str):
-        s = str(x).upper()
+    if isinstance(x, basestring):
+        s = x.upper()
         if s == 'TRUE':
             return True
         if s == 'FALSE':
@@ -77,7 +77,7 @@ def convert_symbols(val):
 #    @staticmethod
 #    def convert_from_str(value, type):
 #        def bool_conv(x):
-#            s = str(x).upper()
+#            s = unicode(x).upper()
 #            if s == 'TRUE':
 #                return True
 #            if s == 'FALSE':
@@ -85,7 +85,7 @@ def convert_symbols(val):
 #
 #        if value is not None:
 #            if type == 'str':
-#                return str(value)
+#                return unicode(value)
 #            elif value.strip() != '':
 #                if type == 'long':
 #                    return long(value)
@@ -111,7 +111,7 @@ def convert_symbols(val):
 #            elif type == 'datetime':
 #                return strftime(value, '%Y-%m-%d %H:%M:%S')
 #            else:
-#                return str(value)
+#                return unicode(value)
 #        return ''
 #    
 #    @staticmethod

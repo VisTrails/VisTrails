@@ -36,6 +36,7 @@ from __future__ import division
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.utils import new_type
 
 import numpy as np
 from sklearn.base import ClassifierMixin
@@ -317,10 +318,10 @@ def make_module(name, Estimator, namespace, supervised=False, Base=None):
             Base = SupervisedEstimator
         else:
             Base = UnsupervisedEstimator
-    new_class = type(name, (Base,),
-                     {'_input_ports': input_ports, '_settings': _settings,
-                      '_estimator_class': Estimator, '__doc__':
-                      Estimator.__doc__})
+    new_class = new_type(name, (Base,),
+                         {'_input_ports': input_ports, '_settings': _settings,
+                          '_estimator_class': Estimator, '__doc__':
+                          Estimator.__doc__})
     return new_class
 
 

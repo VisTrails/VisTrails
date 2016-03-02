@@ -479,9 +479,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                                                         self.lastExportPath,
                                                         QtGui.QFileDialog.ShowDirsOnly)
         if folder:
-            self.dumpcells = str(folder)
+            self.dumpcells = unicode(folder)
             self.saveEach()
-            self.lastExportPath = str(folder)
+            self.lastExportPath = unicode(folder)
 
     def saveAllEvent(self, folder=None):
         if folder is None:
@@ -490,7 +490,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                                                         self.lastExportPath,
                                                         QtGui.QFileDialog.ShowDirsOnly)
         if folder:
-            self.dumpcells = str(folder)
+            self.dumpcells = unicode(folder)
             self.saveAll()
 
     def saveAndExport(self, clicked=True):
@@ -582,9 +582,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             for (aliasName, edit) in self.cellControls.iteritems():
                 alias = self.currentMashup.getAliasByName(aliasName)
                 if hasattr(edit, 'contents'):
-                    val = str(edit.contents())
+                    val = unicode(edit.contents())
                 else:
-                    val =str(edit.text())
+                    val =unicode(edit.text())
                 params.append((alias.component.vttype, alias.component.vtid,
                               val))
 

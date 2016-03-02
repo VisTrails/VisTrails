@@ -44,12 +44,9 @@ constants.
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression, versions_increasing
+from vistrails.core.utils import expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
-
-import copy
-import os
 
 ############################################################################
 
@@ -204,7 +201,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
         except Exception, e:
-            self.setToolTip("Invalid value: %s" % str(e))
+            self.setToolTip("Invalid value: %s" % unicode(e))
             self.is_valid = False
         else:
             self.setToolTip("")
@@ -316,7 +313,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
             # Color background yellow and add tooltip
             self.setStyleSheet("border:2px dashed %s;" %
                                CurrentTheme.PARAM_INVALID_COLOR.name())
-            self.setToolTip("Invalid value: %s" % str(e))
+            self.setToolTip("Invalid value: %s" % unicode(e))
         else:
             self.setStyleSheet("")
             self.setToolTip("")

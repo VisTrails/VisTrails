@@ -83,7 +83,6 @@ class ModuleParam(DBParameter):
     
         self.minValue = ""
         self.maxValue = ""
-        self.evaluatedStrValue = ""
 
         self.parse_db_type()
         if identifier:
@@ -108,7 +107,6 @@ class ModuleParam(DBParameter):
         cp.__class__ = ModuleParam
         cp.minValue = self.minValue
         cp.maxValue = self.maxValue
-        cp.evaluatedStrValue = self.evaluatedStrValue
         cp.queryMethod = self.queryMethod
         cp.port_spec_item = self.port_spec_item
 
@@ -127,7 +125,6 @@ class ModuleParam(DBParameter):
         _parameter.queryMethod = None
         _parameter.minValue = ""
         _parameter.maxValue = ""
-        _parameter.evaluatedStrValue = ""
         _parameter.port_spec_item = None
 
         # _parameter.identifier = ""
@@ -254,9 +251,6 @@ class ModuleParam(DBParameter):
         if self.maxValue != other.maxValue:
             print "maxvalue mismatch"
             return
-        if self.evaluatedStrValue != other.evaluatedStrValue:
-            print "evaluatedStrValue mismatch"
-            return
         print "no difference found"
         assert self == other
         return
@@ -300,8 +294,6 @@ class ModuleParam(DBParameter):
         if self.minValue != other.minValue:
             return False
         if self.maxValue != other.maxValue:
-            return False
-        if self.evaluatedStrValue != other.evaluatedStrValue:
             return False
         return True
 
@@ -388,7 +380,7 @@ class TestModuleParam(unittest.TestCase):
 
     def test_str(self):
         p = ModuleParam(type='Float', val='1.5')
-        str(p)
+        unicode(p)
 
 
     def test_parse(self):

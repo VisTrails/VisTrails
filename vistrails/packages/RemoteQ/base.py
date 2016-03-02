@@ -38,6 +38,7 @@
 from __future__ import division
 
 from init import configuration
+from vistrails.core.utils import unquote
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.gui.modules.python_source_configure import \
                                                 PythonSourceConfigurationWidget
@@ -146,9 +147,9 @@ class HadoopBaseModule(RQModule):
         self.is_cacheable = lambda *args, **kwargs: False
         config = self.get_hadoop_config(machine)
         argList = [config['hadoop']]
-        if type(arguments) in [str, unicode]:
+        if isinstance(arguments, basestring):
             argList += arguments.split(' ')
-        elif type(arguments)==list:
+        elif isinstance(arguments, list):
             argList += arguments
         else:
             raise ModuleError(self, 'Invalid argument types to hadoop')
@@ -187,9 +188,9 @@ class HadoopBaseModule(RQModule):
     def call_hdfs(self, arguments, machine):
         config = self.get_hadoop_config(machine)
         argList = [config['hdfs']]
-        if type(arguments) in [str, unicode]:
+        if isinstance(arguments, (basestring)):
             argList += arguments.split(' ')
-        elif type(arguments)==list:
+        elif isinstance(arguments, list):
             argList += arguments
         else:
             raise ModuleError(self, 'Invalid argument types to hdfs: %s'%type(arguments))
@@ -235,7 +236,7 @@ class PythonSourceToFile(Module):
 #            tempFile = file_pool.make_local_copy(inputFile.name)
             tempFile = inputFile
         else:
-            source = urllib.unquote(self.force_get_input('source', ''))
+            source = unquote(self.force_get_input('source', ''))
             tempFile = self.interpreter.filePool.create_file()
             f = open(tempFile.name, 'w')
             f.write(source)

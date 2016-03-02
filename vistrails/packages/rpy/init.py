@@ -86,8 +86,8 @@ def create_vector(v_list, desired_type=None):
     elif is_float and (desired_type is None or desired_type == float):
         res = [float(elt) for elt in v_list]
         return robjects.FloatVector(res)
-    elif is_str and (desired_type is None or desired_type == str):
-        res = [str(elt) for elt in v_list]
+    elif is_str and (desired_type is None or desired_type == unicode):
+        res = [unicode(elt) for elt in v_list]
         return robjects.StrVector(res)
     
     if desired_type is not None:
@@ -394,7 +394,7 @@ class RSource(Module):
         robjects.r('setwd("%s")' % dir)
 
     def compute(self):
-        code_str = urllib.unquote(str(self.force_get_input('source', '')))
+        code_str = urllib.unquote(unicode(self.force_get_input('source', '')))
         self.run_code(code_str, use_input=True, use_output=True,
                       excluded_inputs=set(['source']))
 
@@ -421,19 +421,19 @@ class RFigure(RSource):
 class RSVGFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.force_get_input('source', '')))
+            urllib.unquote(unicode(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'svg', 4, 3)
 
 class RPNGFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.force_get_input('source', '')))
+            urllib.unquote(unicode(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'png', 640, 480)
 
 class RPDFFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.force_get_input('source', '')))
+            urllib.unquote(unicode(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'pdf', 4, 3)
 
 class RFactor(Module):
