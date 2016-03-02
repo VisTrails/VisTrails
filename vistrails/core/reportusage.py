@@ -142,6 +142,19 @@ def submit_usage_report(**kwargs):
     """Submits the current usage report to the usagestats server.
     """
     debug.debug("submit_usage_report %r" % (kwargs,))
+
+    for pkg in ('numpy', 'scipy', 'matplotlib'):
+        try:
+            pkg_o = __import__(pkg, globals(), locals())
+            usage_report.note({pkg: getattr(pkg_o, '__version__', '')})
+        except ImportError:
+            pass
+    try:
+        import vtk
+        usage_report.note({'vtk': vtk.vtkVersion().GetVTKVersion()})
+    except ImportError:
+        pass
+
     usage_report.submit(kwargs,
                         usagestats.OPERATING_SYSTEM,
                         usagestats.SESSION_TIME,
