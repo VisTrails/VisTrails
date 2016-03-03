@@ -658,7 +658,7 @@ class FileLocator(CoreLocator):
         data = node.get('url', None)
         url = convert_from_str(data,'str')
         data = node.get('vtcontent', None)
-        vtcontent = convert_from_str(data,'base64')
+        vtcontent = convert_from_str(data,'base64').decode()
         data = node.get('filename', None)
         vtname = convert_from_str(data, 'str')
         data = node.get('forceDB',None)
@@ -720,7 +720,7 @@ class FileLocator(CoreLocator):
                         
                 if create_file:
                     f = open(fname,'wb')
-                    f.write(vtcontent)
+                    f.write(vtcontent.encode())
                     f.close()
                 return FileLocator(fname, version_node=version, version_tag=tag,
                                    mashuptrail=mashuptrail,

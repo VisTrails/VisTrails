@@ -132,7 +132,7 @@ class VtlFileCreator(NotCacheable, Module):
                 vistrail.db_version = currentVersion
             pipxmlstr = io.serialize(vistrail)
             vtcontent = base64.b64encode(pipxmlstr)
-            node.set('vtcontent',vtcontent)
+            node.set('vtcontent',vtcontent.decode())
             
         return ElementTree.tostring(node)
             
@@ -162,7 +162,7 @@ class VtlFileCreator(NotCacheable, Module):
                 directory = self.get_input('directory').name
                 filename = os.path.join(directory,filename)
             file_ = open(filename,'w')
-            file_.write(xmlstring)
+            file_.write(xmlstring.decode())
             file_.close()
         
         self.set_output("xmlstring", xmlstring)
