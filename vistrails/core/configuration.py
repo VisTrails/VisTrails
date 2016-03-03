@@ -878,8 +878,8 @@ def find_simpledoc(arg_path):
 def set_field_labels(fields, prefix=""):
     for field in fields:
         if isinstance(field, ConfigFieldParent):
-            prefix = "%s%s." % (prefix, field.name)
-            set_field_labels(field.sub_fields, prefix=prefix)
+            new_prefix = "%s%s." % (prefix, field.name)
+            set_field_labels(field.sub_fields, prefix=new_prefix)
         else:
             full_field_name = "%s%s" % (prefix, field.name)
             label = find_simpledoc(full_field_name)
