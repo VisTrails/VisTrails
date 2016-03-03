@@ -64,6 +64,7 @@ autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
 batch: Run in batch mode instead of interactive mode
 cache: Cache previous results so they may be used in future computations
+customVersionColors: Allow setting custom colors for versions
 dataDir: Default data directory
 db: The name for the database to load the vistrail from
 dbDefault: Save vistrails in a database by default
@@ -74,7 +75,6 @@ dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
 NoExecute: Do not execute specified workflows
-enableCustomVersionColors: Allow setting custom colors for versions
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
 fixedCustomVersionColorSaturation: Don't vary custom color with age
@@ -163,6 +163,11 @@ cache: Boolean
 
     Cache previous results so they may be used in future computations.
 
+customVersionColors: Boolean
+
+    Allow setting custom colors for versions, and display these colors in the
+    version tree.
+
 dataDir: Path
 
     The location that VisTrails uses as a default directory for data.
@@ -193,11 +198,6 @@ dotVistrails: Path
 
     The location to look for VisTrails user configurations and
     storage. Defaults to ~/.vistrails.
-
-enableCustomVersionColors: Boolean
-
-    Allow setting custom colors for versions, and display these colors in the
-    version tree.
 
 enablePackagesSilently: Boolean
 
@@ -723,7 +723,7 @@ base_config = {
                                  "remap": {"appropriate": "Most Appropriate",
                                            "history": "Always History",
                                            "pipeline": "Always Pipeline"}}),
-     ConfigField('enableCustomVersionColors', False, bool, ConfigType.ON_OFF),
+     ConfigField('customVersionColors', False, bool, ConfigType.ON_OFF),
      ConfigField('fixedCustomVersionColorSaturation', False,
                  bool, ConfigType.ON_OFF)],
     "Thumbnails":

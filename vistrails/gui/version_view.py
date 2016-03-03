@@ -878,7 +878,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
             configuration = get_vistrails_configuration()
-            if configuration.check('enableCustomVersionColors'):
+            if configuration.check('customVersionColors'):
                 custom_color = controller.vistrail.get_action_annotation(
                     nodeId,
                     custom_color_key)
