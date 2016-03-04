@@ -48,6 +48,7 @@ from vistrails.core.configuration import ConfigurationObject
 import vistrails.core.db.action
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
+import vistrails.core.db.action
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
@@ -557,7 +558,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             locator = self._cur_controller.locator
         del self._controllers[locator]
         if len(self._controllers) > 0:
-            self._cur_controller = self._controllers.itervalues().next()
+            self._cur_controller = next(self._controllers.itervalues())
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:

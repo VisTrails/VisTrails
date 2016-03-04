@@ -667,8 +667,8 @@ base_config = {
                                  "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
                                            1: "Critical Errors and Warnings",
-                                           2: "Errors, Warnings, and " \
-                                           "Debug Messages"}})],
+                                           2: "Errors, Warnings, and "
+                                              "Debug Messages"}})],
     "Startup":
     [ConfigField('maximizeWindows', False, bool, ConfigType.ON_OFF),
      ConfigField('multiHeads', False, bool, ConfigType.ON_OFF),
@@ -988,7 +988,7 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
             config_type = field.field_type
             if config_type is None:
                 config_type = ConfigType.NORMAL
-            if (config_type == ConfigType.INTERNAL or \
+            if (config_type == ConfigType.INTERNAL or
                 config_type == ConfigType.STORAGE or
                 config_type == ConfigType.INTERNAL_SUBOBJECT):
                 # these are not in the command line

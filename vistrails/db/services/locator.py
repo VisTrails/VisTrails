@@ -143,7 +143,16 @@ class BaseLocator(object):
         raise NotImplementedError("parse is not implemented")
     
     @staticmethod
-    def convert_filename_to_url(filename):
+    def real_filename(filename):
+        """ Expand relative path and dereference symbolic links
+
+        To avoid dereference symbolic links:
+        Remove realpath and add DontResolveSymlinks to QFileDialog calls
+        """
+        return os.path.realpath(os.path.abspath(filename))
+
+    @classmethod
+    def convert_filename_to_url(cls, filename):
         """ Converts a local filename to a file:// URL.
 
         All file:// URLs are absolute, so abspath() will be used on the
@@ -167,7 +176,7 @@ class BaseLocator(object):
         else:
             args_str = ""
 
-        return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
+        return 'file://%s%s' % (pathname2url(cls.real_filename(filename)),
                                 urllib.quote(args_str, safe='/?=&'))
 
     @staticmethod
@@ -448,7 +457,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
 
 class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def __init__(self, filename, **kwargs):
-        self._name = filename
+        self._name = self.real_filename(filename)
         self._vnode = kwargs.get('version_node', None)
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
