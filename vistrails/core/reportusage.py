@@ -99,6 +99,12 @@ def setup_usage_report():
         record_usage(cwd_ascii=True)
 
 
+def load_config():
+    """VisTrails configuration available, load the reporting setting.
+    """
+    usage_report.initialize()
+
+
 def record_usage(**kwargs):
     """Records some info in the current usage report.
     """
