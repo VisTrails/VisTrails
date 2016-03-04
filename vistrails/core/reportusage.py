@@ -91,6 +91,18 @@ def setup_usage_report():
         record_usage(cwd_ascii=True)
 
 
+def update_config(configuration):
+    if getattr(configuration, 'enableUsage', False):
+        usage_report.enable_reporting()
+        configuration.reportUsage = 1
+        return True
+    elif getattr(configuration, 'disableUsage', False):
+        usage_report.disable_reporting()
+        configuration.reportUsage = 0
+        return True
+    return False
+
+
 def record_usage(**kwargs):
     """Records some info in the current usage report.
     """

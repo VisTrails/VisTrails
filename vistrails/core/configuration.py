@@ -104,6 +104,8 @@ packageDir: System packages directory
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
+enableUsage: Enable sending anonymous usage statistics
+disableUsage: Disable sending anonymous usage statistics
 repositoryHTTPURL: Remote package repository URL
 repositoryLocalPath: Local package repository directory
 rootDirectory: Directory that contains the VisTrails source code
@@ -368,6 +370,14 @@ pythonPrompt: Boolean
 recentVistrailList: String
 
     Storage for recent vistrails. Users should not edit.
+
+enableUsage: Boolean
+
+    Enable sending anonymous usage statistics
+
+disableUsage: Boolean
+
+    Disable sending anonymous usage statistics
 
 repositoryHTTPURL: URL
 
@@ -654,7 +664,9 @@ base_config = {
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("outputVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('enableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('disableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
      ConfigField("port", None, int, ConfigType.COMMAND_LINE),
