@@ -857,24 +857,25 @@ class QVistrailView(QtGui.QWidget):
         window = self.window()
         window.qactions['search'].trigger()
         
-    def diff_requested(self, version_a, version_b, vistrail_b=None):
+    def diff_requested(self, version_a, version_b, controller_b=None):
         """diff_requested(self, id, id, Vistrail) -> None
         
-        Request a diff between two versions.  If vistrail_b is
+        Request a diff between two versions.  If controller_b is
         specified, the second version will be derived from that
         vistrail instead of the common vistrail controlled by this
         view.
         """
-
         # Upgrade both versions if hiding upgrades
         if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
             vt_a = self.controller.vistrail
-            vt_b = vistrail_b or vt_a
-            version_a = vt_a.get_upgrade(version_a) or version_a
-            version_b = vt_b.get_upgrade(version_b) or version_b
+            controller_b = controller_b or self.controller
+            vt_b = controller_b.vistrail
+            version_a = self.controller.create_upgrade(version_a)
+            version_b = controller_b.create_upgrade(version_b)
+
         view = self.create_diff_view()
         view.set_controller(self.controller)
-        view.set_diff(version_a, version_b, vistrail_b)
+        view.set_diff(version_a, version_b, controller_b.vistrail)
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
         self.view_changed()

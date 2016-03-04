@@ -1033,22 +1033,22 @@ class QVistrailList(QtGui.QTreeWidget):
         destination_parent = destination.parent()
         while not hasattr(destination_parent, 'window'):
             destination_parent = destination_parent.parent()
-        vistrail_1 = source_parent.window.controller.vistrail
-        vistrail_2 = destination_parent.window.controller.vistrail
+        controller_1 = source_parent.window.controller
+        controller_2 = destination_parent.window.controller
         if hasattr(source, 'entity'):
             v1 = source.entity.locator().kwargs.get('version_node', None)
         else:
-            v1 = vistrail_1.get_latest_version()
+            v1 = controller_1.vistrail.get_latest_version()
         if hasattr(destination, 'entity'):
             v2 = destination.entity.locator().kwargs.get('version_node', None)
         else:
-            v2 = vistrail_2.get_latest_version()
+            v2 = controller_2.vistrail.get_latest_version()
         
         # if we don't have the same vistrail, pass the second vistrail
-        if id(vistrail_1) == id(vistrail_2):
+        if id(controller_1) == id(controller_2):
             source_parent.window.diff_requested(v1, v2)
         else:
-            source_parent.window.diff_requested(v1, v2, vistrail_2)
+            source_parent.window.diff_requested(v1, v2, controller_2)
             
     def hideExecutions(self, hidden):
         self.executionsHidden = hidden
