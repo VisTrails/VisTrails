@@ -112,7 +112,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                                       parent: QGraphicsItem)
                                       -> QAbstractGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
-        
+
         """
         # local lookups are faster than global lookups..
         self._rect = CurrentTheme.PORT_RECT.translated(x,y)
@@ -2102,7 +2102,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
             moduleQuery = (self.controller.current_version, module)
-            matched = self.controller.search.matchModule(*moduleQuery)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
