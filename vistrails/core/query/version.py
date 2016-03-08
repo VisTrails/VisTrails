@@ -417,7 +417,7 @@ class RegexEnabledSearchStmt(SearchStmt):
         if self.use_regex:
             return self.regex.match(v)
         else:
-            return v in self.content
+            return self.content in v
 
 class UserSearchStmt(RegexEnabledSearchStmt):
     def match(self, vistrail, action):
