@@ -1105,7 +1105,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     f2_names = set(f.name for f in m2.functions)
         #     return (len(f1_names ^ f2_names) > 0)
 
-        if self.show_widgets != get_vistrails_configuration(
+        if not self.invalid and self.show_widgets != get_vistrails_configuration(
                                    ).check('showInlineParameterWidgets') and \
            core_module.editable_input_ports:
             return True
@@ -1118,7 +1118,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     return True
         else:
             # check for changed edit widgets
-            if core_module.editable_input_ports != \
+            if not self.invalid and core_module.editable_input_ports != \
                self.module.editable_input_ports:
                 # shape has changed so we need to recreate the module
                 return True
@@ -1151,9 +1151,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     def functions_have_been_deleted(self, core_module):
         # check if a visible function has been deleted
+        if self.invalid:
+            return set()
         before = self._cur_function_names
         after = set(f.name for f in core_module.functions)
-        return (before - after) & core_module.editable_input_ports
+        if self.invalid:
+            return before - after
+        else:
+            return (before - after) & core_module.editable_input_ports
 
     def moduleFunctionsHaveChanged(self, core_module):
         m2 = core_module
