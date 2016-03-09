@@ -594,8 +594,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         if by_click:
             self.query_controller.search.setCurrentVistrail(
                 self.vt_controller.vistrail)
-            self.vt_controller.change_selected_version(version_id, by_click, 
-                                                       do_validate, from_root)
+            self.vt_controller.change_selected_version(version_id, False,
+                                                       False, from_root)
             if double_click:
                 self.query_controller.set_level(QueryController.LEVEL_WORKFLOW)
                 self.query_controller.show_workflow_matches()
