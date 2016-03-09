@@ -1298,7 +1298,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         elif self.ghosted:
             self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-        elif self.invalid:
+        # do not show as invalid in search mode
+        elif self.invalid and not (self.controller and self.controller.search):
             self.modulePen = CurrentTheme.INVALID_MODULE_PEN
             self.labelPen = CurrentTheme.INVALID_MODULE_LABEL_PEN
         else:
@@ -1318,7 +1319,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
         elif self.ghosted:
             self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-        elif self.invalid:
+        # do not show as invalid in search mode
+        elif self.invalid and not (self.controller and self.controller.search):
             self.moduleBrush = CurrentTheme.INVALID_MODULE_BRUSH
         else:
             self.moduleBrush = CurrentTheme.MODULE_BRUSH
@@ -1693,7 +1695,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         portShape.controller = self.controller
         portShape.port = port
-        if not port.is_valid:
+        # do not show as invalid in search mode
+        if not port.is_valid and not (self.controller and self.controller.search):
             portShape.setInvalid(True)
         return portShape
 
@@ -1791,7 +1794,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                             optional=True)
 
         item = self.createPortItem(new_spec, *next_pos)
-        item.setInvalid(True)
+        # do not show as invalid in search mode
+        if not (self.controller and self.controller.search):
+            item.setInvalid(True)
         port_dict[new_spec] = item
         next_pos[0] = next_op(next_pos[0], 
                               (CurrentTheme.PORT_WIDTH +
