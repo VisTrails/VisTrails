@@ -188,11 +188,13 @@ class QueryController(object):
     def goto_edit(self):
         # get the version info and send it to open_vistrail call
         from vistrails.gui.vistrails_window import _app
-        version = self.query_view.vt_controller.current_version
-        self.query_view.controller.change_selected_version(version, True)
         if self.level == QueryController.LEVEL_VISTRAIL:
+            version = self.query_view.version_result_view.controller.current_version
+            self.query_view.controller.change_selected_version(version, True)
             _app.qactions['history'].trigger()
         elif self.level == QueryController.LEVEL_WORKFLOW:
+            version = self.query_view.version_result_view.controller.current_version
+            self.query_view.controller.change_selected_version(version, True)
             _app.qactions['pipeline'].trigger()
 
     def update_results(self):
