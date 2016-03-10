@@ -865,11 +865,9 @@ class QVistrailView(QtGui.QWidget):
         vistrail instead of the common vistrail controlled by this
         view.
         """
+        controller_b = controller_b or self.controller
         # Upgrade both versions if hiding upgrades
         if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
-            vt_a = self.controller.vistrail
-            controller_b = controller_b or self.controller
-            vt_b = controller_b.vistrail
             version_a = self.controller.create_upgrade(version_a)
             version_b = controller_b.create_upgrade(version_b)
 
