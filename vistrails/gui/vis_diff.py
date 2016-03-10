@@ -367,11 +367,23 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         ((vistrail_a, version_a), (vistrail_b, version_b)) = \
             self.controller.current_diff_versions
 
+        hideUpgrades = getattr(get_vistrails_configuration(), 'hideUpgrades',
+                               True)
         # Set up the version name correctly
-        v1_name = vistrail_a.getVersionName(version_a)
+        if hideUpgrades:
+            v1_name = vistrail_a.search_upgrade_versions(
+                version_a,
+                lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+        else:
+            v1_name = vistrail_a.getVersionName(version_a)
         if not v1_name:
             v1_name = 'Version %d' % version_a
-        v2_name = vistrail_b.getVersionName(version_b)
+        if hideUpgrades:
+            v2_name = vistrail_b.search_upgrade_versions(
+                version_b,
+                lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+        else:
+            v2_name = vistrail_b.getVersionName(version_b)
         if not v2_name:
             v2_name = 'Version %d' % version_b
 
