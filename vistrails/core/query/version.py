@@ -417,7 +417,7 @@ class RegexEnabledSearchStmt(SearchStmt):
         if self.use_regex:
             return self.regex.match(v)
         else:
-            return v in self.content
+            return self.content in v
 
 class UserSearchStmt(RegexEnabledSearchStmt):
     def match(self, vistrail, action):
@@ -487,6 +487,8 @@ class SearchCompiler(object):
     def __init__(self, searchStr, use_regex=False):
         self.searchStmt = self.compile(searchStr, use_regex)
     def compile(self, searchStr, use_regex):
+        if not searchStr or not searchStr.strip():
+            return TrueSearch()
         lst = []
         t1 = searchStr.split(' ')
         while t1:

@@ -77,9 +77,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
         self.setup_widget()
             
     def run_search(self, search, items=None):
-        # FIXME only uses top level items
         if items is None:
-            items = [self.topLevelItem(i) 
+            items = [self.topLevelItem(i)
                      for i in xrange(self.topLevelItemCount())]
         for item in items:
             if search.match(item.entity):
@@ -88,6 +87,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 while parent is not None:
                     if parent.isHidden():
                         parent.setHidden(False)
+                    if not parent.isExpanded():
+                        parent.setExpanded(True)
                     parent = parent.parent()
             else:
                 item.setHidden(True)
@@ -96,7 +97,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
             
     def reset_search(self, items=None):
         if items is None:
-            items = [self.topLevelItem(i) 
+            items = [self.topLevelItem(i)
                      for i in xrange(self.topLevelItemCount())]
         for item in items:
             item.setHidden(False)
@@ -793,6 +794,9 @@ class QVistrailList(QtGui.QTreeWidget):
                 item = QVistrailEntityItem(entity)
                 self.searchResultsItem.addChild(item)
                 item.setExpanded(True)
+                item.workflowsItem.setExpanded(True)
+                item.mashupsItem.setHidden(True)
+                item.paramExplorationsItem.setHidden(True)
             self.searchResultsItem.setExpanded(True)
 
     def onItemPressed(self, item, column):
@@ -1167,12 +1171,11 @@ class QVistrailList(QtGui.QTreeWidget):
             child_idx = child.parent().indexOfChild(child)
             child.parent().takeChild(child_idx)
             del item.mshp_to_item[mshp_entity.name]
-            item.mashupsItem.setHidden(not len(item.mshp_to_item))
         for mshp_entity in added_mshps:
             childItem = QMashupEntityItem(mshp_entity)
             item.mashupsItem.addChild(childItem)
             item.mshp_to_item[mshp_entity.name] = childItem
-            item.mashupsItem.setHidden(not len(item.mshp_to_item))
+        item.mashupsItem.setHidden(not len(item.mshp_to_item))
 
         for pe_entity in deleted_pes:
             assert(pe_entity.url in item.pe_to_item)
@@ -1180,13 +1183,12 @@ class QVistrailList(QtGui.QTreeWidget):
             child_idx = child.parent().indexOfChild(child)
             child.parent().takeChild(child_idx)
             del item.pe_to_item[pe_entity.url]
-            item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
         for pe_entity in added_pes:
             childItem = QParamExplorationEntityItem(pe_entity)
             item.paramExplorationsItem.addChild(childItem)
             # keep list of tagged workflows
             item.pe_to_item[pe_entity.url] = childItem
-            item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
+        item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
 
         if self.isTreeView:
             self.make_tree(item)

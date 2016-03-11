@@ -187,12 +187,13 @@ class QueryController(object):
 
     def goto_edit(self):
         # get the version info and send it to open_vistrail call
+        from vistrails.gui.vistrails_window import _app
         if self.level == QueryController.LEVEL_VISTRAIL:
-            from vistrails.gui.vistrails_window import _app
+            version = self.query_view.version_result_view.controller.current_version
+            self.query_view.controller.change_selected_version(version, True)
             _app.qactions['history'].trigger()
         elif self.level == QueryController.LEVEL_WORKFLOW:
-            from vistrails.gui.vistrails_window import _app
-            version = self.query_view.vt_controller.current_version
+            version = self.query_view.version_result_view.controller.current_version
             self.query_view.controller.change_selected_version(version, True)
             _app.qactions['pipeline'].trigger()
 
@@ -595,8 +596,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         if by_click:
             self.query_controller.search.setCurrentVistrail(
                 self.vt_controller.vistrail)
-            self.vt_controller.change_selected_version(version_id, by_click, 
-                                                       do_validate, from_root)
+            self.vt_controller.change_selected_version(version_id, False,
+                                                       False, from_root)
             if double_click:
                 self.query_controller.set_level(QueryController.LEVEL_WORKFLOW)
                 self.query_controller.show_workflow_matches()
