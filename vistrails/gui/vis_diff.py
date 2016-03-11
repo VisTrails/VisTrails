@@ -1344,8 +1344,9 @@ class TestDiffView(TestVisTrailsGUI):
         from vistrails.core.configuration import get_vistrails_configuration
         filename = os.path.join(
             vistrails.core.system.vistrails_root_directory(),
-            '..', 'examples', 'terminator.vt')
+            'tests', 'resources', 'terminator.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
+        view.controller.change_selected_version(0)
         # get tags
         v1 = view.controller.vistrail.get_version_number('Volume Rendering HW')
         v2 = view.controller.vistrail.get_version_number('Volume Rendering SW')
