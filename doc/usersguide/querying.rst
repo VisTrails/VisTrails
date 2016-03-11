@@ -132,7 +132,7 @@ To execute a query, simply press the 'Enter' key after typing your query.
    User name       ``user:`` *user name*
    Annotation      ``notes:`` *phrase*
    Tag             ``name:`` *version tag*
-   Any             ``any:`` match user/notes/name (the deafult)
+   Any             ``any:`` match user/notes/name (the default)
    Module          ``module:`` *module name*
    Date            ``before:`` *date* ``|`` *relative time*
    \               ``after:`` *date* ``|`` *relative time*
