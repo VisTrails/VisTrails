@@ -140,6 +140,7 @@ class Run(Module):
                 proc = subprocess.Popen(args,
                                         stdout=stdout_fp, stderr=stderr_fp,
                                         env=environ)
+                proc.wait()
 
         with open(stderr.name, 'rb') as stderr_fp:
             while True:
@@ -148,7 +149,7 @@ class Run(Module):
                     break
                 sys.stderr.write(chunk)
 
-        if proc.wait() != 0:
+        if proc.returncode != 0:
             raise ModuleError(self,
                               "Plugin returned with code %d" % proc.returncode)
 
