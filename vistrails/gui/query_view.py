@@ -382,7 +382,10 @@ class QQueryBox(QtGui.QWidget):
         """
         s = str(text)
         if self.controller:
-            self.controller.run_search(s)
+            try:
+                self.controller.run_search(s)
+            except re.error as e:
+                debug.critical('Error in regular expression: %s' % str(e))
             # try:
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
