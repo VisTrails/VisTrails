@@ -37,13 +37,13 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 
+import re
+
+from vistrails.core import debug
 from vistrails.core.collection import Collection
 from vistrails.core.collection.vistrail import VistrailEntity
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.query.combined import CombinedSearch
 from vistrails.core.query.multiple import MultipleSearch
-from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from vistrails.core.query.visual import VisualQuery
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 
@@ -112,6 +112,7 @@ class QueryController(object):
         if self.search is None or \
                 self.search.search_str != search_str or \
                 self.search.queryPipeline != search_pipeline or \
+                self.search.use_regex != self.use_regex or \
                 self.query_view.p_controller.changed or \
                 self.search_level > self.level:
             self.search_str = search_str
@@ -187,12 +188,13 @@ class QueryController(object):
 
     def goto_edit(self):
         # get the version info and send it to open_vistrail call
+        from vistrails.gui.vistrails_window import _app
         if self.level == QueryController.LEVEL_VISTRAIL:
-            from vistrails.gui.vistrails_window import _app
+            version = self.query_view.version_result_view.controller.current_version
+            self.query_view.controller.change_selected_version(version, True)
             _app.qactions['history'].trigger()
         elif self.level == QueryController.LEVEL_WORKFLOW:
-            from vistrails.gui.vistrails_window import _app
-            version = self.query_view.vt_controller.current_version
+            version = self.query_view.version_result_view.controller.current_version
             self.query_view.controller.change_selected_version(version, True)
             _app.qactions['pipeline'].trigger()
 
@@ -381,7 +383,10 @@ class QQueryBox(QtGui.QWidget):
         """
         s = str(text)
         if self.controller:
-            self.controller.run_search(s)
+            try:
+                self.controller.run_search(s)
+            except re.error as e:
+                debug.critical('Error in regular expression: %s' % str(e))
             # try:
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
@@ -595,8 +600,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         if by_click:
             self.query_controller.search.setCurrentVistrail(
                 self.vt_controller.vistrail)
-            self.vt_controller.change_selected_version(version_id, by_click, 
-                                                       do_validate, from_root)
+            self.vt_controller.change_selected_version(version_id, False,
+                                                       False, from_root)
             if double_click:
                 self.query_controller.set_level(QueryController.LEVEL_WORKFLOW)
                 self.query_controller.show_workflow_matches()

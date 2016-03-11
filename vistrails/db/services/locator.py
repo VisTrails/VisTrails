@@ -1081,10 +1081,12 @@ class TestLocators(unittest.TestCase):
         # Test both systemTypes
         global systemType
         old_systemType = systemType
-        # Don't use abspath, it would cause Linux tests to fail on Windows
-        # we are using abspaths anyway
+        # Don't use abspath/realpath, it would cause Linux tests to fail on Windows
+        # we are using abspaths/realpaths anyway
         old_abspath = os.path.abspath
         os.path.abspath = lambda x: x
+        old_realpath = os.path.realpath
+        os.path.realpath = lambda x: x
         try:
             systemType = 'Linux'
             self.assertEqual(
@@ -1099,6 +1101,7 @@ class TestLocators(unittest.TestCase):
         finally:
             systemType = old_systemType
             os.path.abspath = old_abspath
+            os.path.realpath = old_realpath
 
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"
