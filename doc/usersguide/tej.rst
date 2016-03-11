@@ -70,3 +70,26 @@ In this example, we'll submit a simple Python script to a server via SSH. That s
 Running it will start the job on the server. The job monitor window will pop up to indicate that it knows about the remote job, and that it is currently running. Clicking the "check" button or re-running the workflow will update the status, and eventually run the rest of the pipeline when the job is done, displaying the result.
 
 Because the job identifier is computed from the signature of the subpipeline consisting of ``SubmitJob`` and its upstream modules, anyone running the same job on the same server will hit the same job, and will reuse your results without triggering a recomputation. But if you change the script, or choose a different target number to factorize, a new job will be submitted, that will not affect the result seen by other users and other workflows.
+
+Setting up ssh keys
+===================
+
+tej requires the servers ssh key to be registered in ``known_hosts`` in a format supported by Paramiko.
+
+If the key is missing, or in the wrong format, you will see something like:
+
+::
+
+    paramiko.SSHException: Unknown server 127.0.0.1
+
+If the key is missing, ssh into the server from the client and add the key to the list of known hosts.
+
+If this does not work, the key is probably in a format not supported by Paramiko. To fix this:
+
+- On the server, open ``/etc/ssh/sshd_config`` and remove the lines containing
+  ``ecdsa`` or ``ed25519``, and restart the ssh server.
+- On the client, remove the existing ``ecdsa`` or ``ed25519`` keys
+  from ``~/.ssh/known_hosts``. Then ssh into the server to generate the new keys.
+
+If you do not have root access to the server, ``ecdsa`` may work in some cases. Otherwise, please
+refer to the Paramiko documentation for workarounds.
