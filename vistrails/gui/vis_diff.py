@@ -38,17 +38,16 @@ operation """
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+from vistrails.core import system, debug
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.utils.color import ColorByName
-from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.vistrail_controller import VistrailController
+from vistrails.gui.utils import TestVisTrailsGUI
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.core import system, debug
 import vistrails.core.db.io
 
 import copy
@@ -368,11 +367,23 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         ((vistrail_a, version_a), (vistrail_b, version_b)) = \
             self.controller.current_diff_versions
 
+        hideUpgrades = getattr(get_vistrails_configuration(), 'hideUpgrades',
+                               True)
         # Set up the version name correctly
-        v1_name = vistrail_a.getVersionName(version_a)
+        if hideUpgrades:
+            v1_name = vistrail_a.search_upgrade_versions(
+                version_a,
+                lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+        else:
+            v1_name = vistrail_a.getVersionName(version_a)
         if not v1_name:
             v1_name = 'Version %d' % version_a
-        v2_name = vistrail_b.getVersionName(version_b)
+        if hideUpgrades:
+            v2_name = vistrail_b.search_upgrade_versions(
+                version_b,
+                lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+        else:
+            v2_name = vistrail_b.getVersionName(version_b)
         if not v2_name:
             v2_name = 'Version %d' % version_b
 
@@ -1311,3 +1322,40 @@ class QVisualDiff(QtGui.QMainWindow):
 
         scene.updateSceneBoundingRect()
         scene.fitToView(self.pipelineView, True)
+
+
+################################################################################
+# Testing
+
+
+class TestDiffView(TestVisTrailsGUI):
+    def setUp(self):
+        try:
+            import vtk
+        except ImportError:
+            self.skipTest("VTK is not available")
+        from vistrails.tests.utils import enable_package
+        enable_package('org.vistrails.vistrails.vtk')
+
+    def test_diff(self):
+        import vistrails.api
+        import vistrails.core.system
+        import os.path
+        from vistrails.core.configuration import get_vistrails_configuration
+        filename = os.path.join(
+            vistrails.core.system.vistrails_root_directory(),
+            'tests', 'resources', 'terminator.vt')
+        view = vistrails.api.open_vistrail_from_file(filename)
+        view.controller.change_selected_version(0)
+        # get tags
+        v1 = view.controller.vistrail.get_version_number('Volume Rendering HW')
+        v2 = view.controller.vistrail.get_version_number('Volume Rendering SW')
+
+        hideUpgrades = getattr(get_vistrails_configuration(), 'hideUpgrades', True)
+        # without upgrades
+        setattr(get_vistrails_configuration(), 'hideUpgrades', False)
+        view.diff_requested(v1, v2)
+        # with upgrades
+        setattr(get_vistrails_configuration(), 'hideUpgrades', True)
+        view.diff_requested(v1, v2)
+        setattr(get_vistrails_configuration(), 'hideUpgrades', hideUpgrades)

@@ -4230,6 +4230,28 @@ class VistrailController(object):
         #return module move operations
         return self.move_modules_ops(moves)
 
+    def create_upgrade(self, version):
+        """ Upgrade a version without doing version switch
+
+        """
+        try:
+            self.flush_delayed_actions()
+            version = self.vistrail.get_upgrade(version) or version
+            pipeline = self.vistrail.getPipeline(version)
+            self.validate(pipeline)
+        except InvalidPipeline as e:
+            # switch version to trigger upgrade
+            # but try to avoid switching version in GUI
+            # put vistrail in new controller, do upgrade, put vistrail back
+            controller = VistrailController(self.vistrail, auto_save=False)
+            try:
+                controller.do_version_switch(version, True)
+                controller.flush_delayed_actions()
+            except InvalidPipeline as e:
+                pass
+            version = controller.current_version
+        return version
+
 
 import unittest
 
