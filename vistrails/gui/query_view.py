@@ -37,13 +37,13 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 
+import re
+
+from vistrails.core import debug
 from vistrails.core.collection import Collection
 from vistrails.core.collection.vistrail import VistrailEntity
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.query.combined import CombinedSearch
 from vistrails.core.query.multiple import MultipleSearch
-from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from vistrails.core.query.visual import VisualQuery
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 
@@ -112,6 +112,7 @@ class QueryController(object):
         if self.search is None or \
                 self.search.search_str != search_str or \
                 self.search.queryPipeline != search_pipeline or \
+                self.search.use_regex != self.use_regex or \
                 self.query_view.p_controller.changed or \
                 self.search_level > self.level:
             self.search_str = search_str
