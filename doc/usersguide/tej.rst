@@ -76,20 +76,12 @@ Setting up ssh keys
 
 tej requires the servers ssh key to be registered in ``known_hosts`` in a format supported by Paramiko.
 
-If the key is missing, or in the wrong format, you will see something like:
-
-::
+If the key is missing, or in the wrong format, you will see something like::
 
     paramiko.SSHException: Unknown server 127.0.0.1
 
-If the key is missing, ssh into the server from the client and add the key to the list of known hosts.
+The easiest way to add the key is to connect with ssh and accept the prompt ("Are you sure you want to continue connecting?"); ssh will add the server to the known hosts automatically and you can disconnect.
 
-If this does not work, the key is probably in a format not supported by Paramiko. To fix this:
+If this does not work, the key used by SSH is probably in a format not supported by Paramiko (like ECDSA). To force using the RSA key (from `here <http://askubuntu.com/questions/133172/how-can-i-force-ssh-to-give-an-rsa-key-instead-of-ecdsa>`__)::
 
-- On the server, open ``/etc/ssh/sshd_config`` and remove the lines containing
-  ``ecdsa`` or ``ed25519``, and restart the ssh server.
-- On the client, remove the existing ``ecdsa`` or ``ed25519`` keys
-  from ``~/.ssh/known_hosts``. Then ssh into the server to generate the new keys.
-
-If you do not have root access to the server, ``ecdsa`` may work in some cases. Otherwise, please
-refer to the Paramiko documentation for workarounds.
+    ssh -o HostKeyAlgorithms=ssh-rsa -o FingerprintHash=md5 user@yourserver.com
