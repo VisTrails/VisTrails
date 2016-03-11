@@ -3070,7 +3070,7 @@ class VistrailController(object):
         al.sort()
 
         configuration = get_vistrails_configuration()
-        use_custom_colors = configuration.check('enableCustomVersionColors')
+        use_custom_colors = configuration.check('customVersionColors')
 
         if isinstance(filename, basestring):
             fp = open(filename, 'wb')

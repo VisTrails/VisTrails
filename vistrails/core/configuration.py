@@ -64,6 +64,7 @@ autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
 batch: Run in batch mode instead of interactive mode
 cache: Cache previous results so they may be used in future computations
+customVersionColors: Allow setting custom colors for versions
 dataDir: Default data directory
 db: The name for the database to load the vistrail from
 dbDefault: Save vistrails in a database by default
@@ -76,7 +77,9 @@ errorLog: Write errors to a log file
 NoExecute: Do not execute specified workflows
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
+fixedCustomVersionColorSaturation: Don't vary custom color with age
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
+graphsAsPdf: Generate graphs in PDF format instead of images
 handlerDontAsk: Do not ask about extension handling at startup
 hideUpgrades: Don't show upgrade nodes in the version tree
 host: The hostname for the database to load the vistrail from
@@ -94,6 +97,9 @@ maximizeWindows: VisTrails windows should be maximized
 migrateTags: Move tags to upgraded versions
 multiHeads: Use multiple screens for VisTrails windows
 multithread: Server will start a thread for each request
+outputDirectory: Directory in which to place output files
+outputPipelineGraph: Output the workflow graph as an image
+outputVersionTree: Output the version tree as an image
 packageDir: System packages directory
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
@@ -137,8 +143,6 @@ userPackageDir: Local packages directory
 viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-outputVersionTree: Output the version tree as an image
-outputPipelineGraph: Output the workflow graph as an image
 """
 
 _documentation = """
@@ -158,6 +162,11 @@ batch: Boolean
 cache: Boolean
 
     Cache previous results so they may be used in future computations.
+
+customVersionColors: Boolean
+
+    Allow setting custom colors for versions, and display these colors in the
+    version tree.
 
 dataDir: Path
 
@@ -212,9 +221,18 @@ fileDir: Path
     The location that VisTrails uses as a default directory for
     specifying files.
 
+fixedCustomVersionColorSaturation: Boolean
+
+    Don't change the saturation according to the age of the version if it has a
+    custom color.
+
 fixedSpreadsheetCells: Boolean
 
     Draw spreadsheet cells at a fixed size (for testing).
+
+graphsAsPdf: Boolean
+
+    Generate graphs in PDF format instead of images
 
 handlerDontAsk: Boolean
 
@@ -255,11 +273,11 @@ jobList: Boolean
 
 jobInfo: Boolean
 
-    List jobs in running workflow
+    List jobs in running workflow.
 
 loadPackages: Boolean
 
-    Whether to load the packages enabled in the configuration file
+    Whether to load the packages enabled in the configuration file.
 
 logDir: Path
 
@@ -309,9 +327,21 @@ outputDefaultSettings: ConfigurationObject
 
     One or more comma-separated key=value parameters.
 
+outputDirectory: Path
+
+    Directory in which to place output files
+
+outputPipelineGraph: Boolean
+
+    Output the workflow graph as an image.
+
 outputSettings: ConfigurationObject
 
     One or more comma-separated key=value parameters.
+
+outputVersionTree: Boolean
+
+    Output the version tree as an image.
 
 packageDir: Path
 
@@ -399,6 +429,10 @@ showConnectionErrors: Boolean
 showDebugPopups: Boolean
 
     Always show the debug popups or only if there is a modal widget.
+
+showInlineParameterWidgets: Boolean
+
+    Show editable parameters inside modules.
 
 showMovies: Boolean
 
@@ -512,8 +546,8 @@ userPackageDir: Boolean
 
 viewOnLoad: String
 
-    Whether to show pipeline or history view when opening vistrail
-    Can be either appropriate/pipeline/history
+    Whether to show pipeline or history view when opening vistrail.
+    Can be either appropriate/pipeline/history.
 
 webRepositoryURL: URL
 
@@ -524,18 +558,6 @@ webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
     like crowdLabs.
-
-outputVersionTree: Boolean
-
-    Output the version tree as an image.
-
-outputPipelineGraph: Boolean
-
-    Output the workflow graph as an image.
-
-showInlineParameterWidgets: Boolean
-
-    Show editable parameters inside modules
 
 """
 
@@ -701,7 +723,7 @@ base_config = {
                                  "remap": {"appropriate": "Most Appropriate",
                                            "history": "Always History",
                                            "pipeline": "Always Pipeline"}}),
-     ConfigField('enableCustomVersionColors', False, bool, ConfigType.ON_OFF),
+     ConfigField('customVersionColors', False, bool, ConfigType.ON_OFF),
      ConfigField('fixedCustomVersionColorSaturation', False,
                  bool, ConfigType.ON_OFF)],
     "Thumbnails":
@@ -856,8 +878,8 @@ def find_simpledoc(arg_path):
 def set_field_labels(fields, prefix=""):
     for field in fields:
         if isinstance(field, ConfigFieldParent):
-            prefix = "%s%s." % (prefix, field.name)
-            set_field_labels(field.sub_fields, prefix=prefix)
+            new_prefix = "%s%s." % (prefix, field.name)
+            set_field_labels(field.sub_fields, prefix=new_prefix)
         else:
             full_field_name = "%s%s" % (prefix, field.name)
             label = find_simpledoc(full_field_name)

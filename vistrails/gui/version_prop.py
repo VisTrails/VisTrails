@@ -146,7 +146,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         editLayout.addWidget(self.tagReset)
 
         configuration = get_vistrails_configuration()
-        self.use_custom_colors = configuration.check('enableCustomVersionColors')
+        self.use_custom_colors = configuration.check('customVersionColors')
 
         if self.use_custom_colors:
             self.customColor = ColorChooserButton(self)
