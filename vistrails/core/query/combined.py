@@ -62,9 +62,12 @@ class CombinedSearch(VisualQuery):
     def matchModule(self, version_id, module):
         if self.queryPipeline is not None and \
                 len(self.queryPipeline.modules) > 0:
-            return VisualQuery.matchModule(self, version_id, module)
-        return True
-    
+            if VisualQuery.matchModule(self, version_id, module):
+                return self.search_stmt.matchModule(version_id, module)
+            return False
+        else:
+            return self.search_stmt.matchModule(version_id, module)
+
     def getResultEntity(self, vistrail, versions_to_check):
         from vistrails.core.collection.vistrail import VistrailEntity
 

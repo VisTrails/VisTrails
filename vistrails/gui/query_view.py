@@ -135,7 +135,7 @@ class QueryController(object):
                                 controller.vistrail != vt_controller.vistrail:
                             continue
                         if only_current_workflow:
-                            versions_to_check = controller.current_version
+                            versions_to_check = set([controller.current_version])
                         else:
                             graph = controller._current_terse_graph
                             versions_to_check = set(graph.vertices.iterkeys())
@@ -150,8 +150,8 @@ class QueryController(object):
                 result_entities = do_search(True)                
                 self.show_vistrail_matches()
             elif self.level == QueryController.LEVEL_WORKFLOW:
-                self.search_level = QueryController.LEVEL_VISTRAIL
-                result_entities = do_search(True)
+                #self.search_level = QueryController.LEVEL_VISTRAIL
+                result_entities = do_search(False, True)
                 self.update_version_tree()
                 self.show_workflow_matches()
             else:  # self.level == QueryController.LEVEL_ALL
@@ -444,7 +444,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(controller.vistrail, None,
                                         set_log_on_vt=False)
-        self.vt_controller.change_selected_version(controller.current_version)
+        self.vt_controller.change_selected_version(controller.current_version,
+                                                   False, False)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
         self.query_controller.set_vistrail_controller(controller)
@@ -453,8 +454,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(self.controller.vistrail, None,
                                         set_log_on_vt=False)
-        self.vt_controller.change_selected_version(
-            self.controller.current_version)
+        self.vt_controller.change_selected_version(self.controller.current_version,
+                                                   False, False)
 
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
