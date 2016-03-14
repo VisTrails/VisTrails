@@ -4230,26 +4230,97 @@ class VistrailController(object):
         #return module move operations
         return self.move_modules_ops(moves)
 
-    def create_upgrade(self, version):
-        """ Upgrade a version without doing version switch
+    def get_pipeline(self, version):
+        """ Tries to construct the pipeline for a version in the fastest way possible
+            using cached pipelines and version distances.
+            It does not change current_version.
+        """
+        def get_cost(descendant, ancestor):
+            cost = 0
+            am = self.vistrail.actionMap
+            if descendant == -1:
+                descendant = 0
+            while descendant != ancestor:
+                descendant = am[descendant].parent
+                cost += 1
+            return cost
+        # Fast check: if target is cached, copy it and we're done.
+        if version in self._pipelines:
+            result = copy.copy(self._pipelines[version])
+        else:
+            # Find the closest upstream pipeline to the current one
+            cv = self._current_full_graph.inverse_immutable().closest_vertex
+            closest = cv(version, self._pipelines)
+            cost_to_closest_version = get_cost(version, closest)
+            # FIXME I'm assuming copying the pipeline has zero cost.
+            # Formulate a better cost model
+            if closest == 0:
+                result = self.vistrail.getPipeline(version)
+            else:
+                result = copy.copy(self._pipelines[closest])
+                action = self.vistrail.general_action_chain(closest,
+                                                            version)
+                result.perform_action(action)
+            if self._cache_pipelines and \
+                    self.vistrail.has_tag(long(version)):
+                # stash a copy for future use
+                self._pipelines[version] = copy.copy(result)
+        return result
 
+    def create_upgrade(self, version):
+        """upgrade a version if possible
+         Does not change current version, but will create a new upgrade if it does not exist.
         """
         try:
-            self.flush_delayed_actions()
-            version = self.vistrail.get_upgrade(version) or version
-            pipeline = self.vistrail.getPipeline(version)
+            pipeline = self.get_pipeline(version)
             self.validate(pipeline)
         except InvalidPipeline as e:
-            # switch version to trigger upgrade
-            # but try to avoid switching version in GUI
-            # put vistrail in new controller, do upgrade, put vistrail back
-            controller = VistrailController(self.vistrail, auto_save=False)
-            try:
-                controller.do_version_switch(version, True)
-                controller.flush_delayed_actions()
-            except InvalidPipeline as e:
-                pass
-            version = controller.current_version
+            new_error = None
+            start_version = version
+            if version == self.current_version:
+                # The upgrade is probably already done
+                self.flush_delayed_actions()
+            upgrade_version = self.vistrail.get_upgrade(version)
+            was_upgraded = False
+            if upgrade_version is not None:
+                try:
+                    upgrade_version = int(upgrade_version)
+                    if (upgrade_version in self.vistrail.actionMap and
+                            not self.vistrail.is_pruned(upgrade_version)):
+                        pipeline = self.get_pipeline(upgrade_version)
+                        self.validate(pipeline)
+                        version = upgrade_version
+                        was_upgraded = True
+                except InvalidPipeline:
+                    # try to handle using the handler and create
+                    # new upgrade
+                    pass
+            if not was_upgraded:
+                try:
+                    version, pipeline = \
+                        self.handle_invalid_pipeline(e, version,
+                                                     self.vistrail,
+                                                     force_no_delay=True)
+                    try:
+                        self.validate(pipeline)
+                    except InvalidPipeline as e:
+                        version, pipeline = \
+                            self.handle_invalid_pipeline(e, version,
+                                                         self.vistrail,
+                                                         force_no_delay=True)
+                    self.validate(pipeline)
+                except InvalidPipeline as e:
+                    debug.unexpected_exception(e)
+                    new_error = e
+
+                    # Get the version anyway
+                    pipeline = e._pipeline
+                    version = e._version
+
+            if version != start_version:
+                self.invalidate_version_tree(False)
+            if new_error is not None:
+                raise new_error
         return version
 
 
