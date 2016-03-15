@@ -196,6 +196,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
 
         if self.controller is not None:
             scene = self.controller.current_pipeline_scene
+            self.setReadOnly(scene.read_only_mode)
             selected_ids = scene.get_selected_module_ids() 
             modules = [self.controller.current_pipeline.modules[i] 
                        for i in selected_ids]
