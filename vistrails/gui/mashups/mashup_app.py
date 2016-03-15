@@ -243,7 +243,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if res:
                 cellEvents = spreadsheetController.getEchoCellEvents()
             else:
-                return [], True
+                return [], errors or True
         except Exception, e:
             debug.unexpected_exception(e)
             print "Executing pipeline failed:", debug.format_exc()
