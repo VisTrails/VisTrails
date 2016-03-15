@@ -55,15 +55,16 @@ from vistrails.core.configuration import get_vistrails_configuration
 
 from vistrails.gui.collection.vis_log import QLogView
 from vistrails.gui.common_widgets import QMouseTabBar
-from vistrails.gui.pipeline_view import QPipelineView
-from vistrails.gui.version_view import QVersionTreeView
-from vistrails.gui.query_view import QQueryView
+from vistrails.gui.mashups.mashup_view import QMashupView
+from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.ports_pane import ParameterEntry
+from vistrails.gui.query_view import QQueryView, QueryEntry
+from vistrails.gui.version_prop import QVersionProp
+from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.vis_diff import QDiffView
 from vistrails.gui.vistrail_controller import VistrailController
-from vistrails.gui.mashups.mashup_view import QMashupView
-from vistrails.gui.ports_pane import ParameterEntry
-from vistrails.gui.query_view import QueryEntry
 
 ################################################################################
 
@@ -800,8 +801,20 @@ class QVistrailView(QtGui.QWidget):
             if pipeline is not None and module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
                 _app.notify('module_changed', module)
+                # show module info if both are tabified and
+                # workflow info is visible
+                if not QModuleInfo.instance().toolWindow().isFloating() and \
+                   not QVersionProp.instance().toolWindow().isFloating() and \
+                   not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
+                    QModuleInfo.instance().set_visible(True)
             else:
                 _app.notify('module_changed', None)
+                # show workflow info if both are tabified and
+                # module info is visible
+                if not QModuleInfo.instance().toolWindow().isFloating() and \
+                   not QVersionProp.instance().toolWindow().isFloating() and \
+                   not QModuleInfo.instance().toolWindow().visibleRegion().isEmpty():
+                    QVersionProp.instance().set_visible(True)
         return module_selected
 
     def version_selected(self, version_id, by_click, do_validate=True,
