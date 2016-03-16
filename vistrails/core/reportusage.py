@@ -251,20 +251,14 @@ def get_ca_certificate():
 
 _default_news = {
     'version': '20160304',
-    'news_html':
-        u"<p>We are conducting a survey of VisTrails users. "
-        u"<a href=\"http://www.vistrails.org/\" target=\"_blank\">If you have "
-        u"a minute, please consider helping us by visiting this page.</a></p>",
+    'news_html': None,
     'usage_report_prompt_html':
         u"<p>Please help us by reporting anonymous statistics about how you "
         u"use VisTrails.</p><p>We would like to collect high-level details "
         u"like which packages you use, which features, the size of your "
         u"workflows and version trees, ... This information is reported "
         u"anonymously and will only be used by the VisTrails team, to help "
-        u"guide our efforts.</p>"
-        u"<p><a href=\"http://www.vistrails.org/\" target=\"_blank\">We are "
-        u"also conducting a survey of VisTrails users. If you have a minute, "
-        u"please consider helping us by visiting this page.</a></p>",
+        u"guide our efforts.</p>",
 }
 
 
