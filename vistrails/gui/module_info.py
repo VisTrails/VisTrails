@@ -188,15 +188,15 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                 widget.setReadOnly(read_only)
 
     def set_controller(self, controller):
-        if self.controller == controller:
-            return
-        self.controller = controller
-        for ports_list in self.ports_lists:
-            ports_list.set_controller(controller)
-        self.annotations.set_controller(controller)
+        if self.controller != controller:
+            self.controller = controller
+            for ports_list in self.ports_lists:
+                ports_list.set_controller(controller)
+            self.annotations.set_controller(controller)
 
         if self.controller is not None:
             scene = self.controller.current_pipeline_scene
+            self.setReadOnly(scene.read_only_mode)
             selected_ids = scene.get_selected_module_ids() 
             modules = [self.controller.current_pipeline.modules[i] 
                        for i in selected_ids]
@@ -228,12 +228,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.annotations.updateModule(module)
 
         if module is None:
-            # We show the version properties tab if both are tabified and
-            # self is visible
-            if not self.toolWindow().isFloating() and \
-               not QVersionProp.instance().toolWindow().isFloating() and \
-               not self.toolWindow().visibleRegion().isEmpty():
-                QVersionProp.instance().set_visible(True)
             self.name_edit.setText("")
             if not versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
                 self.name_edit.setPlaceholderText("")
@@ -244,12 +238,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.namespace_edit.setText("")
             self.module_id.setText("")
         else:
-            # We show self  if both are tabified and
-            # the version properties tab is visible
-            if not self.toolWindow().isFloating() and \
-               not QVersionProp.instance().toolWindow().isFloating() and \
-               not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
-                self.set_visible(True)
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()
             else:

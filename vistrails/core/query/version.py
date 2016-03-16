@@ -51,12 +51,20 @@ class SearchParseError(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+
+def validModuleStmt(stmt):
+    """ Modules are only queried by name, and shown by default if
+    name is not given
+    """
+    return type(stmt) in [AndSearchStmt, OrSearchStmt, NotSearchStmt,
+                          ModuleSearchStmt, TrueSearch]
+
 class SearchStmt(object):
     def match(self, vistrail, action):
         return True
 
     def matchModule(self, v, m):
-        return True
+        return False
 
     def run(self, v, n):
         pass
@@ -449,6 +457,8 @@ class ModuleSearchStmt(RegexEnabledSearchStmt):
             if self._content_matches(module.name):
                 return True
         return False
+    def matchModule(self, v, m):
+        return self._content_matches(m.name)
 
 class AndSearchStmt(SearchStmt):
     def __init__(self, lst):
@@ -457,6 +467,11 @@ class AndSearchStmt(SearchStmt):
         for s in self.matchList:
             if not s.match(vistrail, action):
                 return False
+        return True
+    def matchModule(self, v, m):
+        for s in self.matchList:
+            if validModuleStmt(s):
+                return s.matchModule(v, m)
         return True
 
 class OrSearchStmt(SearchStmt):
@@ -467,17 +482,29 @@ class OrSearchStmt(SearchStmt):
             if s.match(vistrail, action):
                 return True
         return False
+    def matchModule(self, v, m):
+        for s in self.matchList:
+            if validModuleStmt(s):
+                return s.matchModule(v, m)
+        return True
 
 class NotSearchStmt(SearchStmt):
     def __init__(self, stmt):
         self.stmt = stmt
     def match(self, vistrail, action):
         return not self.stmt.match(action)
+    def matchModule(self, v, m):
+        if validModuleStmt(self.stmt):
+            return not self.stmt.matchModule(v, m)
+        return False
 
 class TrueSearch(SearchStmt):
     def __init__(self):
         pass
     def match(self, vistrail, action):
+        return True
+
+    def matchModule(self, v, m):
         return True
 
 ################################################################################
