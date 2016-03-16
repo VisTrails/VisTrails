@@ -242,6 +242,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # usage statistics
         if reportusage.usage_report.status is usagestats.Stats.UNSET:
             self.ask_enable_usage_report()
+        # news
+        elif self.temp_configuration.check('showVistrailsNews'):
+            self.show_news()
 
         # default handler installation
         if system.systemType == 'Linux':
@@ -258,6 +261,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return APP_SUCCESS
 
     def ask_enable_usage_report(self):
+        news = reportusage.get_server_news()
         if hasattr(self, 'splashScreen') and self.splashScreen:
             self.splashScreen.hide()
         dialog = QtGui.QDialog()
@@ -266,8 +270,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         dialog.setLayout(layout)
         descr = QtGui.QTextBrowser()
         descr.setOpenExternalLinks(True)
-        descr.setHtml(
-            reportusage.get_server_news()['usage_report_prompt_html'])
+        descr.setHtml(news['usage_report_prompt_html'])
         layout.addWidget(descr)
         layout.addWidget(QtGui.QLabel(
             u"Send anonymous reports to the developers?"))
@@ -287,6 +290,27 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         else:
             if dont_ask.isChecked():
                 reportusage.usage_report.disable_reporting()
+        self.configuration.lastShownNews = news['version']
+
+    def show_news(self):
+        news = reportusage.get_server_news()
+        if (getattr(self.temp_configuration, 'lastShownNews', None) ==
+                news['version']):
+            return
+
+        if news['news_html']:
+            if hasattr(self, 'splashScreen') and self.splashScreen:
+                self.splashScreen.hide()
+            dialog = QtGui.QDialog()
+            dialog.setWindowTitle(u"VisTrails News")
+            layout = QtGui.QVBoxLayout()
+            dialog.setLayout(layout)
+            descr = QtGui.QTextBrowser()
+            descr.setOpenExternalLinks(True)
+            descr.setHtml(news['news_html'])
+            layout.addWidget(descr)
+            dialog.exec_()
+        self.configuration.lastShownNews = news['version']
 
     def ask_update_default_application(self, dont_ask_checkbox=True):
         if hasattr(self, 'splashScreen') and self.splashScreen:

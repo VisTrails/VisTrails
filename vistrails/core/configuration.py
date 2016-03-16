@@ -124,6 +124,7 @@ showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
 showSpreadsheetOnly: Hides the VisTrails main window
 showVariantErrors: Show error when variant input value doesn't match type during execution
+showVistrailsNews: Show news from VisTrails (once per message)
 showWindow: Show the main window
 singleInstance: Do not allow more than one instance of VisTrails to run at once
 spreadsheetDumpCells: Defines the location for generated cells
@@ -471,6 +472,11 @@ showVariantErrors: Boolean
     Alert the user if the value along a connection coming from a
     Variant output doesn't match the input port.
 
+showVistrailsNews: Boolean
+
+    Show news from VisTrails on startup. Each message will only be displayed
+    once.
+
 showWindow: Boolean
 
     Show the main VisTrails window.
@@ -708,7 +714,8 @@ base_config = {
                                               "Debug Messages"}}),
      ConfigField('reportUsage', -1, int, ConfigType.INTERNAL,
                  widget_type="usagestats",
-                 widget_options={'label': 'Anonymous usage reporting'})],
+                 widget_options={'label': 'Anonymous usage reporting'}),
+     ConfigField('showVistrailsNews', True, bool, ConfigType.SHOW_HIDE)],
     "Startup":
     [ConfigField('maximizeWindows', False, bool, ConfigType.ON_OFF),
      ConfigField('multiHeads', False, bool, ConfigType.ON_OFF),
@@ -787,7 +794,8 @@ base_config = {
      ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL),
      ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL),
      ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL),
-     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL)],
+     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL),
+     ConfigField('lastShownNews', '', str, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),

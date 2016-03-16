@@ -273,6 +273,7 @@ optionsDict = {
         'developerDebugger': debug_mode,
         'debugLevel': vistrails_verbose,
         'dontUnloadModules': True,
+        'showVistrailsNews': False,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
