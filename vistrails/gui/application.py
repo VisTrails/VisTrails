@@ -267,16 +267,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         descr = QtGui.QTextBrowser()
         descr.setOpenExternalLinks(True)
         descr.setHtml(
-            u"<p>Please help us by reporting anonymous statistics about how "
-            u"you use VisTrails.</p>"
-            u"<p>We would like to collect high-level details like which "
-            u"packages you use, which features, the size of your workflows "
-            u"and version trees, ... This information is reported anonymously "
-            u"and will only be used by the VisTrails team, to help guide our "
-            u"efforts.</p>"
-            u"<p><a href=\"http://www.vistrails.org/\" target=\"_blank\">We are also conducting "
-            u"a survey of VisTrails users. If you have a minute, please "
-            u"consider helping us by visiting this page.</a></p>")
+            reportusage.get_server_news()['usage_report_prompt_html'])
         layout.addWidget(descr)
         layout.addWidget(QtGui.QLabel(
             u"Send anonymous reports to the developers?"))
