@@ -162,6 +162,9 @@ class VistrailController(object):
         self._current_full_graph = None
         self._current_terse_graph = None
         self.show_upgrades = False
+        # if delayed_update is True, version tree and 'changed' status
+        # needs to be updated
+        self.delayed_update = False
         self.num_versions_always_shown = 1
 
         # if self.search is True, vistrail is currently being searched
@@ -535,7 +538,7 @@ class VistrailController(object):
             vistrail.set_notes(from_version, "")
             vistrail.set_notes(to_version, notes)
 
-    def flush_delayed_actions(self):
+    def flush_delayed_actions(self, delay_update=False):
         start_version = self.current_version
         desc_key = Action.ANNOTATION_DESCRIPTION
         added_upgrade = False
@@ -571,8 +574,11 @@ class VistrailController(object):
         self._delayed_paramexps = []
         self._delayed_mashups = []
         if added_upgrade or added_moves:
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
+            if delay_update:
+                self.delayed_update = True
+            else:
+                self.recompute_terse_graph()
+                self.invalidate_version_tree(False)
 
     def perform_action(self, action, do_validate=True, raise_exception=False):
         """ performAction(action: Action) -> timestep
@@ -3284,8 +3290,15 @@ class VistrailController(object):
                                    "Upgrade")
         return new_action
 
+    def check_delayed_update(self):
+        if self.delayed_update:
+            self.delayed_update = False
+            self.set_changed(True)
+            self.recompute_terse_graph()
+
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
-                                report_all_errors=False, force_no_delay=False):
+                                report_all_errors=False, force_no_delay=False,
+                                delay_update=False):
         def check_exceptions(exception_set):
             unhandled_exceptions = []
             for err in exception_set:
@@ -3579,8 +3592,9 @@ class VistrailController(object):
                         action.mashup.version = new_version
                     self._mashups.append(mashup)
 
-                self.set_changed(True)
-                self.recompute_terse_graph()
+                if not delay_update:
+                    self.set_changed(True)
+                    self.recompute_terse_graph()
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
@@ -4267,19 +4281,41 @@ class VistrailController(object):
                 self._pipelines[version] = copy.copy(result)
         return result
 
-    def create_upgrade(self, version):
+    def get_tag(self, version_number):
+        # Follow upgrades forward to find tag
+        if not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True):
+            return self.vistrail.getVersionName(version_number)
+        tag = self.vistrail.search_upgrade_versions(
+                version_number,
+                lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+        return tag
+
+    def get_notes(self, version_number):
+        if not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True):
+            return self.vistrail.get_notes(version_number)
+        notes = self.vistrail.search_upgrade_versions(
+            version_number,
+            lambda vt, v, bv: vt.get_notes(v) or None)
+        return notes
+
+    def create_upgrade(self, version, delay_update=False):
         """upgrade a version if possible
          Does not change current version, but will create a new upgrade if it does not exist.
+
+        delay_update - set self.update_delayed and do not call set_changed in handle_invalid_pipeline
+
         """
+        start_version = version
         try:
             pipeline = self.get_pipeline(version)
             self.validate(pipeline)
         except InvalidPipeline as e:
             new_error = None
-            start_version = version
             if version == self.current_version:
                 # The upgrade is probably already done
-                self.flush_delayed_actions()
+                self.flush_delayed_actions(delay_update=True)
             upgrade_version = self.vistrail.get_upgrade(version)
             was_upgraded = False
             if upgrade_version is not None:
@@ -4300,14 +4336,16 @@ class VistrailController(object):
                     version, pipeline = \
                         self.handle_invalid_pipeline(e, version,
                                                      self.vistrail,
-                                                     force_no_delay=True)
+                                                     force_no_delay=True,
+                                                     delay_update=delay_update)
                     try:
                         self.validate(pipeline)
                     except InvalidPipeline as e:
                         version, pipeline = \
                             self.handle_invalid_pipeline(e, version,
                                                          self.vistrail,
-                                                         force_no_delay=True)
+                                                         force_no_delay=True,
+                                                         delay_update=delay_update)
                     self.validate(pipeline)
                 except InvalidPipeline as e:
                     debug.unexpected_exception(e)
@@ -4317,10 +4355,10 @@ class VistrailController(object):
                     pipeline = e._pipeline
                     version = e._version
 
-            if version != start_version:
-                self.invalidate_version_tree(False)
             if new_error is not None:
-                raise new_error
+                pass
+        if delay_update and start_version != version:
+            self.delayed_update = True
         return version
 
 
