@@ -907,7 +907,7 @@ class QVersionMashups(QtGui.QWidget):
                 
     def mashupSelected(self):
         action = self.sender()
-        version, ok = action.data()
+        version = action.data()
         self.openMashup(version)
 
     def openMashup(self, version):
