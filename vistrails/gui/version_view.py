@@ -865,8 +865,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 continue
             nodeUser = am[nodeId].user
             if controller.search and nodeId!=0:
-                ghosted = not controller.search.match(controller.vistrail, 
-                                                      am[nodeId])
+                ghosted = not controller.search.match(controller, am[nodeId])
             else:
                 ghosted = False
                 
@@ -1034,6 +1033,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.updateSceneBoundingRect()
 
         self.select_by_click = True
+
+        if self.controller.search:
+            # search mode may have triggered upgrades
+            self.controller.check_delayed_update()
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None

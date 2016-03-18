@@ -45,19 +45,19 @@ class CombinedSearch(VisualQuery):
         self.search_str = search_str
         self.use_regex = use_regex
 
-    def run(self, vistrail, name):
-        VisualQuery.run(self, vistrail, name)
+    def run(self, controller, name):
+        VisualQuery.run(self, controller, name)
         compiler = SearchCompiler(self.search_str, self.use_regex)
         self.search_stmt = compiler.searchStmt
 
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         if self.queryPipeline is not None and \
                 len(self.queryPipeline.modules) > 0:
             if action.timestep in self.versionDict:
-                return self.search_stmt.match(vistrail, action)
+                return self.search_stmt.match(controller, action)
             return False
         else:
-            return self.search_stmt.match(vistrail, action)
+            return self.search_stmt.match(controller, action)
 
     def matchModule(self, version_id, module):
         if self.queryPipeline is not None and \
@@ -68,20 +68,20 @@ class CombinedSearch(VisualQuery):
         else:
             return self.search_stmt.matchModule(version_id, module)
 
-    def getResultEntity(self, vistrail, versions_to_check):
+    def getResultEntity(self, controller, versions_to_check):
         from vistrails.core.collection.vistrail import VistrailEntity
 
         locators = []
         vistrail_entity = None
         for version in versions_to_check:
-            if version in vistrail.actionMap:
-                action = vistrail.actionMap[version]
-                if self.match(vistrail, action):
+            if version in controller.vistrail.actionMap:
+                action = controller.vistrail.actionMap[version]
+                if self.match(controller, action):
                     # have a match, get vistrail entity
                     if vistrail_entity is None:
                         vistrail_entity = VistrailEntity()
                         # don't want to add all workflows, executions
-                        vistrail_entity.set_vistrail(vistrail)
+                        vistrail_entity.set_vistrail(controller.vistrail)
                     vistrail_entity.add_workflow_entity(version)
                     # FIXME this is not done at the low level but in
                     # Collection class, probably should be reworked

@@ -87,11 +87,18 @@ class VisualQuery(query.Query):
             target_ids = nextTargetIds
             template_ids = nextTemplateIds
 
-    def run(self, vistrail, name):
+    def run(self, controller, name):
         result = []
         self.tupleLength = 2
         for version in self.versions_to_check:
-            p = vistrail.getPipeline(version)
+            from vistrails.core.configuration import get_vistrails_configuration
+            hide_upgrades = getattr(get_vistrails_configuration(),
+                                    'hideUpgrades', True)
+            base_version = version
+            if hide_upgrades:
+                version = controller.create_upgrade(version, delay_update=True)
+            p = controller.get_pipeline(version)
+
             matches = set()
             queryModuleNameIndex = {}
             for moduleId, module in p.modules.iteritems():
@@ -126,6 +133,11 @@ class VisualQuery(query.Query):
                 
             for m in matches:
                 result.append((version, m))
+                if base_version != version:
+                    # pipeline view uses upgraded version
+                    # but version view uses tagged version
+                    result.append((base_version, 0))
+
         self.queryResult = result
         self.computeIndices()
         return result

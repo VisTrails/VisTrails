@@ -48,33 +48,33 @@ class MultipleSearch(Query):
         self.use_regex = use_regex
         self.queries = {}
         self.queries_by_vistrail = {}
-        self.cur_vistrail = None
+        self.cur_controller = None
 
-    def setCurrentVistrail(self, vistrail):
-        self.cur_vistrail = vistrail
+    def setCurrentController(self, controller):
+        self.cur_controller = controller
 
     def run(self):
         for entity, versions_to_check in self.entities_to_check.iteritems():
             query = CombinedSearch(self.search_str, self.queryPipeline, 
                                    versions_to_check, self.use_regex)
-            query.run(entity.vistrail, '')
+            query.run(entity._window.controller, '')
             self.queries[entity] = query
             self.queries_by_vistrail[entity.vistrail] = query
 
-    def match(self, vistrail, action):
-        self.setCurrentVistrail(vistrail)
-        query = self.queries_by_vistrail[vistrail]
-        return query.match(vistrail, action)
+    def match(self, controller, action):
+        self.setCurrentController(controller)
+        query = self.queries_by_vistrail[controller.vistrail]
+        return query.match(controller, action)
 
     def matchModule(self, version_id, module):
-        query = self.queries_by_vistrail[self.cur_vistrail]
+        query = self.queries_by_vistrail[self.cur_controller.vistrail]
         return query.matchModule(version_id, module)
     
     def getResultEntities(self):
         result_entities = []
         for entity, query in self.queries.iteritems():
             versions_to_check = self.entities_to_check[entity]
-            result_entity = query.getResultEntity(entity.vistrail, 
+            result_entity = query.getResultEntity(entity._window.controller,
                                                   versions_to_check)
             if result_entity is not None:
                 # needed for workspace results that are temporary...

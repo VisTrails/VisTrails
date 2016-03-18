@@ -77,7 +77,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
         self.setup_widget()
             
     def run_search(self, search, items=None):
-        if items is None:
+        top_level = items is None
+        if top_level:
             items = [self.topLevelItem(i)
                      for i in xrange(self.topLevelItemCount())]
         for item in items:
@@ -94,7 +95,11 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 item.setHidden(True)
             self.run_search(search, [item.child(i) 
                                      for i in xrange(item.childCount())])
-            
+        # check for upgrades
+        if top_level:
+            for item in items:
+                item.entity._window.controller.check_delayed_update()
+
     def reset_search(self, items=None):
         if items is None:
             items = [self.topLevelItem(i)

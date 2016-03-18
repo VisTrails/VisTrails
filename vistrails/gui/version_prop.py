@@ -238,10 +238,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
 
             if vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find tag
-                tag = vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
-
+                tag = self.controller.get_tag(versionNumber)
                 if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
                     base_ver = vistrail.get_base_upgrade_version(versionNumber)
                 else:
@@ -331,9 +328,7 @@ class QVersionNotes(QtGui.QTextEdit):
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find notes
-                notes = self.controller.vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.get_notes(v) or None)
+                notes = self.controller.get_notes(versionNumber)
                 if notes:
                     self.setHtml(notes)
                     # work around a strange bug where an empty new paragraph gets added every time
@@ -519,10 +514,7 @@ class QVersionPropOverlay(QtGui.QFrame):
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 vistrail = self.controller.vistrail
                 # Follow upgrades forward to find tag
-                tag = vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
-
+                tag = self.controller.get_tag(versionNumber)
                 if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
                     base_ver = vistrail.get_base_upgrade_version(versionNumber)
                 else:
@@ -733,10 +725,7 @@ class QNotesDialog(QtGui.QDialog):
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find tag
-                tag = self.controller.vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
-
+                tag = self.controller.get_tag(versionNumber)
                 title = "Notes: " + tag
                 self.setWindowTitle(title)
             else:
