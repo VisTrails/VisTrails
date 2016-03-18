@@ -1139,6 +1139,7 @@ class QVistrailList(QtGui.QTreeWidget):
             item.setText(0, entity.name)
         (added_wfs, deleted_wfs) = entity.update_workflows()
         (more_added_wfs, added_wf_execs) = entity.update_log()
+        view.controller.vistrail.mashups = view.controller._mashups
         (added_mshps, deleted_mshps) = entity.update_mashups()
         (added_pes, deleted_pes) = entity.update_parameter_explorations()
 
