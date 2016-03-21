@@ -52,4 +52,4 @@ def get_default_interpreter():
 
     Deprecated, just use :obj:`vistrails.core.interpreter.Interpreter`.
     """
-    return Interpreter
+    return Interpreter.get()
