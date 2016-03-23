@@ -819,6 +819,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return False
 
     def parse_input_args_from_other_instance(self, msg):
+        reportusage.record_feature('args_from_other_instance')
         options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list

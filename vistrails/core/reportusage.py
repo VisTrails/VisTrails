@@ -109,6 +109,8 @@ def record_usage(**kwargs):
 
 
 saved_vistrails = weakref.WeakValueDictionary()
+features = set()
+features_for_vistrails = {}
 
 
 def record_vistrail(what, vistrail):
@@ -162,11 +164,27 @@ def record_vistrail(what, vistrail):
                                nb_paramexplorations=nb_paramexplorations,
                                nb_upgrades=nb_upgrades,
                                nb_variables=len(vistrail.vistrail_variables)))
+        for feature in features_for_vistrails.pop(id(vistrail), ()):
+            usage_report.note({'feature_for_vistrail': feature})
     elif isinstance(vistrail, Pipeline):
         usage_report.note(dict(use_workflow=what,
                                nb_modules=len(vistrail.module_list)))
     else:
         raise TypeError
+
+
+def record_feature(feature, vistrail=None):
+    """Record that a feature was used.
+    """
+    from vistrails.core.vistrail.controller import VistrailController
+
+    if vistrail is not None:
+        if isinstance(vistrail, VistrailController):
+            vistrail = vistrail.vistrail
+
+        features_for_vistrails.setdefault(id(vistrail), set()).add(feature)
+    else:
+        features.add(feature)
 
 
 def submit_usage_report(**kwargs):
@@ -186,6 +204,9 @@ def submit_usage_report(**kwargs):
     except ImportError:
         pass
 
+    features.update(*features_for_vistrails.values())
+    for feature in features:
+        usage_report.note({'feature': feature})
     usage_report.submit(kwargs,
                         usagestats.OPERATING_SYSTEM,
                         usagestats.SESSION_TIME,

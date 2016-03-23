@@ -53,6 +53,7 @@ from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import reportusage
 
 from vistrails.gui.collection.vis_log import QLogView
 from vistrails.gui.common_widgets import QMouseTabBar
@@ -891,6 +892,7 @@ class QVistrailView(QtGui.QWidget):
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
         self.view_changed()
+        reportusage.record_feature('diff', self.controller)
 
     def save_vistrail(self, locator_class, force_choose_locator=False, export=False):
         """

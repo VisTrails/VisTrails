@@ -35,6 +35,8 @@
 ###############################################################################
 from __future__ import division
 
+from vistrails.core import reportusage
+
 from version import SearchCompiler
 from visual import VisualQuery
 
@@ -46,6 +48,8 @@ class CombinedSearch(VisualQuery):
         self.use_regex = use_regex
 
     def run(self, controller, name):
+        if self.search_str:
+            reportusage.record_feature('query', controller)
         VisualQuery.run(self, controller, name)
         compiler = SearchCompiler(self.search_str, self.use_regex)
         self.search_stmt = compiler.searchStmt

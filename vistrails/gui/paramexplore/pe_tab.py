@@ -47,6 +47,7 @@ from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.param_explore import ActionBasedParameterExploration
+from vistrails.core import reportusage
 from vistrails.core.system import current_time, strftime
 from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
@@ -266,6 +267,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         corresponding to each dimension
         
         """
+        reportusage.record_feature('paramexplore', self.controller)
         registry = get_module_registry()
         actions = self.peWidget.table.collectParameterActions()
         spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
