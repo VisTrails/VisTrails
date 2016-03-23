@@ -157,13 +157,30 @@ def record_vistrail(what, vistrail):
             usage_report.note({'in_examples_dir':
                 os.path.realpath(vistrail.locator._name).startswith(
                     os.path.realpath(vistrails_examples_directory()))})
+        nb_modules = 0
+        nb_groups = 0
+        nb_abstractions = 0
+        for action in vistrail.actions:
+            if action.id in upgrade_to or action.description == "Upgrade":
+                continue
+            for operation in action.operations:
+                if operation.vtType == 'add' or operation.vtType == 'change':
+                    if operation.what == 'module':
+                        nb_modules += 1
+                        if operation.data.is_group():
+                            nb_groups += 1
+                        elif operation.data.is_abstraction():
+                            nb_abstractions += 1
         usage_report.note(dict(use_vistrail=what,
                                nb_versions=len(vistrail.actionMap),
                                nb_tags=len(vistrail.tags),
                                nb_notes=nb_notes,
                                nb_paramexplorations=nb_paramexplorations,
                                nb_upgrades=nb_upgrades,
-                               nb_variables=len(vistrail.vistrail_variables)))
+                               nb_variables=len(vistrail.vistrail_variables),
+                               nb_modules=nb_modules,
+                               nb_groups=nb_groups,
+                               nb_abstractions=nb_abstractions))
         for feature in features_for_vistrails.pop(id(vistrail), ()):
             usage_report.note({'feature_for_vistrail': feature})
     elif isinstance(vistrail, Pipeline):
