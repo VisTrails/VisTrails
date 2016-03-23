@@ -42,6 +42,7 @@ import re
 from vistrails.core import debug
 from vistrails.core.collection import Collection
 from vistrails.core.collection.vistrail import VistrailEntity
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.query.multiple import MultipleSearch
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -444,8 +445,10 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(controller.vistrail, None,
                                         set_log_on_vt=False)
+        hide_upgrades = not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
         self.vt_controller.change_selected_version(controller.current_version,
-                                                   False, False)
+                                                   hide_upgrades, hide_upgrades)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
         self.query_controller.set_vistrail_controller(controller)
@@ -454,8 +457,12 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(self.controller.vistrail, None,
                                         set_log_on_vt=False)
+        hide_upgrades = not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
+        do_validate = hide_upgrades
+
         self.vt_controller.change_selected_version(self.controller.current_version,
-                                                   False, False)
+                                                   hide_upgrades, hide_upgrades)
 
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
@@ -599,10 +606,12 @@ class QQueryView(QtGui.QWidget, BaseView):
     def result_version_selected(self, version_id, by_click, do_validate=True,
                                 from_root=False, double_click=False):
         if by_click:
-            self.query_controller.search.setCurrentVistrail(
-                self.vt_controller.vistrail)
-            self.vt_controller.change_selected_version(version_id, False,
-                                                       False, from_root)
+            hide_upgrades = getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
+            self.query_controller.search.setCurrentController(
+                self.vt_controller)
+            self.vt_controller.change_selected_version(version_id, hide_upgrades,
+                                                       hide_upgrades, from_root)
             if double_click:
                 self.query_controller.set_level(QueryController.LEVEL_WORKFLOW)
                 self.query_controller.show_workflow_matches()
