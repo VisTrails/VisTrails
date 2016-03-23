@@ -48,7 +48,8 @@ import usagestats
 import weakref
 
 from vistrails.core import debug
-from vistrails.core.system import vistrails_version
+from vistrails.core.system import vistrails_version, \
+    vistrails_examples_directory
 
 
 usage_report = None
@@ -119,6 +120,7 @@ def record_vistrail(what, vistrail):
     from vistrails.core.vistrail.controller import VistrailController
     from vistrails.core.vistrail.pipeline import Pipeline
     from vistrails.core.vistrail.vistrail import Vistrail
+    from vistrails.db.services.locator import XMLFileLocator
 
     if isinstance(vistrail, VistrailController):
         vistrail = vistrail.vistrail
@@ -149,6 +151,10 @@ def record_vistrail(what, vistrail):
             elif annotation.key == Vistrail.PARAMEXP_ANNOTATION:
                 nb_paramexplorations += 1
         nb_upgrades = len(upgrade_from - upgrade_to)
+        if isinstance(vistrail.locator, XMLFileLocator):
+            usage_report.note({'in_examples_dir':
+                os.path.realpath(vistrail.locator._name).startswith(
+                    os.path.realpath(vistrails_examples_directory()))})
         usage_report.note(dict(use_vistrail=what,
                                nb_versions=len(vistrail.actionMap),
                                nb_tags=len(vistrail.tags),
