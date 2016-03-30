@@ -753,6 +753,11 @@ class QVistrailView(QtGui.QWidget):
         self.connect(view.pipeline_view.scene(), 
                      QtCore.SIGNAL('moduleSelected'),
                      self.gen_module_selected(view.pipeline_view))
+        # FIXME: How to make module info read-only
+        self.connect(view.workflow_result_view.scene(),
+                     QtCore.SIGNAL('moduleSelected'),
+                     self.gen_module_selected(view.workflow_result_view))
+        # FIXME: How to show version info for a query result view
         # self.connect(view.version_result_view.scene(),
         #              QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
         #              self.version_selected)
@@ -797,7 +802,10 @@ class QVistrailView(QtGui.QWidget):
     def gen_module_selected(self, view):
         def module_selected(module_id, selection = []):
             from vistrails.gui.vistrails_window import _app
-            pipeline = view.scene().current_pipeline
+            if isinstance(view, QQueryView):
+                pipeline = view.workflow_result_view.scene().current_pipeline
+            else:
+                pipeline = view.scene().current_pipeline
             if pipeline is not None and module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
                 _app.notify('module_changed', module)
