@@ -46,7 +46,9 @@ class CombinedSearch(VisualQuery):
         self.use_regex = use_regex
 
     def run(self, controller, name):
-        VisualQuery.run(self, controller, name)
+        if self.queryPipeline is not None and \
+            len(self.queryPipeline.modules) > 0:
+            VisualQuery.run(self, controller, name)
         compiler = SearchCompiler(self.search_str, self.use_regex)
         self.search_stmt = compiler.searchStmt
 
