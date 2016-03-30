@@ -443,10 +443,8 @@ class NotesSearchStmt(RegexEnabledSearchStmt):
 
 class NameSearchStmt(RegexEnabledSearchStmt):
     def match(self, controller, action):
-        m = 0
-        tm = controller.vistrail.get_tagMap()
-        if action.timestep in tm:
-            m = self._content_matches(tm[action.timestep])
+        tag = controller.get_tag(action.timestep) or ''
+        m = self._content_matches(tag)
         if bool(m) == False:
             m = self._content_matches(controller.vistrail.get_description(action.timestep))
         return bool(m)
