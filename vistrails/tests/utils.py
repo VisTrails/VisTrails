@@ -72,6 +72,98 @@ def enable_package(identifier):
             pm.late_enable_package(pkg.codepath)
 
 
+def build_pipeline(modules, connections=[], add_port_specs=[],
+                   enable_pkg=True):
+    from vistrails.core.modules.module_registry import MissingPackage
+    from vistrails.core.packagemanager import get_package_manager
+    from vistrails.core.vistrail.connection import Connection
+    from vistrails.core.vistrail.module import Module
+    from vistrails.core.vistrail.module_function import ModuleFunction
+    from vistrails.core.vistrail.module_param import ModuleParam
+    from vistrails.core.vistrail.pipeline import Pipeline
+    from vistrails.core.vistrail.port import Port
+    from vistrails.core.vistrail.port_spec import PortSpec
+
+    pm = get_package_manager()
+
+    port_spec_per_module = {} # mod_id -> [portspec: PortSpec]
+    j = 0
+    for i, (mod_id, inout, name, sig) in enumerate(add_port_specs):
+        mod_specs = port_spec_per_module.setdefault(mod_id, [])
+        ps = PortSpec(id=i,
+                      name=name,
+                      type=inout,
+                      sigstring=sig,
+                      sort_key=-1)
+        for psi in ps.port_spec_items:
+            psi.id = j
+            j += 1
+        mod_specs.append(ps)
+
+    pipeline = Pipeline()
+    module_list = []
+    for i, mod in enumerate(modules):
+        name, identifier = mod[:2]
+        functions = mod[2] if len(mod) > 2 else []
+        version = mod[3] if len(mod) > 3 else None
+        function_list = []
+        if enable_pkg or version is None:
+            try:
+                pkg = pm.get_package(identifier)
+            except MissingPackage:
+                if not enable_pkg:
+                    raise
+                enable_package(identifier)
+                pkg = pm.get_package(identifier)
+            if version is None:
+                version = pkg.version
+
+        for func_name, params in functions:
+            param_list = []
+            for j, (param_type, param_val) in enumerate(params):
+                param_list.append(ModuleParam(pos=j,
+                                              type=param_type,
+                                              val=param_val))
+            function_list.append(ModuleFunction(name=func_name,
+                                                parameters=param_list))
+        name = name.rsplit('|', 1)
+        if len(name) == 2:
+            namespace, name = name
+        else:
+            namespace = None
+            name, = name
+        module = Module(name=name,
+                        namespace=namespace,
+                        package=identifier,
+                        version=version,
+                        id=i,
+                        functions=function_list)
+        for port_spec in port_spec_per_module.get(i, []):
+            module.add_port_spec(port_spec)
+        pipeline.add_module(module)
+        module_list.append(module)
+
+    for i, (sid, sport, did, dport) in enumerate(connections):
+        s_sig = module_list[sid].get_port_spec(sport, 'output').sigstring
+        d_sig = module_list[did].get_port_spec(dport, 'input').sigstring
+        pipeline.add_connection(Connection(
+                id=i,
+                ports=[
+                    Port(id=i*2,
+                         type='source',
+                         moduleId=sid,
+                         name=sport,
+                         signature=s_sig),
+                    Port(id=i*2+1,
+                         type='destination',
+                         moduleId=did,
+                         name=dport,
+                         signature=d_sig),
+                ]))
+
+    return pipeline
+
+
 def execute(modules, connections=[], add_port_specs=[],
             enable_pkg=True, full_results=False):
     """Build a pipeline and execute it.
@@ -130,88 +222,10 @@ def execute(modules, connections=[], add_port_specs=[],
         ]))
     """
     from vistrails.core.db.locator import XMLFileLocator
-    from vistrails.core.modules.module_registry import MissingPackage
-    from vistrails.core.packagemanager import get_package_manager
-    from vistrails.core.utils import DummyView
-    from vistrails.core.vistrail.connection import Connection
-    from vistrails.core.vistrail.module import Module
-    from vistrails.core.vistrail.module_function import ModuleFunction
-    from vistrails.core.vistrail.module_param import ModuleParam
-    from vistrails.core.vistrail.pipeline import Pipeline
-    from vistrails.core.vistrail.port import Port
-    from vistrails.core.vistrail.port_spec import PortSpec
     from vistrails.core.interpreter.noncached import Interpreter
+    from vistrails.core.utils import DummyView
 
-    pm = get_package_manager()
-
-    port_spec_per_module = {} # mod_id -> [portspec: PortSpec]
-    j = 0
-    for i, (mod_id, inout, name, sig) in enumerate(add_port_specs):
-        mod_specs = port_spec_per_module.setdefault(mod_id, [])
-        ps = PortSpec(id=i,
-                      name=name,
-                      type=inout,
-                      sigstring=sig,
-                      sort_key=-1)
-        for psi in ps.port_spec_items:
-            psi.id = j
-            j += 1
-        mod_specs.append(ps)
-
-    pipeline = Pipeline()
-    module_list = []
-    for i, (name, identifier, functions) in enumerate(modules):
-        function_list = []
-        try:
-            pkg = pm.get_package(identifier)
-        except MissingPackage:
-            if not enable_pkg:
-                raise
-            enable_package(identifier)
-            pkg = pm.get_package(identifier)
-
-        for func_name, params in functions:
-            param_list = []
-            for j, (param_type, param_val) in enumerate(params):
-                param_list.append(ModuleParam(pos=j,
-                                              type=param_type,
-                                              val=param_val))
-            function_list.append(ModuleFunction(name=func_name,
-                                                parameters=param_list))
-        name = name.rsplit('|', 1)
-        if len(name) == 2:
-            namespace, name = name
-        else:
-            namespace = None
-            name, = name
-        module = Module(name=name,
-                        namespace=namespace,
-                        package=identifier,
-                        version=pkg.version,
-                        id=i,
-                        functions=function_list)
-        for port_spec in port_spec_per_module.get(i, []):
-            module.add_port_spec(port_spec)
-        pipeline.add_module(module)
-        module_list.append(module)
-
-    for i, (sid, sport, did, dport) in enumerate(connections):
-        s_sig = module_list[sid].get_port_spec(sport, 'output').sigstring
-        d_sig = module_list[did].get_port_spec(dport, 'input').sigstring
-        pipeline.add_connection(Connection(
-                id=i,
-                ports=[
-                    Port(id=i*2,
-                         type='source',
-                         moduleId=sid,
-                         name=sport,
-                         signature=s_sig),
-                    Port(id=i*2+1,
-                         type='destination',
-                         moduleId=did,
-                         name=dport,
-                         signature=d_sig),
-                ]))
+    pipeline = build_pipeline(modules, connections, add_port_specs, enable_pkg)
 
     interpreter = Interpreter.get()
     result = interpreter.execute(
