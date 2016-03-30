@@ -97,7 +97,7 @@ class VisualQuery(query.Query):
             base_version = version
             if hide_upgrades:
                 version = controller.create_upgrade(version, delay_update=True)
-            p = controller.get_pipeline(version)
+            p = controller.get_pipeline(version, use_current=False, do_validate=False)
 
             matches = set()
             queryModuleNameIndex = {}
