@@ -248,7 +248,12 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(tag)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
-                self.idEdit.setText(unicode(action.id))
+                if base_ver != versionNumber:
+                    version_text = '%s (%s)' % (versionNumber, base_ver)
+                else:
+                    version_text = '%s' % base_ver
+
+                self.idEdit.setText(version_text)
                 self.tagEdit.setEnabled(True)
                 return
             else:
