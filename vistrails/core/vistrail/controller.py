@@ -3702,14 +3702,16 @@ class VistrailController(object):
                                                      from_root=from_root,
                                                      use_current=use_current)
                         version = upgrade_version
-                        start_version = version
                         was_upgraded = True
-                except InvalidPipeline:
+                # Do not remove "e", it is used in the next step
+                except InvalidPipeline, e:
+                    version = upgrade_version
                     # try to handle using the handler and create
                     # new upgrade
                     pass
             if not was_upgraded:
                 try:
+                    # use upgraded pipeline
                     version, pipeline = \
                         self.handle_invalid_pipeline(e, version,
                                                      self.vistrail,
