@@ -864,6 +864,7 @@ class QVistrailView(QtGui.QWidget):
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
     def query_version_selected(self, search=None, version_id=None):
+        search.cur_controller = self.controller
         if version_id is None:
             self.query_view.set_result_level(
                 self.query_view.query_controller.LEVEL_VISTRAIL)

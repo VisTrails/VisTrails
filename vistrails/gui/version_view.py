@@ -865,7 +865,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 continue
             nodeUser = am[nodeId].user
             if controller.search and nodeId!=0:
-                ghosted = not controller.search.match(controller, am[nodeId])
+                action = am[nodeId]
+                if getattr(get_vistrails_configuration(), 'hideUpgrades',
+                           True):
+                    # Use upgraded version to match
+                    action = am[controller.vistrail.get_upgrade(nodeId, False)]
+                ghosted = not controller.search.match(controller, action)
             else:
                 ghosted = False
                 
@@ -1033,10 +1038,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.updateSceneBoundingRect()
 
         self.select_by_click = True
-
-        if self.controller.search:
-            # search mode may have triggered upgrades
-            self.controller.check_delayed_update()
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None

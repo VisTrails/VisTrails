@@ -245,6 +245,8 @@ class VistrailController(object):
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
+        self.flush_pipeline_cache()
+        self.clear_delayed_actions()
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
@@ -570,15 +572,19 @@ class VistrailController(object):
         # We have to do moves after the delayed actions because the pipeline
         # may have been updated
         added_moves = self.flush_move_actions()
-        self._delayed_actions = []
-        self._delayed_paramexps = []
-        self._delayed_mashups = []
+        self.clear_delayed_actions()
         if added_upgrade or added_moves:
             if delay_update:
                 self.delayed_update = True
             else:
                 self.recompute_terse_graph()
                 self.invalidate_version_tree(False)
+
+    def clear_delayed_actions(self):
+        self._delayed_actions = []
+        self._delayed_paramexps = []
+        self._delayed_mashups = []
+
 
     def perform_action(self, action, do_validate=True, raise_exception=False):
         """ performAction(action: Action) -> timestep
@@ -3595,7 +3601,9 @@ class VistrailController(object):
                         action.mashup.version = new_version
                     self._mashups.append(mashup)
 
-                if not delay_update:
+                if delay_update:
+                    self.delayed_update = True
+                else:
                     self.set_changed(True)
                     self.recompute_terse_graph()
 
@@ -3630,11 +3638,12 @@ class VistrailController(object):
         either the first error or all errors.
 
         """
-
+        new_error = None
         try:
             self.current_pipeline = self.get_pipeline(new_version,
                                                       do_validate=do_validate,
-                                                      from_root=from_root)
+                                                      from_root=from_root,
+                                                      use_current=True)
             self.current_version = new_version
         except InvalidPipeline, e:
             try:
@@ -3647,7 +3656,12 @@ class VistrailController(object):
                 # user to the remaining issues
                 self.current_pipeline = e._pipeline
                 self.current_version = e._version
-                raise
+                new_error = e
+
+        if new_version != self.current_version:
+            self.invalidate_version_tree(False)
+        if new_error is not None:
+            raise e
 
     def validate_version(self, version, report_all_errors=False,
                          from_root=False, delay_update=False, use_current=True):
@@ -3671,17 +3685,15 @@ class VistrailController(object):
         # scratch as the first thing on the exception handler, so to
         # the rest of the exception handling code, things look
         # stateless.
-
         try:
             pipeline = self.get_pipeline(version, from_root=from_root,
                                          use_current=use_current)
         except InvalidPipeline, e:
             new_error = None
-            start_version = version
 
-            upgrade_version = self.vistrail.get_upgrade(version)
+            upgrade_version = self.vistrail.get_upgrade(version, False)
             was_upgraded = False
-            if upgrade_version is not None:
+            if upgrade_version != version:
                 try:
                     upgrade_version = int(upgrade_version)
                     if (upgrade_version in self.vistrail.actionMap and
@@ -3715,12 +3727,6 @@ class VistrailController(object):
                 except InvalidPipeline, e:
                     debug.unexpected_exception(e)
                     new_error = e
-
-            if start_version != version:
-                if delay_update:
-                    self.delayed_update = True
-                else:
-                    self.invalidate_version_tree(False)
 
             if new_error is not None:
                 raise new_error
@@ -4194,7 +4200,7 @@ class VistrailController(object):
         #return module move operations
         return self.move_modules_ops(moves)
 
-    def get_pipeline(self, version, allow_fail=False, use_current=True,
+    def get_pipeline(self, version, allow_fail=False, use_current=False,
                      do_validate=True, from_root=False):
         """ Tries to construct the pipeline for a version in the fastest way
             possible using cached pipelines and version distances, and
@@ -4208,7 +4214,7 @@ class VistrailController(object):
             # FIXME: invert the delayed actions and integrate them into
             # the general_action_chain?
             if len(self._delayed_actions) > 0:
-                self._delayed_actions = []
+                self.clear_delayed_actions()
                 self.current_pipeline = Pipeline()
                 self.current_version = 0
         if version == -1:
@@ -4303,6 +4309,18 @@ class VistrailController(object):
                 lambda vt, v, bv: vt.getVersionName(v) or None) or ''
         return tag
 
+    def get_tagged_version(self, version_number):
+        # Follow upgrades forward to find tagged version
+        if not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True):
+            return version_number
+        def is_tagged(vt, v):
+            return v if vt.getVersionName(v) else None
+        tagged_version = self.vistrail.search_upgrade_versions(
+                version_number,
+                lambda vt, v, bv: is_tagged(vt, v)) or version_number
+        return tagged_version
+
     def get_notes(self, version_number):
         if not getattr(get_vistrails_configuration(),
                                         'hideUpgrades', True):
@@ -4323,7 +4341,7 @@ class VistrailController(object):
 
         """
         try:
-            self.get_pipeline(version, use_current=False)
+            self.get_pipeline(version)
         except InvalidPipeline as e:
             if version == self.current_version:
                 # The upgrade is probably already done

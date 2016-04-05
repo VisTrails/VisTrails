@@ -457,7 +457,7 @@ class ModuleSearchStmt(RegexEnabledSearchStmt):
                                 'hideUpgrades', True)
         if hide_upgrades:
             version = controller.create_upgrade(version, delay_update=True)
-        p = controller.get_pipeline(version, use_current=False, do_validate=False)
+        p = controller.get_pipeline(version, do_validate=False)
         for module in p.modules.itervalues():
             if self._content_matches(module.name):
                 return True

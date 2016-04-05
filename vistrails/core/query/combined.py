@@ -38,6 +38,8 @@ from __future__ import division
 from version import SearchCompiler
 from visual import VisualQuery
 
+from vistrails.core.configuration import get_vistrails_configuration
+
 class CombinedSearch(VisualQuery):
     def __init__(self, search_str=None, pipeline=None, versions_to_check=None,
                  use_regex=False):
@@ -73,20 +75,26 @@ class CombinedSearch(VisualQuery):
     def getResultEntity(self, controller, versions_to_check):
         from vistrails.core.collection.vistrail import VistrailEntity
 
-        locators = []
         vistrail_entity = None
         for version in versions_to_check:
             if version in controller.vistrail.actionMap:
                 action = controller.vistrail.actionMap[version]
+                if getattr(get_vistrails_configuration(), 'hideUpgrades',
+                           True):
+                    # Use upgraded version to match
+                    action = controller.vistrail.actionMap[
+                            controller.vistrail.get_upgrade(action.id, False)]
                 if self.match(controller, action):
                     # have a match, get vistrail entity
                     if vistrail_entity is None:
                         vistrail_entity = VistrailEntity()
                         # don't want to add all workflows, executions
                         vistrail_entity.set_vistrail(controller.vistrail)
-                    vistrail_entity.add_workflow_entity(version)
+                    # only tagged versions should be displayed in the workspace
+                    tagged_version = controller.get_tagged_version(version)
+                    vistrail_entity.add_workflow_entity(tagged_version)
                     # FIXME this is not done at the low level but in
                     # Collection class, probably should be reworked
-                    vistrail_entity.wf_entity_map[version].parent = \
+                    vistrail_entity.wf_entity_map[tagged_version].parent = \
                         vistrail_entity
         return vistrail_entity
