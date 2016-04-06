@@ -122,12 +122,13 @@ class QueryController(object):
             # reset changed here
             self.query_view.p_controller.set_changed(False)
             vt_controller = self.query_view.vt_controller
+            controllers = []
 
             def do_search(only_current_vistrail=False, 
                           only_current_workflow=False):
                 entities_to_check = {}
                 open_col = Collection.getInstance()
-                
+
                 for entity in open_col.get_current_entities():
                     if entity.type_id == VistrailEntity.type_id and \
                             entity.is_open:
@@ -135,6 +136,7 @@ class QueryController(object):
                         if only_current_vistrail and \
                                 controller.vistrail != vt_controller.vistrail:
                             continue
+                        controllers.append(controller)
                         if only_current_workflow:
                             versions_to_check = set([controller.current_version])
                         else:
@@ -161,9 +163,13 @@ class QueryController(object):
 
             from vistrails.gui.vistrails_window import _app
             _app.notify("search_changed", self.search, result_entities)
+            # May need to update version trees
+            # resultEntities make sure no update is created later
+            for controller in controllers:
+                controller.check_delayed_update()
         else:
             self.query_view.set_to_result_mode()
-            
+
     def set_refine(self, refine):
         """ set_refine(refine: bool) -> None
         Set the refine state to True or False
@@ -190,14 +196,13 @@ class QueryController(object):
     def goto_edit(self):
         # get the version info and send it to open_vistrail call
         from vistrails.gui.vistrails_window import _app
+        version = self.query_view.version_result_view.controller.current_version
+        view = self.query_view.controller.vistrail_view
         if self.level == QueryController.LEVEL_VISTRAIL:
-            version = self.query_view.version_result_view.controller.current_version
-            self.query_view.controller.change_selected_version(version, True)
+            view.version_selected(version, True)
             _app.qactions['history'].trigger()
         elif self.level == QueryController.LEVEL_WORKFLOW:
-            version = self.query_view.version_result_view.controller.current_version
-            self.query_view.controller.change_selected_version(version, True)
-            _app.qactions['pipeline'].trigger()
+          view.version_selected(version, True, double_click=True)
 
     def update_results(self):
         if self.workflow_version != \
@@ -285,7 +290,8 @@ class QQueryResultWorkflowView(QPipelineView):
         QPipelineView.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.QUERY_RESULT_BACKGROUND_BRUSH)
         self.scene().set_read_only_mode(True)
-    
+
+
 class QQueryBox(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -457,10 +463,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(self.controller.vistrail, None,
                                         set_log_on_vt=False)
-        hide_upgrades = not getattr(get_vistrails_configuration(),
+        hide_upgrades = getattr(get_vistrails_configuration(),
                                         'hideUpgrades', True)
-        do_validate = hide_upgrades
-
         self.vt_controller.change_selected_version(self.controller.current_version,
                                                    hide_upgrades, hide_upgrades)
 

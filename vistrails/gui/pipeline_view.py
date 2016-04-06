@@ -2373,10 +2373,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if needReset and len(self.items())>0:
             self.fitToAllViews()
 
-        if self.controller.search:
-            # search mode may have triggered upgrades
-            self.controller.check_delayed_update()
-
     def findModuleUnder(self, pos):
         """ findModuleUnder(pos: QPoint) -> QGraphicsItem
         Search all items under pos and return the top-most module item if any

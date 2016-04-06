@@ -248,7 +248,12 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(tag)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
-                self.idEdit.setText(unicode(action.id))
+                if base_ver != versionNumber:
+                    version_text = '%s (%s)' % (versionNumber, base_ver)
+                else:
+                    version_text = '%s' % base_ver
+
+                self.idEdit.setText(version_text)
                 self.tagEdit.setEnabled(True)
                 return
             else:
@@ -311,6 +316,7 @@ class QVersionNotes(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.controller = None
         self.versionNumber = -1
+        self.last_update = self.controller, self.versionNumber
         self.update_on_focus_out = True
         self.setAcceptRichText(False)
         # Reset text to black, for some reason it is grey by default on the mac
@@ -322,8 +328,10 @@ class QVersionNotes(QtGui.QTextEdit):
         Update the text to be the notes of the vistrail versionNumber
         
         """
-        if self.versionNumber == versionNumber:
+        if self.last_update == (self.controller, versionNumber):
             return
+        self.last_update = self.controller, versionNumber
+
         self.versionNumber = versionNumber
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
@@ -526,7 +534,7 @@ class QVersionPropOverlay(QtGui.QFrame):
                 self.description.setText(self.truncate(description))
                 self.user.setText(self.truncate(action.user))
                 self.date.setText(self.truncate(action.date))
-                notes = vistrail.get_notes(action.id)
+                notes = self.controller.get_notes(action.id)
                 if notes:
                     s = self.convertHtmlToText(notes)
                     self.notes.setText(self.truncate(s))

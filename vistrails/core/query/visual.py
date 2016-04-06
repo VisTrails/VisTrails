@@ -94,10 +94,9 @@ class VisualQuery(query.Query):
             from vistrails.core.configuration import get_vistrails_configuration
             hide_upgrades = getattr(get_vistrails_configuration(),
                                     'hideUpgrades', True)
-            base_version = version
             if hide_upgrades:
                 version = controller.create_upgrade(version, delay_update=True)
-            p = controller.get_pipeline(version)
+            p = controller.get_pipeline(version, do_validate=False)
 
             matches = set()
             queryModuleNameIndex = {}
@@ -133,10 +132,6 @@ class VisualQuery(query.Query):
                 
             for m in matches:
                 result.append((version, m))
-                if base_version != version:
-                    # pipeline view uses upgraded version
-                    # but version view uses tagged version
-                    result.append((base_version, 0))
 
         self.queryResult = result
         self.computeIndices()
