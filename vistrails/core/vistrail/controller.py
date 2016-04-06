@@ -3685,33 +3685,16 @@ class VistrailController(object):
         # scratch as the first thing on the exception handler, so to
         # the rest of the exception handling code, things look
         # stateless.
-        try:
-            pipeline = self.get_pipeline(version, from_root=from_root,
-                                         use_current=use_current)
-        except InvalidPipeline, e:
-            new_error = None
 
-            upgrade_version = self.vistrail.get_upgrade(version, False)
-            was_upgraded = False
-            if upgrade_version != version:
+        def _validate_version(version):
+            """ Validates without looking at upgrades
+                returns (version, pipeline) or throws InvalidPipeline
+            """
+            try:
+                pipeline = self.get_pipeline(version, from_root=from_root,
+                                             use_current=use_current)
+            except InvalidPipeline, e:
                 try:
-                    upgrade_version = int(upgrade_version)
-                    if (upgrade_version in self.vistrail.actionMap and
-                            not self.vistrail.is_pruned(upgrade_version)):
-                        pipeline = self.get_pipeline(upgrade_version,
-                                                     from_root=from_root,
-                                                     use_current=use_current)
-                        version = upgrade_version
-                        was_upgraded = True
-                # Do not remove "e", it is used in the next step
-                except InvalidPipeline, e:
-                    version = upgrade_version
-                    # try to handle using the handler and create
-                    # new upgrade
-                    pass
-            if not was_upgraded:
-                try:
-                    # use upgraded pipeline
                     version, pipeline = \
                         self.handle_invalid_pipeline(e, version,
                                                      self.vistrail,
@@ -3728,11 +3711,33 @@ class VistrailController(object):
                     self.validate(pipeline)
                 except InvalidPipeline, e:
                     debug.unexpected_exception(e)
-                    new_error = e
+                    raise e
+            return version, pipeline
+        # end _validate_version
 
-            if new_error is not None:
-                raise new_error
-
+        try:
+            # first try without upgrading
+            pipeline = self.get_pipeline(version, from_root=from_root,
+                                         use_current=use_current)
+        except InvalidPipeline, e:
+            # Try latest upgrade first, then try previous upgrades.
+            # If all fail, return latest upgrade exception.
+            upgrade_chain = self.vistrail.get_upgrade_chain(version, True)
+            # remove missing and pruned versions
+            upgrade_chain = [v for v in upgrade_chain
+                             if v in self.vistrail.actionMap and
+                             not self.vistrail.is_pruned(v)]
+            try:
+                return _validate_version(upgrade_chain.pop())
+            except InvalidPipeline, e:
+                while upgrade_chain:
+                    try:
+                        return _validate_version(upgrade_chain.pop())
+                    except InvalidPipeline:
+                        # Failed, so try previous.
+                        pass
+                # We failed, so raise exception for latest upgrade.
+                raise e
         return version, pipeline
 
     def change_selected_version(self, new_version, report_all_errors=True,
