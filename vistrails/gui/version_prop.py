@@ -331,7 +331,7 @@ class QVersionNotes(QtGui.QTextEdit):
         if self.current == (self.controller, versionNumber):
             return
         else:
-            current = self.controller, versionNumber
+            self.current = self.controller, versionNumber
 
         self.versionNumber = versionNumber
         if self.controller:
