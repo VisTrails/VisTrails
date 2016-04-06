@@ -316,7 +316,7 @@ class QVersionNotes(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.controller = None
         self.versionNumber = -1
-        self.current = self.controller, self.versionNumber
+        self.last_update = self.controller, self.versionNumber
         self.update_on_focus_out = True
         self.setAcceptRichText(False)
         # Reset text to black, for some reason it is grey by default on the mac
@@ -328,10 +328,9 @@ class QVersionNotes(QtGui.QTextEdit):
         Update the text to be the notes of the vistrail versionNumber
         
         """
-        if self.current == (self.controller, versionNumber):
+        if self.last_update == (self.controller, versionNumber):
             return
-        else:
-            self.current = self.controller, versionNumber
+        self.last_update = self.controller, versionNumber
 
         self.versionNumber = versionNumber
         if self.controller:
