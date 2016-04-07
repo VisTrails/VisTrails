@@ -3011,8 +3011,10 @@ class VistrailController(object):
                     pass
                 # An upgrade: get its children directly
                 # (unless it is tagged, and that tag couldn't be moved)
-                elif (not self.show_upgrades and child in upgrades and
-                        child not in tm):
+                elif (not self.show_upgrades and
+                      (child in upgrades or
+                       am[child].description == 'Upgrade') and
+                      child not in tm):
                     all_children.extend(
                         to for to, _ in fullVersionTree.adjacency_list[child]
                         if to in am)
