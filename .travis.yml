@@ -9,6 +9,7 @@ addons:
       - python-matplotlib
       - python-mysqldb
       - python-numpy
+      - python-pandas
       - python-qt4
       - python-qt4-gl
       - python-qt4-sql

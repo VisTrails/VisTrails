@@ -16,6 +16,7 @@ requirements = [
     # 'PyQt<5.0',
     'numpy',
     'scipy',
+    'pandas',
     'certifi',
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
