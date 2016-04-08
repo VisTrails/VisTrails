@@ -51,7 +51,7 @@ from vistrails.core import debug
 
 from abc import ABCMeta
 from ast import literal_eval
-from itertools import izip
+from itertools import chain, izip
 import mimetypes
 import os
 import pickle
@@ -69,7 +69,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1.1'
+version = '2.2.0'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -872,39 +872,36 @@ class Not(Module):
 
 # List
 
-# If numpy is available, we consider numpy arrays to be lists as well
+# If numpy is available, we consider numpy arrays to be arrays as well
+class ArrayType(object):
+    __metaclass__ = ABCMeta
+
+# Backwards-compatibility
 class ListType(object):
     __metaclass__ = ABCMeta
 
+ArrayType.register(list)
 ListType.register(list)
 try:
     import numpy
 except ImportError:
     numpy = None
 else:
+    ArrayType.register(numpy.ndarray)
     ListType.register(numpy.ndarray)
 
-class List(Constant):
-    _settings = ModuleSettings(configure_widget=
-        "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
-    _input_ports = [IPort("value", "List"),
-                    IPort("head", "Variant", depth=1),
-                    IPort("tail", "List")]
-    _output_ports = [OPort("value", "List")]
+class Array(Constant):
+    """Either a Python list or a numpy ndarray.
+    """
+    _input_ports = [IPort('value', 'Array'),
+                    IPort('tail', 'Array')]
+    _output_ports = [OPort('value', 'Array')]
 
     default_value = []
 
-    def __init__(self):
-        Constant.__init__(self)
-        self.input_ports_order = []
-
-    def transfer_attrs(self, module):
-        Module.transfer_attrs(self, module)
-        self.input_ports_order = [p.name for p in module.input_port_specs]
-
     @staticmethod
     def validate(x):
-        return isinstance(x, ListType)
+        return isinstance(x, ArrayType)
 
     @staticmethod
     def translate_to_python(v):
@@ -921,32 +918,106 @@ class List(Constant):
             return '[%s]' % ', '.join(repr(c)
                                       for c in v)
         else:
-            return '[%s]' % ', '.join(List.translate_to_string(c, dims-1)
+            return '[%s]' % ', '.join(Array.translate_to_string(c, dims - 1)
                                       for c in v)
 
     def compute(self):
-        head, middle, items, tail = [], [], [], []
+        v = self.get_input('value')
+        if not self.validate(v):
+            raise ModuleError(self, "Array 'value' is not an array")
+        objs = [v]
+        if self.has_input('tail'):
+            v = self.get_input('tail')
+            if not self.validate(v):
+                raise ModuleError(self, "Array 'tail' is not an array")
+            objs.append(v)
+
+        if numpy is not None and any(isinstance(v, numpy.ndarray)
+                                     for v in objs):
+                self.set_output('value', numpy.concatenate(objs, axis=0))
+        else:
+            self.set_output('value', sum(objs, []))
+
+class List(Array):
+    """A Python list.
+    """
+    _settings = ModuleSettings(configure_widget=
+        'vistrails.gui.modules.list_configuration:ListConfigurationWidget')
+    _input_ports = [IPort('value', 'Array'),
+                    IPort('head', 'Variant', depth=1),
+                    IPort('tail', 'Array')]
+    _output_ports = [OPort('value', 'List')]
+
+    def __init__(self):
+        Constant.__init__(self)
+        self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, list)
+
+    @staticmethod
+    def translate_to_python(v):
+        return literal_eval(v)
+
+    @staticmethod
+    def translate_to_string(v):
+        return '[%s]' % ', '.join(repr(c) for c in v)
+
+    def compute(self):
+        out = []
         got_value = False
 
+        if self.has_input('head'):
+            out.extend(self.get_input('head'))
+            got_value = True
         if self.has_input('value'):
             # run the regular compute here
-            Constant.compute(self)
-            middle = self.outputPorts['value']
-            got_value = True
-        if self.has_input('head'):
-            head = self.get_input('head')
+            middle = self.get_input_list('value')
+            if not isinstance(middle, ArrayType):
+                raise ModuleError(self, "List 'value' is not an array")
+            out.extend(chain.from_iterable(middle))
             got_value = True
         if self.input_ports_order:
-            items = [self.get_input(p)
-                     for p in self.input_ports_order]
+            for p in self.input_ports_order:
+                out.append(self.get_input(p))
             got_value = True
         if self.has_input('tail'):
             tail = self.get_input('tail')
+            if not isinstance(tail, ArrayType):
+                raise ModuleError(self, "List 'tail' is not an array")
+            out.extend(tail)
             got_value = True
 
         if not got_value:
             self.get_input('value')
-        self.set_output('value', head + middle + items + tail)
+        self.set_output('value', out)
+
+class NumpyArray(Array):
+    """A numpy ndarray.
+    """
+    _input_ports = [IPort('value', 'Array')]
+    _output_ports = [OPort('value', 'NumpyArray')]
+
+    @staticmethod
+    def validate(x):
+        return numpy is not None and isinstance(x, numpy.ndarray)
+
+    @staticmethod
+    def translate_to_python(v):
+        return numpy.array(literal_eval(v))
+
+    def compute(self):
+        v = self.get_input('value')
+        if not isinstance(v, ArrayType):
+            raise ModuleError(self, "NumpyArray 'value' is not an array")
+        if not isinstance(v, numpy.ndarray):
+            v = numpy.array(v)
+        self.set_output('value', v)
 
 ##############################################################################
 # Dictionary
@@ -1334,8 +1405,8 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
-            Path, File, Directory, OutputPath,
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String,
+            Array, List, NumpyArray, Path, File, Directory, OutputPath,
             FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput,
             Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
             Unpickle, PythonSource, Unzip, UnzipDirectory, Color,
