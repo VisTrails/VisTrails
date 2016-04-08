@@ -36,7 +36,8 @@
 from __future__ import division
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from fold import Fold, FoldWithModule
+
+from .fold import Fold, FoldWithModule
 
 #################################################################################
 ## Some useful loop structures

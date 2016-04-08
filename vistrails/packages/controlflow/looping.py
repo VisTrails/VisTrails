@@ -40,11 +40,10 @@ import copy
 from itertools import izip
 import time
 
+from vistrails.core.modules.basic_modules import create_constant
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.utils import xor, long2bytes
-
-from fold import create_constant
 
 try:
     import hashlib
