@@ -1234,7 +1234,9 @@ class TupleToList(Converter):
         if len(sub_descs) <= 1:
             return False
         reg = get_module_registry()
-        return super_descs == [reg.get_descriptor(List)]
+        return (len(super_descs) == 1 and
+                reg.is_descriptor_subclass(super_descs[0],
+                                           reg.get_descriptor(Array)))
 
     def compute(self):
         tu = self.get_input('in_value')

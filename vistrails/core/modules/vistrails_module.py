@@ -491,7 +491,7 @@ class Module(object):
         Calculates which inputs needs to be iterated over
         """
         iports = {}
-        from vistrails.core.modules.basic_modules import List, Variant
+        from vistrails.core.modules.basic_modules import Array, Variant
         for port_name, connectorList in self.inputPorts.iteritems():
             for connector in connectorList:
 
@@ -499,19 +499,19 @@ class Module(object):
                 if not self.input_specs:
                     # cannot do depth wrapping
                     continue
-                # Give List an additional depth
+                # Give Array an additional depth
                 dest_descs = self.input_specs[port_name].descriptors()
                 dest_depth = self.input_specs[port_name].depth
-                if len(dest_descs) == 1 and dest_descs[0].module == List:
+                if len(dest_descs) == 1 and dest_descs[0].module == Array:
                     dest_depth += 1
                 if connector.spec:
                     src_descs = connector.spec.descriptors()
-                    if len(src_descs) == 1 and src_descs[0].module == List and \
+                    if len(src_descs) == 1 and src_descs[0].module == Array and \
                        len(dest_descs) == 1 and dest_descs[0].module == Variant:
                         # special case - Treat Variant as list
                         src_depth -= 1
                     if len(src_descs) == 1 and src_descs[0].module == Variant and \
-                       len(dest_descs) == 1 and dest_descs[0].module == List:
+                       len(dest_descs) == 1 and dest_descs[0].module == Array:
                         # special case - Treat Variant as list
                         dest_depth -= 1
 
@@ -1198,8 +1198,10 @@ class Module(object):
             list_desc = self.registry.get_descriptor_by_name(
                     'org.vistrails.vistrails.basic', 'List')
 
-            if (self.input_specs[port_name].depth + self.list_depth > 0) or \
-                self.input_specs[port_name].descriptors() == [list_desc]:
+            if ((self.input_specs[port_name].depth + self.list_depth > 0) or
+                    self.registry.is_descriptor_list_subclass(
+                        [list_desc],
+                        self.input_specs[port_name].descriptors())):
                 ret = self.get_input_list(port_name)
                 if len(ret) > 1:
                     ret = list(chain.from_iterable(ret))
@@ -1221,7 +1223,9 @@ class Module(object):
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
-        from vistrails.core.modules.basic_modules import List, Variant
+        from vistrails.core.modules.basic_modules import Array, List, Variant
+        array_desc = self.registry.get_descriptor(Array)
+        list_desc = self.registry.get_descriptor(List)
 
         if port_name not in self.inputPorts:
             raise ModuleError(self, "Missing value from port %s" % port_name)
@@ -1242,20 +1246,23 @@ class Module(object):
                 # cannot do depth wrapping
                 ports.append(value)
                 continue
-            # Give List an additional depth
+            # Give Array an additional depth
             dest_descs = self.input_specs[port_name].descriptors()
             dest_depth = self.input_specs[port_name].depth + self.list_depth
-            if len(dest_descs) == 1 and dest_descs[0].module == List:
+            if (len(dest_descs) == 1 and
+                    self.registry.is_descriptor_subclass(list_desc, dest_descs[0])):
                 dest_depth += 1
             if connector.spec:
                 src_descs = connector.spec.descriptors()
-                if len(src_descs) == 1 and src_descs[0].module == List and \
-                   len(dest_descs) == 1 and dest_descs[0].module == Variant:
-                    # special case - Treat Variant as list
+                if len(src_descs) == 1 and \
+                        self.registry.is_descriptor_subclass(src_descs[0], array_desc) and \
+                        len(dest_descs) == 1 and dest_descs[0].module == Variant:
+                    # special case - Treat Variant as array
                     src_depth -= 1
                 if len(src_descs) == 1 and src_descs[0].module == Variant and \
-                   len(dest_descs) == 1 and dest_descs[0].module == List:
-                    # special case - Treat Variant as list
+                        len(dest_descs) == 1 and \
+                        self.registry.is_descriptor_subclass(list_desc, dest_descs[0]):
+                    # special case - Treat Variant as array
                     dest_depth -= 1
             # wrap depths that are too shallow
             while (src_depth - dest_depth) < 0:
@@ -1722,10 +1729,10 @@ class ModuleConnector(object):
 
     def depth(self, fix_list=True):
         """depth(result) -> int. Returns the list depth of the port value."""
-        from vistrails.core.modules.basic_modules import List
+        from vistrails.core.modules.basic_modules import Array, List
         depth = self.obj.list_depth + self.spec.depth
         descs = self.spec.descriptors()
-        if fix_list and len(descs) == 1 and descs[0].module == List:
+        if fix_list and len(descs) == 1 and descs[0].module in (List, Array):  # FIXME: is_descriptor_subclass(list_desc, descs[0])
             # lists are Variants of depth 1
             depth += 1
         return depth
@@ -1733,7 +1740,6 @@ class ModuleConnector(object):
     def get_raw(self):
         """get_raw() -> Module. Returns the value or a Generator."""
         return self.obj.get_output(self.port)
-
 
     def __call__(self):
         result = self.obj.get_output(self.port)

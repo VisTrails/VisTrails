@@ -1116,14 +1116,18 @@ class Pipeline(DBWorkflow):
         Updates list_depth variable on each module according to list depth of
         connecting port specs. This decides at what list depth the module
         needs to be executed.
-        List ports have default depth 1
+        Array ports have default depth 1
 
         module_ids: list of module_ids - The id:s of modules that have changed
         All modules upstream of these will be skipped, since markings only
         affects downstream. This slightly increases performance.
 
         """
-        from vistrails.core.modules.basic_modules import List, Variant
+        reg = get_module_registry()
+        basic_pkg = get_vistrails_basic_pkg_id()
+        array_desc = reg.get_descriptor_by_name(basic_pkg, 'Array')
+        list_desc = reg.get_descriptor_by_name(basic_pkg, 'List')
+        variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
 
         # TODO: module_ids is currently ignored, this is potentially suboptimal
         result = []
@@ -1139,24 +1143,30 @@ class Pipeline(DBWorkflow):
                 if conn.source.spec:
                     source_depth = conn.source.spec.depth
                     src_descs = conn.source.spec.descriptors()
-                    # Lists have depth 1 if dest has depth>1 or is a list
-                    if len(src_descs) == 1 and src_descs[0].module == List:
+                    # Arrays have depth 1 if dest has depth>1 or is an Array
+                    if (len(src_descs) == 1 and
+                            reg.is_descriptor_subclass(src_descs[0],
+                                                       array_desc)):
                         source_depth += 1
                 dest_depth = 0
                 if conn.destination.spec:
                     dest_depth = conn.destination.spec.depth
                     dest_descs = conn.destination.spec.descriptors()
-                    # Lists have depth 1
-                    if len(dest_descs) == 1 and dest_descs[0].module == List:
+                    # Arrays have depth 1
+                    if (len(dest_descs) == 1 and
+                            reg.is_descriptor_subclass(list_desc,
+                                                       dest_descs[0])):
                         dest_depth += 1
-                    # special case: if src is List and dst is Variant
+                    # special case: if src is Array and dst is Variant
                     # we should treat the Variant as having depth 0
                     if conn.source.spec:
-                        if len(src_descs)==1 and src_descs[0].module == List and \
-                           len(dest_descs)==1 and dest_descs[0].module == Variant:
+                        if len(src_descs)==1 and \
+                                reg.is_descriptor_subclass(src_descs[0], array_desc) and \
+                                len(dest_descs)==1 and dest_descs[0] == variant_desc:
                             source_depth -= 1
-                        if len(src_descs)==1 and src_descs[0].module == Variant and \
-                           len(dest_descs)==1 and dest_descs[0].module == List:
+                        if len(src_descs)==1 and src_descs[0] == variant_desc and \
+                                len(dest_descs)==1 and \
+                                reg.is_descriptor_subclass(list_desc, dest_descs[0]):
                             dest_depth -= 1
                 depth = prev_depth + source_depth - dest_depth
                 if depth > 0 and conn.destination.spec.name not in ports:
