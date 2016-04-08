@@ -36,7 +36,7 @@
 from __future__ import division
 
 from vistrails.core.bundles.pyimport import py_import
-from vistrails.core.modules.basic_modules import List, ListType
+from vistrails.core.modules.basic_modules import Array
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.output_modules import OutputModule, FileMode, \
     IPythonMode
@@ -327,13 +327,11 @@ class BuildTable(Module):
 class SingleColumnTable(Converter):
     """Automatic Converter module from List to Table.
     """
-    _input_ports = [('in_value', List)]
+    _input_ports = [('in_value', Array)]
     _output_ports = [('out_value', Table)]
 
     def compute(self):
         column = self.get_input('in_value')
-        if not isinstance(column, ListType):
-            column = list(column)
         self.set_output('out_value', TableObject(
                 [column],               # columns
                 len(column),            # nb_rows

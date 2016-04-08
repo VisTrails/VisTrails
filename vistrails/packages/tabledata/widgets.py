@@ -41,7 +41,7 @@ from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
 
 from .identifiers import identifier
-from vistrails.core.modules.basic_modules import List
+from vistrails.core.modules.basic_modules import Array
 
 
 class Entry(QtGui.QWidget):
@@ -180,7 +180,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
     def getCurrentPorts(self):
         current_ports = []
         for port_spec in self.module.input_port_specs:
-            is_table = port_spec.signature[0][0] is not List
+            is_table = not issubclass(port_spec.signature[0][0], Array)
             current_ports.append((port_spec.name, is_table))
         return current_ports
 
