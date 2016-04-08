@@ -42,6 +42,8 @@ extraction and conversion routines.
 """
 
 # ChangeLog:
+# 2016-04-07 -- 0.2.0
+#   * Move to pandas
 # 2014-05-29 -- 0.1.5
 #   * Updates JSON readers
 # 2014-02-03 -- 0.1.4
