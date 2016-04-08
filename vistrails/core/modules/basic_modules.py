@@ -974,6 +974,7 @@ class List(Array):
 
         if self.has_input('head'):
             out.extend(self.get_input('head'))
+            print("head = %r\nout = %r\n" % (self.get_input_list('head'), out))
             got_value = True
         if self.has_input('value'):
             # run the regular compute here
@@ -981,16 +982,19 @@ class List(Array):
             if not isinstance(middle, ArrayType):
                 raise ModuleError(self, "List 'value' is not an array")
             out.extend(chain.from_iterable(middle))
+            print("middle = %r\nout = %r\n" % (middle, out))
             got_value = True
         if self.input_ports_order:
             for p in self.input_ports_order:
                 out.append(self.get_input(p))
+                print("%r = %r\nout = %r\n" % (p, self.get_input(p), out))
             got_value = True
         if self.has_input('tail'):
             tail = self.get_input('tail')
             if not isinstance(tail, ArrayType):
                 raise ModuleError(self, "List 'tail' is not an array")
             out.extend(tail)
+            print("tail = %r\nout = %r\n" % (tail, out))
             got_value = True
 
         if not got_value:
