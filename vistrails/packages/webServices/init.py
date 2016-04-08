@@ -926,7 +926,7 @@ wsdlTypesDict = { 'string' : vistrails.core.modules.basic_modules.String,
                 'unsignedShort' : vistrails.core.modules.basic_modules.Integer,
                 'unsignedByte' : vistrails.core.modules.basic_modules.Integer,
                 'positiveInteger' : vistrails.core.modules.basic_modules.Integer,
-                'Array': vistrails.core.modules.basic_modules.List}
+                'Array': vistrails.core.modules.basic_modules.Array}
 
 ################################################################################
 def load_wsdl_no_config(wsdlList):

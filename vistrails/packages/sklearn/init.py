@@ -73,8 +73,8 @@ class Digits(Module):
     """Example dataset: digits.
     """
     _settings = ModuleSettings(namespace="datasets")
-    _output_ports = [("data", "basic:List", {'shape': 'circle'}),
-                     ("target", "basic:List", {'shape': 'circle'})]
+    _output_ports = [("data", "basic:NumpyArray", {'shape': 'circle'}),
+                     ("target", "basic:NumpyArray", {'shape': 'circle'})]
 
     def compute(self):
         data = datasets.load_digits()
@@ -86,8 +86,8 @@ class Iris(Module):
     """Example dataset: iris.
     """
     _settings = ModuleSettings(namespace="datasets")
-    _output_ports = [("data", "basic:List", {'shape': 'circle'}),
-                     ("target", "basic:List", {'shape': 'circle'})]
+    _output_ports = [("data", "basic:NumpyArray", {'shape': 'circle'}),
+                     ("target", "basic:NumpyArray", {'shape': 'circle'})]
 
     def compute(self):
         data = datasets.load_iris()
@@ -140,9 +140,9 @@ class Predict(Module):
     """
     # TODO : data depth=1
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List", {'shape': 'circle'})]
-    _output_ports = [("prediction", "basic:List", {'shape': 'circle'}),
-                     ("decision_function", "basic:List")]
+                    ("data", "basic:Array", {'shape': 'circle'})]
+    _output_ports = [("prediction", "basic:NumpyArray", {'shape': 'circle'}),
+                     ("decision_function", "basic:NumpyArray")]
 
     def compute(self):
         clf = self.get_input("model")
@@ -157,8 +157,8 @@ class Transform(Module):
     """Apply a learned scikit-learn transformer to test data.
     """
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List", {'shape': 'circle'})]
-    _output_ports = [("transformed_data", "basic:List", {'shape': 'circle'})]
+                    ("data", "basic:Array", {'shape': 'circle'})]
+    _output_ports = [("transformed_data", "basic:NumpyArray", {'shape': 'circle'})]
 
     def compute(self):
         trans = self.get_input("model")
@@ -174,13 +174,13 @@ class Transform(Module):
 class TrainTestSplit(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
-    _input_ports = [("data", "basic:List", {'shape': 'circle'}),
-                    ("target", "basic:List", {'shape': 'circle'}),
+    _input_ports = [("data", "basic:Array", {'shape': 'circle'}),
+                    ("target", "basic:Array", {'shape': 'circle'}),
                     ("test_size", "basic:Float", {"defaults": [.25]})]
-    _output_ports = [("training_data", "basic:List", {'shape': 'circle'}),
-                     ("training_target", "basic:List", {'shape': 'circle'}),
-                     ("test_data", "basic:List", {'shape': 'circle'}),
-                     ("test_target", "basic:List", {'shape': 'circle'})]
+    _output_ports = [("training_data", "basic:Array", {'shape': 'circle'}),
+                     ("training_target", "basic:Array", {'shape': 'circle'}),
+                     ("test_data", "basic:Array", {'shape': 'circle'}),
+                     ("test_target", "basic:Array", {'shape': 'circle'})]
 
     def compute(self):
         X_train, X_test, y_train, y_test = \
@@ -196,11 +196,11 @@ class CrossValScore(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List", {'shape': 'circle'}),
-                    ("target", "basic:List", {'shape': 'circle'}),
+                    ("data", "basic:Array", {'shape': 'circle'}),
+                    ("target", "basic:Array", {'shape': 'circle'}),
                     ("metric", "basic:String", {"defaults": ["accuracy"]}),
                     ("folds", "basic:Integer", {"defaults": ["3"]})]
-    _output_ports = [("scores", "basic:List")]
+    _output_ports = [("scores", "basic:NumpyArray")]
 
     def compute(self):
         model = self.get_input("model")
@@ -219,11 +219,12 @@ class GridSearchCV(Estimator):
     """Perform cross-validated grid-search over a parameter grid."""
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("parameters", "basic:Dictionary"),
-                    ("data", "basic:List", {'shape': 'circle'}),
-                    ("target", "basic:List", {'shape': 'circle'}),
+                    ("data", "basic:Array", {'shape': 'circle'}),
+                    ("target", "basic:Array", {'shape': 'circle'}),
                     ("metric", "basic:String", {"defaults": ["accuracy"]}),
                     ("folds", "basic:Integer", {"defaults": ["3"]})]
-    _output_ports = [("scores", "basic:List"), ("model", "Estimator", {'shape': 'diamond'}),
+    _output_ports = [("scores", "basic:List"),
+                     ("model", "Estimator", {'shape': 'diamond'}),
                      ("best_parameters", "basic:Dictionary"),
                      ("best_score", "basic:Float")]
 
@@ -245,8 +246,8 @@ class GridSearchCV(Estimator):
 
 class Pipeline(Estimator):
     """Chain estimators to form a pipeline."""
-    _input_ports = [("training_data", "basic:List", {'shape': 'circle'}),
-                    ("training_target", "basic:List", {'shape': 'circle'}),("model1", "Estimator", {'shape': 'diamond'}),
+    _input_ports = [("training_data", "basic:Array", {'shape': 'circle'}),
+                    ("training_target", "basic:Array", {'shape': 'circle'}),("model1", "Estimator", {'shape': 'diamond'}),
                     ("model2", "Estimator", {'optional': True, 'shape': 'diamond'}),
                     ("model3", "Estimator", {'optional': True, 'shape': 'diamond'}),
                     ("model4", "Estimator", {'optional': True, 'shape': 'diamond'})]
@@ -269,8 +270,8 @@ class Score(Module):
     """Compute a model performance metric."""
     _settings = ModuleSettings()
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List", {'shape': 'circle'}),
-                    ("target", "basic:List", {'shape': 'circle'}),
+                    ("data", "basic:Array", {'shape': 'circle'}),
+                    ("target", "basic:Array", {'shape': 'circle'}),
                     ("metric", "basic:String", {"defaults": ["accuracy"]})]
     _output_ports = [("score", "basic:Float")]
 
@@ -284,10 +285,10 @@ class ROCCurve(Module):
     """Compute a ROC curve."""
     _settings = ModuleSettings(namespace="metrics")
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List", {'shape': 'circle'}),
-                    ("target", "basic:List", {'shape': 'circle'})]
-    _output_ports = [("fpr", "basic:List"),
-                     ("tpr", "basic:List")]
+                    ("data", "basic:Array", {'shape': 'circle'}),
+                    ("target", "basic:Array", {'shape': 'circle'})]
+    _output_ports = [("fpr", "basic:NumpyArray"),
+                     ("tpr", "basic:NumpyArray")]
 
     def compute(self):
         model = self.get_input("model")
@@ -305,9 +306,9 @@ class ROCCurve(Module):
 # Classifiers and Regressors
 
 def make_module(name, Estimator, namespace, supervised=False, Base=None):
-    input_ports = [("training_data", "basic:List", {'shape': 'circle'})]
+    input_ports = [("training_data", "basic:Array", {'shape': 'circle'})]
     if supervised:
-        input_ports.append(("training_target", "basic:List", {'shape': 'circle'}))
+        input_ports.append(("training_target", "basic:Array", {'shape': 'circle'}))
     est = Estimator()
     input_ports.extend([(param, "basic:String", {'optional': True}) for param
                         in est.get_params()])
@@ -387,7 +388,7 @@ class ManifoldLearner(Module):
     """Base class for all sklearn manifold modules.
     """
     _settings = ModuleSettings(abstract=True)
-    _output_ports = [("transformed_data", "basic:List", {'shape': 'circle'})]
+    _output_ports = [("transformed_data", "basic:NumpyArray", {'shape': 'circle'})]
 
     def compute(self):
         params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
