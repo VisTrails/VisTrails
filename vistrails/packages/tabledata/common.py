@@ -35,6 +35,7 @@
 
 from __future__ import division
 
+import pandas
 import numpy
 
 from vistrails.core.modules.basic_modules import List, ListType
@@ -52,83 +53,60 @@ class InternalModuleError(Exception):
         raise ModuleError(module_obj, self.message)
 
 
-class TableObject(object):
-    columns = None # the number of columns in the table
-    rows = None # the number of rows in the table
-    names = None # the names of the columns
-    name = None # a name for the table (useful for joins, etc.)
+class Series(Module):
+    """A pandas.Series object, basically a single column with a row index.
+    """
+    _input_ports = [('data', '(basic:Array)'),
+                    ('index', '(basic:Array)', {'optional': True})]
+    _output_ports = [('value', '(Series)')]
 
-    def __init__(self, columns, nb_rows, names):
-        self.columns = len(columns)
-        self.rows = nb_rows
-        self.names = names
+    @staticmethod
+    def validate(v):
+        return isinstance(v, pandas.Series)
 
-        self._columns = columns
+    def compute(self):
+        self.set_output('value',
+                        pandas.Series(self.get_input('data'),
+                                      self.force_get_input('index', None)))
 
-    def get_column(self, i, numeric=False): # pragma: no cover
-        """Gets a column from the table as a list or numpy array.
 
-        If numeric=False (the default), the data is returned 'as-is'. It might
-        either be bytes (=str), unicode or number (int, long, float).
+def _slice_compute(input_port):
+    def compute(self):
+        series = self.get_input(input_port)
+        from_ = self.force_get_input('from')
+        to = self.force_get_input('to')
+        stride = self.force_get_input('stride')
+        self.set_output('value', series.iloc[from_:to:stride])
+    return compute
 
-        If numeric=True, the data is returned as a numpy array if numpy is
-        available, or as a list of floats.
-        """
-        if numeric:
-            return numpy.array(self._columns[i], dtype=numpy.float32)
-        else:
-            return self._columns[i]
 
-    def get_column_by_name(self, name, numeric=False):
-        """Gets a column from its name.
+class SliceSeries(Module):
+    """Slice a series.
+    """
+    _input_ports = [('series', Series),
+                    ('from', '(basic:Integer)', {'optional': True}),
+                    ('to', '(basic:Integer)', {'optional': True}),
+                    ('stride', '(basic:Integer)', {'optional': True})]
+    _output_ports = [('value', '(Series)')]
 
-        This convenience methods looks up the right column index if names are
-        available and calls get_column().
-
-        You shouldn't need to override this method, get_column() should be
-        sufficient.
-        """
-        try:
-            col = self.names.index(name)
-        except ValueError:
-            raise KeyError(name)
-        else:
-            return self.get_column(col, numeric)
-
-    @classmethod
-    def from_dicts(cls, dicts, keys=None):
-        iterator = iter(dicts)
-        try:
-            first = next(iterator)
-        except StopIteration:
-            if keys is None:
-                raise ValueError("No entry in sequence")
-            return cls([[]] * len(keys), 0, list(keys))
-        if keys is None:
-            keys = first.keys()
-        columns = [[first[key]] for key in keys]
-        count = 1
-        for dct in iterator:
-            for i, key in enumerate(keys):
-                try:
-                    v = dct[key]
-                except KeyError:
-                    raise ValueError("Entry %d has no key %r" % (count, key))
-                else:
-                    columns[i].append(v)
-            count += 1
-        return cls(columns, count, keys)
+    compute = _slice_compute('series')
 
 
 class Table(Module):
-    _input_ports = [('name', '(org.vistrails.vistrails.basic:String)')]
-    _output_ports = [('value', 'Table')]
+    """A pandas.DataFrame object, basically a table with hierarchical indexes.
+    """
 
-    def set_output(self, port_name, value):
-        if self.list_depth == 0 and value is not None and port_name == 'value':
-            if value.name is None:
-                value.name = self.force_get_input('name', None)
-        Module.set_output(self, port_name, value)
+
+class SliceTable(Module):
+    """Slice a table.
+    """
+    _input_ports = [('table', Table),
+                    ('from', '(basic:Integer)', {'optional': True}),
+                    ('to', '(basic:Integer)', {'optional': True}),
+                    ('stride', '(basic:Integer)', {'optional': True})]
+    _output_ports = [('value', '(Series)')]
+
+    compute = _slice_compute('table')
 
 
 def choose_column(nb_columns, column_names=None, name=None, index=None):
@@ -202,7 +180,7 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
         raise ValueError("No column names nor indexes specified")
 
 
-class ExtractColumn(Module):
+class GetColumn(Module):
     """Gets a single column from a table, as a list.
 
     Specifying one of 'column_name' or 'column_index' is sufficient; if you
@@ -210,9 +188,9 @@ class ExtractColumn(Module):
     """
     _input_ports = [
             ('table', Table),
-            ('column_name', '(org.vistrails.vistrails.basic:String)',
+            ('column_index', '(org.vistrails.vistrails.basic:String)',
              {'optional': True}),
-            ('column_index', '(org.vistrails.vistrails.basic:Integer)',
+            ('column_num', '(org.vistrails.vistrails.basic:Integer)',
              {'optional': True}),
             ('numeric', '(org.vistrails.vistrails.basic:Boolean)',
              {'optional': True, 'defaults': "['False']"})]
