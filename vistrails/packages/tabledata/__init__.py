@@ -77,3 +77,13 @@ def package_dependencies():
 def package_requirements():
     from vistrails.core.requirements import require_python_module
     require_python_module('csv')
+    require_python_module('pandas', {
+        'pip': 'pandas',
+        'linux-debian': 'python-pandas',
+        'linux-ubuntu': 'python-pandas',
+        'linux-fedora': 'python-pandas'})
+    require_python_module('numpy', {
+        'pip': 'numpy',
+        'linux-debian': 'python-numpy',
+        'linux-ubuntu': 'python-numpy',
+        'linux-fedora': 'numpy'})

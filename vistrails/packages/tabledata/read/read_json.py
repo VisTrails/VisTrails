@@ -35,6 +35,8 @@
 
 from __future__ import division
 
+import numpy
+
 try:
     import simplejson as json
 except ImportError:
@@ -142,7 +144,6 @@ class TestJSON(unittest.TestCase):
             (table,), (count,), names = results
             self.assertEqual(count, 4)
 
-            import numpy
             if has_names:
                 self.assertEqual(names, [table.names])
                 self.assertEqual(table.names[0], 'key')
@@ -195,7 +196,6 @@ class TestJSON(unittest.TestCase):
             (table,), (count,), names = results
             self.assertEqual(count, 3)
 
-            import numpy
             if nb == 0:
                 self.assertEqual(names, [table.names])
                 self.assertEqual(set(table.names),

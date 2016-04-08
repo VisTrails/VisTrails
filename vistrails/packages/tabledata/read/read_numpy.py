@@ -35,9 +35,9 @@
 
 from __future__ import division
 
-from vistrails.core.modules.vistrails_module import Module
+import numpy
 
-from ..common import get_numpy
+from vistrails.core.modules.vistrails_module import Module
 
 
 class NumPyArray(Module):
@@ -75,7 +75,6 @@ class NumPyArray(Module):
     @classmethod
     def get_format(cls, format):
         if cls._format_map is None:
-            numpy = get_numpy()
             cls._format_map = dict(
                        npy = cls.NPY_FMT,
 
@@ -105,8 +104,6 @@ class NumPyArray(Module):
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
-        numpy = get_numpy()
-
         filename = self.get_input('file').name
         if self.has_input('datatype'):
             dtype = NumPyArray.get_format(self.get_input('datatype'))

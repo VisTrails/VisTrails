@@ -35,9 +35,9 @@
 
 from __future__ import division
 
-from vistrails.core.modules.vistrails_module import Module
+import numpy
 
-from ..common import get_numpy
+from vistrails.core.modules.vistrails_module import Module
 
 
 class Reshape(Module):
@@ -50,8 +50,6 @@ class Reshape(Module):
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
-        numpy = get_numpy()
-
         array = self.get_input('array')
         shape = self.get_input('shape')
 
