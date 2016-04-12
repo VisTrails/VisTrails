@@ -1008,13 +1008,13 @@ class TestUpgradePackageRemap(unittest.TestCase):
         # 5 calls to handle_invalid_pipeline()
 
         # Pre-adds packages so that the package manager can find them
+        packages = ['pkg_a', 'pkg_b', 'pkg_c']
         prefix = 'vistrails.tests.resources.looping_upgrades.'
         pm = get_package_manager()
-        pm.get_available_package('pkg_a', prefix=prefix)
-        pm.get_available_package('pkg_b', prefix=prefix)
-        pm.get_available_package('pkg_c', prefix=prefix)
+        for pkg in packages:
+            pm.get_available_package(pkg, prefix=prefix)
         self.assertFalse(set(pkg.codepath for pkg in pm.enabled_package_list())
-                         .intersection(['pkg_a', 'pkg_b', 'pkg_c']))
+                         .intersection(packages))
 
         # Hooks handle_invalid_pipeline()
         from vistrails.core.vistrail.controller import VistrailController
@@ -1046,6 +1046,12 @@ class TestUpgradePackageRemap(unittest.TestCase):
         # Restores handle_invalid_pipeline()
         finally:
             VistrailController.handle_invalid_pipeline = orig_hip
+            # disable packages
+            for pkg in reversed(packages):
+                try:
+                    pm.late_disable_package(pkg)
+                except MissingPackage:
+                    pass
 
 
 if __name__ == '__main__':
