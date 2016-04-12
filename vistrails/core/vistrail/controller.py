@@ -3307,7 +3307,7 @@ class VistrailController(object):
 
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
                                 report_all_errors=False, force_no_delay=False,
-                                delay_update=False):
+                                delay_update=False, level=0):
         if delay_update:
             force_no_delay = True
         def check_exceptions(exception_set):
@@ -3529,9 +3529,16 @@ class VistrailController(object):
 
         if len(new_actions) > 0:
             upgrade_action = self.create_upgrade_action(new_actions)
-            param_exps = self.vistrail.get_paramexps(new_version)
+            # check if we should use pending param_exps
+            if (get_vistrails_configuration().check('upgradeDelay') and not force_no_delay
+                and self._delayed_paramexps):
+                param_exps = self._delayed_paramexps
+            else:
+                param_exps = self.vistrail.get_paramexps(new_version)
             new_param_exps = []
             if len(param_exps) > 0:
+                # paramexps are not delayable
+                force_no_delay = True
                 (module_remap, is_complete) = \
                                     self.get_upgrade_module_remap(new_actions)
                 if is_complete:
@@ -3552,6 +3559,8 @@ class VistrailController(object):
                         mashup = mashuptrail
             new_mashups = []
             if mashup:
+                # mashups are not delayable
+                force_no_delay = True
                 (mfp_remap, is_complete) = \
                                 self.get_simple_upgrade_remap(new_actions)
                 if is_complete:
@@ -3610,10 +3619,42 @@ class VistrailController(object):
                     self.recompute_terse_graph()
 
         left_exceptions = check_exceptions(root_exceptions)
-        if len(left_exceptions) > 0 or len(new_exceptions) > 0:
+        # If exceptions unchanged, fail.
+        if (len(left_exceptions) == len(root_exceptions) and
+            len(new_exceptions) == 0):
             raise InvalidPipeline(left_exceptions + new_exceptions,
                                   cur_pipeline, new_version)
-        return (new_version, cur_pipeline)
+        new_err = None
+        # do we have new exceptions or did we reduce the existing ones?
+        if len(left_exceptions) > 0 or len(new_exceptions) > 0:
+            new_err = InvalidPipeline(left_exceptions + new_exceptions,
+                                      cur_pipeline, new_version)
+        else:
+            # All handled, check if validating generates further exceptions.
+            try:
+                self.validate(cur_pipeline)
+            except InvalidPipeline, e:
+                new_err = e
+
+        if new_err is not None:
+            # There are still unresolved exceptions (old or new), try to
+            # run handle_invalid_pipeline again.
+            # each level creates a new upgrade
+            if level == 4:
+                debug.critical(
+                        "Pipeline-fixing loop doesn't seem to "
+                        "be finishing, giving up after %d "
+                        "iterations" % level)
+            else:
+                return self.handle_invalid_pipeline(new_err,
+                                                    new_version,
+                                                    vistrail,
+                                                    report_all_errors,
+                                                    force_no_delay,
+                                                    delay_update,
+                                                    level+1)
+            raise new_err
+        return new_version, cur_pipeline
 
     def validate(self, pipeline, raise_exception=True):
         vistrail_vars = self.get_vistrail_variables()
@@ -3702,15 +3743,6 @@ class VistrailController(object):
                                                      self.vistrail,
                                                      report_all_errors,
                                                      delay_update=delay_update)
-                    try:
-                        self.validate(pipeline)
-                    except InvalidPipeline, e:
-                        version, pipeline = \
-                            self.handle_invalid_pipeline(e, version,
-                                                         self.vistrail,
-                                                         report_all_errors,
-                                                         delay_update=delay_update)
-                    self.validate(pipeline)
                 except InvalidPipeline, e:
                     debug.unexpected_exception(e)
                     raise e
