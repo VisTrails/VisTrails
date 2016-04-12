@@ -3001,7 +3001,8 @@ class VistrailController(object):
         return new_action
 
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
-                                report_all_errors=False, force_no_delay=False):
+                                report_all_errors=False, force_no_delay=False,
+                                level=0):
         def check_exceptions(exception_set):
             unhandled_exceptions = []
             for err in exception_set:
@@ -3334,11 +3335,40 @@ class VistrailController(object):
 
                 self.set_changed(True)
                 self.recompute_terse_graph()
-
         left_exceptions = check_exceptions(root_exceptions)
-        if len(left_exceptions) > 0 or len(new_exceptions) > 0:
+        # If exceptions unchanged, fail.
+        if (len(left_exceptions) == len(root_exceptions) and
+            len(new_exceptions) == 0):
             raise InvalidPipeline(left_exceptions + new_exceptions,
-                                    cur_pipeline, new_version)
+                                      cur_pipeline, new_version)
+        new_err = None
+        # do we have new exceptions or did we reduce the existing ones?
+        if len(left_exceptions) > 0 or len(new_exceptions) > 0:
+            new_err = InvalidPipeline(left_exceptions + new_exceptions,
+                                      cur_pipeline, new_version)
+        else:
+            # All handled, check if validating generates further exceptions.
+            try:
+                self.validate(cur_pipeline)
+            except InvalidPipeline, e:
+                new_err = e
+
+        if new_err is not None:
+            # There are still unresolved exceptions (old or new), try to
+            # run handle_invalid_pipeline again.
+            if level == 50:
+                debug.critical(
+                        "Pipeline-fixing loop doesn't seem to "
+                        "be finishing, giving up after %d "
+                        "iterations" % level)
+            else:
+                return self.handle_invalid_pipeline(new_err,
+                                                    new_version,
+                                                    vistrail,
+                                                    report_all_errors,
+                                                    force_no_delay,
+                                                    level+1)
+            raise new_err
         return (new_version, cur_pipeline)
 
     def validate(self, pipeline, raise_exception=True):
@@ -3501,33 +3531,12 @@ class VistrailController(object):
                 # that it fixed something, and we go on calling it until the
                 # pipeline is valid
                 try:
-                    is_valid = False
-                    nb_loops = 0
-                    while not is_valid:
-                        debug.log("Running through handle_invalid_pipeline...")
-                        old_new_version = new_version
-                        new_version, pipeline = self.handle_invalid_pipeline(
-                                e, new_version,
-                                self.vistrail,
-                                report_all_errors)
-                        if new_version != old_new_version:
-                            debug.log("Now at version %d" % new_version)
-                        self.current_pipeline = pipeline
-                        self.current_version = new_version
-                        try:
-                            self.validate(pipeline)
-                        except InvalidPipeline:
-                            if nb_loops >= 50:
-                                debug.critical(
-                                        "Pipeline-fixing loop doesn't seem to "
-                                        "be finishing, giving up after %d "
-                                        "iterations" % nb_loops)
-                                raise
-                            pass
-                        else:
-                            debug.log("Pipeline is now valid")
-                            is_valid = True
-                        nb_loops += 1
+                    new_version, pipeline = self.handle_invalid_pipeline(
+                            e, new_version,
+                            self.vistrail,
+                            report_all_errors)
+                    self.current_pipeline = pipeline
+                    self.current_version = new_version
                 except InvalidPipeline, e:
                     debug.unexpected_exception(e)
                     new_error = e
