@@ -1070,7 +1070,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
             self.assertEqual(controller.get_latest_version_in_graph(), 1)
             controller.do_version_switch(1)
 
-            self.assertEqual(count[0], 3)
+            self.assertEqual(count[0], 5)
         # Restores handle_invalid_pipeline()
         finally:
             VistrailController.handle_invalid_pipeline = orig_hip
@@ -1080,7 +1080,6 @@ class TestUpgradePackageRemap(unittest.TestCase):
                     pm.late_disable_package(pkg)
                 except MissingPackage:
                     pass
-        self.assertEqual(count[0], 5)
 
     def test_infinite_looping_upgrade(self):
         """Test that circular upgrades fail gracefully"""
