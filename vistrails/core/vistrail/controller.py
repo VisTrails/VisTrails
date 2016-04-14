@@ -3641,11 +3641,13 @@ class VistrailController(object):
             # There are still unresolved exceptions (old or new), try to
             # run handle_invalid_pipeline again.
             # each level creates a new upgrade
-            if level == 4:
+            level += 1
+            if level == 50:
                 debug.critical(
                         "Pipeline-fixing loop doesn't seem to "
                         "be finishing, giving up after %d "
-                        "iterations" % level)
+                        "iterations. You may have circular "
+                        "upgrade paths!" % level)
             else:
                 return self.handle_invalid_pipeline(new_err,
                                                     new_version,
@@ -3653,7 +3655,7 @@ class VistrailController(object):
                                                     report_all_errors,
                                                     force_no_delay,
                                                     delay_update,
-                                                    level+1)
+                                                    level)
             raise new_err
         return new_version, cur_pipeline
 
@@ -3754,7 +3756,7 @@ class VistrailController(object):
             # first try without upgrading
             pipeline = self.get_pipeline(version, from_root=from_root,
                                          use_current=use_current)
-        except InvalidPipeline, e:
+        except InvalidPipeline:
             # Try latest upgrade first, then try previous upgrades.
             # If all fail, return latest upgrade exception.
             upgrade_chain = self.vistrail.get_upgrade_chain(version, True)
