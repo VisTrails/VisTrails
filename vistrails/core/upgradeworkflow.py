@@ -38,6 +38,9 @@
 upgrade requests."""
 from __future__ import division
 
+import copy
+import os
+
 from vistrails.core import debug
 import vistrails.core.db.action
 from vistrails.core.modules.module_registry import get_module_registry, \
@@ -52,9 +55,8 @@ from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
-from vistrails.core.utils import versions_increasing
-import copy
-import os
+from vistrails.core.utils import versions_increasing, InvalidPipeline
+
 
 ##############################################################################
 
@@ -1074,7 +1076,81 @@ class TestUpgradePackageRemap(unittest.TestCase):
                     pm.late_disable_package(pkg)
                 except MissingPackage:
                     pass
+        self.assertEqual(count[0], 5)
 
+    def test_infinite_looping_upgrade(self):
+        """Test that circular upgrades fail gracefully"""
+        # Expected actions are as follow:
+        #  - loads workflow2.xml
+        #  * pipeline is missing looping_fix.x version 0.1
+        #  - enables looping_fix.x (version 0.2)
+        #  * pipeline is still missing looping_fix.x version 0.1
+        #  - runs upgrade for looping_fix.x, 0.1 -> 0.2
+        #  - upgrade changes modules to package looping_fix.y version 0.1
+        #  * pipeline is missing looping_fix.y version 0.1
+        #  - enables looping_fix.y (version 0.2)
+        #  * pipeline is still missing looping_fix.y version 0.1
+        # Loop 50 times:
+        #  - runs upgrade for looping_fix.y, 0.1 -> 0.2
+        #  - upgrade changes modules to package looping_fix.x version 0.1
+        #  * pipeline is missing looping_fix.x version 0.1
+        #  - runs upgrade for looping_fix.x, 0.1 -> 0.2
+        #  - upgrade changes modules to package looping_fix.y version 0.1
+        #  * pipeline is missing looping_fix.y version 0.1
+        # 50 calls to handle_invalid_pipeline()
+
+        # Pre-adds packages so that the package manager can find them
+        packages = ['pkg_x', 'pkg_y']
+        prefix = 'vistrails.tests.resources.looping_upgrades.'
+        pm = get_package_manager()
+        for pkg in packages:
+            pm.get_available_package(pkg, prefix=prefix)
+
+        # Hooks handle_invalid_pipeline()
+        from vistrails.core.vistrail.controller import VistrailController
+        orig_hip = VistrailController.handle_invalid_pipeline
+        count = [0]
+        def new_hip(*args, **kwargs):
+            count[0] += 1
+            return orig_hip(*args, **kwargs)
+        VistrailController.handle_invalid_pipeline = new_hip
+        try:
+
+            # Loads workflow.xml
+            from vistrails.core.db.io import load_vistrail
+            from vistrails.core.db.locator import FileLocator
+            from vistrails.core.system import vistrails_root_directory
+
+            locator = FileLocator(os.path.join(
+                    vistrails_root_directory(),
+                    'tests', 'resources', 'looping_upgrades',
+                    'workflow2.xml'))
+            loaded_objs = load_vistrail(locator)
+            controller = VistrailController(
+                    loaded_objs[0], locator, *loaded_objs[1:])
+
+            # Select version (triggers all the validation/upgrade/loading)
+            self.assertEqual(controller.get_latest_version_in_graph(), 1)
+            try:
+                controller.do_version_switch(1)
+            except InvalidPipeline:
+                pass
+            else:
+                self.fail('No InvalidPipeline exception raised!')
+
+        # Restores handle_invalid_pipeline()
+        finally:
+            VistrailController.handle_invalid_pipeline = orig_hip
+            # disable packages
+            for pkg in reversed(packages):
+                try:
+                    pm.late_disable_package(pkg)
+                except MissingPackage:
+                    pass
+        # make sure it looped 50 times before failing
+        self.assertEqual(count[0], 50)
+        # Check that original version gets selected
+        self.assertEqual(1, controller.current_version)
 
 if __name__ == '__main__':
     import vistrails.core.application
