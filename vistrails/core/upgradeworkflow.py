@@ -780,7 +780,11 @@ class UpgradeWorkflowHandler(object):
                 new_module_t = new_module_desc.spec_tuple
 
             new_pkg_version = module_remap.output_version
-            if (new_pkg_version is None or
+            next_module_remap = None
+            if isinstance(new_module_type, ModuleDescriptor):
+                new_module_desc = new_module_type
+                use_registry = False
+            elif (new_pkg_version is None or
                   reg.get_package_by_name(new_module_t[0]).version == new_pkg_version):
                 # upgrading to the current version
                 try:
@@ -793,7 +797,6 @@ class UpgradeWorkflowHandler(object):
                     else:
                         raise e
                 use_registry = True
-                next_module_remap = None
             else:
                 new_module_desc = ModuleDescriptor(package=new_module_t[0],
                                                    name=new_module_t[1],
