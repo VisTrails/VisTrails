@@ -42,6 +42,7 @@ import copy
 import os
 
 from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.db.action
 from vistrails.core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort, MissingPackage
@@ -1151,7 +1152,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
                 except MissingPackage:
                     pass
         # make sure it looped 50 times before failing
-        self.assertEqual(count[0], 50)
+        max_loops = getattr(get_vistrails_configuration(),
+                            'maxPipelineFixAttempts', 50)
+        self.assertEqual(count[0], max_loops)
         # Check that original version gets selected
         self.assertEqual(1, controller.current_version)
 

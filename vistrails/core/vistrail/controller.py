@@ -3651,7 +3651,9 @@ class VistrailController(object):
             # run handle_invalid_pipeline again.
             # each level creates a new upgrade
             level += 1
-            if level == 50:
+            max_loops = getattr(get_vistrails_configuration(),
+                                'maxPipelineFixAttempts', 50)
+            if level >= max_loops:
                 debug.critical(
                         "Pipeline-fixing loop doesn't seem to "
                         "be finishing, giving up after %d "
