@@ -3634,6 +3634,7 @@ class VistrailController(object):
             try:
                 self.validate(cur_pipeline)
             except InvalidPipeline, e:
+                e._version = new_version
                 new_err = e
 
         if new_err is not None:
