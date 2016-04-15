@@ -339,7 +339,6 @@ class PortSpec(DBPortSpec):
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
         registry = get_module_registry()
-        entries = []
         def canonicalize(sig_item):
             if isinstance(sig_item, tuple):
                 # assert len(sig_item) == 2
