@@ -133,8 +133,8 @@ class QVistrailView(QtGui.QWidget):
         self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
         self.connect(self.tabs, QtCore.SIGNAL("tabCloseRequested(int)"),
-                     self.remove_view_by_index)
-       
+                     self.tab_close_request)
+
         #self.view_changed()
         #self.tab_changed(0)
 
@@ -530,6 +530,21 @@ class QVistrailView(QtGui.QWidget):
                 if view.tab_idx > rm_tab_idx:
                     view.set_tab_idx(view.tab_idx-1)
     
+    def tab_close_request(self, index):
+        """ Ignore if this is the last pipeline tab
+
+            If there is one pipeline tab and one diff tab, close buttons are
+            visible for both of them, but we should not allow the closing of
+            this last pipeline tab.
+        """
+        def is_pipeline_tab(view):
+            # QDiffView is currently the only non-pipeline tab
+            return not isinstance(view, QDiffView)
+        pipeline_tabs = sum([(1 if is_pipeline_tab(t) else 0)
+                            for t in self.tab_to_view.values()])
+        if pipeline_tabs > 1 or not is_pipeline_tab(self.tab_to_view[index]):
+            self.remove_view_by_index(index)
+
     def remove_view_by_index(self, index):
         self.disconnect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
