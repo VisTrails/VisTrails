@@ -890,14 +890,16 @@ class QVistrailView(QtGui.QWidget):
         controller_b = controller_b or self.controller
         # Upgrade both versions if hiding upgrades
         if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
-            version_a = self.controller.create_upgrade(version_a)
-            version_b = controller_b.create_upgrade(version_b)
+            version_a = self.controller.create_upgrade(version_a, delay_update=True)
+            version_b = controller_b.create_upgrade(version_b, delay_update=True)
 
         view = self.create_diff_view()
         view.set_controller(self.controller)
         view.set_diff(version_a, version_b, controller_b.vistrail)
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
+        self.controller.check_delayed_update()
+        controller_b.check_delayed_update()
         self.view_changed()
 
     def save_vistrail(self, locator_class, force_choose_locator=False, export=False):
