@@ -619,6 +619,12 @@ class QQueryView(QtGui.QWidget, BaseView):
             if double_click:
                 self.query_controller.set_level(QueryController.LEVEL_WORKFLOW)
                 self.query_controller.show_workflow_matches()
+        # set version prop directly
+        from vistrails.gui.version_prop import QVersionProp
+        prop = QVersionProp.instance()
+        prop.set_visible(True)
+        prop.updateController(self.vt_controller)
+        prop.updateVersion(version_id)
 
 class QueryEntry(ParameterEntry):
     def __init__(self, port_spec, function=None, parent=None):

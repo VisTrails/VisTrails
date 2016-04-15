@@ -35,17 +35,10 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.core import debug
-from vistrails.core.modules.basic_modules import create_constant, get_module
-from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput, ModuleSuspended, ModuleWasSuspended
-from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
-    Float, Constant, List
-from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.vistrail.port_spec import PortSpec
-
 import copy
-from itertools import izip
+
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    InvalidOutput, ModuleSuspended, ModuleWasSuspended
 
 ###############################################################################
 ## Fold Operator

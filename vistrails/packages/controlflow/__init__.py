@@ -33,10 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from __future__ import division
 
-identifier="org.vistrails.vistrails.control_flow"
-name="Control Flow"
-version="0.2.4"
+identifier = "org.vistrails.vistrails.control_flow"
+name = "Control Flow"
+version = "0.2.4"
 old_identifiers = ["edu.utah.sci.vistrails.control_flow"]

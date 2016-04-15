@@ -60,8 +60,8 @@ from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.ports_pane import ParameterEntry
-from vistrails.gui.query_view import QQueryView, QueryEntry
-from vistrails.gui.version_prop import QVersionProp
+from vistrails.gui.query_view import QQueryView, QueryEntry,\
+    QQueryResultWorkflowView
 from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.vis_diff import QDiffView
 from vistrails.gui.vistrail_controller import VistrailController
@@ -629,6 +629,9 @@ class QVistrailView(QtGui.QWidget):
            # print "tabs the same. do nothing"
         if isinstance(view, QQueryView):
             _app.notify("controller_changed", view.p_controller)
+            if view.current_display != QQueryView.VISUAL_SEARCH_VIEW:
+                # Force result version prop
+                view.result_version_selected(view.vt_controller.current_version, False)
             _app.notify("entry_klass_changed", QueryEntry)
         else:
             _app.notify("entry_klass_changed", ParameterEntry)
@@ -806,11 +809,9 @@ class QVistrailView(QtGui.QWidget):
     
     def gen_module_selected(self, view):
         def module_selected(module_id, selection = []):
+            from vistrails.gui.version_prop import QVersionProp
             from vistrails.gui.vistrails_window import _app
-            if isinstance(view, QQueryView):
-                pipeline = view.workflow_result_view.scene().current_pipeline
-            else:
-                pipeline = view.scene().current_pipeline
+            pipeline = view.scene().current_pipeline
             if pipeline is not None and module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
                 _app.notify('module_changed', module)
@@ -821,7 +822,12 @@ class QVistrailView(QtGui.QWidget):
                    not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
                     QModuleInfo.instance().set_visible(True)
             else:
-                _app.notify('module_changed', None)
+                if isinstance(view, QQueryResultWorkflowView):
+                    # we need to set version prop directly
+                    QVersionProp.instance().updateController(view.controller)
+                    QVersionProp.instance().updateVersion(view.controller.current_version)
+                else:
+                    _app.notify('module_changed', None)
                 # show workflow info if both are tabified and
                 # module info is visible
                 if not QModuleInfo.instance().toolWindow().isFloating() and \
@@ -895,14 +901,16 @@ class QVistrailView(QtGui.QWidget):
         controller_b = controller_b or self.controller
         # Upgrade both versions if hiding upgrades
         if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
-            version_a = self.controller.create_upgrade(version_a)
-            version_b = controller_b.create_upgrade(version_b)
+            version_a = self.controller.create_upgrade(version_a, delay_update=True)
+            version_b = controller_b.create_upgrade(version_b, delay_update=True)
 
         view = self.create_diff_view()
         view.set_controller(self.controller)
         view.set_diff(version_a, version_b, controller_b.vistrail)
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
+        self.controller.check_delayed_update()
+        controller_b.check_delayed_update()
         self.view_changed()
 
     def save_vistrail(self, locator_class, force_choose_locator=False, export=False):

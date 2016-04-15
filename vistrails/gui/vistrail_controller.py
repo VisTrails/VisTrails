@@ -1501,3 +1501,46 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
         api.close_current_vistrail(True)
         c.unload_abstractions()
+
+    def test_chained_upgrade(self):
+        # We should try to upgrade from the latest upgrade in
+        # the upgrade chain first
+        from vistrails import api
+        view = api.open_vistrail_from_file(
+                vistrails.core.system.vistrails_root_directory() +
+                '/tests/resources/chained_upgrade.xml')
+        # Trigger upgrade
+        api.select_version('myTuple')
+        view.execute()
+        # Assert new upgrade was created from the latest action
+        # 1 = original
+        # 2 = old upgrade
+        # 3 = new upgrade (should be the upgrade of 2)
+        vistrail = api.get_current_vistrail()
+        for a in vistrail.action_annotations:
+            if a.key == Vistrail.UPGRADE_ANNOTATION:
+                self.assertIn(a.action_id, [1,2])
+                if a.action_id == 1:
+                    self.assertEqual(int(a.value), 2)
+                if a.action_id == 2:
+                    self.assertEqual(int(a.value), 3)
+
+    def test_broken_upgrade(self):
+        # When upgrade is broken the controller should try to upgrade
+        # the previous action in the upgrade chain
+        from vistrails import api
+        view = api.open_vistrail_from_file(
+                vistrails.core.system.vistrails_root_directory() +
+                '/tests/resources/broken_upgrade.xml')
+        # Trigger upgrade
+        api.select_version('myTuple')
+        view.execute()
+        # Assert new upgrade was created from the first action
+        # 1 = original
+        # 2 = broken
+        # 3 = new (should be the upgrade of 1)
+        vistrail = api.get_current_vistrail()
+        for a in vistrail.action_annotations:
+            if a.key == Vistrail.UPGRADE_ANNOTATION:
+                self.assertEqual(a.action_id, 1)
+                self.assertEqual(int(a.value), 3)
