@@ -3308,7 +3308,7 @@ class VistrailController(object):
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
                                 report_all_errors=False, force_no_delay=False,
                                 delay_update=False, level=0):
-        debug.log('Running handle_invalid_pipeline on %d' % new_version)
+        debug.debug('Running handle_invalid_pipeline on %d' % new_version)
         if delay_update:
             force_no_delay = True
         def check_exceptions(exception_set):
@@ -3457,7 +3457,7 @@ class VistrailController(object):
                     continue
                 details = '\n'.join(debug.format_exception(e)
                                     for e in err_list)
-                debug.log('Processing upgrades in package "%s"' %
+                debug.debug('Processing upgrades in package "%s"' %
                           identifier, details)
                 if pkg.can_handle_all_errors():
                     try:
@@ -3621,15 +3621,15 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         # If exceptions unchanged, fail.
-        debug.log(('handle_invalid_pipeline finished with %d fixed, %d left, '
-                   'and %d new exceptions') % ((len(root_exceptions) -
-                                                    len(left_exceptions)),
-                                                   len(left_exceptions),
-                                                   len(new_exceptions)))
+        debug.debug(('handle_invalid_pipeline finished with %d fixed, %d left, '
+                     'and %d new exceptions') % ((len(root_exceptions) -
+                                                  len(left_exceptions)),
+                                                 len(left_exceptions),
+                                                 len(new_exceptions)))
         if (len(left_exceptions) == len(root_exceptions) and
             len(new_exceptions) == 0):
-            debug.log('handle_invalid_pipeline failed to validate version '
-                      '%d: %d errors left.' % (new_version,
+            debug.debug('handle_invalid_pipeline failed to validate version '
+                        '%d: %d errors left.' % (new_version,
                                                len(root_exceptions)))
             raise InvalidPipeline(left_exceptions + new_exceptions,
                                   cur_pipeline, new_version)
@@ -3660,8 +3660,8 @@ class VistrailController(object):
                         "iterations. You may have circular "
                         "upgrade paths!" % level)
             else:
-                debug.log('Recursing handle_invalid_pipeline on '
-                          'version %d to level %d' % (new_version, level))
+                debug.debug('Recursing handle_invalid_pipeline on '
+                            'version %d to level %d' % (new_version, level))
                 return self.handle_invalid_pipeline(new_err,
                                                     new_version,
                                                     vistrail,
