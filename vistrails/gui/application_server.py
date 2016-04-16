@@ -70,7 +70,7 @@ import vistrails.core.db.action
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
-from vistrails.core import interpreter
+from vistrails.core.interpreter import Interpreter
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.thumbnails import ThumbnailCache
 import vistrails.db.services.io
@@ -793,7 +793,7 @@ class RequestHandler(object):
                                                     update_vistrail=False,
                                                     extra_info=extra_info)
                                     self.server_logger.info("Memory usage: %s"% self.memory_usage())
-                                    interpreter.cached.CachedInterpreter.flush()
+                                    Interpreter.flush()
                                 except Exception, e:
                                     self.server_logger.error(str(e))
                                     return (str(e), 0)

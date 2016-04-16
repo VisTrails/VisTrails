@@ -33,6 +33,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 from __future__ import division
 
-pass
+from vistrails.core.interpreter.interpreter import ViewUpdatingLogController, \
+    Interpreter

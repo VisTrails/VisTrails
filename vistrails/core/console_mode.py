@@ -43,9 +43,9 @@ from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.interpreter.default
 import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
-from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
+from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core import debug
-import vistrails.core.interpreter.cached
+import vistrails.core.interpreter
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
 import vistrails.core.vistrail.pipeline
 from vistrails.core.utils import VistrailsInternalError
@@ -315,7 +315,7 @@ def run_parameter_explorations(w_list, extra_info = {},
     return all_errors
 
 def cleanup():
-    vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
+    vistrails.core.interpreter.Interpreter.cleanup()
 
 ################################################################################
 #Testing

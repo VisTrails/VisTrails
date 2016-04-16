@@ -140,7 +140,7 @@ def execute(modules, connections=[], add_port_specs=[],
     from vistrails.core.vistrail.pipeline import Pipeline
     from vistrails.core.vistrail.port import Port
     from vistrails.core.vistrail.port_spec import PortSpec
-    from vistrails.core.interpreter.noncached import Interpreter
+    from vistrails.core.interpreter.noncached import Interpreter  # FIXME
 
     pm = get_package_manager()
 

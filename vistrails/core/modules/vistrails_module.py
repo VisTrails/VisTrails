@@ -332,10 +332,14 @@ class Module(object):
         for cp in module.control_parameters:
             self.control_params[cp.name] = cp.value
 
-        self.input_specs = dict((p.name, p) for p in module.destinationPorts())
-        self.output_specs = dict((p.name, p) for p in module.sourcePorts())
-        self.input_specs_order = [p.name for p in module.destinationPorts()]
-        self.output_specs_order = [p.name for p in module.sourcePorts()]
+        self.input_specs = dict((p.name, p) for p in module.destinationPorts())  # rename this (check vtk)
+        self.output_specs = dict((p.name, p) for p in module.sourcePorts())  # rename this (check vtk)
+        self.input_specs_order = [p.name for p in module.destinationPorts()]  # remove, replace with input_specs
+        self.output_specs_order = [p.name for p in module.sourcePorts()]  # remove, replace with output_specs
+
+        # These should probably have another name, but compatibility...
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+        self.output_ports_order = [p.name for p in module.output_port_specs]
 
     def __copy__(self):
         """Makes a copy of the input/output ports on shallow copy.

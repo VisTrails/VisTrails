@@ -802,12 +802,7 @@ class Tuple(Module):
 
     def __init__(self):
         Module.__init__(self)
-        self.input_ports_order = []
         self.values = tuple()
-
-    def transfer_attrs(self, module):
-        Module.transfer_attrs(self, module)
-        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     def compute(self):
         values = tuple([self.get_input(p)
@@ -823,16 +818,6 @@ class Untuple(Module):
 
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
-
-    def __init__(self):
-        Module.__init__(self)
-        self.output_ports_order = []
-
-    def transfer_attrs(self, module):
-        Module.transfer_attrs(self, module)
-        self.output_ports_order = [p.name for p in module.output_port_specs]
-        # output_ports are reversed for display purposes...
-        self.output_ports_order.reverse()
 
     def compute(self):
         if self.has_input("tuple"):
@@ -900,14 +885,6 @@ class List(Constant):
     _output_ports = [OPort("value", "List")]
 
     default_value = []
-
-    def __init__(self):
-        Constant.__init__(self)
-        self.input_ports_order = []
-
-    def transfer_attrs(self, module):
-        Module.transfer_attrs(self, module)
-        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     @staticmethod
     def validate(x):
@@ -1010,16 +987,6 @@ class Unpickle(Module):
 ##############################################################################
 
 class CodeRunnerMixin(object):
-    def __init__(self):
-        self.output_ports_order = []
-        super(CodeRunnerMixin, self).__init__()
-
-    def transfer_attrs(self, module):
-        Module.transfer_attrs(self, module)
-        self.output_ports_order = [p.name for p in module.output_port_specs]
-        # output_ports are reversed for display purposes...
-        self.output_ports_order.reverse()
-
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):

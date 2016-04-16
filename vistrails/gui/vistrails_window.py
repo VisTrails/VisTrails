@@ -44,7 +44,7 @@ from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     UntitledLocator
-from vistrails.core.interpreter.cached import CachedInterpreter
+from vistrails.core.interpreter import Interpreter
 from vistrails.core.recent_vistrails import RecentVistrailList
 import vistrails.core.system
 import vistrails.core.db.action
@@ -2186,7 +2186,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                           'a database')
 
     def flush_cache(self):
-        CachedInterpreter.flush()
+        Interpreter.flush()
 
     def set_stop_on_error(self, stop):
         setattr(get_vistrails_persistent_configuration(), 'stopOnError', stop)
