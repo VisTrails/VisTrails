@@ -27,6 +27,9 @@ Bug fixes:
  - Hide empty Mashup and Parameter exploration items in workspace
  - Fix mashup link in Workflow Info tab
  - Fix workspace not updating mashup list
+ - improvements to upgrades
+   - Upgrades are now correctly chained from the latest upgrade (#1164)
+   - Fixed multi-step upgrades that replaces modules to other packages (#1165)
 
 Enhancements:
  - Add a TensorFlow package

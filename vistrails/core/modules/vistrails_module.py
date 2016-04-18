@@ -1222,6 +1222,7 @@ class Module(object):
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
+        from vistrails.core.modules.basic_modules import List, Variant
 
         if port_name not in self.inputPorts:
             raise ModuleError(self, "Missing value from port %s" % port_name)
@@ -1236,7 +1237,6 @@ class Module(object):
                 connectors.append(connector)
         ports = []
         for connector in connectors:
-            from vistrails.core.modules.basic_modules import List, Variant
             value = connector()
             src_depth = connector.depth()
             if not self.input_specs:
