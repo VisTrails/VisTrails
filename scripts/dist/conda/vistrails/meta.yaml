@@ -26,6 +26,15 @@ requirements:
   build:
     - python
     - setuptools
+    - numpy
+    - scipy
+    - pyqt
+    - certifi
+    - ssl_match_hostname
+    - file_archive >=0.6
+    - xlrd
+    - xlwt
+    - ipython
 
   run:
     - python

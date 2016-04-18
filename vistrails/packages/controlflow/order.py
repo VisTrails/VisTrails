@@ -35,8 +35,9 @@
 ###############################################################################
 
 
-from vistrails.core.modules.vistrails_module import Module, InvalidOutput
 import copy
+
+from vistrails.core.modules.vistrails_module import Module, InvalidOutput
 
 ##############################################################################
 ## Order Operator

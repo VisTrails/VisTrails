@@ -45,9 +45,9 @@ from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
 from vistrails.core.configuration import ConfigurationObject
-import vistrails.core.db.action
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
+import vistrails.core.db.action
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default

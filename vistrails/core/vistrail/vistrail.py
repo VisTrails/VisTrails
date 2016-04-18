@@ -1102,6 +1102,34 @@ class Vistrail(DBVistrail):
                     version = upgrade_rev_map[version]
         return None
 
+    def get_upgrade_chain(self, base_version, start_at_base=False):
+        """Returns upgrade chain for version.
+
+        :param base_version: a version in the upgrade chain
+        :param start_at_base: if False (default), return chain starting with
+        given version. If True, start from the original action (the one that's
+        not an upgrade). If False, go down from given version only.
+        :returns: The list version ids in the upgrade chain
+        """
+        # TODO: cache these maps somewhere
+        upgrade_map = {}
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_map[ann.action_id] = int(ann.value)
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+        if start_at_base is True:
+            while base_version in upgrade_rev_map:
+                base_version = upgrade_rev_map[base_version]
+
+        chain = []
+        version = base_version
+        walked_versions = set()
+        while version is not None and version not in walked_versions:
+            chain.append(version)
+            walked_versions.add(version)
+            version = upgrade_map.get(version)
+        return chain
 
 ##############################################################################
 

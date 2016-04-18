@@ -35,9 +35,10 @@
 ###############################################################################
 
 
+import copy
+
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError
-import copy
 
 #################################################################################
 ## If Operator

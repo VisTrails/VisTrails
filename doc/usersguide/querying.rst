@@ -100,28 +100,9 @@ Note that Query by Example provides the capability to iteratively
 refine searches by adding more criteria.  For example, if you were
 interested in workflows that contain a certain module, you may find that
 such a query returns too many results.  You could then refine the query
-to find only those workflows where the given module has a parameter
-setting that falls within a given range.
-This is done by specifying parameter values in the ``Methods`` panel on the right side of the window.
-One major difference between the ``Pipeline`` view and the ``Search`` view is that you can use comparison operations, such as '<' and '>', in parameter values. The following example illustrates this.
-
-.. topic:: Try it now!
-
-   Open the :vtl:`terminator.vt` example file, and enter ``Search`` mode. Drag the ``vtkActor`` module from the Modules panel onto the Search canvas. ``Execute`` the query, and see which versions of the workflow contain a ``vtkActor`` module. Select ``Back to Search`` to return to the ``Search`` view, select the ``vtkActor`` module, then select ``RotateZ`` method from the ``Module Information`` tab. In the ``RotateZ`` text field, select ``'>'`` and then enter '90'. When you ``Execute`` the query this time, you will notice that the results are different. This is because we are searching for versions that not only contain a ``vtkActor`` module, but that also use a value greater than 90 in this module's ``RotateZ`` method. Your results should resemble those in Figure :ref:`Query result showing all workflows... <fig-querying-vtkActor_example>`.
-
-.. _fig-querying-vtkActor_example:
-
-.. figure:: figures/querying/query_vtkActor.png
-   :width: 3in
-   :align: center
-
-   Query result showing all workflows in the "terminator.vt" example that contain the module ``vtkActor``.
-
-.. figure:: figures/querying/query_vtkActor90.png
-   :width: 3in
-   :align: center
-
-   The same query refined to show only those workflows whose ``RotateZ`` value is greater than 90.
+to find only those workflows where the given module has a parameter with
+a specific value. This is done by specifying parameter values in the
+``Inputs`` panel on the right side of the window.
 
 Textual Queries
 ===============
@@ -151,6 +132,8 @@ To execute a query, simply press the 'Enter' key after typing your query.
    User name       ``user:`` *user name*
    Annotation      ``notes:`` *phrase*
    Tag             ``name:`` *version tag*
+   Any             ``any:`` match user/notes/name (the default)
+   Module          ``module:`` *module name*
    Date            ``before:`` *date* ``|`` *relative time*
    \               ``after:`` *date* ``|`` *relative time*
    ==============  ================================================================

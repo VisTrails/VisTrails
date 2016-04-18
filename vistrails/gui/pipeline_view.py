@@ -111,7 +111,7 @@ class QAbstractGraphicsPortItem(QtWidgets.QAbstractGraphicsShapeItem):
                                       parent: QGraphicsItem)
                                       -> QAbstractGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
-        
+
         """
         # local lookups are faster than global lookups..
         self._rect = CurrentTheme.PORT_RECT.translated(x,y)
@@ -1082,7 +1082,7 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
         #     f2_names = set(f.name for f in m2.functions)
         #     return (len(f1_names ^ f2_names) > 0)
 
-        if self.show_widgets != get_vistrails_configuration(
+        if not self.invalid and self.show_widgets != get_vistrails_configuration(
                                    ).check('showInlineParameterWidgets') and \
            core_module.editable_input_ports:
             return True
@@ -1095,7 +1095,7 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
         #     return True
         else:
             # check for changed edit widgets
-            if core_module.editable_input_ports != \
+            if not self.invalid and core_module.editable_input_ports != \
                self.module.editable_input_ports:
                 # shape has changed so we need to recreate the module
                 return True
@@ -1128,9 +1128,14 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
 
     def functions_have_been_deleted(self, core_module):
         # check if a visible function has been deleted
+        if self.invalid:
+            return set()
         before = self._cur_function_names
         after = set(f.name for f in core_module.functions)
-        return (before - after) & core_module.editable_input_ports
+        if self.invalid:
+            return before - after
+        else:
+            return (before - after) & core_module.editable_input_ports
 
     def moduleFunctionsHaveChanged(self, core_module):
         m2 = core_module
@@ -1270,7 +1275,8 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
         elif self.ghosted:
             self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-        elif self.invalid:
+        # do not show as invalid in search mode
+        elif self.invalid and not (self.controller and self.controller.search):
             self.modulePen = CurrentTheme.INVALID_MODULE_PEN
             self.labelPen = CurrentTheme.INVALID_MODULE_LABEL_PEN
         else:
@@ -1290,7 +1296,8 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
             self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
         elif self.ghosted:
             self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-        elif self.invalid:
+        # do not show as invalid in search mode
+        elif self.invalid and not (self.controller and self.controller.search):
             self.moduleBrush = CurrentTheme.INVALID_MODULE_BRUSH
         else:
             self.moduleBrush = CurrentTheme.MODULE_BRUSH
@@ -1665,7 +1672,8 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
 
         portShape.controller = self.controller
         portShape.port = port
-        if not port.is_valid:
+        # do not show as invalid in search mode
+        if not port.is_valid and not (self.controller and self.controller.search):
             portShape.setInvalid(True)
         return portShape
 
@@ -1763,7 +1771,9 @@ class QGraphicsModuleItem(QtWidgets.QGraphicsItem, QGraphicsItemInterface):
                             optional=True)
 
         item = self.createPortItem(new_spec, *next_pos)
-        item.setInvalid(True)
+        # do not show as invalid in search mode
+        if not (self.controller and self.controller.search):
+            item.setInvalid(True)
         port_dict[new_spec] = item
         next_pos[0] = next_op(next_pos[0], 
                               (CurrentTheme.PORT_WIDTH +
@@ -2054,7 +2064,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
             moduleQuery = (self.controller.current_version, module)
-            matched = self.controller.search.matchModule(*moduleQuery)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller

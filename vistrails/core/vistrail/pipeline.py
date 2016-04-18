@@ -51,7 +51,6 @@ from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.plugin_data import PluginData
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
-import vistrails.core.vistrail.action
 from vistrails.core.utils import InvalidPipeline
 
 import copy
@@ -679,7 +678,7 @@ class Pipeline(DBWorkflow):
             pass
         else:
             if what == 'parameter':
-                #FIXME: check if a change parameter action needs to be generated
+                # FIXME: check if a change parameter action needs to be generated
                 parameter = self.db_get_object(what, oId)
                 parameter.strValue = str(value)
             else:
@@ -1126,6 +1125,8 @@ class Pipeline(DBWorkflow):
         affects downstream. This slightly increases performance.
 
         """
+        from vistrails.core.modules.basic_modules import List, Variant
+
         # TODO: module_ids is currently ignored, this is potentially suboptimal
         result = []
         # Might raise GraphContainsCycles
@@ -1137,7 +1138,6 @@ class Pipeline(DBWorkflow):
                 prev_depth = self.get_module_by_id(module_from_id).list_depth
                 conn = self.get_connection_by_id(conn_id)
                 source_depth = 0
-                from vistrails.core.modules.basic_modules import List, Variant
                 if conn.source.spec:
                     source_depth = conn.source.spec.depth
                     src_descs = conn.source.spec.descriptors()
@@ -1515,7 +1515,7 @@ class TestPipeline(unittest.TestCase):
         import vistrails.core.db.action
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
-        v = XMLFileLocator( \
+        v = XMLFileLocator(
             vistrails.core.system.vistrails_root_directory() +
             '/tests/resources/test_alias.xml').load()
 

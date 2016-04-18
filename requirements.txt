@@ -8,5 +8,5 @@ scp
 Sphinx
 sphinx-argparse
 file_archive>=0.6
-tej
+tej>=0.3
 zmq

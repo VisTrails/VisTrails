@@ -658,7 +658,7 @@ class FileLocator(CoreLocator):
         data = node.get('url', None)
         url = convert_from_str(data,'str')
         data = node.get('vtcontent', None)
-        vtcontent = convert_from_str(data,'base64').decode()
+        vtcontent = convert_from_str(data,'base64')
         data = node.get('filename', None)
         vtname = convert_from_str(data, 'str')
         data = node.get('forceDB',None)
@@ -688,6 +688,7 @@ class FileLocator(CoreLocator):
         config.showWindow = not showSpreadsheetOnly
         if not forceDB:
             if vtcontent is not None:
+                vtcontent = vtcontent.decode()
                 if url is not None:
                     basename = url.split('/')[-1]
                     base,ext = os.path.splitext(basename)
