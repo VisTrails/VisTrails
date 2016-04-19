@@ -3720,7 +3720,7 @@ class VistrailController(object):
         if new_version != self.current_version:
             self.invalidate_version_tree(False)
         if new_error is not None:
-            raise e
+            raise new_error
 
     def validate_version(self, version, report_all_errors=False,
                          from_root=False, delay_update=False, use_current=True):
