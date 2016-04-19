@@ -3534,12 +3534,11 @@ class VistrailController(object):
             if (get_vistrails_configuration().check('upgradeDelay') and not force_no_delay
                 and self._delayed_paramexps):
                 param_exps = self._delayed_paramexps
+                self._delayed_paramexps = []
             else:
                 param_exps = self.vistrail.get_paramexps(new_version)
             new_param_exps = []
             if len(param_exps) > 0:
-                # paramexps are not delayable
-                force_no_delay = True
                 (module_remap, is_complete) = \
                                     self.get_upgrade_module_remap(new_actions)
                 if is_complete:
