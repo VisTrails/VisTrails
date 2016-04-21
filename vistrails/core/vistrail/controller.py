@@ -3284,9 +3284,9 @@ class VistrailController(object):
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
 
-    def handle_invalid_pipeline(self, e, new_version, vistrail=None,
+    def handle_invalid_pipeline(self, e, new_version=-1, vistrail=None,
                                 report_all_errors=False, force_no_delay=False,
-                                delay_update=False, level=0):
+                                delay_update=False, level=0, pipeline_only=False):
         debug.debug('Running handle_invalid_pipeline on %d' % new_version)
         if delay_update:
             force_no_delay = True
@@ -3388,6 +3388,7 @@ class VistrailController(object):
                 if err._was_handled:
                     continue
                 if isinstance(err, InvalidPipeline):
+                    # handle invalid group/abstraction
                     id_scope = IdScope(1, {Group.vtType: Module.vtType,
                                            Abstraction.vtType: Module.vtType})
                     id_remap = {}
@@ -3404,13 +3405,24 @@ class VistrailController(object):
 
                     # set id to None so db saves correctly
                     new_pipeline.id = None
+                    # FIXME: We should not temporarily replace id_scope
                     old_id_scope = self.id_scope
                     self.id_scope = id_scope
-                    inner_actions = \
-                        process_package_exceptions(new_exception_set,
-                                                   new_pipeline)
-                    self.id_scope = old_id_scope
-                    if len(inner_actions) > 0:
+
+                    # run handle_invalid_pipeline to fix multi-step upgrades
+                    try:
+                        _, new_pipeline = \
+                            self.handle_invalid_pipeline(err,
+                                                    report_all_errors=True,
+                                                    pipeline_only=True)
+                    except InvalidPipeline, e:
+                        # Group cannot be fixed
+                        # we just keep the old invalid group
+                        debug.unexpected_exception(e)
+                        raise e
+                    finally:
+                        self.id_scope = old_id_scope
+                    if new_pipeline != err._pipeline:
                         # create action that recreates group/subworkflow
                         old_module = pipeline.modules[err._module_id]
                         if old_module.is_group():
@@ -3507,18 +3519,17 @@ class VistrailController(object):
             new_actions = []
             cur_pipeline = e._pipeline
 
-        if len(new_actions) > 0:
+        if not pipeline_only and len(new_actions) > 0:
             upgrade_action = self.create_upgrade_action(new_actions)
             # check if we should use pending param_exps
             if (get_vistrails_configuration().check('upgradeDelay') and not force_no_delay
                 and self._delayed_paramexps):
                 param_exps = self._delayed_paramexps
+                self._delayed_paramexps = []
             else:
                 param_exps = self.vistrail.get_paramexps(new_version)
             new_param_exps = []
             if len(param_exps) > 0:
-                # paramexps are not delayable
-                force_no_delay = True
                 (module_remap, is_complete) = \
                                     self.get_upgrade_module_remap(new_actions)
                 if is_complete:
@@ -3647,7 +3658,8 @@ class VistrailController(object):
                                                     report_all_errors,
                                                     force_no_delay,
                                                     delay_update,
-                                                    level)
+                                                    level,
+                                                    pipeline_only)
             raise new_err
         return new_version, cur_pipeline
 
@@ -3699,7 +3711,7 @@ class VistrailController(object):
         if new_version != self.current_version:
             self.invalidate_version_tree(False)
         if new_error is not None:
-            raise e
+            raise new_error
 
     def validate_version(self, version, report_all_errors=False,
                          from_root=False, delay_update=False, use_current=True):
