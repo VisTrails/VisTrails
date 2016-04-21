@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import uuid
 from datetime import date, datetime
@@ -47,7 +47,7 @@ def conv_to_bool(x):
             return True
         if s == 'FALSE':
             return False
-    elif isinstance(x, (int, long)):
+    elif isinstance(x, int):
         if x == 0:
             return False
         else:
@@ -61,7 +61,7 @@ def conv_from_bool(x):
             return 1
         else:
             return 0
-    elif isinstance(x, (int, long)):
+    elif isinstance(x, int):
         return x
     
 def convert_symbols(val):

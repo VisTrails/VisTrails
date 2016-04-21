@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # pragma: no testimport
 ###############################################################################
 ##
@@ -37,7 +37,7 @@
 ###############################################################################
 
 # Installs a package through APT, showing progress.
-from __future__ import division
+
 
 import apt
 import apt_pkg
@@ -48,7 +48,8 @@ import time
 from apt_pkg import gettext as _
 from apt.progress.base import InstallProgress, OpProgress, AcquireProgress
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 
 
 package_name = sys.argv[1]
@@ -58,7 +59,7 @@ package_name = sys.argv[1]
 def smart_decode(msg):
     if isinstance(msg, bytes):
         encoding = locale.getpreferredencoding() or 'utf-8'
-        msg = msg.decode(encoding, 'replace').replace(u'\xFFFD', '?')
+        msg = msg.decode(encoding, 'replace').replace('\xFFFD', '?')
     return msg
 
 class GuiOpProgress(OpProgress):
@@ -68,7 +69,7 @@ class GuiOpProgress(OpProgress):
 
     def update(self, percent):
         self.pbar.setValue(int(percent))
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
         OpProgress.update(self, percent)
 
     def done(self):
@@ -99,33 +100,33 @@ class GUIAcquireProgress(AcquireProgress):
         percent = (((self.current_bytes + self.current_items) * 100.0) /
                         float(self.total_bytes + self.total_items))
         self.pbar.setValue(int(percent))
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
         return True
 
     def start(self):
         self.status_label.setText("Started downloading.")
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
 
     def stop(self):
         self.status_label.setText("Finished downloading.")
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
 
     def done(self, item):
-        print "[Fetched] %s" % item.shortdesc
+        print("[Fetched] %s" % item.shortdesc)
         self.status_label.setText("[Fetched] %s" % item.shortdesc)
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
 
     def fail(self, item):
-        print "[Failed] %s" % item.shortdesc
+        print("[Failed] %s" % item.shortdesc)
 
     def ims_hit(self, item):
-        print "[Hit] %s" % item.shortdesc
+        print("[Hit] %s" % item.shortdesc)
         self.status_label.setText("[Hit] %s" % item.shortdesc)
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
 
     def media_change(self, media, drive):
-        print "[Waiting] Please insert media '%s' in drive '%s'" % (
-                media, drive)
+        print("[Waiting] Please insert media '%s' in drive '%s'" % (
+                media, drive))
 
 class GUIInstallProgress(InstallProgress):
     def __init__(self, pbar, status_label):
@@ -140,33 +141,33 @@ class GUIInstallProgress(InstallProgress):
         self.status_label.setText(smart_decode(status))
         self.pbar.setValue(int(percent))
         self.last = percent
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
 
     def pulse(self):
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
         return InstallProgress.pulse(self)
 
     def finish_update(self):
         pass
 
     def processing(self, pkg, stage):
-        print "starting '%s' stage for %s" % (stage, pkg)
+        print("starting '%s' stage for %s" % (stage, pkg))
 
     def conffile(self,current,new):
-        print "WARNING: conffile prompt: %s %s" % (current, new)
+        print("WARNING: conffile prompt: %s %s" % (current, new))
 
     def error(self, errorstr):
-        print "ERROR: got dpkg error: '%s'" % errorstr
+        print("ERROR: got dpkg error: '%s'" % errorstr)
 
 ##############################################################################
 
-class Window(QtGui.QWidget):
+class Window(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
 
-        mainlayout = QtGui.QVBoxLayout()
+        mainlayout = QtWidgets.QVBoxLayout()
         self.setLayout(mainlayout)
-        desktop = QtGui.qApp.desktop()
+        desktop = QtWidgets.QApplication.instance().desktop()
         geometry = desktop.screenGeometry(self)
         h = 200
         w = 300
@@ -174,26 +175,24 @@ class Window(QtGui.QWidget):
                          geometry.top() + (geometry.height() - h)//2,
                          w, h)
         self.setWindowTitle('VisTrails APT interface')
-        lbl = QtGui.QLabel(self)
+        lbl = QtWidgets.QLabel(self)
         mainlayout.addWidget(lbl)
         lbl.setText("VisTrails is about to install '%s'."
                     "Continue?" % package_name)
         lbl.resize(self.width(), 150)
         lbl.setAlignment(QtCore.Qt.AlignHCenter)
         lbl.setWordWrap(True)
-        layout = QtGui.QHBoxLayout()
-        self.allowBtn = QtGui.QPushButton("Install")
-        self.denyBtn = QtGui.QPushButton("Cancel")
+        layout = QtWidgets.QHBoxLayout()
+        self.allowBtn = QtWidgets.QPushButton("Install")
+        self.denyBtn = QtWidgets.QPushButton("Cancel")
         layout.addWidget(self.allowBtn)
         layout.addWidget(self.denyBtn)
         self.layout().addLayout(layout)
 
-        self.connect(self.allowBtn, QtCore.SIGNAL("clicked()"),
-                     self.perform_install)
-        self.connect(self.denyBtn, QtCore.SIGNAL("clicked()"),
-                    self.fail_quit)
-        pbarlayout = QtGui.QVBoxLayout()
-        pbar = QtGui.QProgressBar()
+        self.allowBtn.clicked.connect(self.perform_install)
+        self.denyBtn.clicked.connect(self.fail_quit)
+        pbarlayout = QtWidgets.QVBoxLayout()
+        pbar = QtWidgets.QProgressBar()
         pbar.setMinimum(0)
         pbar.setMaximum(100)
         pbarlayout.addWidget(pbar)
@@ -201,7 +200,7 @@ class Window(QtGui.QWidget):
         pbar.show()
         self.pbar = pbar
         self.pbar.setValue(0)
-        self.status_label = QtGui.QLabel(self)
+        self.status_label = QtWidgets.QLabel(self)
         mainlayout.addWidget(self.status_label)
         self.layout().addStretch()
 
@@ -216,7 +215,7 @@ class Window(QtGui.QWidget):
         self.denyBtn.setEnabled(False)
 
         self.status_label.setText('Reading package cache')
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
         apt_pkg.init()
         cache = apt.cache.Cache(self.op_progress)
         pkg = None
@@ -224,7 +223,7 @@ class Window(QtGui.QWidget):
             pkg = cache[package_name]
         except KeyError:
             self.status_label.setText('Package not found: updating cache')
-            QtGui.qApp.processEvents()
+            QtWidgets.QApplication.instance().processEvents()
             cache.update(self.op_progress)
             try:
                 pkg = cache[package_name]
@@ -235,7 +234,7 @@ class Window(QtGui.QWidget):
         self.status_label.setText('Marking for install')
         pkg.mark_install()
         self.status_label.setText('Installing')
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
         try:
             aprogress = GUIAcquireProgress(self.pbar, self.status_label)
             iprogress = GUIInstallProgress(self.pbar, self.status_label)
@@ -243,18 +242,18 @@ class Window(QtGui.QWidget):
         except Exception:
             import traceback; traceback.print_exc()
             self.show_quit('Error installing package!')
-        print "Installation successful, back to VisTrails..."
+        print("Installation successful, back to VisTrails...")
         self.show_quit("Success, exiting...", result=0)
 
     def show_quit(self, message, t=2, result=1):
         self.status_label.setText(message)
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.instance().processEvents()
         time.sleep(t)
         sys.exit(result)
 
 ##############################################################################
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 
 window = Window()
 window.show()

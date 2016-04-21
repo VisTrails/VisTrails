@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Routines common to Linux and OSX."""
-from __future__ import division
+
 
 import os
 import subprocess
@@ -59,7 +59,7 @@ def executable_is_in_path(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert isinstance(el, basestring)
+        assert isinstance(el, str)
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):

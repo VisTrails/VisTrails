@@ -34,9 +34,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from itertools import izip, chain
+
+from itertools import chain
 import re
 
 import vtk
@@ -122,7 +122,21 @@ disallowed_classes = set(
         'QImage',
         'vtkPLOT3DReader',
         # For VTK 6.2
-        'QuantileDefinitionType'
+        'QuantileDefinitionType',
+        # For VTK 7
+        'vtkContextMouseEvent',
+        'vtkTextureUnitManager',
+        'vtkTextureObject',
+        'vtkOpenGLRenderWindow',
+        'Type',
+        'BufferType',
+        'ObjectType',
+        'DrawAreaResizeBehaviorType',
+        'NodeStatus',
+        'caseType',
+        'PyObject',
+        'RenderMode',
+        'vtkPainterCommunicator',
     ])
 
 disallowed_modules = set(
@@ -147,7 +161,9 @@ def create_module(base_cls_name, node):
                  'vtkStructuredPointsGeometryFilter',
                  'vtkConstrainedPointHandleRepresentation',
                  'vtkRenderViewBase',
-                 'vtkRenderView']
+                 'vtkRenderView',
+                 'vtkAbstractRenderDevice',
+                 'vtkAbstractInteractionDevice']
         def try_to_add_item(item):
             try:
                 lst.append(getattr(vtk, item))
@@ -171,15 +187,10 @@ def create_module(base_cls_name, node):
             return True
         return False
 
-    try:
-        node.klass.__doc__.decode('latin-1')
-    except UnicodeDecodeError:
-        print "ERROR decoding docstring", node.name
-        raise
+    docstring = node.klass.__doc__
 
     input_ports, output_ports = get_ports(node.klass)
     output_ports = list(output_ports) # drop generator
-
     cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
                  (not issubclass(node.klass, vtk.vtkAbstractMapper))) or \
                 issubclass(node.klass, vtk.vtkScalarTree)
@@ -188,9 +199,8 @@ def create_module(base_cls_name, node):
     tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
     callback = '_set_callback' if is_algorithm else None
     methods_last = hasattr(node.klass, 'SetRenderWindow')
-
-    module_spec = ClassSpec(node.name, base_cls_name, node.name,
-                            node.klass.__doc__.decode('latin-1'), callback,
+    module_spec = ClassSpec(node.klass.__name__, base_cls_name, node.name,
+                            docstring, callback,
                             tempfile, cacheable, input_ports, output_ports,
                             compute='Update', cleanup='_cleanup',
                             methods_last=methods_last, abstract=is_abstract())
@@ -309,7 +319,7 @@ def prune_signatures(cls, name, signatures, output=False):
         return False
 
     signatures[:] = [original for (flattened, hit_count, original)
-                     in izip(flattened_entries,
+                     in zip(flattened_entries,
                              hits,
                              signatures)
                      if passes(flattened, hit_count, original)]
@@ -378,7 +388,7 @@ type_map_dict = {'int': "basic:Integer",
                  'bool': "basic:Boolean",
                  'unicode': 'basic:String'}
 
-type_map_values = set(type_map_dict.itervalues())
+type_map_values = set(type_map_dict.values())
 # ["basic:Integer", "basic:Float", "basic:String", "basic:Boolean"]
 
 def get_port_types(name):
@@ -386,6 +396,8 @@ def get_port_types(name):
     Convert from C/C++ types into VisTrails port type
 
     """
+    if name in ['void', Ellipsis]:
+        return None
     if isinstance(name, tuple) or isinstance(name, list):
         return [get_port_types(x) for x in name]
     if name in type_map_dict:
@@ -424,7 +436,7 @@ def get_algorithm_ports(cls):
         except TypeError:
             pass
         else:
-            for i in xrange(instance.GetNumberOfInputPorts()):
+            for i in range(instance.GetNumberOfInputPorts()):
                 port_name = "SetInputConnection%d" % i
                 port_spec = InputPortSpec(name=port_name,
                                           method_name="SetInputConnection",
@@ -434,7 +446,7 @@ def get_algorithm_ports(cls):
                                           show_port=True,
                                           prepend_params=[i])
                 input_ports.append(port_spec)
-            for i in xrange(instance.GetNumberOfOutputPorts()):
+            for i in range(instance.GetNumberOfOutputPorts()):
                 port_name = "GetOutputPort%d" % i
                 port_spec = OutputPortSpec(name=port_name,
                                            method_name="GetOutputPort",
@@ -495,16 +507,6 @@ disallowed_get_set_ports = set(['ReferenceCount',
 color_ports = set(["DiffuseColor", "Color", "AmbientColor", "SpecularColor",
                    "EdgeColor", "Background", "Background2"])
 
-to_vtk6_names = {'AddInput':  'AddInputData',
-                 'SetInput':  'SetInputData',
-                'AddSource': 'AddSourceData',
-                'SetSource': 'SetSourceData'}
-def get_vtk6_name(cls, name):
-    # Return SetInputData for SetInput etc.
-    if name == 'AddInput' and cls == vtk.vtkXYPlotActor:
-        return 'AddDataSetInput'
-    return to_vtk6_names.get(name, name)
-
 # FIXME use defaults and ranges!
 def get_get_set_ports(cls, get_set_dict):
     """get_get_set_ports(cls: class, get_set_dict: dict) -> None
@@ -559,14 +561,6 @@ def get_get_set_ports(cls, get_set_dict):
         if len(setter_sig) > 1:
             prune_signatures(cls, setter_name, setter_sig)
         docstring = get_doc(cls, setter_name)
-        v = vtk.vtkVersion()
-        version = [v.GetVTKMajorVersion(),
-                   v.GetVTKMinorVersion(),
-                   v.GetVTKBuildVersion()]
-        if version < [6, 0, 0]:
-            # Always use VTK6-style names for InputData-style types
-            setter_name = get_vtk6_name(cls, setter_name)
-            name = setter_name[3:]
         for ix, setter in enumerate(setter_sig):
             if setter[1] is None:
                 continue
@@ -631,7 +625,7 @@ def get_toggle_ports(cls, toggle_dict):
     """
 
     input_ports = []
-    for name, default_val in toggle_dict.iteritems():
+    for name, default_val in toggle_dict.items():
         if name in disallowed_toggle_ports:
             continue
         ps = InputPortSpec(name=name,
@@ -766,13 +760,6 @@ def get_other_ports(cls, other_list):
             if len(signatures) > 1:
                 prune_signatures(cls, name, signatures)
             docstring = get_doc(cls, name)
-            v = vtk.vtkVersion()
-            version = [v.GetVTKMajorVersion(),
-                       v.GetVTKMinorVersion(),
-                       v.GetVTKBuildVersion()]
-            if version < [6, 0, 0]:
-                # Always use VTK6-style names for InputData-style types
-                name = get_vtk6_name(cls, name)
             for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 port_types = get_port_types(params)
@@ -881,7 +868,6 @@ def get_ports(cls):
     Search all metamethods of module and add appropriate ports
 
     """
-
     parser.parse(cls)
     ports_tuples = []
     ports_tuples.append(get_algorithm_ports(cls))
@@ -892,36 +878,28 @@ def get_ports(cls):
     ports_tuples.append(get_other_ports(cls, parser.get_other_methods()))
     ports_tuples.append(get_custom_ports(cls))
 
-    zipped_ports = izip(*ports_tuples)
-    input_ports = chain(*zipped_ports.next())
-    output_ports = chain(*zipped_ports.next())
+    zipped_ports = zip(*ports_tuples)
+    input_ports = chain(*next(zipped_ports))
+    output_ports = chain(*next(zipped_ports))
     return input_ports, output_ports
+
 
 def parse(filename="vtk_raw.xml"):
     inheritance_graph = ClassTree(vtk)
     inheritance_graph.create()
 
-    v = vtk.vtkVersion()
-    version = [v.GetVTKMajorVersion(),
-               v.GetVTKMinorVersion(),
-               v.GetVTKBuildVersion()]
-    if version < [5, 7, 0]:
-        assert len(inheritance_graph.tree[0]) == 1
-        base = inheritance_graph.tree[0][0]
-        assert base.name == 'vtkObjectBase'
+    # Skip all deprecated messages
+    warnings = vtk.vtkObject.GetGlobalWarningDisplay()
+    vtk.vtkObject.SetGlobalWarningDisplay(False)
 
     specs_list = []
-    if version < [5, 7, 0]:
+    for base in inheritance_graph.tree[0]:
         for child in base.children:
             if child.name in disallowed_classes:
                 continue
             specs_list.extend(create_module("vtkObjectBase", child))
-    else:
-        for base in inheritance_graph.tree[0]:
-            for child in base.children:
-                if child.name in disallowed_classes:
-                    continue
-                specs_list.extend(create_module("vtkObjectBase", child))
+
+    vtk.vtkObject.SetGlobalWarningDisplay(warnings)
 
     specs = SpecList(specs_list)
     specs.write_to_xml(filename)

@@ -33,9 +33,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtWidgets
+
 
 import file_archive.viewer
 from file_archive.viewer import StoreViewerWindow
@@ -54,15 +55,13 @@ class VistrailsViewerWindow(StoreViewerWindow):
     def _create_buttons(self):
         buttons = super(VistrailsViewerWindow, self)._create_buttons()
 
-        open_vt_button = QtGui.QPushButton("Go to Vistrail")
-        self.connect(open_vt_button, QtCore.SIGNAL('clicked()'),
-                     self._open_vt)
+        open_vt_button = QtWidgets.QPushButton("Go to Vistrail")
+        open_vt_button.clicked.connect(self._open_vt)
         buttons.append(('vt', open_vt_button))
 
-        only_vt_checkbox = QtGui.QCheckBox("Only VisTrails Persisted files")
+        only_vt_checkbox = QtWidgets.QCheckBox("Only VisTrails Persisted files")
         only_vt_checkbox.setChecked(self._vt_only)
-        self.connect(only_vt_checkbox, QtCore.SIGNAL('stateChanged(int)'),
-                     self._set_vt_only)
+        only_vt_checkbox.stateChanged.connect(self._set_vt_only)
         buttons.append(('alwayson', only_vt_checkbox))
 
         return buttons
@@ -128,7 +127,7 @@ class VistrailsViewerWindow(StoreViewerWindow):
             from vistrails.gui.pipeline_view import QGraphicsModuleItem
 
             scene = view.controller.current_pipeline_view.scene()
-            for module_item in (i for i in scene.items()
+            for module_item in (i for i in list(scene.items())
                                   if isinstance(i, QGraphicsModuleItem)):
                 if module_item.module.id == module_id:
                     module_item.setSelected(True)

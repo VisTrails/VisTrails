@@ -33,14 +33,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import shutil
 import sys
 
-from compute_hash import compute_hash
-from identifiers import identifier as persistence_pkg, \
+from .compute_hash import compute_hash
+from .identifiers import identifier as persistence_pkg, \
     old_identifiers as persistence_old_ids
 persistence_pkg_ids = set(persistence_old_ids)
 persistence_pkg_ids.add(persistence_pkg)
@@ -122,14 +122,14 @@ if __name__ == '__main__':
     vistrail_dir = sys.argv[2]
     vt_finds = find_workflows(path_name, vistrail_dir)
 
-    for fname, (execs, tags) in vt_finds.iteritems():
-        print fname + ':'
-        for version, exec_list in execs.iteritems():
+    for fname, (execs, tags) in vt_finds.items():
+        print(fname + ':')
+        for version, exec_list in execs.items():
             for (exec_time, cache_fname) in exec_list:
                 if version in tags:
-                    print ' ', str(version) + ' (' + tags[version] + '):', \
-                        exec_time
-                    print '   ', cache_fname
+                    print(' ', str(version) + ' (' + tags[version] + '):', \
+                        exec_time)
+                    print('   ', cache_fname)
                 else:
-                    print ' ', str(version) + ':', exec_time
-                    print '   ', cache_fname
+                    print(' ', str(version) + ':', exec_time)
+                    print('   ', cache_fname)

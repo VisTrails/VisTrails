@@ -67,7 +67,7 @@ if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, 'C')
 
     import vistrails.gui.requirements
-    vistrails.gui.requirements.require_pyqt4_api2()
+    vistrails.gui.requirements.require_pyqt5()
 
     import vistrails.gui.application_server
     try:
@@ -79,13 +79,13 @@ if __name__ == '__main__':
         v = vistrails.gui.application_server.start_server(optionsDict,
                                                           args=sys.argv[1:])
         app = vistrails.gui.application_server.VistrailsServer()
-    except SystemExit, e:
-        print str(e)
+    except SystemExit as e:
+        print(str(e))
         sys.exit(e)
-    except Exception, e:
+    except Exception as e:
         import traceback
-        print "Uncaught exception on initialization: %s" % (
-                traceback._format_final_exc_line(type(e).__name__, e))
+        print("Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e)))
         traceback.print_exc()
         sys.exit(255)
      

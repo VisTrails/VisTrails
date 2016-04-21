@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from datetime import date, datetime
 
@@ -50,7 +50,7 @@ class SQLDAO:
             if type == 'str':
                 return str(value)
             elif type == 'long':
-                return long(value)
+                return int(value)
             elif type == 'float':
                 return float(value)
             elif type == 'int':
@@ -94,7 +94,7 @@ class SQLDAO:
         whereStr = ''
         whereClause = ''
         values = []
-        for column, value in whereMap.iteritems():
+        for column, value in whereMap.items():
             whereStr += '%s%s = %%s' % \
                         (whereClause, column)
             values.append(value)
@@ -111,7 +111,7 @@ class SQLDAO:
     def createSQLInsert(self, table, columnMap):
         columns = []
         values = []
-        for column, value in columnMap.iteritems():
+        for column, value in columnMap.items():
             if value is None:
                 value = 'NULL'
             columns.append(column)
@@ -129,7 +129,7 @@ class SQLDAO:
         setStr = ''
         comma = ''
         values = []
-        for column, value in columnMap.iteritems():
+        for column, value in columnMap.items():
 #            if value is None:
 #                value = 'NULL'
             setStr += '%s%s = %%s' % (comma, column)
@@ -137,7 +137,7 @@ class SQLDAO:
             values.append(value)
         whereStr = ''
         whereClause = ''
-        for column, value in whereMap.iteritems():
+        for column, value in whereMap.items():
             whereStr += '%s%s = %%s' % (whereClause, column)
             values.append(value)
             whereClause = ' AND '
@@ -149,7 +149,7 @@ class SQLDAO:
         whereStr = ''
         whereClause = ''
         values = []
-        for column, value in whereMap.iteritems():
+        for column, value in whereMap.items():
             whereStr += '%s %s = %%s' % (whereClause, column)
             values.append(value)
             whereClause = ' AND '
@@ -169,7 +169,7 @@ class SQLDAO:
                 data = cursor.fetchall()
             else:
                 data = cursor.lastrowid
-        except Exception, e:
+        except Exception as e:
             raise VistrailsDBException('Command "%s" with values "%s" '
                                        'failed: %s' % (dbCommand, values, e))
         finally:

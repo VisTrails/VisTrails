@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.domain import DBAdd, DBChange, DBDelete
 from vistrails.db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \

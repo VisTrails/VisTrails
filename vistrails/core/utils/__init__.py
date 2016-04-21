@@ -37,7 +37,7 @@
 This module defines common functions and exception class definitions
 used all over VisTrails.
 """
-from __future__ import division, with_statement
+
 
 from vistrails.core.utils.enum import enum
 from vistrails.core.utils.timemethod import time_method, time_call
@@ -57,6 +57,7 @@ import weakref
 
 import unittest
 import tempfile
+import collections
 
 ################################################################################
 
@@ -68,7 +69,7 @@ def invert(d):
     structure to a core.data_structures.bijectivedict.Bidict instead.
 
     """
-    return dict([[v,k] for k,v in d.items()])
+    return dict([[v,k] for k,v in list(d.items())])
 
 ################################################################################
 
@@ -103,7 +104,7 @@ def deprecated(*args):
                               stacklevel=2)
             return func(*args, **kwargs)
         return new_func
-    if len(args) == 1 and callable(args[0]):
+    if len(args) == 1 and isinstance(args[0], collections.Callable):
         return _deprecated(args[0])
     else:
         new_name = args[0]
@@ -352,38 +353,14 @@ def debug(func):
 
 ################################################################################
 
-# Write our own all() and any() if python version < 2.5
-if sys.version_info < (2, 5):
-    def any(iterable):
-        """any(iterable) -> Boolean - Returns true if any element
-        is true. This is meant to be the equivalent of python 2.5's any
-        when running on python < 2.5"""
-        for b in iterable:
-            if b:
-                return True
-        return False
-
-    def all(iterable):
-        """all(iterable) -> Boolean - Returns true if no elements are
-        False.  This is meant to be the equivalent of python 2.5's
-        all() when running on python < 2.5"""
-        for b in iterable:
-            if not b:
-                return False
-        return True
-else:
-    import __builtin__
-    any = __builtin__.any
-    all = __builtin__.all
-
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator
     until item is found, and returns the index inside the iterator.
 
     iter_index is analogous to list.index for iterators."""
     try:
-        itor = itertools.izip(iterable, itertools.count(0))
-        return itertools.dropwhile(lambda (v,c): v != item, itor).next()[1]
+        itor = zip(iterable, itertools.count(0))
+        return itertools.dropwhile(lambda v_c: v_c[0] != item, itor).next()[1]
     except StopIteration:
         return -1
                                               
@@ -392,8 +369,8 @@ def eprint(*args):
     """eprint(*args) -> False - Prints the arguments, then returns
     false. Useful inside a lambda expression, for example."""
     for v in args:
-        print v,
-    print
+        print(v, end=' ')
+    print()
 
 def uniq(l):
     """uniq(l) -> List. Returns a new list consisting of elements that
@@ -405,7 +382,7 @@ def uniq(l):
     a.sort()
     l1 = a[:-1] 
     l2 = a[1:]
-    return [a[0]] + [next for (i, next) in itertools.izip(l1, l2) if i != next]
+    return [a[0]] + [next for (i, next) in zip(l1, l2) if i != next]
 
 class InstanceObject(object):
     """InstanceObject is a convenience class created to facilitate
@@ -433,7 +410,7 @@ class InstanceObject(object):
             else:
                 result += prefix
                 result += "." + str(k) + " = " 
-                if isinstance(v, basestring):
+                if isinstance(v, str):
                     result +=  "'" + str(v) + "'\n"
                 else:
                     result += str(v) + "\n"
@@ -474,6 +451,8 @@ class DummyScene(object):
 class DummyView(object):
     def __init__(self):
         self._scene = DummyScene()
+    def version_changed(self, *args, **kwargs): pass
+    def set_controller(self, *args, **kwargs): pass
     def set_module_active(self, *args, **kwargs): pass
     def set_module_computing(self, *args, **kwargs): pass
     def set_module_success(self, *args, **kwargs): pass
@@ -490,8 +469,6 @@ class DummyView(object):
 ################################################################################
 # class for creating weak references to bound methods
 # based on recipe http://code.activestate.com/recipes/81253/
-# converted to work also in python 2.6.x without using deprecated methods
-# not tested in python 2.5.x but it should work
 class Ref(object):
     """ Wraps any callable, most importantly a bound method, in a way that
     allows a bound method's object to be GC'ed, while providing the same
@@ -499,28 +476,25 @@ class Ref(object):
     def __init__(self, fn):
         try:
             #try getting object, function, and class
-            o, f, c = fn.im_self, fn.im_func, fn.im_class
+            o, f, c = fn.__self__, fn.__func__, fn.__self__.__class__
         except AttributeError: #it's not a bound method
             self._obj = None
             self._func = fn
-            self._clas = None
         else: #it's a bound method
-            if o is None: self._obj = None #... actually UN-bound
-            else: self._obj = weakref.ref(o)
+            if o is None:
+                self._obj = None #... actually UN-bound
+            else:
+                self._obj = weakref.ref(o)
             self._func = f
-            self._clas = None
             
     def __call__(self):
-        if self._obj is None: return self._func
-        elif self._obj() is None: return None
-        try:
-            import types
-            instance_method = types.MethodType
-        except ImportError:
-            #new is deprecated in python 2.6
-            import new
-            instance_method = new.instancemethod
-        return instance_method(self._func, self._obj(), self._clas)
+        if self._obj is None:
+            return self._func
+        elif self._obj() is None:
+            return None
+        import types
+        instance_method = types.MethodType
+        return instance_method(self._func, self._obj())
 
 ###############################################################################
 
@@ -530,13 +504,12 @@ def xor(first, *others):
     Example: xor('abcd', '\x20\x01\x57\x56') = 'Ac42'
     """
     l = len(first)
-    first = [ord(c) for c in first]
     for oth in others:
         if len(oth) != l:
             raise ValueError("All bytestrings should have the same length: "
                              "%d != %d" % (l, len(oth)))
-        first = [c ^ ord(o) for (c, o) in itertools.izip(first, oth)]
-    return ''.join(chr(c) for c in first)
+        first = [c ^ o for (c, o) in zip(first, oth)]
+    return bytes(first)
 
 def long2bytes(nb, length=None):
     """Turns a single integer into a little-endian bytestring.
@@ -553,10 +526,10 @@ def long2bytes(nb, length=None):
     else:
         result = b''
         while nb > 0:
-            result += chr(nb & 0xFF)
+            result += bytes([nb & 0xFF])
             nb = nb >> 8
     if length is not None and len(result) < length:
-        result += '\x00' * (length - len(result))
+        result += b'\x00' * (length - len(result))
     return result
 
 ################################################################################
@@ -591,18 +564,18 @@ class _TestMemoFibo(_TestRegularFibo):
 class TestCommon(unittest.TestCase):
     def test_append_to_dict_of_lists(self):
         f = {}
-        self.assertEquals(f.has_key(1), False)
+        self.assertEquals(1 in f, False)
         append_to_dict_of_lists(f, 1, 1)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1])
         append_to_dict_of_lists(f, 1, 1)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1, 1])
         append_to_dict_of_lists(f, 1, 2)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1, 1, 2])
         append_to_dict_of_lists(f, 2, "Foo")
-        self.assertEquals(f.has_key(2), True)
+        self.assertEquals(2 in f, True)
         self.assertEquals(f[2], ["Foo"])
 
     def test_memo(self):

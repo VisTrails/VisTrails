@@ -39,7 +39,7 @@ MongoDB package for VisTrails.
 Uses the pymongo driver to access MongoDB.
 """
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.mongodb'
 name = 'MongoDB'
@@ -49,6 +49,6 @@ def package_requirements():
     from vistrails.core.requirements import require_python_module
     require_python_module('pymongo', {
             'pip': 'pymongo',
-            'linux-debian': 'python-pymongo',
-            'linux-ubuntu': 'python-pymongo',
+            'linux-debian': 'python3-pymongo',
+            'linux-ubuntu': 'python3-pymongo',
             'linux-fedora': 'pymongo'})

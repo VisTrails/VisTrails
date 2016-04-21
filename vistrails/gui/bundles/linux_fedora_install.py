@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # pragma: no testimport
 ###############################################################################
 ##
@@ -63,7 +63,8 @@
 
 # ##############################################################################
 
-# from PyQt4 import Qt, QtCore, QtGui
+# from PyQt5 import Qt, QtCore
+
 
 # class GUIInstallProgress(InstallProgress):
 #     def __init__(self, pbar, status_label):
@@ -188,7 +189,7 @@
 # window.show()
 # print app.exec_()
 # sys.exit(0)
-from __future__ import division
+
 
 import os
 import sys

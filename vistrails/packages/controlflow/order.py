@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 
@@ -57,10 +57,10 @@ class ExecuteInOrder(Module):
 
     def compute(self):
         # do update_upstream as compute, but sort by key
-        for _, connectorList in sorted(self.inputPorts.iteritems()):
+        for _, connectorList in sorted(self.inputPorts.items()):
             for connector in connectorList:
                 connector.obj.update()
-        for iport, connectorList in copy.copy(self.inputPorts.items()):
+        for iport, connectorList in copy.copy(list(self.inputPorts.items())):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(iport, connector)

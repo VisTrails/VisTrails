@@ -37,7 +37,6 @@
 initializations to the theme, packages and the builder...
 
 """
-from __future__ import division
 
 from ast import literal_eval
 import copy
@@ -46,9 +45,9 @@ import getpass
 import platform
 import re
 import sys
-import StringIO
+import io
 
-from PyQt4 import QtGui, QtCore, QtNetwork
+from PyQt5 import QtGui, QtCore, QtNetwork, QtWidgets
 
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
@@ -61,7 +60,6 @@ import vistrails.core.requirements
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import test_db_connection
-from vistrails.gui import qt
 import vistrails.gui.theme
 
 
@@ -86,7 +84,7 @@ def global_ui_fixes():
 
 
 class VistrailsApplicationSingleton(VistrailsApplicationInterface,
-                                    QtGui.QApplication):
+                                    QtWidgets.QApplication):
     """
     VistrailsApplicationSingleton is the singleton of the application,
     there will be only one instance of the application during VisTrails
@@ -109,7 +107,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def __init__(self):
         global_ui_fixes()
 
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtWidgets.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
         if self.use_event_filter:
@@ -125,7 +123,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.shared_memory = None
         self.local_server = None
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
-        qt.allowQObjects()
 
     def run_single_instance(self, args):
         # code for single instance of the application
@@ -147,7 +144,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             "Removing socket" % (local_socket.errorString()))
                     try:
                         os.remove(self._unique_key)
-                    except OSError, e:
+                    except OSError as e:
                         debug.critical("Couldn't remove socket: %s" %
                                        self._unique_key, e)
 
@@ -164,8 +161,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                "of vistrails application")
                 return
             self.local_server = QtNetwork.QLocalServer(self)
-            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                         self.message_received)
+            self.local_server.newConnection.connect(self.message_received)
             if self.local_server.listen(self._unique_key):
                 debug.log("Listening on %s"%self.local_server.fullServerName())
             else:
@@ -184,8 +180,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                    "of vistrails application")
                     return
                 self.local_server = QtNetwork.QLocalServer(self)
-                self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                             self.message_received)
+                self.local_server.newConnection.connect(self.message_received)
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
@@ -198,7 +193,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def found_another_instance_running(self, local_socket, args):
         debug.critical("Found another instance of VisTrails running")
-        msg = bytes(args)
+        msg = str(args).encode()
         debug.critical("Will send parameters to main instance %s" % msg)
         res = self.send_message(local_socket, msg)
         if res is True:
@@ -269,45 +264,43 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def ask_update_default_application(self, dont_ask_checkbox=True):
         if hasattr(self, 'splashScreen') and self.splashScreen:
             self.splashScreen.hide()
-        dialog = QtGui.QDialog()
-        dialog.setWindowTitle(u"Install .vt .vtl handler")
-        layout = QtGui.QVBoxLayout()
+        dialog = QtWidgets.QDialog()
+        dialog.setWindowTitle("Install .vt .vtl handler")
+        layout = QtWidgets.QVBoxLayout()
         dialog.setLayout(layout)
-        layout.addWidget(QtGui.QLabel(u"Install VisTrails as default handler "
-                                      u"to open .vt and .vtl files?"))
+        layout.addWidget(QtWidgets.QLabel("Install VisTrails as default handler "
+                                      "to open .vt and .vtl files?"))
         if dont_ask_checkbox:
-            dont_ask = QtGui.QCheckBox(u"Don't ask on startup")
+            dont_ask = QtWidgets.QCheckBox("Don't ask on startup")
             dont_ask_setting = self.configuration.check('handlerDontAsk')
             dont_ask.setChecked(dont_ask_setting)
             layout.addWidget(dont_ask)
-        buttons = QtGui.QDialogButtonBox(
-                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No)
         layout.addWidget(buttons)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                     dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                     dialog, QtCore.SLOT('reject()'))
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
 
         res = dialog.exec_()
         if dont_ask_checkbox:
             if dont_ask.isChecked() != dont_ask_setting:
                 self.configuration.handlerDontAsk = dont_ask.isChecked()
                 self.configuration.handlerDontAsk = dont_ask.isChecked()
-        if res != QtGui.QDialog.Accepted:
+        if res != QtWidgets.QDialog.Accepted:
             return False
         if system.systemType == 'Linux':
             if not linux_update_default_application():
-                QtGui.QMessageBox.warning(
+                QtWidgets.QMessageBox.warning(
                         None,
-                        u"Install .vt .vtl handler",
-                        u"Couldn't set VisTrails as default handler "
-                        u"to open .vt and .vtl files")
+                        "Install .vt .vtl handler",
+                        "Couldn't set VisTrails as default handler "
+                        "to open .vt and .vtl files")
                 return False
         else:
-            QtGui.QMessageBox.warning(
+            QtWidgets.QMessageBox.warning(
                     None,
-                    u"Install .vt .vtl handler",
-                    u"Can't install a default handler on this platform")
+                    "Install .vt .vtl handler",
+                    "Can't install a default handler on this platform")
             return False
         return True
 
@@ -413,7 +406,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             for m in self.notifications[notification_id]:
                 try:
                     m(*args)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
         notifications = {}
@@ -428,7 +421,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception, e:
+                    except Exception as e:
                         debug.unexpected_exception(e)
                         debug.print_exc()
 
@@ -444,7 +437,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception, e:
+                    except Exception as e:
                         debug.unexpected_exception(e)
                         debug.print_exc()
 
@@ -579,7 +572,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             update_vistrail=True))
                 if len(errs) > 0:
                     for err in errs:
-                        print err
+                        print(err)
                         debug.critical("*** Error in %s:%s:%s -- %s" % err)
                     return [False, ["*** Error in %s:%s:%s -- %s" % err for err in errs]]
             return True
@@ -597,8 +590,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             ["%s %s %s" %(j.version,
                           j.start,
                           "FINISHED" if j.completed() else "RUNNING")
-             for i, j in controller.jobMonitor.workflows.iteritems()])
-        print text
+             for i, j in controller.jobMonitor.workflows.items()])
+        print(text)
         return text
 
     def printJob(self, locator, version):
@@ -607,11 +600,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                         mashups, auto_save=False)
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"
-        workflow = [wf for wf in controller.jobMonitor.workflows.itervalues()
+        workflow = [wf for wf in controller.jobMonitor.workflows.values()
                     if wf.version == int(version)]
         if len(workflow) < 1:
             text = "No job for workflow with id %s" % version
-            print text
+            print(text)
             return text
         workflow = workflow[0]
         text += '\n'.join(
@@ -619,7 +612,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                           i.start,
                           "FINISHED" if i.finished else "RUNNING")
              for i in workflow.jobs.values()])
-        print text
+        print(text)
         return text
 
     def setIcon(self):
@@ -637,7 +630,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
-            self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
+            self.splashScreen = QtWidgets.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
             self.splashScreen.setFont(vistrails.gui.theme.CurrentTheme.SPLASH_SCREEN_FONT)
             debug.DebugPrint.getInstance().register_splash(self)
             self.splashScreen.show()
@@ -693,14 +686,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 create_event = 15
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
             if (event.type() == create_event and
-                    isinstance(o, QtGui.QWidget) and
-                    not isinstance(o, QtGui.QSplashScreen) and
+                    isinstance(o, QtWidgets.QWidget) and
+                    not isinstance(o, QtWidgets.QSplashScreen) and
                     not (o.windowFlags() & QtCore.Qt.Popup)):
                 o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
             self.input = [str(event.file())]
             self.process_interactive_input()
-        return QtGui.QApplication.eventFilter(self,o,event)
+        return QtWidgets.QApplication.eventFilter(self,o,event)
     
     def is_running(self):
         return self._is_running
@@ -718,12 +711,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             try:
                 # redirect stdout
                 old_stdout = sys.stdout
-                sys.stdout = StringIO.StringIO()
-                result = self.parse_input_args_from_other_instance(str(byte_array))
+                sys.stdout = io.StringIO()
+                result = self.parse_input_args_from_other_instance(str(byte_array, encoding='utf-8'))
                 output = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()
@@ -739,7 +732,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if result == "Command Completed" and output:
                 result += '\n' + output
             self.shared_memory.lock()
-            local_socket.write(bytes(result))
+            local_socket.write(result.encode())
             self.shared_memory.unlock()
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
@@ -760,8 +753,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                            local_socket.errorString())
             return False
         byte_array = local_socket.readAll()
-        result = str(byte_array)
-        print "Other instance processed input (%s)" % result
+        result = str(byte_array, 'utf-8')
+        print("Other instance processed input (%s)" % result)
         if not result.startswith('Command Completed'):
             debug.critical(result)
         else:
@@ -820,7 +813,7 @@ def linux_default_application_set():
             # something is wrong, abort
             debug.warning("Error checking mimetypes: %s" % output[0])
             return None
-    except OSError, e:
+    except OSError as e:
         debug.warning("Error checking mimetypes: %s" % e.message)
         return None
     if 'application/x-vistrails' == output[0].strip():

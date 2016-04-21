@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 import re
@@ -61,7 +61,7 @@ from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
-from identifiers import identifier, version as package_version
+from .identifiers import identifier, version as package_version
 
 from .vtk_wrapper import vtk_classes
 from . import hasher
@@ -88,8 +88,9 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     # dependency...
     widget = None
     if systemType=='Darwin':
-        from PyQt4 import QtCore, QtGui
-        widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+        from PyQt5 import QtCore, QtWidgets
+
+        widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
         widget.resize(w, h)
         widget.show()
         window.SetWindowInfo(str(int(widget.winId())))
@@ -100,11 +101,7 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     win2image.SetInput(window)
     win2image.Update()
     writer = vtk_format()
-    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
-       LooseVersion('6.0.0'):
-        writer.SetInputData(win2image.GetOutput())
-    else:
-        writer.SetInput(win2image.GetOutput())
+    writer.SetInputData(win2image.GetOutput())
     writer.SetFileName(output_filename)
     writer.Write()
     window.Finalize()
@@ -215,7 +212,8 @@ def _get_pipeline():
     global _pipeline
     return _pipeline
 
-module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
+module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader',
+                     'vtkVolumeTextureMapper3D': 'vtkSmartVolumeMapper'}
 
 def base_name(name):
     """Returns name without overload index.
@@ -274,8 +272,8 @@ def build_remap(module_name=None):
         controller = _get_controller()
         if len(old_function.parameters) > 0:
             new_param_vals, aliases = \
-                zip(*[(p.strValue, p.alias)
-                      for p in old_function.parameters])
+                list(zip(*[(p.strValue, p.alias)
+                      for p in old_function.parameters]))
         else:
             new_param_vals = []
             aliases = []
@@ -289,7 +287,7 @@ def build_remap(module_name=None):
         f_map = {"vtkCellArray": {"InsertNextCell": 3}}
 
         def remap(old_function, new_module):
-            for i in xrange(1, port_num):
+            for i in range(1, port_num):
                 port_name = "%s_%d" % (port_prefix, i)
                 port_spec = get_input_port_spec(new_module, port_name)
                 old_sigstring = \
@@ -330,7 +328,7 @@ def build_remap(module_name=None):
                        pipeline.modules[old_conn.destination.moduleId]]
             modules[idx] = new_module
             ports = [old_conn.source, old_conn.destination]
-            for i in xrange(1, port_num):
+            for i in range(1, port_num):
                 port_name = "%s_%d" % (port_prefix, i)
                 port_spec = get_port_spec(modules[idx], port_name)
                 if port_spec.sigstring == port.signature:
@@ -359,7 +357,7 @@ def build_remap(module_name=None):
             remap_dict_key = 'src_port_remap'
         ports = get_port_specs(desc, port_type)
         port_nums = {}
-        for port_name, port_spec in ports.iteritems():
+        for port_name, port_spec in ports.items():
             # FIXME just start at 1 and go until don't find port (no
             # need to track max)?
             search_res = uscore_num.search(port_name)
@@ -370,7 +368,7 @@ def build_remap(module_name=None):
                     port_nums[port_prefix] = port_num
                 elif port_num > port_nums[port_prefix]:
                     port_nums[port_prefix] = port_num
-        for port_prefix, port_num in port_nums.iteritems():
+        for port_prefix, port_num in port_nums.items():
             m = build_remap_method(desc, port_prefix, port_num, port_type)
             remap.add_remap(remap_dict_key, port_prefix, m)
             if port_type == 'input':
@@ -488,7 +486,7 @@ def build_remap(module_name=None):
             pipeline = _get_pipeline()
             # find vtkRenderer
             vtkRenderer = None
-            for conn in pipeline.connections.itervalues():
+            for conn in pipeline.connections.values():
                 src_module_id = conn.source.moduleId
                 dst_module_id = conn.destination.moduleId
                 if dst_module_id == old_conn.source.moduleId and \
@@ -513,7 +511,7 @@ def build_remap(module_name=None):
         process_ports(desc, remap, 'input')
         process_ports(desc, remap, 'output')
         _remap.add_module_remap(remap)
-        for old, new in module_name_remap.iteritems():
+        for old, new in module_name_remap.items():
             if desc.name == new:
                 # Remap using old name
                 remap.new_module = old
@@ -523,7 +521,7 @@ def build_remap(module_name=None):
                                    module_name=desc.name)
         remap.add_remap('src_port_remap', 'self', 'Instance')
         _remap.add_module_remap(remap)
-        for old, new in module_name_remap.iteritems():
+        for old, new in module_name_remap.items():
             if desc.name == new:
                 # Remap using old name
                 remap.new_module = old
@@ -627,14 +625,14 @@ def build_remap(module_name=None):
 
         remap = UpgradeModuleRemap('0.9.5', '1.0.0', '1.0.0',
                                    module_name=desc.name)
-        for k, v in input_mappings.iteritems():
+        for k, v in input_mappings.items():
             remap.add_remap('dst_port_remap', k, v)
-        for k, v in output_mappings.iteritems():
+        for k, v in output_mappings.items():
             remap.add_remap('src_port_remap', k, v)
-        for k, v in function_mappings.iteritems():
+        for k, v in function_mappings.items():
             remap.add_remap('function_remap', k, v)
         _remap.add_module_remap(remap)
-        for old, new in module_name_remap.iteritems():
+        for old, new in module_name_remap.items():
             if desc.name == new:
                 # Remap to new name
                 remap.new_module = new

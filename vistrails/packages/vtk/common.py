@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.basic_modules import Color, Path, PathObject
 from vistrails.core.utils import InstanceObject
@@ -73,7 +73,7 @@ def get_input_spec(cls, name):
     while base and hasattr(base, '_input_spec_table'):
         if name in base._input_spec_table:
             return base._input_spec_table[name]
-        base = klasses.next()
+        base = next(klasses)
     return None
 
 def get_output_spec(cls, name):
@@ -84,5 +84,5 @@ def get_output_spec(cls, name):
     while base and hasattr(base, '_output_spec_table'):
         if name in base._output_spec_table:
             return base._output_spec_table[name]
-        base = klasses.next()
+        base = next(klasses)
     return None

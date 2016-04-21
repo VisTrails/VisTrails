@@ -33,12 +33,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.bundles.pyimport import py_import
 import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.gui.theme import CurrentTheme
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
@@ -122,7 +123,7 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
 
 def PythonEditor(parent=None):
     try:
-        py_import('PyQt4.Qsci', {'linux-debian': 'python-qscintilla2',
+        py_import('PyQt5.Qsci', {'linux-debian': 'python-qscintilla2',
                                  'linux-ubuntu': 'python-qscintilla2'}, True)
     except ImportError:
         return OldPythonEditor(parent)
@@ -130,12 +131,12 @@ def PythonEditor(parent=None):
         return NewPythonEditor(parent)
 
 def NewPythonEditor(parent):
-    vistrails.core.requirements.require_python_module('PyQt4.Qsci')
-    from PyQt4.Qsci import QsciScintilla, QsciLexerPython
+    vistrails.core.requirements.require_python_module('PyQt5.Qsci')
+    from PyQt5.Qsci import QsciScintilla, QsciLexerPython
     class _PythonEditor(QsciScintilla):
     
-        def __init__(self, parent=None):
-            QsciScintilla.__init__(self, parent)
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
             ## set the default font of the editor
             ## and take the same font for line numbers
             font = CurrentTheme.PYTHON_SOURCE_EDITOR_FONT
@@ -209,20 +210,18 @@ def NewPythonEditor(parent):
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)
 #            QsciScintilla.focusOutEvent(self, event)
 
-    return _PythonEditor(parent)
+    return _PythonEditor(parent=parent)
 
-class OldPythonEditor(QtGui.QTextEdit):
+class OldPythonEditor(QtWidgets.QTextEdit):
 
-    def __init__(self, parent=None):
-        QtGui.QTextEdit.__init__(self, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.setAcceptRichText(False)
-        self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)
         self.highlighter = PythonHighlighter(self.document())
-        self.connect(self,
-                     QtCore.SIGNAL('currentCharFormatChanged(QTextCharFormat)'),
-                     self.formatChanged)
+        self.currentCharFormatChanged.connect(self.formatChanged)
 
     def formatChanged(self, f):
         self.setFont(CurrentTheme.PYTHON_SOURCE_EDITOR_FONT)
@@ -236,7 +235,7 @@ class OldPythonEditor(QtGui.QTextEdit):
             self.insertPlainText('    ')
         else:
             # super(PythonEditor, self).keyPressEvent(event)
-            QtGui.QTextEdit.keyPressEvent(self, event)
+            QtWidgets.QTextEdit.keyPressEvent(self, event)
             
 #    def focusOutEvent(self, event):
 #        if self.parent():
@@ -244,6 +243,5 @@ class OldPythonEditor(QtGui.QTextEdit):
 #        QtGui.QTextEdit.focusOutEvent(self, event)
 
 class PythonSourceConfigurationWidget(SourceConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, 
-                                           PythonEditor, True, True, parent)
+    def __init__(self, **kwargs):
+        super().__init__(editor_class=PythonEditor, **kwargs)

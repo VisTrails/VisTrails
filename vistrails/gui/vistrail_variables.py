@@ -37,9 +37,10 @@
 drop constants from the module palette
 
 """
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore
+
 from vistrails.gui.variable_dropbox import QVariableDropBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -56,7 +57,7 @@ class QVistrailVariables(QVariableDropBox, QVistrailsPaletteInterface):
         Initialize widget constraints
         
         """
-        QVariableDropBox.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setWindowTitle('Vistrail Variables')
         self.setToolWindowAcceptDrops(True)
 

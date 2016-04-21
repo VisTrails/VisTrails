@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###############################################################################
 ##
 ## Copyright (C) 2014-2016, New York University.
@@ -66,9 +66,9 @@
 import sys
 import os.path
 import os
-from httplib import HTTP
-from urlparse import urlparse
-import urllib2
+from http.client import HTTPConnection
+from urllib.parse import urlparse
+import urllib.request, urllib.error, urllib.parse
 import re
 import logging
 import shlex
@@ -90,8 +90,8 @@ def log(msg):
 ###############################################################################
         
 def usage():
-    print "Usage: "
-    print "   %s path/to/options_file" % sys.argv[0]
+    print("Usage: ")
+    print("   %s path/to/options_file" % sys.argv[0])
     sys.exit(1)
 
 ###############################################################################
@@ -155,7 +155,7 @@ forceDB="%s" tag="%s"/>'%(filename,#os.path.abspath(filename),
               str(showspreadsheetonly),
               str(False),
               str(tag))
-    except Exception, e:
+    except Exception as e:
         log("Error: %s"%str(e))
     log("will open %s"%vtl_filename)
     log("vtlfile contents: %s"%header)
@@ -194,7 +194,7 @@ version="%s" execute="%s" showSpreadsheetOnly="%s" forceDB="%s" />'%(
               str(execute),
               str(showspreadsheetonly),
               str(True))
-    except Exception, e:
+    except Exception as e:
         log("Error: %s"%str(e))
     log("will open %s"%vtl_filename)
     log("vtlfile contents: %s"%header)
@@ -211,7 +211,7 @@ def download(url,filename, folder=None):
     
     """
     try:
-        furl = urllib2.urlopen(url)
+        furl = urllib.request.urlopen(url)
         if filename is None and folder is not None:
             info = furl.info()
             re_filename = re.compile('attachment;filename=(.*vtl)')
@@ -224,7 +224,7 @@ def download(url,filename, folder=None):
         f.write(furl.read())
         f.close()
         return True
-    except Exception, e:
+    except Exception as e:
         log(str(e))
         return False
     
@@ -236,7 +236,7 @@ def download_as_text(url):
     
     """
     try:
-        furl = urllib2.urlopen(url)
+        furl = urllib.request.urlopen(url)
         s = furl.read()
         return s
     except:
@@ -259,13 +259,13 @@ execute=%s&showspreadsheetonly=%s&embedWorkflow=%s&includeFullTree=%s" % (vt_id,
                                                     db_name,
                                                     host,
                                                     port,
-                                                    urllib2.quote(tag),
+                                                    urllib.parse.quote(tag),
                                                     execute,
                                                     showspreadsheetonly,
                                                     embedWorkflow,
                                                     includeFullTree)
     if version is not None:
-        url_params += "&version=%s"%urllib2.quote(version)
+        url_params += "&version=%s"%urllib.parse.quote(version)
     url_params = url_params.replace("%","\%")
     url = "%s?%s"%(download_url, url_params)
     
@@ -327,7 +327,7 @@ def _download_content(url, request, path_to_figures):
             msg = "url: '%s' \n returned: %s" % (url,page.strip())
             return (False, msg)
             
-    except Exception, e:
+    except Exception as e:
         return (False, str(e))
     
 def build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
@@ -681,7 +681,7 @@ def run_vistrails_locally_file(path_to_vistrails, path_to_python,
                                       execute, showspreadsheetonly,
                                       path_to_figures, graphics_options,
                                       embedWorkflow, includeFullTree))
-    except Exception, e:
+    except Exception as e:
         log("Error: %s"%str(e))
 ###############################################################################
 
@@ -1052,7 +1052,7 @@ def run_vistrails_remotely(path_to_vistrails, download_url, host, db_name, vt_id
             request = "?host=%s&db=%s&vt=%s&version=%s&port=%s&pdf=%s" % (host,
                                                                    db_name,
                                                                    vt_id,
-                                                                   urllib2.quote(version),
+                                                                   urllib.parse.quote(version),
                                                                    port,
                                                                    pdf)
             url = path_to_vistrails + request
@@ -1168,7 +1168,7 @@ def get_wf_graph_remotely(path_to_vistrails, download_url, host, db_name, vt_id,
             request = "?host=%s&db=%s&vt=%s&version=%s&port=%s&pdf=%s&showworkflow=True" % (host,
                                                                    db_name,
                                                                    vt_id,
-                                                                   urllib2.quote(version),
+                                                                   urllib.parse.quote(version),
                                                                    port,
                                                                    pdf)
             url = path_to_vistrails + request
@@ -1221,14 +1221,14 @@ def check_path(path):
 def check_url(url):
         try:
             p = urlparse(url)
-            h = HTTP(p[1])
+            h = HTTPConnection(p[1])
             h.putrequest('HEAD', p[2])
             h.endheaders()
             if h.getreply()[0] == 200:
                 return True
             else:
                 return False
-        except Exception, e:
+        except Exception as e:
             log(str(e))
             return False
 
@@ -1473,13 +1473,13 @@ try removing the buildalways option from vistrails latex command" %\
                      (path_to_vistrails)))
     
 # the printed answer will be included inline by the latex compiler.
-print latex
+print(latex)
 if result == True:
     # we will also create a temporary file that can be used to include the
     # images directly
     if not os.path.isdir('cached'):
         if os.path.exists('cached'):
-            print generate_latex_error("cached exists and it is not a folder")
+            print(generate_latex_error("cached exists and it is not a folder"))
             sys.exit(1)
         else:
             os.mkdir('cached')

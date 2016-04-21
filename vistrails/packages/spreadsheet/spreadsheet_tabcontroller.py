@@ -38,13 +38,14 @@
 StandardWidgetTabController
 """
 
-from __future__ import division
+
 
 from ast import literal_eval
 import copy
 import gc
 import os.path
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
 from vistrails.core.interpreter.default import get_default_interpreter
@@ -59,13 +60,14 @@ from .spreadsheet_tab import StandardWidgetTabBar, StandardWidgetSheetTab, \
     StandardTabDockWidget
 
 
-class StandardWidgetTabController(QtGui.QTabWidget):
+class StandardWidgetTabController(QtWidgets.QTabWidget):
     """
     StandardWidgetTabController inherits from QTabWidget to contain a
     list of StandardWidgetSheetTab. This is the major component that
     will handle most of the spreadsheet actions
 
     """
+    needChangeTitle = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         """ StandardWidgetTabController(parent: QWidget)
                                         -> StandardWidgetTabController
@@ -73,23 +75,17 @@ class StandardWidgetTabController(QtGui.QTabWidget):
 
         """
 
-        QtGui.QTabWidget.__init__(self, parent)
+        QtWidgets.QTabWidget.__init__(self, parent)
         self.operatingWidget = self
         self.setTabBar(StandardWidgetTabBar(self))
-        self.setTabShape(QtGui.QTabWidget.Triangular)
-        self.setTabPosition(QtGui.QTabWidget.South)
+        self.setTabShape(QtWidgets.QTabWidget.Triangular)
+        self.setTabPosition(QtWidgets.QTabWidget.South)
         self.tabWidgets = []
         self.floatingTabWidgets = []
         self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabMoveRequest(int,int)'),
-                     self.moveTab)
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabSplitRequest(int,QPoint)'),
-                     self.splitTab)
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabTextChanged(int,QString)'),
-                     self.changeTabText)
+        self.tabBar().tabMoveRequest.connect(self.moveTab)
+        self.tabBar().tabSplitRequest.connect(self.splitTab)
+        self.tabBar().tabTextChanged.connect(self.changeTabText)
         self.addAction(self.showNextTabAction())
         self.addAction(self.showPrevTabAction())
         self.executedPipelines = [[],{},{}]
@@ -97,12 +93,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.spreadsheetFileName = None
         self.loadingMode = False
         self.editingMode = False
-        self.closeButton = QtGui.QToolButton(self)
+        self.closeButton = QtWidgets.QToolButton(self)
         self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
         self.closeButton.setAutoRaise(True)
         self.setCornerWidget(self.closeButton)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                     self.deleteSheetAction().trigger)
+        self.closeButton.clicked.connect(self.deleteSheetAction().trigger)
 
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
@@ -137,13 +132,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if not hasattr(self, 'newSheetActionVar'):
             icon = QtGui.QIcon(':/images/newsheet.png')
-            self.newSheetActionVar = QtGui.QAction(icon, '&New sheet', self)
+            self.newSheetActionVar = QtWidgets.QAction(icon, '&New sheet', self)
             self.newSheetActionVar.setToolTip('Create a new sheet')
             self.newSheetActionVar.setStatusTip('Create and show a new sheet')
             self.newSheetActionVar.setShortcut(QtGui.QKeySequence('Ctrl+N'))
-            self.connect(self.newSheetActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.newSheetActionTriggered)
+            self.newSheetActionVar.triggered.connect(self.newSheetActionTriggered)
         return self.newSheetActionVar
 
     def deleteSheetAction(self):
@@ -153,16 +146,14 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if not hasattr(self, 'deleteSheetActionVar'):
             icon = QtGui.QIcon(':/images/deletesheet.png')
-            self.deleteSheetActionVar = QtGui.QAction(icon, '&Delete sheet',
+            self.deleteSheetActionVar = QtWidgets.QAction(icon, '&Delete sheet',
                                                       self)
             self.deleteSheetActionVar.setToolTip('Delete the current sheet')
             self.deleteSheetActionVar.setStatusTip('Delete the current sheet '
                                                    'if there are more than one')
             key = QtGui.QKeySequence('Ctrl+Backspace')
             self.deleteSheetActionVar.setShortcut(key)
-            self.connect(self.deleteSheetActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.deleteSheetActionTriggered)
+            self.deleteSheetActionVar.triggered.connect(self.deleteSheetActionTriggered)
         return self.deleteSheetActionVar
 
     def showNextTabAction(self):
@@ -172,15 +163,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if not hasattr(self, 'showNextTabActionVar'):
             icon = QtGui.QIcon(':/images/forward.png')
-            self.showNextTabActionVar = QtGui.QAction(icon, '&Next sheet', self)
+            self.showNextTabActionVar = QtWidgets.QAction(icon, '&Next sheet', self)
             self.showNextTabActionVar.setToolTip('Show the next sheet')
             self.showNextTabActionVar.setStatusTip('Show the next sheet if it '
                                                    'is available')
-            self.showNextTabActionShortcut = QtGui.QShortcut(self)
+            self.showNextTabActionShortcut = QtWidgets.QShortcut(self)
             self.showNextTabActionVar.setShortcut('Ctrl+PgDown')
-            self.connect(self.showNextTabActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.showNextTab)
+            self.showNextTabActionVar.triggered.connect(self.showNextTab)
         return self.showNextTabActionVar
 
     def showPrevTabAction(self):
@@ -190,14 +179,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if not hasattr(self, 'showPrevTabActionVar'):
             icon = QtGui.QIcon(':/images/back.png')
-            self.showPrevTabActionVar = QtGui.QAction(icon, '&Prev sheet', self)
+            self.showPrevTabActionVar = QtWidgets.QAction(icon, '&Prev sheet', self)
             self.showPrevTabActionVar.setToolTip('Show the previous sheet')
             self.showPrevTabActionVar.setStatusTip('Show the previous sheet if '
                                                    'it is available')
             self.showPrevTabActionVar.setShortcut('Ctrl+PgUp')
-            self.connect(self.showPrevTabActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.showPrevTab)
+            self.showPrevTabActionVar.triggered.connect(self.showPrevTab)
         return self.showPrevTabActionVar
 
     def saveAction(self):
@@ -206,13 +193,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
 
         """
         if not hasattr(self, 'saveActionVar'):
-            self.saveActionVar = QtGui.QAction(QtGui.QIcon(':/images/save.png'),
+            self.saveActionVar = QtWidgets.QAction(QtGui.QIcon(':/images/save.png'),
                                                '&Save', self)
             self.saveActionVar.setStatusTip('Save the current spreadsheet')
             self.saveActionVar.setShortcut('Ctrl+S')
-            self.connect(self.saveActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.saveSpreadsheet)
+            self.saveActionVar.triggered.connect(self.saveSpreadsheet)
         return self.saveActionVar
 
     def saveAsAction(self):
@@ -222,12 +207,10 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if not hasattr(self, 'saveAsActionVar'):
             icon = QtGui.QIcon(':/images/saveas.png')
-            self.saveAsActionVar = QtGui.QAction(icon, 'Save &As...', self)
+            self.saveAsActionVar = QtWidgets.QAction(icon, 'Save &As...', self)
             self.saveAsActionVar.setStatusTip('Save the current spreadsheet '
                                               'at a new location')
-            self.connect(self.saveAsActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.saveSpreadsheetAs)
+            self.saveAsActionVar.triggered.connect(self.saveSpreadsheetAs)
         return self.saveAsActionVar
 
     def openAction(self):
@@ -236,13 +219,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
 
         """
         if not hasattr(self, 'openActionVar'):
-            self.openActionVar = QtGui.QAction(QtGui.QIcon(':/images/open.png'),
+            self.openActionVar = QtWidgets.QAction(QtGui.QIcon(':/images/open.png'),
                                                '&Open...', self)
             self.openActionVar.setStatusTip('Open a saved spreadsheet')
             self.openActionVar.setShortcut('Ctrl+O')
-            self.connect(self.openActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.openSpreadsheetAs)
+            self.openActionVar.triggered.connect(self.openSpreadsheetAs)
         return self.openActionVar
 
     def exportSheetToImageAction(self):
@@ -251,34 +232,28 @@ class StandardWidgetTabController(QtGui.QTabWidget):
 
         """
         if not hasattr(self, 'exportSheetToImageVar'):
-            self.exportSheetToImageVar = QtGui.QAction('Export Sheet', self)
+            self.exportSheetToImageVar = QtWidgets.QAction('Export Sheet', self)
             self.exportSheetToImageVar.setStatusTip(
                 'Export all cells in the spreadsheet to a montaged image')
 
-            exportMenu = QtGui.QMenu(self)
+            exportMenu = QtWidgets.QMenu(self)
             singleAction = exportMenu.addAction('As a Single Image')
             multiAction = exportMenu.addAction('Separately')
             self.exportSheetToImageVar.setMenu(exportMenu)
 
-            self.connect(self.exportSheetToImageVar,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.exportSheetToSingleImageActionTriggered)
+            self.exportSheetToImageVar.triggered.connect(self.exportSheetToSingleImageActionTriggered)
 
-            self.connect(singleAction,
-                         QtCore.SIGNAL('triggered()'),
-                         self.exportSheetToSingleImageActionTriggered)
-            self.connect(multiAction,
-                         QtCore.SIGNAL('triggered()'),
-                         self.exportSheetToSeparateImagesActionTriggered)
+            singleAction.triggered.connect(self.exportSheetToSingleImageActionTriggered)
+            multiAction.triggered.connect(self.exportSheetToSeparateImagesActionTriggered)
         return self.exportSheetToImageVar
 
     def exportSheetToSingleImageActionTriggered(self, action=None):
         """ exportSheetToSingleImageActionTriggered() -> None
         Exports the sheet as a big image
         """
-        filename = QtGui.QFileDialog.getSaveFileName(
+        filename = QtWidgets.QFileDialog.getSaveFileName(
             self, "Select a File to Export the Sheet",
-            ".", "Images (*.png *.xpm *.jpg)")
+            ".", "Images (*.png *.xpm *.jpg)")[0]
         if filename:
             self.currentWidget().exportSheetToImage(filename)
 
@@ -286,9 +261,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """ exportSheetToSeparateImagesActionTriggered() -> None
         Exports the cells as separate images
         """
-        dirname = QtGui.QFileDialog.getExistingDirectory(
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
             self, 'Select a Directory to Export Images', ".",
-            QtGui.QFileDialog.ShowDirsOnly)
+            QtWidgets.QFileDialog.ShowDirsOnly)
         if dirname:
             self.currentWidget().exportSheetToImages(dirname)
 
@@ -320,8 +295,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """ removeSheetReference(sheet: StandardWidgetSheetTab) -> None
         Remove references of a sheet from the spreadsheet
         """
-        for (code, locations) in self.monitoredPipelines.iteritems():
-            for lid in reversed(xrange(len(locations))):
+        for (code, locations) in self.monitoredPipelines.items():
+            for lid in reversed(range(len(locations))):
                 if sheet==locations[lid][0]:
                     del locations[lid]
 
@@ -348,7 +323,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.executedPipelines = [[], {}, {}]
         while self.count()>0:
             self.deleteSheetActionTriggered()
-        for i in reversed(range(len(self.tabWidgets))):
+        for i in reversed(list(range(len(self.tabWidgets)))):
             t = self.tabWidgets[i]
             del self.tabWidgets[i]
             self.removeSheetReference(t)
@@ -367,7 +342,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.operatingWidget.setCurrentIndex(ret)
             return ret
         else:
-            return QtGui.QTabWidget.insertTab(self, idx, tabWidget, tabText)
+            return QtWidgets.QTabWidget.insertTab(self, idx, tabWidget, tabText)
 
     def findSheet(self, sheetReference):
         """ findSheet(sheetReference: subclass(SheetReference)) -> Sheet widget
@@ -377,7 +352,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         if not sheetReference:
             return None
         sheetReference.clearCandidate()
-        for idx in xrange(len(self.tabWidgets)):
+        for idx in range(len(self.tabWidgets)):
             tabWidget = self.tabWidgets[idx]
             tabLabel = tabWidget.windowTitle()
             sheetReference.checkCandidate(tabWidget, tabLabel, idx,
@@ -482,7 +457,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if fs:
             idx = self.currentIndex()
-            for i in xrange(self.count()):
+            for i in range(self.count()):
                 widget = self.widget(0)
                 self.removeTab(0)
                 self.tabTrueParent = widget.parent()
@@ -492,7 +467,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.operatingWidget = stackedWidget
         else:
             idx = stackedWidget.currentIndex()
-            for i in xrange(stackedWidget.count()):
+            for i in range(stackedWidget.count()):
                 widget = stackedWidget.widget(0)
                 stackedWidget.removeWidget(widget)
                 widget.setParent(self.tabTrueParent)
@@ -523,7 +498,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Return a menu containing a list of all tabs
 
         """
-        menu = QtGui.QMenu(self)
+        menu = QtWidgets.QMenu(self)
         en = self.operatingWidget.currentIndex()<self.operatingWidget.count()-1
         self.showNextTabAction().setEnabled(en)
         menu.addAction(self.showNextTabAction())
@@ -531,7 +506,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.showPrevTabAction().setEnabled(en)
         menu.addAction(self.showPrevTabAction())
         menu.addSeparator()
-        for idx in xrange(self.operatingWidget.count()):
+        for idx in range(self.operatingWidget.count()):
             t = self.operatingWidget.widget(idx)
             action = menu.addAction(t.windowTitle())
             action.setData(idx)
@@ -565,8 +540,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             displayName = self.spreadsheetFileName
         else:
             displayName = 'Untitled'
-        self.emit(QtCore.SIGNAL('needChangeTitle'),
-                  '%s - VisTrails Spreadsheet' % displayName)
+        self.needChangeTitle.emit('%s - VisTrails Spreadsheet' % displayName)
 
     def pipelineId(self, pipelineInfo):
         return (pipelineInfo['controller'], pipelineInfo['version'])
@@ -642,8 +616,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             need_save_vt = False
             for t in self.tabWidgets:
                 dim = t.getDimension()
-                for r in xrange(dim[0]):
-                    for c in xrange(dim[1]):
+                for r in range(dim[0]):
+                    for c in range(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
                             controller = info[0]['controller']
@@ -669,8 +643,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 indexFile.write('%s\n'%str((str(t.windowTitle()),
                                             sheet,
                                             dim[0], dim[1])))
-                for r in xrange(dim[0]):
-                    for c in xrange(dim[1]):
+                for r in range(dim[0]):
+                    for c in range(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
                             newinfo0 = copy.copy(info[0])
@@ -698,12 +672,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Asking a file name before saving the spreadsheet
 
         """
-        fileName = QtGui.QFileDialog.getSaveFileName(self,
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self,
                                                      'Choose a spreadsheet '
                                                      'name',
                                                      '',
                                                      'VisTrails Spreadsheet '
-                                                     '(*.vss)')
+                                                     '(*.vss)')[0]
         if fileName:
             (root, ext) = os.path.splitext(fileName)
             if ext=='':
@@ -738,7 +712,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         lines = contents.split('\n')
         tabCount = int(lines[lidx])
         lidx += 1
-        for tabIdx in xrange(tabCount):
+        for tabIdx in range(tabCount):
             # FIXME: eval should pretty much never be used
             tabInfo = literal_eval(lines[lidx])
             lidx += 1
@@ -748,7 +722,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             while lines[lidx]!='---':
                 (r, c, vistrail, pid, cid) = literal_eval(lines[lidx])
                 locator = vistrail['locator']
-                if locators.has_key(locator):
+                if locator in locators:
                     vistrail['locator'] = locators[locator]
                 else:
                     locators[locator] = parse_locator(vistrail['locator'])
@@ -760,13 +734,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         pipelineCount = int(lines[lidx])
         lidx += 1
         self.loadingMode = True
-        progress = QtGui.QProgressDialog("Loading spreadsheet...",
+        progress = QtWidgets.QProgressDialog("Loading spreadsheet...",
                                          "&Cancel", 0, pipelineCount,
                                          self,
                                          QtCore.Qt.WindowStaysOnTopHint
                                          )
         progress.show()
-        for pipelineIdx in xrange(pipelineCount):
+        for pipelineIdx in range(pipelineCount):
             # FIXME: eval should pretty much never be used
             (serializedLocator, version) = literal_eval(lines[lidx])
             try:
@@ -803,12 +777,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Open a saved spreadsheet and set its filename in the dialog box
 
         """
-        fileName = QtGui.QFileDialog.getOpenFileName(self,
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                                                      'Choose a spreadsheet',
                                                      '',
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)',
-                                                     )
+                                                     )[0]
         if fileName:
             self.openSpreadsheet(fileName)
 

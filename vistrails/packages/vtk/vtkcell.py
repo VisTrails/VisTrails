@@ -38,28 +38,35 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
-from __future__ import division
+
 
 import vtk
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import sip
 from vistrails.core import system
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidgetBase, QCellToolBar, SpreadsheetAction
+from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from identifiers import identifier as vtk_pkg_identifier
+from .identifiers import identifier as vtk_pkg_identifier
 
+# vtkDataSetMapper does not render correctly on some systems without using QGLWidget
+# http://public.kitware.com/pipermail/vtkusers/2016-February/094016.html
+try:
+    from PyQt5.QtWidgets import QOpenGLWidget
+except ImportError:
+    from PyQt5.QtOpenGL import QGLWidget as QOpenGLWidget
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration):
         d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
-        for ren, m in d.iteritems():
+        for ren, m in d.items():
             ren.module_id = m.moduleInfo['moduleId']
         renderers = output_module.force_get_input('value') or []
         style = output_module.force_get_input('interactorStyle')
@@ -91,7 +98,7 @@ class VTKCell(SpreadsheetCell):
         # Set module_id on wrapped renderers
         if self.has_input('AddRenderer'):
             d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
-            for ren, m in d.iteritems():
+            for ren, m in d.items():
                 ren.module_id = m.moduleInfo['moduleId']
         renderers = self.force_get_input('AddRenderer', [])
         renderViews = self.force_get_input('SetRenderView', [])
@@ -148,7 +155,8 @@ AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None)
 
-class QVTKWidget(QCellWidget):
+
+class QVTKWidget(QOpenGLWidget, QCellWidgetBase):
     """
     QVTKWidget is the actual rendering widget that can display
     vtkRenderer inside a Qt QWidget
@@ -162,7 +170,7 @@ class QVTKWidget(QCellWidget):
         context
         
         """
-        QCellWidget.__init__(self, parent, f | QtCore.Qt.MSWindowsOwnDC)
+        super().__init__(parent=parent, flags=f | QtCore.Qt.MSWindowsOwnDC)
 
         self.interacting = None
         self.mRenWin = None
@@ -170,8 +178,8 @@ class QVTKWidget(QCellWidget):
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding))
         self.toolBarType = QVTKWidgetToolBar
         self.iHandlers = []
         self.setAnimationEnabled(True)
@@ -223,7 +231,7 @@ class QVTKWidget(QCellWidget):
         
         self.SetRenderWindow(None)
 
-        QCellWidget.deleteLater(self)
+        QCellWidgetBase.deleteLater(self)
 
     def updateContents(self, inputPorts, cameralist = None):
         """ updateContents(inputPorts: tuple)
@@ -294,7 +302,7 @@ class QVTKWidget(QCellWidget):
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
-        for i in xrange(len(self.iHandlers)):
+        for i in range(len(self.iHandlers)):
             iHandler = self.iHandlers[i]
             if hasattr(iHandler, 'vtkInstance'):
                 iHandler = iHandler.vtkInstance
@@ -308,7 +316,7 @@ class QVTKWidget(QCellWidget):
 
         # Capture window into history for playback
         # Call this at the end to capture the image after rendering
-        QCellWidget.updateContents(self, inputPorts)
+        QCellWidgetBase.updateContents(self, inputPorts)
 
     def GetRenderWindow(self):
         """ GetRenderWindow() -> vtkRenderWindow
@@ -348,22 +356,18 @@ class QVTKWidget(QCellWidget):
                 display = None
                 try:
                     display = int(QtGui.QX11Info.display())
+                    display = hex(display)[2:]
                 except TypeError:
-                    # This was changed for PyQt4.2
+                    # This was changed for PyQt5.2
                     if isinstance(QtGui.QX11Info.display(), QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
+                        display = hex(display)[2:]
+                except AttributeError:
+                    # Qt5 does not have QX11Info
+                    visApp = QtCore.QCoreApplication.instance()
+                    display = visApp.desktop().screenNumber()
                 if display is not None:
-                    v = vtk.vtkVersion()
-                    version = [v.GetVTKMajorVersion(),
-                               v.GetVTKMinorVersion(),
-                               v.GetVTKBuildVersion()]
-                    display = hex(display)[2:]
-                    if version < [5, 7, 0]:
-                        vp = ('_%s_void_p\0x00' % display)
-                    elif version < [6, 2, 0]:
-                        vp = ('_%s_void_p' % display)
-                    else:
-                        vp = ('_%s_p_void' % display)
+                    vp = ('_%s_p_void' % display)
                     self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
@@ -476,8 +480,10 @@ class QVTKWidget(QCellWidget):
         """
         if system.systemType in ['Windows', 'Microsoft']:
             return None
-        else:
-            return QCellWidget.paintEngine(self)
+        # Qt5 does not use paintEngine, but VTK still calls it?
+        # So we need to disable it
+        #else:
+        #    return QCellWidget.paintEngine(self)
 
     def paintEvent(self, e):
         """ paintEvent(e: QPaintEvent) -> None
@@ -506,7 +512,7 @@ class QVTKWidget(QCellWidget):
         epos = iren.GetEventPosition()
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
-        for i in xrange(rens.GetNumberOfItems()):
+        for i in range(rens.GetNumberOfItems()):
             ren = rens.GetNextItem()
             ren.SetInteractive(ren.IsInViewport(epos[0], epos[1]))
 
@@ -709,7 +715,7 @@ class QVTKWidget(QCellWidget):
         
         self.SelectActiveRenderer(iren)
         
-        if e.delta()>0:
+        if e.angleDelta().y()>0:
             iren.InvokeEvent("MouseWheelForwardEvent")
         else:
             iren.InvokeEvent("MouseWheelBackwardEvent")
@@ -861,7 +867,7 @@ class QVTKWidget(QCellWidget):
         renWin = self.GetRenderWindow()
         renderers = renWin.GetRenderers()
         renderers.InitTraversal()
-        for i in xrange(renderers.GetNumberOfItems()):
+        for i in range(renderers.GetNumberOfItems()):
             result.append(renderers.GetNextItem())
         return result
 
@@ -875,7 +881,7 @@ class QVTKWidget(QCellWidget):
             epos[1] = -epos[1]
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
-        for i in xrange(rens.GetNumberOfItems()):
+        for i in range(rens.GetNumberOfItems()):
             ren = rens.GetNextItem()
             if ren.IsInViewport(epos[0], epos[1]):
                 return ren
@@ -1012,7 +1018,7 @@ class QVTKWidget(QCellWidget):
         ba = QtCore.QByteArray()
         buf = QtCore.QBuffer(ba)
         buf.open(QtCore.QIODevice.WriteOnly)
-        for i in xrange(uchar.GetNumberOfTuples()):
+        for i in range(uchar.GetNumberOfTuples()):
             c = uchar.GetValue(i)
             buf.putChar(chr(c))
         buf.close()
@@ -1031,7 +1037,7 @@ class QVTKWidget(QCellWidget):
         else:
             self.saveToPNG(filename)
 
-class QVTKWidgetSaveCamera(QtGui.QAction):
+class QVTKWidgetSaveCamera(SpreadsheetAction):
     """
     QVTKWidgetSaveCamera is the action to capture the current camera
     of the vtk renderers and save it back to the pipeline
@@ -1042,9 +1048,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
-                               "Save &Camera",
-                               parent)
+        super().__init__("Save &Camera", parent)
         self.setStatusTip("Save current camera views to the pipeline")
 
     def setCamera(self, controller):
@@ -1061,7 +1065,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             camera = None
             rendererId = cellWidget.renderer_maps[id(ren)]
             renderer = pipeline.modules[rendererId]
-            for c in pipeline.connections.values():
+            for c in list(pipeline.connections.values()):
                 if c.destination.moduleId==rendererId:
                     if c.destination.name=='ActiveCamera':
                         camera = pipeline.modules[c.source.moduleId]

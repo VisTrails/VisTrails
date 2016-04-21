@@ -33,12 +33,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import ast
 from base64 import b16encode, b16decode
 import copy
-from itertools import izip, product, chain
+from itertools import product, chain
 import json
 import time
 import traceback
@@ -49,14 +49,15 @@ from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
-from vistrails.core.utils import VistrailsDeprecation, deprecated, \
-                                 xor, long2bytes
+from vistrails.core.utils import deprecated, xor, long2bytes
+
 try:
     import hashlib
     sha1_hash = hashlib.sha1
 except ImportError:
     import sha
     sha1_hash = sha.new
+
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -78,13 +79,13 @@ class ModuleBreakpoint(Exception):
 
     def __str__(self):
         retstr = "Encoutered breakpoint at Module %s:\n" % (self.module)
-        for k in self.module.__dict__.keys():
+        for k in list(self.module.__dict__.keys()):
             retstr += "\t%s = %s\n" % (k, self.module.__dict__[k])
 
         inputs = self.examine_inputs()
         retstr += "\nModule has inputs:\n"
 
-        for i in inputs.keys():
+        for i in list(inputs.keys()):
             retstr += "\t%s = %s\n" % (i, inputs[i])
 
         return retstr
@@ -127,6 +128,7 @@ class ModuleError(Exception):
         self.msg = errormsg
         self.errorTrace = errorTrace
 
+
 class ModuleSuspended(ModuleError):
     """Exception representing a VisTrails module being suspended.
 
@@ -142,19 +144,12 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, handle=None, children=None,
-                 queue=None):
+    def __init__(self, module, errormsg, handle=None, children=None):
         ModuleError.__init__(self, module, errormsg)
         if handle is not None:
             self.handle = handle
         else:
-            if queue is not None:
-                warnings.warn("Use of deprecated argument 'queue' replaced by "
-                              "'handle'",
-                              category=VistrailsDeprecation,
-                              stacklevel=2)
-                self.handle = queue
-            elif children is None:
+            if children is None:
                 raise TypeError("__init__(): 'handle' argument not set")
             else:
                 # parent exceptions has no handle
@@ -163,9 +158,6 @@ class ModuleSuspended(ModuleError):
         self.children = children
         self.name = None
 
-    @property
-    def queue(self):
-        return self.handle
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
@@ -178,6 +170,7 @@ class ModuleErrors(Exception):
         """
         Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
         self.module_errors = module_errors
+
 
 class _InvalidOutput(object):
     """ Specify an invalid result
@@ -361,7 +354,7 @@ class Module(object):
         """Removes all references, prepares for deletion.
 
         """
-        for connector_list in self.inputPorts.itervalues():
+        for connector_list in self.inputPorts.values():
             for connector in connector_list:
                 connector.clear()
         self.inputPorts = {}
@@ -422,7 +415,7 @@ class Module(object):
         if jm.getCache(self.signature):
             self.cache = jm.getCache(self.signature)
             from vistrails.core.modules.basic_modules import Constant
-            for param, value in jm.getCache(self.signature).parameters.iteritems():
+            for param, value in jm.getCache(self.signature).parameters.items():
                 # get type for output param
                 spec = [s for s in specs if s.name == param][0]
                 module = spec.descriptors()[0].module
@@ -462,13 +455,13 @@ class Module(object):
         """
         suspended = []
         was_suspended = None
-        for connectorList in self.inputPorts.itervalues():
+        for connectorList in self.inputPorts.values():
             for connector in connectorList:
                 try:
                     connector.obj.update()
-                except ModuleWasSuspended, e:
+                except ModuleWasSuspended as e:
                     was_suspended = e
-                except ModuleSuspended, e:
+                except ModuleSuspended as e:
                     suspended.append(e)
                 # Here we keep going even if one of the module suspended, but
                 # we'll stop right after the loop
@@ -481,7 +474,7 @@ class Module(object):
                     children=suspended)
         elif was_suspended is not None:
             raise was_suspended
-        for iport, connectorList in copy.copy(self.inputPorts.items()):
+        for iport, connectorList in copy.copy(list(self.inputPorts.items())):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(iport, connector)
@@ -491,7 +484,7 @@ class Module(object):
         """
         iports = {}
         from vistrails.core.modules.basic_modules import List, Variant
-        for port_name, connectorList in self.inputPorts.iteritems():
+        for port_name, connectorList in self.inputPorts.items():
             for connector in connectorList:
 
                 src_depth = connector.depth()
@@ -532,7 +525,7 @@ class Module(object):
         """
         self.streamed_ports = {}
         from vistrails.core.modules.basic_modules import Generator
-        for iport, connectorList in self.inputPorts.items():
+        for iport, connectorList in list(self.inputPorts.items()):
             for connector in connectorList:
                 value = connector.get_raw()
                 if isinstance(value, Generator):
@@ -581,10 +574,10 @@ class Module(object):
                 self.compute()
                 self.addJobCache()
             self.computed = True
-        except ModuleSuspended, e:
+        except ModuleSuspended as e:
             self.had_error, self.was_suspended = False, True
             raise
-        except ModuleError, me:
+        except ModuleError as me:
             if hasattr(me.module, 'interpreter'):
                 if me.errorTrace is None:
                     me.errorTrace = traceback.format_exc()
@@ -594,11 +587,11 @@ class Module(object):
                 raise ModuleError(self, msg, errorTrace=me.errorTrace)
         except ModuleErrors:
             raise
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt as e:
             raise ModuleError(self, 'Interrupted by user')
         except ModuleBreakpoint:
             raise
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             raise ModuleError(
                 self,
@@ -616,7 +609,7 @@ class Module(object):
         port_names = []
         for port_name in port_name_order:
             # this is how the (brittle) recursion is accomplished
-            if not isinstance(port_name, basestring):
+            if not isinstance(port_name, str):
                 sub_combine_type = port_name[0]
                 sub_port_names = port_name[1:]
                 sub_values, sub_port_names = self.do_combine(sub_combine_type,
@@ -629,7 +622,7 @@ class Module(object):
                 port_names.append(port_name)
         if combine_type == "pairwise":
             elements = [tuple(e for t in t_list for e in t)
-                        for t_list in izip(*values)]
+                        for t_list in zip(*values)]
         elif combine_type == "cartesian":
             elements = [tuple(e for t in t_list for e in t)
                         for t_list in product(*values)]
@@ -678,7 +671,7 @@ class Module(object):
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list
         outputs = {}
-        for i in xrange(num_inputs):
+        for i in range(num_inputs):
             self.logging.update_progress(self, float(i)/num_inputs)
             module = copy.copy(self)
             module.list_depth = self.list_depth - 1
@@ -698,7 +691,7 @@ class Module(object):
 
             try:
                 module.update()
-            except ModuleSuspended, e:
+            except ModuleSuspended as e:
                 e.loop_iteration = i
                 module.logging.end_update(module, e, was_suspended=True)
                 suspended.append(e)
@@ -734,7 +727,7 @@ class Module(object):
 
         """
         from vistrails.core.modules.basic_modules import PythonSource
-        if True in [g.accumulated for g in self.streamed_ports.values()]:
+        if True in [g.accumulated for g in list(self.streamed_ports.values())]:
             # the module can only compute once the streaming is finished
             self.compute_after_streaming()
         elif self.list_depth > 0:
@@ -772,7 +765,7 @@ class Module(object):
         module = copy.copy(self)
         module.list_depth = self.list_depth - 1
         if num_inputs:
-            milestones = [i*num_inputs//10 for i in xrange(1, 11)]
+            milestones = [i*num_inputs//10 for i in range(1, 11)]
         def generator(self):
             self.logging.begin_compute(module)
             i = 0
@@ -781,7 +774,7 @@ class Module(object):
                                   for port, depth, value in
                                   self.iterated_ports])
 
-                elements = [iter_dict[port][1].next() for port in ports]
+                elements = [next(iter_dict[port][1]) for port in ports]
                 if None in elements:
                     for name_output in module.outputPorts:
                         module.set_output(name_output, None)
@@ -812,10 +805,10 @@ class Module(object):
 
                 try:
                     module.compute()
-                except ModuleSuspended, e:
+                except ModuleSuspended as e:
                     e.loop_iteration = i
                     suspended.append(e)
-                except Exception, e:
+                except Exception as e:
                     raise ModuleError(module, str(e))
                 i += 1
                 yield True
@@ -838,7 +831,7 @@ class Module(object):
         from vistrails.core.modules.basic_modules import Generator
         suspended = []
         # max depth should be one
-        ports = self.streamed_ports.keys()
+        ports = list(self.streamed_ports.keys())
         num_inputs = self.streamed_ports[ports[0]].size
         # the generator will read next from each iterated input port and
         # compute the module again
@@ -852,17 +845,17 @@ class Module(object):
             self.logging.begin_update(module)
             i = 0
             while 1:
-                elements = [self.streamed_ports[port].next() for port in ports]
+                elements = [next(self.streamed_ports[port]) for port in ports]
                 if None in elements:
                     self.logging.begin_compute(module)
                     # assembled all inputs so do the actual computation
                     elements = [inputs[port] for port in ports]
                     ## Type checking
-                    self.typeChecking(module, ports, zip(*elements))
+                    self.typeChecking(module, ports, list(zip(*elements)))
                     self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
-                    except Exception, e:
+                    except Exception as e:
                         raise ModuleError(module, str(e))
                     if suspended:
                         raise ModuleSuspended(
@@ -901,7 +894,7 @@ class Module(object):
 
         # max depth should be one
         # max depth should be one
-        ports = self.streamed_ports.keys()
+        ports = list(self.streamed_ports.keys())
         num_inputs = self.streamed_ports[ports[0]].size
         # the generator will read next from each iterated input port and
         # compute the module again
@@ -916,7 +909,7 @@ class Module(object):
             for name_output in module.outputPorts:
                 module.set_output(name_output, None)
             while 1:
-                elements = [self.streamed_ports[port].next() for port in ports]
+                elements = [next(self.streamed_ports[port]) for port in ports]
                 if None not in elements:
                     self.logging.begin_compute(module)
                     ## Type checking
@@ -924,7 +917,7 @@ class Module(object):
                     self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
-                    except Exception, e:
+                    except Exception as e:
                         raise ModuleError(module, str(e))
                     if suspended:
                         raise ModuleSuspended(
@@ -1002,7 +995,7 @@ class Module(object):
         state = None
 
         loop = self.logging.begin_loop_execution(self, max_iterations)
-        for i in xrange(max_iterations):
+        for i in range(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
                 module.computed = False
@@ -1010,7 +1003,7 @@ class Module(object):
                 # Set state on input ports
                 if i > 0 and name_state_input:
                     for value, input_port, output_port \
-                     in izip(state, name_state_input, name_state_output):
+                     in zip(state, name_state_input, name_state_output):
                         if input_port in module.inputPorts:
                             del module.inputPorts[input_port]
                         new_connector = ModuleConnector(
@@ -1023,7 +1016,7 @@ class Module(object):
             try:
                 module.update() # might raise ModuleError, ModuleSuspended,
                                 # ModuleHadError, ModuleWasSuspended
-            except ModuleSuspended, e:
+            except ModuleSuspended as e:
                 e.loop_iteration = i
                 raise
 
@@ -1055,7 +1048,7 @@ class Module(object):
         """Function used to set a value inside 'module', given the input ports.
         """
         from vistrails.core.modules.basic_modules import create_constant
-        for element, inputPort in izip(elementList, inputPorts):
+        for element, inputPort in zip(elementList, inputPorts):
             ## Cleaning the previous connector...
             if inputPort in module.inputPorts:
                 del module.inputPorts[inputPort]
@@ -1075,7 +1068,7 @@ class Module(object):
             # The fake signature is
             # XOR(signature(loop module), iteration, hash(inputPort))
             inputPort_hash = sha1_hash()
-            inputPort_hash.update(inputPort)
+            inputPort_hash.update(inputPort.encode())
             module.signature = b16encode(xor(
                     b16decode(self.signature.upper()),
                     long2bytes(iteration, 20),
@@ -1117,7 +1110,7 @@ class Module(object):
                 raise ModuleError(self,
                                   'The number of input values and input ports '
                                   'are not the same.')
-            for element, inputPort in izip(elementList, inputPorts):
+            for element, inputPort in zip(elementList, inputPorts):
                 if isinstance(element, Generator):
                     raise ModuleError(self, "Generator is not allowed here")
                 port_spec = module.input_specs[inputPort]
@@ -1264,7 +1257,7 @@ class Module(object):
                 src_depth += 1
             # type check list of lists
             root = value
-            for i in xrange(1, src_depth):
+            for i in range(1, src_depth):
                 try:
                     # only check first item
                     root = root[0]
@@ -1448,7 +1441,7 @@ class Module(object):
         # pragma: streaming - This tag is magic, do not change.
         from vistrails.core.modules.basic_modules import Generator
 
-        ports = self.streamed_ports.keys()
+        ports = list(self.streamed_ports.keys())
         specs = []
         num_inputs = self.streamed_ports[ports[0]].size
         module = copy.copy(self)
@@ -1458,7 +1451,7 @@ class Module(object):
         module.computed = False
 
         if num_inputs:
-            milestones = [i*num_inputs//10 for i in xrange(1, 11)]
+            milestones = [i*num_inputs//10 for i in range(1, 11)]
 
         def _Generator(self):
             self.logging.begin_compute(module)
@@ -1467,7 +1460,7 @@ class Module(object):
             #intsum = 0
             userGenerator = UserGenerator(module)
             while 1:
-                elements = [self.streamed_ports[port].next() for port in ports]
+                elements = [next(self.streamed_ports[port]) for port in ports]
                 if None in elements:
                     self.logging.update_progress(self, 1.0)
                     self.logging.end_update(module)
@@ -1478,7 +1471,7 @@ class Module(object):
                 self.typeChecking(module, ports, [elements])
                 self.setInputValues(module, ports, elements, i)
 
-                userGenerator.next()
+                next(userGenerator)
                 # <compute here>
                 #intsum += dict(zip(ports, elements))['integerStream']
                 #print "Sum so far:", intsum
@@ -1516,17 +1509,17 @@ class Module(object):
         module = copy.copy(self)
 
         if size:
-            milestones = [i*size//10 for i in xrange(1, 11)]
+            milestones = [i*size//10 for i in range(1, 11)]
         def _Generator():
             i = 0
             while 1:
                 try:
-                    value = generator.next()
+                    value = next(generator)
                 except StopIteration:
                     module.set_output(port, None)
                     self.logging.update_progress(self, 1.0)
                     yield None
-                except Exception, e:
+                except Exception as e:
                     me = ModuleError(self, "Error generating value: %s"% str(e),
                                       errorTrace=str(e))
                     raise me
@@ -1564,63 +1557,6 @@ class Module(object):
     @classmethod
     def provide_output_port_documentation(cls, port_name):
         return None
-
-    ####################################################################
-    # Deprecated methods
-
-    @deprecated("get_input")
-    def getInputFromPort(self, *args, **kwargs):
-        if 'allowDefault' in kwargs:
-            kwargs['allow_default'] = kwargs.pop('allowDefault')
-        return self.get_input(*args, **kwargs)
-
-    @deprecated("get_input_list")
-    def getInputListFromPort(self, *args, **kwargs):
-        return self.get_input_list(*args, **kwargs)
-
-    @deprecated("force_get_input")
-    def forceGetInputFromPort(self, *args, **kwargs):
-        return self.force_get_input(*args, **kwargs)
-
-    @deprecated("force_get_input_list")
-    def forceGetInputListFromPort(self, *args, **kwargs):
-        return self.force_get_input_list(*args, **kwargs)
-
-    @deprecated("has_input")
-    def hasInputFromPort(self, *args, **kwargs):
-        return self.has_input(*args, **kwargs)
-
-    @deprecated("check_input")
-    def checkInputPort(self, *args, **kwargs):
-        return self.check_input(*args, **kwargs)
-
-    @deprecated("set_output")
-    def setResult(self, *args, **kwargs):
-        return self.set_output(*args, **kwargs)
-
-    @deprecated("get_input_connector")
-    def getInputConnector(self, *args, **kwargs):
-        return self.get_input_connector(*args, **kwargs)
-
-    @deprecated("get_default_value")
-    def getDefaultValue(self, *args, **kwargs):
-        return self.get_default_value(*args, **kwargs)
-
-    @deprecated("enable_output_port")
-    def enableOutputPort(self, *args, **kwargs):
-        return self.enable_output_port(*args, **kwargs)
-
-    @deprecated("remove_input_connector")
-    def removeInputConnector(self, *args, **kwargs):
-        return self.remove_input_connector(*args, **kwargs)
-
-    @deprecated("update_upstream")
-    def updateUpstream(self, *args, **kwargs):
-        return self.update_upstream(*args, **kwargs)
-
-    @deprecated("update_upstream_port")
-    def updateUpstreamPort(self, *args, **kwargs):
-        return self.update_upstream_port(*args, **kwargs)
 
 ################################################################################
 
@@ -1733,7 +1669,7 @@ class ModuleConnector(object):
         if depth > 0:
             value = result
             # flatten list
-            for i in xrange(1, depth):
+            for i in range(1, depth):
                 try:
                     value = value[0]
                 except TypeError:
@@ -1845,14 +1781,14 @@ class TestImplicitLooping(unittest.TestCase):
             locator = FileLocator(os.path.abspath(filename))
             (v, _, _, _) = load_vistrail(locator)
             w_list = []
-            for version, _ in v.get_tagMap().iteritems():
+            for version, _ in v.get_tagMap().items():
                 w_list.append((locator,version))
             if len(w_list) > 0:
                 with capture_stdout() as c:
                     errs = run(w_list, update_vistrail=False)
                 for err in errs:
                     self.fail(str(err))
-        except Exception, e:
+        except Exception as e:
             self.fail(debug.format_exception(e))
 
     def test_implicit_while(self):

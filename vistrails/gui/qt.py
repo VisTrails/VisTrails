@@ -45,12 +45,12 @@ from setting okToCreateQObjects directly.
 
 As the python saying goes, 'we are all consenting adults here'."""
 
-from __future__ import division
+
 
 import inspect
-from PyQt4 import QtGui, QtCore
-import types
+from PyQt5 import QtCore, QtWidgets
 
+import types
 ################################################################################
 
 class qt_super(object):
@@ -63,7 +63,7 @@ class qt_super(object):
         s = super(self._class, self._obj)
         try:
             return getattr(s, attr)
-        except AttributeError, e:
+        except AttributeError as e:
             mro = type(self._obj).mro()
             try:
                 ix = mro.index(self._class)
@@ -106,7 +106,7 @@ def allowQObjects():
     # tries to check if caller is allowed to call this
     caller = inspect.currentframe().f_back
     d = caller.f_locals
-    if (not d.has_key('self') or
+    if ('self' not in d or
         not isinstance(d['self'], QtCore.QCoreApplication)):
         raise DisallowedCaller
     global okToCreateQObjects
@@ -127,13 +127,13 @@ def createBogusQtGuiApp(argv=["bogus"]):
     qobjects during test runs.
 
     """    
-    class BogusApplication(QtGui.QApplication):
+    class BogusApplication(QtWidgets.QApplication):
         def __init__(self):
-            QtGui.QApplication.__init__(self, argv)
+            QtWidgets.QApplication.__init__(self, argv)
             allowQObjects()
     global _appHolder
-    if QtGui.qApp:
-        _appHolder = QtGui.qApp
+    if QtWidgets.QApplication.instance():
+        _appHolder = QtWidgets.QApplication.instance()
     if not _appHolder:
         _appHolder = BogusApplication()
     return _appHolder
@@ -182,9 +182,9 @@ class SignalSet(object):
         
 ################################################################################
 
-_oldConnect = QtCore.QObject.connect
-_oldDisconnect = QtCore.QObject.disconnect
-_oldEmit = QtCore.QObject.emit
+#_oldConnect = QtCore.QObject.connect
+#_oldDisconnect = QtCore.QObject.disconnect
+#_oldEmit = QtCore.QObject.emit
 
 def _wrapConnect(callableObject):
     """Returns a wrapped call to the old version of QtCore.QObject.connect"""
@@ -219,7 +219,7 @@ def enableSignalDebugging(**kwargs):
 
     def printIt(msg):
         def call(*args):
-            print msg, args
+            print(msg, args)
         return call
     QtCore.QObject.connect = _wrapConnect(connectCall)
     QtCore.QObject.disconnect = _wrapDisconnect(disconnectCall)

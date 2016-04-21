@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import os
 from pymongo import MongoClient
@@ -144,7 +144,7 @@ def collection_op(input_ports, output=None):
         if output:
             dct['_output_ports'] = [output]
             dct['collection_op_out'] = output[0]
-        _modules.append(type(func.func_name, (BaseCollectionOperation,), dct))
+        _modules.append(type(func.__name__, (BaseCollectionOperation,), dct))
         return func
     return wrapper
 

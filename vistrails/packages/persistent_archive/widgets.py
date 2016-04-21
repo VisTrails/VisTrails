@@ -33,9 +33,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from vistrails.core.db.action import create_action
 from vistrails.gui.modules.constant_configuration import ConstantWidgetBase
@@ -46,7 +47,7 @@ from .queries import QueryCondition, EqualString, EqualInt
 
 
 def str_repr(s):
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = (s.replace('\\', '\\\\')
               .replace("'", "\\'")
               .encode('ascii', 'backslashreplace'))
@@ -56,38 +57,35 @@ def str_repr(s):
     return "'%s'" % s
 
 
-class Metadata(QtGui.QWidget):
+class Metadata(QtWidgets.QWidget):
     remove = QtCore.pyqtSignal()
     changed = QtCore.pyqtSignal()
 
     def __init__(self, name, value=None):
-        QtGui.QWidget.__init__(self)
-        layout = QtGui.QHBoxLayout()
+        QtWidgets.QWidget.__init__(self)
+        layout = QtWidgets.QHBoxLayout()
         self.setLayout(layout)
 
-        self.key = QtGui.QLineEdit()
+        self.key = QtWidgets.QLineEdit()
         self.key.setText(name)
         layout.addWidget(self.key, 1)
         self.value = self.value_widget(value)
         layout.addWidget(self.value, 2)
 
-        remove_button = QtGui.QPushButton("Remove port")
-        remove_button.setSizePolicy(QtGui.QSizePolicy.Fixed,
-                                    QtGui.QSizePolicy.Fixed)
+        remove_button = QtWidgets.QPushButton("Remove port")
+        remove_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                    QtWidgets.QSizePolicy.Fixed)
         layout.addWidget(remove_button)
 
-        self.connect(remove_button, QtCore.SIGNAL('clicked()'),
-                     self.remove)
-        self.connect(self.key, QtCore.SIGNAL('textEdited(const QString &)'),
-                     self.changed)
-        self.connect(self.value, QtCore.SIGNAL('textEdited(const QString &)'),
-                     self.changed)
+        remove_button.clicked.connect(self.remove)
+        self.key.textEdited.connect(self.changed)
+        self.value.textEdited.connect(self.changed)
 
 
 class StringMetadata(Metadata):
     @staticmethod
     def value_widget(value=None):
-        return QtGui.QLineEdit(value)
+        return QtWidgets.QLineEdit(value)
 
     def to_string(self):
         return 'EqualString(%s, %s)' % (str_repr(self.key.text()),
@@ -96,7 +94,7 @@ class StringMetadata(Metadata):
 
 class IntMetadata(Metadata):
     def value_widget(self, value=None):
-        w = QtGui.QLineEdit()
+        w = QtWidgets.QLineEdit()
         if value is not None:
             w.setText('%d' % value)
         w.setValidator(QtGui.QIntValidator(self))
@@ -117,22 +115,21 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
     It is a visual editor for the strings functions set on the 'metadata' port,
     which have the form EqualString('mkey', 'mvalue') or EqualInt('mkey', 2).
     """
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # Window title
         self.setWindowTitle("Metadata editor")
 
-        central_layout = QtGui.QVBoxLayout()
-        central_layout.setMargin(0)
+        central_layout = QtWidgets.QVBoxLayout()
+        central_layout.setContentsMargins(0, 0, 0, 0)
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
 
-        self._scroll_area = QtGui.QScrollArea()
-        inner_widget = QtGui.QWidget()
-        self._list_layout = QtGui.QVBoxLayout()
-        scroll_layout = QtGui.QVBoxLayout()
+        self._scroll_area = QtWidgets.QScrollArea()
+        inner_widget = QtWidgets.QWidget()
+        self._list_layout = QtWidgets.QVBoxLayout()
+        scroll_layout = QtWidgets.QVBoxLayout()
         scroll_layout.addLayout(self._list_layout)
         scroll_layout.addStretch()
         inner_widget.setLayout(scroll_layout)
@@ -142,15 +139,13 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         self._scroll_area.setWidgetResizable(True)
         central_layout.addWidget(self._scroll_area)
 
-        add_buttons = QtGui.QHBoxLayout()
+        add_buttons = QtWidgets.QHBoxLayout()
         central_layout.addLayout(add_buttons)
-        add_string = QtGui.QPushButton("Add a string")
-        self.connect(add_string, QtCore.SIGNAL('clicked()'),
-                     self.add_string)
+        add_string = QtWidgets.QPushButton("Add a string")
+        add_string.clicked.connect(self.add_string)
         add_buttons.addWidget(add_string, 2)
-        add_int = QtGui.QPushButton("Add an integer")
-        self.connect(add_int, QtCore.SIGNAL('clicked()'),
-                     self.add_int)
+        add_int = QtWidgets.QPushButton("Add an integer")
+        add_int.clicked.connect(self.add_int)
         add_buttons.addWidget(add_int, 1)
 
         self.createButtons()
@@ -159,10 +154,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
 
     def add_item(self, item):
         self._list_layout.addWidget(item)
-        self.connect(item, QtCore.SIGNAL('remove()'),
-                     lambda: item.deleteLater())
-        self.connect(item, QtCore.SIGNAL('changed()'),
-                     self.updateState)
+        item.remove.connect(lambda: item.deleteLater())
+        item.changed.connect(self.updateState)
 
     def add_string(self):
         self.add_item(StringMetadata(
@@ -179,21 +172,19 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         Create and connect signals to Ok & Cancel button
 
         """
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton("&Save", self)
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton("&Reset", self)
+        self.resetButton = QtWidgets.QPushButton("&Reset", self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -204,8 +195,8 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -219,7 +210,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         ops = [('delete', func) for func in self._loaded_keys]
 
         # Add the metadata in the list
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             widget = self._list_layout.itemAt(i).widget()
             ops.extend(self.controller.update_function_ops(
                     self.module, 'metadata',
@@ -235,7 +226,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         return True
 
     def getCurrentFunctions(self):
-        for i in xrange(self.module.getNumFunctions()):
+        for i in range(self.module.getNumFunctions()):
             func = self.module.functions[i]
             if func.name == 'metadata':
                 yield func, func.params[0].strValue
@@ -258,7 +249,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
                 self._loaded_keys.add(func)
 
     def resetTriggered(self, checked = False):
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             self._list_layout.itemAt(i).widget().deleteLater()
 
         self.createEntries()
@@ -266,36 +257,33 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()
 
 
-class MetadataConstantWidget(ConstantWidgetBase, QtGui.QWidget):
+class MetadataConstantWidget(ConstantWidgetBase, QtWidgets.QWidget):
     contentsChanged = QtCore.pyqtSignal(tuple)
 
-    def __init__(self, param, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    def __init__(self, param, **kwargs):
+        super().__init__(**kwargs)
 
-        self._key = QtGui.QLineEdit()
-        self.connect(self._key, QtCore.SIGNAL("returnPressed()"),
-                     self.update_parent)
+        self._key = QtWidgets.QLineEdit()
+        self._key.returnPressed.connect(self.update_parent)
 
-        self._type = QtGui.QComboBox()
+        self._type = QtWidgets.QComboBox()
         self._type.addItems(['int', 'str'])
-        self.connect(self._type, QtCore.SIGNAL("currentIndexChanged()"),
-                     self.update_parent)
+        self._type.currentIndexChanged.connect(self.update_parent)
 
-        self._value = QtGui.QLineEdit()
-        self.connect(self._value, QtCore.SIGNAL("returnPressed()"),
-                     self.update_parent)
+        self._value = QtWidgets.QLineEdit()
+        self._value.returnPressed.connect(self.update_parent)
 
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self._key)
         layout.addWidget(self._type)
         layout.addWidget(self._value)

@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Utility functions for core.bundles"""
-from __future__ import division
+
 
 from vistrails.core import debug
 import vistrails.core.system
@@ -96,7 +96,7 @@ class System_guesser(object):
         self._callable_dict = {}
 
     def add_test(self, test, system_name):
-        if self._callable_dict.has_key(system_name):
+        if system_name in self._callable_dict:
             raise ValueError("test for '%s' already present." % system_name)
         if system_name == 'UNKNOWN':
             raise ValueError("Invalid system name")
@@ -104,7 +104,7 @@ class System_guesser(object):
         self._callable_dict[system_name] = test
 
     def guess_system(self):
-        for (name, callable_) in self._callable_dict.iteritems():
+        for (name, callable_) in self._callable_dict.items():
             if callable_():
                 return name
         else:

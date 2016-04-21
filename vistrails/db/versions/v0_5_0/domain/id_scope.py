@@ -34,12 +34,12 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import copy
 
 class IdScope:
-    def __init__(self, beginId=0L):
+    def __init__(self, beginId=0):
         self.ids = {}
         self.beginId = beginId
 
@@ -52,7 +52,7 @@ class IdScope:
         return str(self.ids)
 
     def getNewId(self, objType):
-        if self.ids.has_key(objType):
+        if objType in self.ids:
             id = self.ids[objType]
             self.ids[objType] += 1
             return id
@@ -61,7 +61,7 @@ class IdScope:
             return self.beginId
 
     def updateBeginId(self, objType, beginId):
-        if not self.ids.has_key(objType) or self.ids[objType] <= beginId:
+        if objType not in self.ids or self.ids[objType] <= beginId:
             self.ids[objType] = beginId
         
     def setBeginId(self, objType, beginId):

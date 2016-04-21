@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import json
 import uuid
@@ -117,7 +117,7 @@ class RawJsJSONEncoder(json.JSONEncoder):
 
     def encode(self, o):
         result = json.JSONEncoder.encode(self, o)
-        for k, v in self._replacement_map.iteritems():
+        for k, v in self._replacement_map.items():
             result = result.replace('"%s"' % k, v)
         return result
 

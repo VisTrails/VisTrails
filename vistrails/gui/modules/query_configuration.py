@@ -33,19 +33,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression
-from vistrails.core import system
 
-from constant_configuration import StandardConstantWidget, ColorWidget
+from PyQt5 import QtCore, QtWidgets
+
+from .constant_configuration import StandardConstantWidget, ColorWidget
+from .constant_configuration import StandardConstantWidget, ColorWidget
 
 ############################################################################
 
 class QueryWidgetMixin(object):
 
-    def __init__(self, contents=None, query_method=None):
+    contentsChanged = QtCore.pyqtSignal(object, object)
+    def __init__(self, contents=None, query_method=None, **kwargs):
+        super().__init__(**kwargs)
         self._last_contents = contents
         self._last_query_method = query_method
 
@@ -63,25 +64,26 @@ class QueryWidgetMixin(object):
                 self.parent().updateMethod()
             self._last_contents = new_contents
             self._last_query_method = new_query_method
-            self.emit(QtCore.SIGNAL('contentsChanged'), (self,new_contents))
+            self.contentsChanged.emit((self,new_contents))
 
-class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
-    def __init__(self, contents_klass, query_methods, param, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        QueryWidgetMixin.__init__(self, param.strValue, param.queryMethod)
+class BaseQueryWidget(QtWidgets.QWidget, QueryWidgetMixin):
+    def __init__(self, contents_klass, query_methods, param, **kwargs):
+        super().__init__(contents=param.strValue,
+                         query_method=param.queryMethod,
+                         **kwargs)
 
         contents = param.strValue
         queryMethod = param.queryMethod
 
-        layout = QtGui.QHBoxLayout()
-        self.op_button = QtGui.QToolButton()
-        self.op_button.setPopupMode(QtGui.QToolButton.InstantPopup)
+        layout = QtWidgets.QHBoxLayout()
+        self.op_button = QtWidgets.QToolButton()
+        self.op_button.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         self.op_button.setArrowType(QtCore.Qt.NoArrow)
-        action_group = QtGui.QActionGroup(self.op_button)
+        action_group = QtWidgets.QActionGroup(self.op_button)
         actions = []
         checked_exists = False
         for method in query_methods:
-            action = QtGui.QAction(method, self)
+            action = QtWidgets.QAction(method, self)
             action.setCheckable(True)
             action_group.addAction(action)
             if method == queryMethod:
@@ -92,7 +94,7 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
             actions[0].setChecked(True)
             self._last_query_method = str(actions[0].text())
             
-        menu = QtGui.QMenu(self.op_button)
+        menu = QtWidgets.QMenu(self.op_button)
         menu.addActions(actions)
         self.op_button.setMenu(menu)
         self.op_button.setText(action_group.checkedAction().text())
@@ -100,14 +102,13 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
         self.contents_widget = contents_klass(param)
         self.contents_widget.setContents(contents)
 
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.op_button)
         layout.addWidget(self.contents_widget)
         self.setLayout(layout)
 
-        self.connect(self.op_button, QtCore.SIGNAL('triggered(QAction*)'),
-                     self.update_action)
+        self.op_button.triggered.connect(self.update_action)
 
     def contents(self):
         return self.contents_widget.contents()
@@ -127,23 +128,21 @@ class BaseQueryWidget(QtGui.QWidget, QueryWidgetMixin):
                 return str(action.text())
 
 class StandardQueryWidget(BaseQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, StandardConstantWidget, ["==", "!="],
-                                 param, parent)
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=StandardConstantWidget,
+                         query_methods=["==", "!="], **kwargs)
 
 class StringQueryWidget(StandardQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, StandardConstantWidget, 
-                                 ["*[]*", "==", "=~"],
-                                 param, parent)
-    
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=StandardConstantWidget,
+                         query_methods=["*[]*", "==", "=~"], **kwargs)
+
 class NumericQueryWidget(StandardQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, StandardConstantWidget,
-                                 ["==", "<", ">", "<=", ">="], 
-                                 param, parent)
-    
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=StandardConstantWidget,
+                         query_methods=["==", "<", ">", "<=", ">="], **kwargs)
+
 class ColorQueryWidget(StandardQueryWidget):
-    def __init__(self, param, parent=None):
-        BaseQueryWidget.__init__(self, ColorWidget, ["2.3", "5", "10", "50"],
-                                 param, parent)
+    def __init__(self, **kwargs):
+        super().__init__(contents_klass=ColorWidget,
+                         query_methods=["2.3", "5", "10", "50"], **kwargs)

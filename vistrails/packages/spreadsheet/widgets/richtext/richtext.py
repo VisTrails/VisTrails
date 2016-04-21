@@ -36,12 +36,15 @@
 ################################################################################
 # Richtext widgets implementation
 ################################################################################
-from __future__ import division
+
 
 import os
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import QUrl
-from PyQt4.QtXmlPatterns import QXmlQuery
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+
+from PyQt5.QtCore import QUrl
+# FIXME QtXml is no longer supported.
+# [TE] It seems to be supported but requires: python3-pyqt5.qtxmlpatterns
+from PyQt5.QtXmlPatterns import QXmlQuery
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -125,9 +128,9 @@ class RichTextCellWidget(QCellWidget):
         Create a rich text cell without a toolbar
 
         """
-        QCellWidget.__init__(self, parent)
-        self.setLayout(QtGui.QVBoxLayout(self))
-        self.browser = QtGui.QTextBrowser()
+        super().__init__(parent=parent)
+        self.setLayout(QtWidgets.QVBoxLayout(self))
+        self.browser = QtWidgets.QTextBrowser()
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.browser.controlBarType = None
@@ -139,7 +142,7 @@ class RichTextCellWidget(QCellWidget):
 
         """
         (self.html,) = inputPorts
-        if isinstance(self.html, unicode):
+        if isinstance(self.html, str):
             html = self.html
         else:
             codec = QtCore.QTextCodec.codecForHtml(self.html)
@@ -165,7 +168,7 @@ class RichTextCellWidget(QCellWidget):
                 super(RichTextCellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)

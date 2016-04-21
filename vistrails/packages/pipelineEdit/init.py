@@ -33,14 +33,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtWidgets
+
 import vistrails.api
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.controller import VistrailController
 
-class QPipelineEditor(QtGui.QWidget):
+class QPipelineEditor(QtWidgets.QWidget):
     """QPipelineEditor is a simple widget that can load a vistrail,
     select a pipeline and dipslay aliases of that pipeline."""
     
@@ -49,42 +50,39 @@ class QPipelineEditor(QtGui.QWidget):
         Construct and layout GUI elements
 
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setWindowTitle('Pipeline Editor')
 
         self.vistrail = None
         self.versions = []
         
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
 
-        self.filenameLabel = QtGui.QLabel('Vistrail: N/A')
+        self.filenameLabel = QtWidgets.QLabel('Vistrail: N/A')
         hbox.addWidget(self.filenameLabel)
-        self.browseButton = QtGui.QPushButton('Browse...')
+        self.browseButton = QtWidgets.QPushButton('Browse...')
         hbox.addWidget(self.browseButton)
-        self.connect(self.browseButton, QtCore.SIGNAL('clicked()'),
-                     self.selectFile)
+        self.browseButton.clicked.connect(self.selectFile)
 
-        vbox.addWidget(QtGui.QLabel('Pipelines'))
-        self.pipelineList = QtGui.QListWidget()
+        vbox.addWidget(QtWidgets.QLabel('Pipelines'))
+        self.pipelineList = QtWidgets.QListWidget()
         vbox.addWidget(self.pipelineList)
-        self.connect(self.pipelineList, QtCore.SIGNAL('currentRowChanged(int)'),
-                     self.currentPipelineChanged)
+        self.pipelineList.currentRowChanged.connect(self.currentPipelineChanged)
         
-        vbox.addWidget(QtGui.QLabel('Aliases'))
-        self.aliasTable = QtGui.QTableWidget(0, 2)
+        vbox.addWidget(QtWidgets.QLabel('Aliases'))
+        self.aliasTable = QtWidgets.QTableWidget(0, 2)
         self.aliasTable.horizontalHeader().setStretchLastSection(True)
         vbox.addWidget(self.aliasTable)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
-        self.executeButton = QtGui.QPushButton('Execute')
+        self.executeButton = QtWidgets.QPushButton('Execute')
         hbox.addWidget(self.executeButton)
-        self.connect(self.executeButton, QtCore.SIGNAL('clicked()'),
-                     self.execute)
+        self.executeButton.clicked.connect(self.execute)
         
     def selectFile(self):
         """ selectFile() -> None
@@ -92,13 +90,14 @@ class QPipelineEditor(QtGui.QWidget):
         list of tagged version on the pipeline list.
 
         """
-        fn = QtGui.QFileDialog.getOpenFileName(self,
+        fn = QtWidgets.QFileDialog.getOpenFileName(self,
                                                'Load Vistrail',
                                                '.',
-                                               'Vistrail (*.vt)')
-        if not fn.isNull():
+                                               'Vistrail (*.vt)')[0]
+        if fn:
             self.filenameLabel.setText('Vistrail: %s' % fn)
-            self.vistrail = vistrails.api.get_vistrail_from_file(str(fn))
+            self.vistrail = vistrails.api.get_vistrail_from_file(fn)
+            self.versions = []
             for item in self.vistrail.get_tagMap().items():
                 self.versions.append(item)
             self.pipelineList.clear()
@@ -115,13 +114,13 @@ class QPipelineEditor(QtGui.QWidget):
         else:
             versionName = self.pipelineList.currentItem().text()
             pipeline = self.vistrail.getPipelineVersionName(str(versionName))
-            aliases = pipeline.aliases.keys()
+            aliases = list(pipeline.aliases.keys())
             self.aliasTable.setRowCount(len(aliases))
             row = 0
             for name in aliases:
-                self.aliasTable.setItem(row, 0, QtGui.QTableWidgetItem(name))
+                self.aliasTable.setItem(row, 0, QtWidgets.QTableWidgetItem(name))
                 value = pipeline.get_alias_str_value(name)
-                self.aliasTable.setItem(row, 1, QtGui.QTableWidgetItem(value))
+                self.aliasTable.setItem(row, 1, QtWidgets.QTableWidgetItem(value))
                 row += 1
 
     def execute(self):
@@ -130,7 +129,7 @@ class QPipelineEditor(QtGui.QWidget):
 
         """
         aliases = {}
-        for r in xrange(self.aliasTable.rowCount()):
+        for r in range(self.aliasTable.rowCount()):
             name = str(self.aliasTable.item(r, 0).text())
             value = str(self.aliasTable.item(r, 1).text())
             aliases[name] = value
@@ -143,7 +142,10 @@ class QPipelineEditor(QtGui.QWidget):
                                            pipeline,
                                            DummyView(),
                                            aliases,
-                                           None)])
+                                           None,
+                                           'pipelineEdit execution',
+                                           None,
+                                           {})])
 
 def initialize(*args, **keywords):
     """ initialize() -> None    

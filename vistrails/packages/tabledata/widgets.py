@@ -33,9 +33,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
@@ -44,27 +45,25 @@ from .identifiers import identifier
 from vistrails.core.modules.basic_modules import List
 
 
-class Entry(QtGui.QWidget):
+class Entry(QtWidgets.QWidget):
     remove = QtCore.pyqtSignal()
     changed = QtCore.pyqtSignal()
 
     def __init__(self, name):
-        QtGui.QWidget.__init__(self)
-        layout = QtGui.QHBoxLayout()
+        QtWidgets.QWidget.__init__(self)
+        layout = QtWidgets.QHBoxLayout()
         self.setLayout(layout)
-        self.lineedit = QtGui.QLineEdit(name)
-        layout.addWidget(QtGui.QLabel(self.prefix))
+        self.lineedit = QtWidgets.QLineEdit(name)
+        layout.addWidget(QtWidgets.QLabel(self.prefix))
         layout.addWidget(self.lineedit)
         layout.addStretch()
-        remove_button = QtGui.QPushButton("Remove port")
-        remove_button.setSizePolicy(QtGui.QSizePolicy.Fixed,
-                                    QtGui.QSizePolicy.Fixed)
+        remove_button = QtWidgets.QPushButton("Remove port")
+        remove_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                    QtWidgets.QSizePolicy.Fixed)
         layout.addWidget(remove_button)
 
-        self.connect(remove_button, QtCore.SIGNAL('clicked()'),
-                     self.remove)
-        self.connect(self.lineedit, QtCore.SIGNAL('textEdited(const QString &)'),
-                     self.changed)
+        remove_button.clicked.connect(self.remove)
+        self.lineedit.textEdited.connect(self.changed)
 
     @property
     def name(self):
@@ -83,22 +82,21 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
     """
     Configuration widget allowing to create the ports of the BuildTable module.
     """
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # Window title
         self.setWindowTitle("Build table configuration")
 
-        central_layout = QtGui.QVBoxLayout()
-        central_layout.setMargin(0)
+        central_layout = QtWidgets.QVBoxLayout()
+        central_layout.setContentsMargins(0, 0, 0, 0)
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
 
-        self._scroll_area = QtGui.QScrollArea()
-        inner_widget = QtGui.QWidget()
-        self._list_layout = QtGui.QVBoxLayout()
-        scroll_layout = QtGui.QVBoxLayout()
+        self._scroll_area = QtWidgets.QScrollArea()
+        inner_widget = QtWidgets.QWidget()
+        self._list_layout = QtWidgets.QVBoxLayout()
+        scroll_layout = QtWidgets.QVBoxLayout()
         scroll_layout.addLayout(self._list_layout)
         scroll_layout.addStretch()
         inner_widget.setLayout(scroll_layout)
@@ -108,15 +106,13 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         self._scroll_area.setWidgetResizable(True)
         central_layout.addWidget(self._scroll_area)
 
-        add_buttons = QtGui.QHBoxLayout()
+        add_buttons = QtWidgets.QHBoxLayout()
         central_layout.addLayout(add_buttons)
-        add_table = QtGui.QPushButton("Add a whole table")
-        self.connect(add_table, QtCore.SIGNAL('clicked()'),
-                     self.add_table)
+        add_table = QtWidgets.QPushButton("Add a whole table")
+        add_table.clicked.connect(self.add_table)
         add_buttons.addWidget(add_table)
-        add_column = QtGui.QPushButton("Add a list as a single column")
-        self.connect(add_column, QtCore.SIGNAL('clicked()'),
-                     self.add_column)
+        add_column = QtWidgets.QPushButton("Add a list as a single column")
+        add_column.clicked.connect(self.add_column)
         add_buttons.addWidget(add_column)
 
         self.createButtons()
@@ -125,10 +121,8 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
 
     def add_item(self, item):
         self._list_layout.addWidget(item)
-        self.connect(item, QtCore.SIGNAL('remove()'),
-                     lambda: item.deleteLater())
-        self.connect(item, QtCore.SIGNAL('changed()'),
-                     self.updateState)
+        item.remove.connect(lambda: item.deleteLater())
+        item.changed.connect(self.updateState)
 
     def add_table(self):
         self.add_item(TableEntry(
@@ -145,21 +139,19 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         Create and connect signals to Ok & Cancel button
 
         """
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton("&Save", self)
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton("&Reset", self)
+        self.resetButton = QtWidgets.QPushButton("&Reset", self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -170,8 +162,8 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -195,13 +187,13 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         current_ports = dict(self.getCurrentPorts())
         add_ports = []
         delete_ports = []
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             widget = self._list_layout.itemAt(i).widget()
             is_table = isinstance(widget, TableEntry)
             name = widget.name
 
             if name in seen_new_ports:
-                QtGui.QMessageBox.critical(
+                QtWidgets.QMessageBox.critical(
                         self,
                         "Duplicated port name",
                         "There are several input ports with name %r" % name)
@@ -219,7 +211,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
                               sigstring, -1))
 
         delete_ports.extend(('input', unseen_port)
-                            for unseen_port in current_ports.iterkeys())
+                            for unseen_port in current_ports.keys())
 
         self.controller.update_ports(self.module.id, delete_ports, add_ports)
 
@@ -233,7 +225,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
                 self.add_item(ColumnEntry(name))
 
     def resetTriggered(self, checked = False):
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             self._list_layout.itemAt(i).widget().deleteLater()
 
         self.createEntries()
@@ -241,11 +233,11 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()

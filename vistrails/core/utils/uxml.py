@@ -33,11 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from xml.dom import minidom
 import xml.parsers.expat
-import __builtin__
+import builtins
 
 def eval_xml_value(node):
     """eval_xml_value(node) -> value
@@ -51,7 +51,7 @@ def eval_xml_value(node):
     """
     
     key_name = node.nodeName
-    type_ = getattr(__builtin__, key_name)
+    type_ = getattr(builtins, key_name)
     str_value = str(node.attributes['value'].value)
 
     # Tricky case bool('False') == True
@@ -138,7 +138,7 @@ class XMLWrapper(object):
         self.filename = filename
         try:
             self.dom = minidom.parse(filename)
-        except xml.parsers.expat.ExpatError, e:
+        except xml.parsers.expat.ExpatError as e:
             raise self.XMLParseError(e.lineno, e.offset, e.code) 
 
     def create_document_from_string(self, text):
@@ -148,7 +148,7 @@ class XMLWrapper(object):
         """
         try:
             dom = minidom.parseString(text)
-        except xml.parsers.expat.ExpatError, e:
+        except xml.parsers.expat.ExpatError as e:
             raise self.XMLParseError(e.lineno, e.offset, e.code)
         return dom
     

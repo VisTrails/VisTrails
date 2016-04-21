@@ -262,7 +262,7 @@ Let's do a simple example to show how this module works.
   * ``String`` (under "Basic Modules") - you will need two of them
   * ``If`` (under "Control Flow")
   * ``WriteFile`` (under "Basic Modules")
-  * ``RichTextCell`` (under "|vistrails| Spreadsheet")
+  * ``RichTextOutput`` (under "Basic Modules")
   
   Name the ``Boolean`` module "Condition", the first ``String`` module
   "True Branch", and the second ``String`` module "False Branch".
@@ -290,7 +290,7 @@ Let's do a simple example to show how this module works.
 
 Lets do a more advanced example from the bioinformatics domain. This workflow
 will take a string as the input.  If this string is a structure identifier, a
-web service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/)
+REST web service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/)
 is used to put the structure into PDB format (a standard representation for
 macromolecular structure) and the ``VTK`` package is used to show the protein in
 the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and a
@@ -298,32 +298,31 @@ message is generated in the Spreadsheet.
 
 .. topic:: Try it Now!
 
-  First, the EBI's web service must be enabled. For this, you need to add the following url to the ``wsdlList`` configuration:
+  We will use the EBI's pdb REST service found at the following url:
 
 
-  ``http://www.ebi.ac.uk/Tools/webservices/wsdl/WSDbfetch.wsdl``
+  ``http://www.ebi.ac.uk/Tools/dbfetch/``
 
-
-  Don't forget to ensure that the ``SudsWebServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
 
   Now, you're going to drag the following modules to the canvas:
 
   * ``If``
-  * ``fetchData`` (under "Methods" for the current web service)
-  * ``WriteFile`` (under "Basic Modules")
+  * ``ConcatenateString`` (under Basic Modules)
+  * ``DownloadFile`` (under "URL")
   * ``vtkPDBReader`` (under "VTK")
   * ``vtkDataSetMapper`` (under "VTK")
   * ``vtkActor`` (under "VTK")
   * ``vtkRenderer`` (under "VTK")
-  * ``VTKCell`` (under "VTK")
+  * ``vtkRendererOutput`` (under "VTK")
   * ``PythonSource`` (under "Basic Modules") - you will need two of them
   * ``String`` (under "Basic Modules")
-  * ``RichTextCell`` (under "|vistrails| Spreadsheet")
+  * ``RichTextOutput`` (under "Basic Modules")
 
-  Set some paremeters of ``fetchData``:
+  Set the REST URL as a parameter to ``ConcatenateString`` with the required arguments:
 
-  * "format": *pdb*
-  * "style": *raw*
+  * "str1": ``http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=pdb&format=pdb&style=raw&id=``
+
+  It can be renamed to ``REST URL``, since it creates the URL for the REST call.
 
   Next, connect some modules as shown in Figure :ref:`fig-controlflow-if_group`.
 
@@ -346,30 +345,25 @@ that will be executed if the input is a structure identifier.
 .. code-block:: python
    :linenos:
 
-   if "\n" in Structure:
-       lineLen = Structure.index("\n")
-   else:
-       lineLen = -1
-   if lineLen < 1:
-       lineLen = len(Structure)
+    if Structure != Structure.strip():
+        Is_ID = False
+    elif len(Structure) < 1:
+        Is_ID = False
+    elif ":" in Structure:
+        Is_ID = False
+    else:
+        Is_ID = True
 
-   if ":" in Structure:
-       index = Structure.index(":")
-   else:
-       index = -1
-
-   if Structure[0] != "ID " and index > 0 and index < lineLen:
-       Is_ID = True
-   else:
-       Is_ID = False
-
-.. FIXME: there is no way a 1-character string could be equal to "ID "
+.. FIXME: This is just basic sanity checks, I am not sure what is a valid ID.
 
 .. topic:: Next Step!
 
-  Name this module as ``Is_ID``. This module will be the condition for the ``If`` structure.
+  Name this module as ``Is_ID``. This module will be the condition for the
+  ``If`` structure.
 
-  Now, select the last ``PythonSource`` module, and, inside its configuration, add one input port of type ``String``, named "Input", and one output port of type ``File``, named "html". Then, copy the code below:
+  Now, select the last ``PythonSource`` module, and, inside its configuration,
+  add one input port of type ``String``, named "Input", and one output port of
+  type ``File``, named "html". Then, copy the code below:
 
 .. code-block:: python
    :linenos:
@@ -394,9 +388,14 @@ that will be executed if the input is a structure identifier.
 
 .. topic:: Next Step!
 
-  Name this ``PythonSource`` as ``Not_ID``. This module will print a message in the |vistrails| Spreadsheet when the input is not a structure identifier.
+  Name this ``PythonSource`` as ``Not_ID``. This module will print a message in
+  the |vistrails| Spreadsheet when the input is not a structure identifier.
 
-  Finally, the ``String`` module can be named as ``Workflow_Input``, to make it clear that it takes the input of the workflow. Also, open the configuration dialog of ``RichTextCell`` to enable the output port "self", so it can be connected to the ``If`` module. Then, connect all the modules as shown in Figure :ref:`fig-controlflow-if_workflow`. 
+  Finally, the ``String`` module can be named as ``Workflow_Input``, to make it
+  clear that it takes the input of the workflow. Also, open the configuration
+  dialog of ``RichTextOutput`` to enable the output port "self", so it can be
+  connected to the ``If`` module. Then, connect all the modules as shown in
+  Figure :ref:`fig-controlflow-if_workflow`.
 
 .. _fig-controlflow-if_workflow:
 
@@ -421,11 +420,11 @@ that will be executed if the input is a structure identifier.
 Note that this implementation follows exactly the initial specification of the workflow. If the input
 is a structure identifier (``Is_ID`` returns ``True``), ``Generate_Visualization``
 will be executed; otherwise (``Is_ID`` returns ``False``), ``Not_ID``
-and ``RichTextCell`` will create an error message in the |vistrails| Spreadsheet.
+and ``RichTextOutput`` will create an error message in the |vistrails| Spreadsheet.
 
 .. topic:: Next Step!
 
-  For the workflow execution, set the parameter "value" of the ``Workflow_Input`` module to *PDB:3BG0*. This entry is an ID from a protein; so, the condition will be ``True``, and the ``Generate_Visualization`` group will be executed, generating the visualization shown in Figure :ref:`fig-controlflow-if_spreadsheet_true`.
+  For the workflow execution, set the parameter "value" of the ``Workflow_Input`` module to *3BG0*. This entry is an ID from a protein; so, the condition will be ``True``, and the ``Generate_Visualization`` group will be executed, generating the visualization shown in Figure :ref:`fig-controlflow-if_spreadsheet_true`.
 
 .. _fig-controlflow-if_spreadsheet_true:
 

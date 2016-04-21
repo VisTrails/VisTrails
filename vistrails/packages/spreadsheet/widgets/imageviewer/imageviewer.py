@@ -36,16 +36,21 @@
 ################################################################################
 # ImageViewer widgets/toolbar implementation
 ################################################################################
-from __future__ import division
+
 
 import os
-from PyQt4 import QtCore, QtGui
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
-import imageviewer_rc
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell,\
+    SpreadsheetMode
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget,\
+    QCellToolBar, SpreadsheetAction
+from vistrails.packages.spreadsheet.spreadsheet_controller import \
+    spreadsheetController
+from . import imageviewer_rc
 
 ################################################################################
+
 
 class ImageFileToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration):
@@ -54,6 +59,7 @@ class ImageFileToSpreadsheet(SpreadsheetMode):
         local_file = window.file_pool.make_local_copy(fname)
         self.display_and_wait(output_module, configuration,
                               ImageViewerCellWidget, (local_file,))
+
 
 class ImageViewerCell(SpreadsheetCell):
     """
@@ -73,6 +79,7 @@ class ImageViewerCell(SpreadsheetCell):
             fileValue = None
         self.displayAndWait(ImageViewerCellWidget, (fileValue, ))
 
+
 class ImageViewerCellWidget(QCellWidget):
     """
     ImageViewerCellWidget is the actual QLabel that will draw
@@ -84,11 +91,11 @@ class ImageViewerCellWidget(QCellWidget):
         Initialize the widget with its toolbar type and aligment
         
         """
-        QCellWidget.__init__(self, parent)
-        self.setLayout(QtGui.QVBoxLayout(self))
+        super().__init__(parent=parent)
+        self.setLayout(QtWidgets.QVBoxLayout(self))
         self.setAnimationEnabled(True)
         
-        self.label = QtGui.QLabel()
+        self.label = QtWidgets.QLabel()
         self.layout().addWidget(self.label)
         
         self.label.setAutoFillBackground(True)
@@ -145,9 +152,9 @@ class ImageViewerCellWidget(QCellWidget):
         Save the current widget contents to a pdf file
         
         """
-        printer = QtGui.QPrinter()
+        printer = QtPrintSupport.QPrinter()
         
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         painter = QtGui.QPainter()
         painter.begin(printer)
@@ -165,8 +172,9 @@ class ImageViewerCellWidget(QCellWidget):
             self.label.setPixmap(self.originalPix.scaled(self.label.size(),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
-                
-class ImageViewerFitToCellAction(QtGui.QAction):
+
+
+class ImageViewerFitToCellAction(SpreadsheetAction):
     """
     ImageViewerFitToCellAction is the action to stretch the image to
     fit inside a cell
@@ -178,10 +186,9 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/fittocell.png"),
-                               "&Fit To Cell",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/fittocell.png"),
+                         "&Fit To Cell",
+                         parent)
         self.setStatusTip("Scale image content to fit cell frame")
         self.setCheckable(True)
         self.setChecked(True)
@@ -207,7 +214,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         self.setChecked(cellWidget.label.hasScaledContents())
 
 
-class ImageViewerZoomSlider(QtGui.QSlider):
+class ImageViewerZoomSlider(QtWidgets.QSlider):
     """
     ImageViewerZoomSlider is a slider that allows user to zoom in and
     out by dragging it
@@ -218,15 +225,14 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         Setup the ranges, status tip, etc. of the slider
         
         """
-        QtGui.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
+        QtWidgets.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setRange(100, 300)
         self.setValue(100)
         self.setTracking(True)
         self.setStatusTip("Zoom in the image")
-        self.connect(self, QtCore.SIGNAL("valueChanged(int)"), self.updateZoom)
-        self.connect(self, QtCore.SIGNAL("needUpdateStatus"), self.updateStatus)
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                           QtGui.QSizePolicy.Expanding)
+        self.valueChanged.connect(self.updateZoom)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                           QtWidgets.QSizePolicy.Expanding)
         
     def updateZoom(self, value):
         """ updateZoom(value: int) -> None
@@ -255,18 +261,19 @@ class ImageViewerZoomSlider(QtGui.QSlider):
             else:
                 self.setEnabled(False)
                 self.setValue(100)
-                
-class ImageViewerZoomLabel(QtGui.QLabel):
+
+
+class ImageViewerZoomLabel(QtWidgets.QLabel):
     """
     ImageViewerZoomLabel is the label sitting next to the ImageViewerZoomSlider
     
     """
     def __init__(self, parent=None):
-        """ ImageViewerZoomSlider(parent: QWidget) -> None
+        """ ImageViewerZoomLabel(parent: QWidget) -> None
         Setup the label with a status tip
         
         """
-        QtGui.QLabel.__init__(self, "100%", parent)
+        QtWidgets.QLabel.__init__(self, "100%", parent)
         self.setStatusTip("Zoom in the image")
         
     def updateValue(self, value):
@@ -274,8 +281,9 @@ class ImageViewerZoomLabel(QtGui.QLabel):
         Updates the label with the new percentage value
         """
         self.setText(str(value)+"%")
-                
-class ImageViewerRotateAction(QtGui.QAction):
+
+
+class ImageViewerRotateAction(SpreadsheetAction):
     """
     ImageViewerRotateAction is the action to rotate the image
     
@@ -286,12 +294,11 @@ class ImageViewerRotateAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/rotate.png"),
-                               "&Rotate CW...",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/rotate.png"),
+                         "&Rotate CW...",
+                         parent)
         self.setStatusTip("Rotate 90 degrees CW")
-        self.rotationMatrix = QtGui.QMatrix(0,1,-1,0,0,0)
+        self.rotationMatrix = QtGui.QTransform(0,1,-1,0,0,0)
         
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -306,7 +313,8 @@ class ImageViewerRotateAction(QtGui.QAction):
         cellWidget.label.setPixmap(cellWidget.label.pixmap().transformed(
             self.rotationMatrix))
 
-class ImageViewerFlipAction(QtGui.QAction):
+
+class ImageViewerFlipAction(SpreadsheetAction):
     """
     ImageViewerFlipAction is the action to flip the image
     
@@ -316,12 +324,11 @@ class ImageViewerFlipAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/flip.png"),
-                               "&Flip Horizontal...",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/flip.png"),
+                         "&Flip Horizontal...",
+                         parent)
         self.setStatusTip("Flip the image horizontally")
-        self.flipMatrix = QtGui.QMatrix(-1,0,0,1,0,0)
+        self.flipMatrix = QtGui.QTransform(-1,0,0,1,0,0)
         
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -335,6 +342,7 @@ class ImageViewerFlipAction(QtGui.QAction):
         cellWidget.originalPix = cellWidget.originalPix.transformed(
             self.flipMatrix)
         label.setPixmap(label.pixmap().transformed(self.flipMatrix))
+
 
 class ImageViewerToolBar(QCellToolBar):
     """
@@ -352,9 +360,7 @@ class ImageViewerToolBar(QCellToolBar):
         self.appendAction(ImageViewerFlipAction(self))
         self.slider = ImageViewerZoomSlider(self)
         label = ImageViewerZoomLabel(self)
-        self.connect(self.slider,
-                     QtCore.SIGNAL("valueChanged(int)"),
-                     label.updateValue)
+        self.slider.valueChanged.connect(label.updateValue)
         self.appendWidget(self.slider)
         self.appendWidget(label)
         self.addAnimationButtons()

@@ -37,12 +37,13 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui, QtWebKit
+
+from PyQt5 import (QtCore, QtGui, QtWebKit, QtWidgets, QtWebKitWidgets,
+                   QtPrintSupport)
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
-    QCellToolBar
+    QCellToolBar, SpreadsheetAction
 import os
 import webbrowser
 ############################################################################
@@ -79,12 +80,12 @@ class WebViewCellWidget(QCellWidget):
         Create a rich text cell without a toolbar
         
         """
-        QCellWidget.__init__(self, parent)
-        self.setLayout(QtGui.QVBoxLayout(self))
+        super().__init__(parent=parent)
+        self.setLayout(QtWidgets.QVBoxLayout(self))
         self.toolBarType = WebViewCellToolBar
         QtWebKit.QWebSettings.globalSettings().setAttribute(
             QtWebKit.QWebSettings.DeveloperExtrasEnabled, True)
-        self.browser = QtWebKit.QWebView()
+        self.browser = QtWebKitWidgets.QWebView()
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.urlSrc = None
@@ -115,18 +116,17 @@ class WebViewCellWidget(QCellWidget):
             super(WebViewCellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
 
 
-class OpenInBrowserAction(QtGui.QAction):
+class OpenInBrowserAction(SpreadsheetAction):
     def __init__(self, parent):
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/new-window.png"),
-                               "Open in &Browser",
-                               parent)
+        super().__init__(QtGui.QIcon(":/images/new-window.png"),
+                         "Open in &Browser",
+                         parent)
         self._view = None
         self.setEnabled(False)
         self.setStatusTip("Open this page in the system web browser")

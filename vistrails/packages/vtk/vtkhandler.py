@@ -34,28 +34,30 @@
 ##
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 ################################################################################
+
+
 class HandlerConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
-        """ HandlerConfigurationWidget(module: Module,
-                                       controller: VistrailController,
-                                       parent: QWidget)
-                                       -> HandlerConfigurationWidget
+        """
         Setup the dialog to similar to PythonSource but with a
         different name
 
         """
-        SourceConfigurationWidget.__init__(self, module, controller,
-                                           PythonEditor, False, False, parent,
-                                           portName='Handler')
-
+        super().__init__(module=module,
+                         controller=controller,
+                         editor_class=PythonEditor,
+                         has_inputs=False,
+                         has_outputs=False,
+                         parent=parent,
+                         portName='Handler')
 
 
 class vtkInteractionHandler(NotCacheable, Module):
@@ -164,12 +166,12 @@ class vtkInteractionHandler(NotCacheable, Module):
         if len(self.shareddata)==1:
             self.shareddata = self.shareddata[0]
         if self.observer:
-            source = urllib.unquote(self.handler)
+            source = urllib.parse.unquote(self.handler)
             observer = self.observer.vtkInstance
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
                 f = f.replace('Event', 'Handler')
-                source += ('\nif locals().has_key("%s"):\n' % f +
+                source += ('\nif "%s" in locals():\n' % f +
                            '\tobserver.AddObserver("%s", ' % e +
                            'self.eventHandler)\n')
             exec(source)
@@ -183,13 +185,13 @@ class vtkInteractionHandler(NotCacheable, Module):
         
         """
         if self.handler!='':
-            source = urllib.unquote(self.handler)
+            source = urllib.parse.unquote(self.handler)
             f = event[0].lower() + event[1:]
             f = f.replace('Event', 'Handler')
             myGlobals = globals()
             myGlobals.update({'self':self})
-            exec(source + ('\nif locals().has_key("%s"):\n' % f)+
-                 ('\t%s(obj, self.shareddata)' % f)) in myGlobals, locals()
+            exec((source + ('\nif "%s" in locals():\n' % f)+
+                 ('\t%s(obj, self.shareddata)' % f)), myGlobals, locals())
 
     def clear(self):
         """ clear() -> None

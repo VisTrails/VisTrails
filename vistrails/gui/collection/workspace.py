@@ -33,9 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
-
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import glob
 from itertools import chain
@@ -53,19 +51,18 @@ from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.module_palette import QModuleTreeWidgetItemDelegate
 from vistrails.gui.vis_diff import QDiffView
 
-class QCollectionWidget(QtGui.QTreeWidget):
+class QCollectionWidget(QtWidgets.QTreeWidget):
     """ This is an abstract class that contains functions for handling
     a core.collection.Collection object
     a subclass should provide a view of the collection
     """
+    workspaceListUpdated = QtCore.pyqtSignal()
     def __init__(self, collection, parent=None):
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         self.collection = collection
         self.collection.add_listener(self)
         self.setExpandsOnDoubleClick(False)
-        self.connect(self,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
-                     self.item_selected)
+        self.itemDoubleClicked.connect(self.item_selected)
         self.setIconSize(QtCore.QSize(16,16))
 
     def setup_widget(self, workspace=None):
@@ -94,16 +91,16 @@ class QCollectionWidget(QtGui.QTreeWidget):
             else:
                 item.setHidden(True)
             self.run_search(search, [item.child(i) 
-                                     for i in xrange(item.childCount())])
+                                     for i in range(item.childCount())])
 
     def reset_search(self, items=None):
         if items is None:
             items = [self.topLevelItem(i)
-                     for i in xrange(self.topLevelItemCount())]
+                     for i in range(self.topLevelItemCount())]
         for item in items:
             item.setHidden(False)
             self.reset_search([item.child(i) 
-                               for i in xrange(item.childCount())])
+                               for i in range(item.childCount())])
 
     def item_selected(self, widget_item, column):
         locator = widget_item.entity.locator()
@@ -129,72 +126,56 @@ class QCollectionWidget(QtGui.QTreeWidget):
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
-        menu = QtGui.QMenu(self)
+        menu = QtWidgets.QMenu(self)
         if item:
             # find top level
             p = item
             while p.parent():
                 p = p.parent()
-            act = QtGui.QAction("&Update", self)
+            act = QtWidgets.QAction("&Update", self)
             act.setStatusTip("Update this object")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   p.refresh_object)
+            act.triggered.connect(p.refresh_object)
             menu.addAction(act)
-            act = QtGui.QAction("&Remove", self)
+            act = QtWidgets.QAction("&Remove", self)
             act.setStatusTip("Remove from this list")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   p.remove_object)
+            act.triggered.connect(p.remove_object)
             menu.addAction(act)
-            act = QtGui.QAction("", self)
+            act = QtWidgets.QAction("", self)
             act.setSeparator(True)
             menu.addAction(act)
-        act = QtGui.QAction("Check &All", self)
+        act = QtWidgets.QAction("Check &All", self)
         act.setStatusTip("Removes deleted files")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.check_objects)
+        act.triggered.connect(self.check_objects)
         menu.addAction(act)
-        act = QtGui.QAction("Remove All", self)
+        act = QtWidgets.QAction("Remove All", self)
         act.setStatusTip("Removes all files")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.remove_all)
+        act.triggered.connect(self.remove_all)
         menu.addAction(act)
-        act = QtGui.QAction("Add &File", self)
+        act = QtWidgets.QAction("Add &File", self)
         act.setStatusTip("Add specified vistrail file")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_file)
+        act.triggered.connect(self.add_file)
         menu.addAction(act)
-        act = QtGui.QAction("Add from &Directory", self)
+        act = QtWidgets.QAction("Add from &Directory", self)
         act.setStatusTip("Add all vistrail files in a directory")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_dir)
+        act.triggered.connect(self.add_dir)
         menu.addAction(act)
-        act = QtGui.QAction("", self)
+        act = QtWidgets.QAction("", self)
         act.setSeparator(True)
         menu.addAction(act)
-        act = QtGui.QAction("Add a new Workspace", self)
+        act = QtWidgets.QAction("Add a new Workspace", self)
         act.setStatusTip("Create a new workspace")
-        QtCore.QObject.connect(act,
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_workspace)
+        act.triggered.connect(self.add_workspace)
         menu.addAction(act)
         if self.collection.currentWorkspace != 'Default':
-            act = QtGui.QAction("Delete Workspace", self)
+            act = QtWidgets.QAction("Delete Workspace", self)
             act.setStatusTip("Remove current workspace")
-            QtCore.QObject.connect(act,
-                                   QtCore.SIGNAL("triggered()"),
-                                   self.delete_workspace)
+            act.triggered.connect(self.delete_workspace)
             menu.addAction(act)
         menu.exec_(event.globalPos())
 
     def check_objects(self):
         items = [self.topLevelItem(i) 
-                 for i in xrange(self.topLevelItemCount())]
+                 for i in range(self.topLevelItemCount())]
         for item in items:
             item.entity.locator().update_from_gui(self)
             if not self.collection.urlExists(item.entity.url):
@@ -203,15 +184,15 @@ class QCollectionWidget(QtGui.QTreeWidget):
 
     def remove_all(self):
         items = [self.topLevelItem(i) 
-                 for i in xrange(self.topLevelItemCount())]
+                 for i in range(self.topLevelItemCount())]
         for item in items:
             self.collection.del_from_workspace(item.entity) 
         self.collection.commit()
 
     def add_file(self):
-        s = QtGui.QFileDialog.getOpenFileName(
+        s = QtWidgets.QFileDialog.getOpenFileName(
                     self, "Choose a file",
-                    "", "Vistrail files (*.vt *.xml)")
+                    "", "Vistrail files (*.vt *.xml)")[0]
         if str(s):
             locator = FileLocator(str(s))
             url = locator.to_url()
@@ -221,16 +202,16 @@ class QCollectionWidget(QtGui.QTreeWidget):
             self.collection.commit()
         
     def add_dir(self):
-        s = QtGui.QFileDialog.getExistingDirectory(
+        s = QtWidgets.QFileDialog.getExistingDirectory(
                     self, "Choose a directory",
-                    "", QtGui.QFileDialog.ShowDirsOnly)
+                    "", QtWidgets.QFileDialog.ShowDirsOnly)
         if str(s):
             self.update_from_directory(str(s))
         
     def update_from_directory(self, s):
         filenames = glob.glob(os.path.join(s, '*.vt,*.xml'))
         
-        progress = QtGui.QProgressDialog('', '', 0, len(filenames))
+        progress = QtWidgets.QProgressDialog('', '', 0, len(filenames))
         progress.setWindowTitle('Adding files')
         progress.setMinimumDuration(500)
         progress.setWindowModality(QtCore.Qt.WindowModal)
@@ -250,7 +231,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
         self.collection.commit()
 
     def add_workspace(self):
-        text, ok = QtGui.QInputDialog.getText(self, 'Create workspace',
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Create workspace',
                       'Enter new workspace name:')
         workspace = str(text).strip()
         if ok and workspace != '':
@@ -258,14 +239,14 @@ class QCollectionWidget(QtGui.QTreeWidget):
             if workspace not in self.collection.workspaces:
                 self.collection.add_workspace(workspace)
                 self.collection.commit()
-            self.emit(QtCore.SIGNAL("workspaceListUpdated()"))
+            self.workspaceListUpdated.emit()
                 
     def delete_workspace(self):
         if self.collection.currentWorkspace != 'Default':
             self.collection.delete_workspace(self.collection.currentWorkspace)
             self.collection.currentWorkspace = 'Default'
             self.collection.commit()
-            self.emit(QtCore.SIGNAL("workspaceListUpdated()"))
+            self.workspaceListUpdated.emit()
 
 class QWorkspaceWidget(QCollectionWidget):
     """ This class implements QCollectionWidget as a side bar browser widget
@@ -287,23 +268,23 @@ class QWorkspaceWidget(QCollectionWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-class QWorkflowsItem(QtGui.QTreeWidgetItem):
+class QWorkflowsItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent, ['Workflows'])
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, ['Workflows'])
 
-class QMashupsItem(QtGui.QTreeWidgetItem):
+class QMashupsItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent, ['Mashups'])
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, ['Mashups'])
 
-class QParamExplorationsItem(QtGui.QTreeWidgetItem):
+class QParamExplorationsItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent, ['Parameter Explorations'])
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, ['Parameter Explorations'])
 
-class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
+class QBrowserWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
         if not entity:
             # assuming an unsaved item
-            QtGui.QTreeWidgetItem.__init__(self, parent)
+            QtWidgets.QTreeWidgetItem.__init__(self, parent)
             self.tag_to_item = {}
             self.workflowsItem = QWorkflowsItem()
             self.addChild(self.workflowsItem)
@@ -317,7 +298,7 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             return
 
         self.entity = entity
-        QtGui.QTreeWidgetItem.__init__(self, parent, [entity.name])
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, [entity.name])
         if entity.type_id == VistrailEntity.type_id:
             # vistrail - create Workflows and Mashups item
             self.workflowsItem = QWorkflowsItem()
@@ -447,13 +428,13 @@ class QExplorerWidget(QCollectionWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
+class QExplorerWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, entity, parent=None):
         l = list(str(x) for x in entity.save())
         l.pop(0) # remove identifier
         type = l.pop(0)
         desc = l.pop(5)
-        QtGui.QTreeWidgetItem.__init__(self, parent, l)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, l)
         self.entity = entity
         if type == '1':
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
@@ -481,7 +462,7 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
             return int(self.text(sort_col)) < int(other.text(sort_col))
         elif sort_col in set([2,3]):
             return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
-        return QtGui.QTreeWidgetItem.__lt__(self, other)
+        return QtWidgets.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
         Collection.getInstance().updateVistrail(self.entity.url)
@@ -491,15 +472,19 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         Collection.getInstance().del_from_workspace(self.entity)
         Collection.getInstance().commit()
 
-class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
+class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
+
+    vistrailChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+    detachVistrail = QtCore.pyqtSignal(QtWidgets.QWidget)
+
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
 
         self.setWindowTitle('Workspace')
         # make it possible to ignore updates during updating of workspace list
         self.updatingWorkspaceList = False
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
         self.collection = Collection.getInstance()
@@ -513,7 +498,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def addButtonsToToolbar(self):
         # button for toggling executions
-        self.execAction = QtGui.QAction(CurrentTheme.EXECUTE_PIPELINE_ICON,
+        self.execAction = QtWidgets.QAction(CurrentTheme.EXECUTE_PIPELINE_ICON,
                                         "Show/hide workflow executions",
                                         None,
                                         triggered=self.showWorkflowExecutions)
@@ -521,18 +506,18 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.execAction)
         # buttons for toggling list/tree views of workflows
-        self.listAction = QtGui.QAction(CurrentTheme.LIST_VIEW_ICON,
+        self.listAction = QtWidgets.QAction(CurrentTheme.LIST_VIEW_ICON,
                                         "View workflows in a list",
                                         None,
                                         triggered=self.viewAsList)
         self.listAction.setCheckable(True)
         self.listAction.setChecked(True)
-        self.treeAction = QtGui.QAction(CurrentTheme.TREE_VIEW_ICON,
+        self.treeAction = QtWidgets.QAction(CurrentTheme.TREE_VIEW_ICON,
                                             "View workflows in a tree",
                                             None,
                                             triggered=self.viewAsTree)
         self.treeAction.setCheckable(True)
-        self.workflowDisplayGroup = QtGui.QActionGroup(self)
+        self.workflowDisplayGroup = QtWidgets.QActionGroup(self)
         self.workflowDisplayGroup.setExclusive(True)
         self.workflowDisplayGroup.addAction(self.listAction)
         self.workflowDisplayGroup.addAction(self.treeAction)
@@ -541,7 +526,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.treeAction)
         # buttons for going to the search view to search all vistrails
-        self.searchAction = QtGui.QAction("Search", self.toolWindow().toolbar,
+        self.searchAction = QtWidgets.QAction("Search", self.toolWindow().toolbar,
                                           triggered=self.gotoSearch)
         self.searchAction.searchMode = False
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
@@ -582,14 +567,14 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def viewAsList(self):
         """ Order workflow items as a flat list """
         self.open_list.isTreeView = False
-        for i in xrange(self.open_list.openFilesItem.childCount()):
+        for i in range(self.open_list.openFilesItem.childCount()):
             item = self.open_list.openFilesItem.child(i)
             self.open_list.make_list(item)
 
     def viewAsTree(self):
         """ Order workflow items as a history tree """
         self.open_list.isTreeView = True
-        for i in xrange(self.open_list.openFilesItem.childCount()):
+        for i in range(self.open_list.openFilesItem.childCount()):
             item = self.open_list.openFilesItem.child(i)
             self.open_list.make_tree(item)
 
@@ -602,7 +587,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.workspace_list.addItem('Default')
         if 'Default' == self.browser.collection.currentWorkspace:
             self.workspace_list.setCurrentIndex(self.workspace_list.count()-1)
-        locations = self.browser.collection.workspaces.keys()
+        locations = list(self.browser.collection.workspaces.keys())
         
         workspaces = [ l for l in locations \
                          if not l.startswith('file') and \
@@ -653,8 +638,7 @@ class QVistrailEntityItem(QBrowserWidgetItem):
     def open_in_new_window(self):
         if hasattr(self, "window"):
             self.treeWidget().setSelected(self.window)
-            self.treeWidget().parent().emit(QtCore.SIGNAL("detachVistrail"),
-                                   self.window)
+            self.treeWidget().parent().detachVistrail.emit(self.window)
 
     def open_workflow(self):
         self.treeWidget().item_selected(self, 0)
@@ -671,9 +655,9 @@ class QVistrailEntityItem(QBrowserWidgetItem):
     def open_parameter_exploration(self):
         self.treeWidget().open_parameter_exploration(self.entity)
         
-class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
+class QVistrailListLatestItem(QtWidgets.QTreeWidgetItem):
     def __init__(self):
-        QtGui.QTreeWidgetItem.__init__(self)
+        QtWidgets.QTreeWidgetItem.__init__(self)
         self.setIcon(0, CurrentTheme.PIPELINE_ICON)
         self.setText(0, '(latest)')
 
@@ -692,9 +676,9 @@ class QVistrailListLatestItem(QtGui.QTreeWidgetItem):
         self.parent().parent().window.detach_view(
                                 self.parent().parent().window.tabs.currentIndex())
 
-class QVistrailList(QtGui.QTreeWidget):
+class QVistrailList(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         self.searchMode = False
         self.search = None
         self.setColumnCount(1)
@@ -716,7 +700,7 @@ class QVistrailList(QtGui.QTreeWidget):
         self.delegate = QModuleTreeWidgetItemDelegate(self, self)
         self.setItemDelegate(self.delegate)
 
-        self.openFilesItem = QtGui.QTreeWidgetItem(['Current Vistrails'])
+        self.openFilesItem = QtWidgets.QTreeWidgetItem(['Current Vistrails'])
         self.addTopLevelItem(self.openFilesItem)
 
         self.setup_closed_files()
@@ -727,20 +711,16 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-        self.connect(self,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
-                     self.item_selected)
+        self.itemDoubleClicked.connect(self.item_selected)
         
         self.setIconSize(QtCore.QSize(16,16))
 
-        self.connect(self,
-                     QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
-                     self.onItemPressed)
+        self.itemPressed.connect(self.onItemPressed)
         self.updateHideExecutions()
         self.connect_current_changed()
 
     def setup_closed_files(self):
-        self.closedFilesItem = QtGui.QTreeWidgetItem(['My Vistrails'])
+        self.closedFilesItem = QtWidgets.QTreeWidgetItem(['My Vistrails'])
         self.addTopLevelItem(self.closedFilesItem)
         closed_entities = self.collection.workspaces['Default']
         for entity in closed_entities:
@@ -758,26 +738,16 @@ class QVistrailList(QtGui.QTreeWidget):
     def connect_current_changed(self):
         # using currentItemChanged makes sure a drag selects the dragged-from
         # vistrail
-        self.connect(self, 
-                     QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
-                                   "QTreeWidgetItem*)"),
-                     self.item_changed)
+        self.currentItemChanged.connect(self.item_changed)
         # using item_clicked makes sure even selected items can be clicked
-        self.connect(self, 
-                     QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
-                     self.item_changed)
+        self.itemClicked.connect(self.item_changed)
 
     def disconnect_current_changed(self):
-        self.disconnect(self, 
-                        QtCore.SIGNAL("currentItemChanged(QTreeWidgetItem*,"
-                                      "QTreeWidgetItem*)"),
-                        self.item_changed)
-        self.disconnect(self, 
-                        QtCore.SIGNAL("itemClicked(QTreeWidgetItem*,int)"),
-                        self.item_changed)
+        self.currentItemChanged.disconnect(self.item_changed)
+        self.itemClicked.disconnect(self.item_changed)
     
     def show_search_results(self):
-        self.searchResultsItem = QtGui.QTreeWidgetItem(['Search Results'])
+        self.searchResultsItem = QtWidgets.QTreeWidgetItem(['Search Results'])
         self.addTopLevelItem(self.searchResultsItem)
         self.openFilesItem.setHidden(True)
         self.closedFilesItem.setHidden(True)
@@ -806,7 +776,7 @@ class QVistrailList(QtGui.QTreeWidget):
         
         """
         if item and item.parent() is None:
-            self.setItemExpanded(item, not self.isItemExpanded(item))
+            item.setExpanded(not item.isExpanded())
             
     def search_result_selected(self, view, version):
         # need to signal the query view to change its version and vistrail
@@ -990,7 +960,7 @@ class QVistrailList(QtGui.QTreeWidget):
         anywhere as it's supposed to. It must have been a bug...
         
         """
-        data = QtGui.QTreeWidget.mimeData(self, itemList)
+        data = QtWidgets.QTreeWidget.mimeData(self, itemList)
         data.items = itemList
         return data
 
@@ -1020,14 +990,14 @@ class QVistrailList(QtGui.QTreeWidget):
     def merge_vistrails(self, source, destination):
         if source.window.controller.changed or destination.window.controller.changed:
             text = ('Both Vistrails need to be saved before they can be merged.')
-            QtGui.QMessageBox.information(None, 'Cannot perform merge',
+            QtWidgets.QMessageBox.information(None, 'Cannot perform merge',
                               text, '&OK')
             return
-        res = QtGui.QMessageBox.question(None, 'Merge the histories of these 2 vistrails into a new vistrail?',
+        res = QtWidgets.QMessageBox.question(None, 'Merge the histories of these 2 vistrails into a new vistrail?',
                           source.window.get_name() + '\n' + destination.window.get_name(),
-                          buttons=QtGui.QMessageBox.Yes,
-                          defaultButton=QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
+                          buttons=QtWidgets.QMessageBox.Yes,
+                          defaultButton=QtWidgets.QMessageBox.No)
+        if res == QtWidgets.QMessageBox.Yes:
             from vistrails.gui.vistrails_window import _app
             _app.merge_vistrails(destination.window.controller, source.window.controller)
 
@@ -1060,20 +1030,20 @@ class QVistrailList(QtGui.QTreeWidget):
         self.updateHideExecutions()
         
     def updateHideExecutions(self):            
-        for i in xrange(self.openFilesItem.childCount()):
+        for i in range(self.openFilesItem.childCount()):
             vt = self.openFilesItem.child(i)
             if not hasattr(vt, 'tag_to_item'):
                 continue
-            for item in vt.tag_to_item.itervalues():
+            for item in vt.tag_to_item.values():
                 if not hasattr(item, 'executionList'):
                     continue
                 for exec_item in item.executionList:
                     exec_item.setHidden(self.executionsHidden)
-        for i in xrange(self.closedFilesItem.childCount()):
+        for i in range(self.closedFilesItem.childCount()):
             vt = self.closedFilesItem.child(i)
             if not hasattr(vt, 'tag_to_item'):
                 continue
-            for item in vt.tag_to_item.itervalues():
+            for item in vt.tag_to_item.values():
                 if not hasattr(item, 'executionList'):
                     continue
                 for exec_item in item.executionList:
@@ -1085,7 +1055,7 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(False)
         if not (hasattr(item, 'tag_to_item') or hasattr(item, 'mshp_to_item')): 
             return
-        for wf in item.tag_to_item.itervalues():
+        for wf in item.tag_to_item.values():
             index = wf.parent().indexOfChild(wf)
             wf = wf.parent().takeChild(index)
             item.workflowsItem.addChild(wf)
@@ -1100,11 +1070,11 @@ class QVistrailList(QtGui.QTreeWidget):
             return
         am = item.window.controller.vistrail.actionMap
         tm = item.window.controller.vistrail.get_tagMap()
-        vm = dict((v,k) for k, v in tm.iteritems())
+        vm = dict((v,k) for k, v in tm.items())
         # loop through tagged workflows and add to parent workflow
         if not hasattr(item, 'tag_to_item'):
             return
-        for tag, wf in item.tag_to_item.iteritems():
+        for tag, wf in item.tag_to_item.items():
             if tag not in vm:
                 continue
             # find parent
@@ -1239,7 +1209,7 @@ class QVistrailList(QtGui.QTreeWidget):
             entity_was_none = True
 
         # remove item from recent list
-        for i in xrange(self.closedFilesItem.childCount()):
+        for i in range(self.closedFilesItem.childCount()):
             recent = self.closedFilesItem.child(i)
             if entity and recent and recent.entity and \
                 recent.entity.url == entity.url:
@@ -1350,7 +1320,7 @@ class QVistrailList(QtGui.QTreeWidget):
 
         def setBold(parent_item):
             """ """
-            for i in xrange(parent_item.childCount()):
+            for i in range(parent_item.childCount()):
                 item = parent_item.child(i)
                 font = item.font(0)
                 window = item.window if hasattr(item, 'window') else None
@@ -1376,8 +1346,7 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail = vistrail.parent()
 
         self.setSelected(vistrail.window)
-        self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
-                           vistrail.window)
+        self.parent().vistrailChanged.emit(vistrail.window)
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
@@ -1408,7 +1377,7 @@ class QVistrailList(QtGui.QTreeWidget):
                         parent.window.controller.set_changed(True)
 
         else:
-            QtGui.QTreeWidget.keyPressEvent(self, event)
+            QtWidgets.QTreeWidget.keyPressEvent(self, event)
 
     def close_vistrail(self, item):
         if item.parent() == self.openFilesItem and hasattr(item, 'window'):
@@ -1422,13 +1391,13 @@ class QVistrailList(QtGui.QTreeWidget):
                 # vistrail is not open
                 return
             # item is vistrail
-            menu = QtGui.QMenu(self)
-            new_window = QtGui.QAction("Open in New Window", self,
+            menu = QtWidgets.QMenu(self)
+            new_window = QtWidgets.QAction("Open in New Window", self,
                                        triggered=item.open_in_new_window)
             new_window.setStatusTip("Open specified vistrail file in another "
                                     "window")
             menu.addAction(new_window)
-            close = QtGui.QAction("Close", self,
+            close = QtWidgets.QAction("Close", self,
                                   triggered=lambda: self.close_vistrail(item))
             close.setStatusTip("Close the specified vistrail file")
             menu.addAction(close)
@@ -1439,16 +1408,16 @@ class QVistrailList(QtGui.QTreeWidget):
                 # vistrail is not open
                 return
             # item is workflow
-            menu = QtGui.QMenu(self)
-            act = QtGui.QAction("Open", self,
+            menu = QtWidgets.QMenu(self)
+            act = QtWidgets.QAction("Open", self,
                                 triggered=item.open_workflow)
             act.setStatusTip("Open specified workflow in this window")
             menu.addAction(act)
-            act = QtGui.QAction("Open in new Tab", self,
+            act = QtWidgets.QAction("Open in new Tab", self,
                                 triggered=item.open_workflow_in_new_tab)
             act.setStatusTip("Open specified workflow in a new tab")
             menu.addAction(act)
-            act = QtGui.QAction("Open in new Window", self,
+            act = QtWidgets.QAction("Open in new Window", self,
                                 triggered=item.open_workflow_in_new_window)
             act.setStatusTip("Open specified workflow in a new window")
             menu.addAction(act)
@@ -1458,12 +1427,12 @@ class QVistrailList(QtGui.QTreeWidget):
                 # vistrail is not open
                 return
             # item is mashup
-            menu = QtGui.QMenu(self)
-            act = QtGui.QAction("Edit", self,
+            menu = QtWidgets.QMenu(self)
+            act = QtWidgets.QAction("Edit", self,
                                 triggered=item.edit_mashup)
             act.setStatusTip("Edit the mashup")
             menu.addAction(act)
-            act = QtGui.QAction("Execute", self,
+            act = QtWidgets.QAction("Execute", self,
                                 triggered=item.open_mashup)
             act.setStatusTip("Execute the mashup")
             menu.addAction(act)

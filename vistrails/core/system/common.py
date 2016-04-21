@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import sys
@@ -41,17 +41,14 @@ import getpass
 import socket
 import datetime
 import platform
-import tempfile
-import warnings
 
 from vistrails.core import debug
-from vistrails.core.utils import VistrailsDeprecation
 
 
 __all__ = ['touch', 'mkdir', 'python_version',
            'current_user', 'current_ip', 'current_time',
            'current_machine', 'current_architecture', 'current_processor',
-           'get_elementtree_library', 'temporary_directory']
+           'get_elementtree_library']
 
 ###############################################################################
 
@@ -95,7 +92,7 @@ def current_ip():
         for i in info:
             if i[0] in (socket.AF_INET, socket.AF_INET6):
                 return i[4][0]
-    except Exception, e:
+    except Exception as e:
         debug.unexpected_exception(e)
         return ''
 
@@ -124,16 +121,5 @@ def current_processor():
     return proc
 
 def get_elementtree_library():
-    try:
-        import cElementTree as ElementTree
-    except ImportError:
-        # try python 2.5-style
-        import xml.etree.cElementTree as ElementTree
+    from xml.etree import ElementTree
     return ElementTree
-
-def temporary_directory():
-    warnings.warn(
-            "temporary_directory() is deprecated; use the tempfile module "
-            "instead",
-            category=VistrailsDeprecation)
-    return tempfile.gettempdir()

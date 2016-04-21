@@ -35,7 +35,7 @@
 ###############################################################################
 """ This script stops VisTrails server. It can only stop with an XML Request """
 
-import xmlrpclib
+import xmlrpc.client
 import sys
 import socket
 
@@ -45,14 +45,14 @@ def usage():
 if __name__ == '__main__':
     try:
         uri = sys.argv[1]
-    except Exception, e:
-        print usage()
+    except Exception as e:
+        print(usage())
         sys.exit(1)
 
     try:
-        proxy = xmlrpclib.ServerProxy(uri)
-        print proxy.quit()
-    except socket.error, e:
-        print "Vistrails was not running on ", uri
+        proxy = xmlrpc.client.ServerProxy(uri)
+        print(proxy.quit())
+    except socket.error as e:
+        print("Vistrails was not running on ", uri)
 
     #print proxy.run_from_db('vistrails.sci.utah.edu', 3306,'vt_test',1,'/tmp/spreadsheet',598)

@@ -34,9 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
@@ -50,12 +51,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
     the 'head' input ports should be sufficient.
 
     """
-    def __init__(self, module, controller, parent=None):
-        """ ListConfigurationWidget(module: Module,
-                                     controller: VistrailController,
-                                     parent: QWidget)
-                                     -> TupleConfigurationWidget
-
+    def __init__(self, **kwargs):
+        """
         Let StandardModuleConfigurationWidget constructor store the
         controller/module object from the builder and set up the
         configuration widget.
@@ -65,24 +62,22 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.controller: the current vistrail controller
 
         """
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
+        super().__init__(**kwargs)
 
         # Give it a nice window title
         self.setWindowTitle("List Configuration")
 
         # Add an empty vertical layout
-        centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
+        centralLayout = QtWidgets.QVBoxLayout()
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.setLayout(centralLayout)
 
         # Add the configuration widget
-        config_layout = QtGui.QFormLayout()
-        self.number = QtGui.QSpinBox()
+        config_layout = QtWidgets.QFormLayout()
+        self.number = QtWidgets.QSpinBox()
         self.number.setValue(self.countAdditionalPorts())
-        self.connect(self.number, QtCore.SIGNAL('valueChanged(int)'),
-                     lambda r: self.updateState())
+        self.number.valueChanged.connect(lambda r: self.updateState())
         config_layout.addRow("Number of additional connections:", self.number)
         centralLayout.addLayout(config_layout)
 
@@ -96,21 +91,19 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         Create and connect signals to Ok & Cancel button
 
         """
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton("&Save", self)
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton("&Save", self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         self.buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton("&Reset", self)
+        self.resetButton = QtWidgets.QPushButton("&Reset", self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.resetTriggered)
+        self.saveButton.clicked.connect(self.saveTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
 
     def saveTriggered(self, checked = False):
         """ saveTriggered(checked: bool) -> None
@@ -121,8 +114,8 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
             self.saveButton.setEnabled(False)
             self.resetButton.setEnabled(False)
             self.state_changed = False
-            self.emit(QtCore.SIGNAL('stateChanged'))
-            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+            self.stateChanged.emit()
+            self.doneConfigure.emit(self.module.id)
 
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -143,7 +136,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         if requested > current:
             sigstring = '(%s:Variant)' % get_vistrails_basic_pkg_id()
             add_ports = [('input', 'item%d' % i, sigstring, -1)
-                           for i in xrange(current, requested)]
+                           for i in range(current, requested)]
             self.controller.update_ports(self.module.id, [], add_ports)
         elif requested < current:
             delete_ports = [('input', p.name) for p in self.module.input_port_specs[requested-current:]]
@@ -158,7 +151,7 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('stateChanged'))
+        self.stateChanged.emit()
 
     def updateState(self):
         if not self.hasFocus():
@@ -167,4 +160,4 @@ class ListConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()

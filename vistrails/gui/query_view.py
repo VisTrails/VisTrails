@@ -33,9 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
-
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
 
 import re
 
@@ -44,7 +42,10 @@ from vistrails.core.collection import Collection
 from vistrails.core.collection.vistrail import VistrailEntity
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.query.combined import CombinedSearch
 from vistrails.core.query.multiple import MultipleSearch
+from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
+from vistrails.core.query.visual import VisualQuery
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 
@@ -141,7 +142,7 @@ class QueryController(object):
                             versions_to_check = set([controller.current_version])
                         else:
                             graph = controller._current_terse_graph
-                            versions_to_check = set(graph.vertices.iterkeys())
+                            versions_to_check = set(graph.vertices.keys())
                         entities_to_check[entity] = versions_to_check
                 self.set_search(MultipleSearch(search_str, search_pipeline,
                                                entities_to_check,
@@ -270,11 +271,11 @@ class QQueryPipelineView(QPipelineView):
     def execute(self):
         self.query_controller.run_search(None)
     
-class QQueryResultGlobalView(QtGui.QWidget):
+class QQueryResultGlobalView(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        layout = QtGui.QVBoxLayout()
-        label = QtGui.QLabel("See Workspace Window")
+        QtWidgets.QWidget.__init__(self, parent)
+        layout = QtWidgets.QVBoxLayout()
+        label = QtWidgets.QLabel("See Workspace Window")
         label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(label, QtCore.Qt.AlignCenter)
         self.setLayout(layout)
@@ -290,11 +291,11 @@ class QQueryResultWorkflowView(QPipelineView):
         QPipelineView.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.QUERY_RESULT_BACKGROUND_BRUSH)
         self.scene().set_read_only_mode(True)
-
-
-class QQueryBox(QtGui.QWidget):
+    
+class QQueryBox(QtWidgets.QWidget):
+    textQueryChange = QtCore.pyqtSignal(bool)
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.build_widget()
         self.controller = None
 
@@ -302,20 +303,20 @@ class QQueryBox(QtGui.QWidget):
         self.controller = controller
 
     def build_widget(self):
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(4)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(2)
         self.searchBox = QSearchBox(True, False, self)
         layout.addWidget(self.searchBox)
-        options_layout = QtGui.QHBoxLayout()
+        options_layout = QtWidgets.QHBoxLayout()
         options_layout.setSpacing(5)
         options_layout.setAlignment(QtCore.Qt.AlignLeft)
-        options_layout.addWidget(QtGui.QLabel("Search:"))
-        searchAll = QtGui.QRadioButton("Open Vistrails")
-        searchCurrent = QtGui.QRadioButton("Current Vistrail")
-        searchWorkflow = QtGui.QRadioButton("Current Workflow")
-        useRegex = QtGui.QCheckBox("Regular expression")
-        self.level_group = QtGui.QButtonGroup()
+        options_layout.addWidget(QtWidgets.QLabel("Search:"))
+        searchAll = QtWidgets.QRadioButton("Open Vistrails")
+        searchCurrent = QtWidgets.QRadioButton("Current Vistrail")
+        searchWorkflow = QtWidgets.QRadioButton("Current Workflow")
+        useRegex = QtWidgets.QCheckBox("Regular expression")
+        self.level_group = QtWidgets.QButtonGroup()
         self.level_group.addButton(searchAll)
         self.level_group.addButton(searchCurrent)
         self.level_group.addButton(searchWorkflow)
@@ -329,9 +330,9 @@ class QQueryBox(QtGui.QWidget):
         options_layout.addWidget(useRegex)
         searchCurrent.setChecked(True)
         
-        self.editButton = QtGui.QPushButton("Edit")
+        self.editButton = QtWidgets.QPushButton("Edit")
         self.editButton.setEnabled(False)
-        self.backButton = QtGui.QPushButton("Back to Search")
+        self.backButton = QtWidgets.QPushButton("Back to Search")
         self.backButton.setEnabled(False)
         options_layout.addStretch(1)
         options_layout.addWidget(self.editButton, 0, QtCore.Qt.AlignRight)
@@ -339,21 +340,13 @@ class QQueryBox(QtGui.QWidget):
         layout.addLayout(options_layout)
         self.setLayout(layout)
 
-        self.connect(self.searchBox, QtCore.SIGNAL('resetSearch()'),
-                     self.resetSearch)
-        self.connect(self.searchBox, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.executeSearch)
-        self.connect(self.searchBox, QtCore.SIGNAL('refineMode(bool)'),
-                     self.refineMode)
-        self.connect(self.backButton, QtCore.SIGNAL('clicked()'),
-                     self.backToSearch)
-        self.connect(self.editButton, QtCore.SIGNAL('clicked()'),
-                     self.doEdit)
-        self.connect(self.level_group, 
-                     QtCore.SIGNAL('buttonClicked(QAbstractButton*)'),
-                     self.levelChanged)
-        self.connect(useRegex, QtCore.SIGNAL('stateChanged(int)'),
-                     self.useRegexChanged)
+        self.searchBox.resetSearch.connect(self.resetSearch)
+        self.searchBox.executeSearch.connect(self.executeSearch)
+        self.searchBox.refineMode.connect(self.refineMode)
+        self.backButton.clicked.connect(self.backToSearch)
+        self.editButton.clicked.connect(self.doEdit)
+        self.level_group.buttonClicked.connect(self.levelChanged)
+        useRegex.stateChanged.connect(self.useRegexChanged)
 
     def resetSearch(self, emit_signal=True):
         """
@@ -362,7 +355,7 @@ class QQueryBox(QtGui.QWidget):
         """
         if self.controller and emit_signal:
             self.controller.reset_search()
-            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
+            self.textQueryChange.emit(False)
         else:
             self.searchBox.clearSearch()
 
@@ -417,7 +410,10 @@ class QQueryBox(QtGui.QWidget):
     def setManualResetEnabled(self, boolVal):
         self.searchBox.setManualResetEnabled(boolVal)
 
-class QQueryView(QtGui.QWidget, BaseView):
+class QQueryView(QtWidgets.QWidget, BaseView):
+
+    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+
     VISUAL_SEARCH_VIEW = 0
     GLOBAL_RESULT_VIEW = 1
     VERSION_RESULT_VIEW = 2
@@ -428,27 +424,21 @@ class QQueryView(QtGui.QWidget, BaseView):
                 (QueryController.LEVEL_VISTRAIL, VERSION_RESULT_VIEW),
                 (QueryController.LEVEL_WORKFLOW, WORKFLOW_RESULT_VIEW)])
 
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        BaseView.__init__(self)
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
         self.build_widget()
         self.set_title("Search")
 
     def set_controller(self, controller=None):
         if self.controller:
-            self.disconnect(self.controller,
-                     QtCore.SIGNAL('stateChanged'),
-                     self.update_controller)
+            self.controller.stateChanged.disconnect(self.update_controller)
         self.controller = controller
         if controller:
-            self.connect(self.controller,
-                         QtCore.SIGNAL('stateChanged'),
-                         self.update_controller)
+            self.controller.stateChanged.connect(self.update_controller)
         self.vt_controller.vistrail_view = self.version_result_view
-        self.vt_controller.current_pipeline_view = \
-            self.workflow_result_view
-        # self.vt_controller.vistrail_view.set_controller(self.vt_controller)
-        # FIXME Need to figure out how to deal with this !!!
+        self.vt_controller.set_pipeline_view(self.workflow_result_view)
+        self.workflow_result_view.set_controller(self.vt_controller)
+        self.query_controller.set_vistrail_controller(controller)
         self.vt_controller.set_vistrail(controller.vistrail, None,
                                         set_log_on_vt=False)
         hide_upgrades = not getattr(get_vistrails_configuration(),
@@ -456,11 +446,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         self.vt_controller.change_selected_version(controller.current_version,
                                                    hide_upgrades, hide_upgrades)
         self.version_result_view.set_controller(self.vt_controller)
-        self.workflow_result_view.set_controller(self.vt_controller)
-        self.query_controller.set_vistrail_controller(controller)
 
     def update_controller(self):
-        # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(self.controller.vistrail, None,
                                         set_log_on_vt=False)
         hide_upgrades = getattr(get_vistrails_configuration(),
@@ -469,25 +456,23 @@ class QQueryView(QtGui.QWidget, BaseView):
                                                    hide_upgrades, hide_upgrades)
 
     def build_widget(self):
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
         self.query_controller = QueryController(self)
         self.vt_controller = VistrailController(auto_save=False)
         self.p_controller = VistrailController(Vistrail(), auto_save=False)
         
-        self.connect(self.p_controller,
-                     QtCore.SIGNAL('vistrailChanged()'),
-                     self.vistrailChanged)
+        self.p_controller.vistrailChanged.connect(self.vistrailChanged)
 
         self.query_box = QQueryBox()
         self.query_box.set_controller(self.query_controller)
         layout.addWidget(self.query_box)
 
-        self.stacked_widget = QtGui.QStackedWidget()
+        self.stacked_widget = QtWidgets.QStackedWidget()
         self.pipeline_view = QQueryPipelineView()
-        self.p_controller.current_pipeline_view = self.pipeline_view
+        self.p_controller.set_pipeline_view(self.pipeline_view)
         self.pipeline_view.set_controller(self.p_controller)
         self.pipeline_view.set_query_controller(self.query_controller)
         QQueryView.VISUAL_SEARCH_VIEW = \
@@ -496,9 +481,8 @@ class QQueryView(QtGui.QWidget, BaseView):
         QQueryView.GLOBAL_RESULT_VIEW = \
             self.stacked_widget.addWidget(self.global_result_view)
         self.version_result_view = QQueryResultVersionView()
-        self.connect(self.version_result_view.scene(), 
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                     self.result_version_selected)
+        self.version_result_view.scene().versionSelected.connect(
+            self.result_version_selected)
         # self.version_result_view.set_controller(self.vt_controller)
         QQueryView.VERSION_RESULT_VIEW = \
             self.stacked_widget.addWidget(self.version_result_view)

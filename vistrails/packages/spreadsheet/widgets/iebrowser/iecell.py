@@ -37,12 +37,12 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui, QAxContainer
+
+from PyQt5 import QtCore, QtGui, QAxContainer, QtWidgets, QtPrintSupport
+
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
-    QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import os
 import shutil
 ############################################################################
@@ -79,9 +79,9 @@ class IECellWidget(QCellWidget):
         Create a ActiveX Container pointing to the IE Cell
         
         """
-        QCellWidget.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout(self)
-        vbox.setMargin(0)
+        super().__init__(parent=parent)
+        vbox = QtWidgets.QVBoxLayout(self)
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
         self.browser = QAxContainer.QAxWidget(self)
         self.browser.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -113,7 +113,7 @@ class IECellWidget(QCellWidget):
             super(IECellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)

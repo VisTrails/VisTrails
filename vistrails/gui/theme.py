@@ -37,16 +37,16 @@
 This module describes a theme structure for VisTrails GUI. It
 specifies colors, background images and other measurements
 """
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from vistrails.core.utils.color import ColorByName
 from vistrails.core.theme import DefaultCoreTheme
 import vistrails.core.system
 
 import unittest
-import vistrails.gui.qt
 
 ################################################################################
 
@@ -194,8 +194,8 @@ class DefaultTheme(DefaultCoreTheme):
              }
             
         self.PORT_PENS = {}
-        for (color_type, color) in self.PORT_PEN_COLORS.iteritems():
-            for (width_type, width) in self.PORT_PEN_WIDTHS.iteritems():
+        for (color_type, color) in self.PORT_PEN_COLORS.items():
+            for (width_type, width) in self.PORT_PEN_WIDTHS.items():
                 self.PORT_PENS[(color_type, width_type)] = \
                     QtGui.QPen(QtGui.QBrush(color), width)
 
@@ -312,7 +312,7 @@ class DefaultTheme(DefaultCoreTheme):
         # Font for module text
         # Use fixed dpi to get same font size on all platforms
         def fixDPI(i):
-            return i*72//QtGui.QApplication.desktop().logicalDpiY()
+            return i*72//QtWidgets.QApplication.desktop().logicalDpiY()
         GRAPHICS_FONT = "Arial"
         self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(14), QtGui.QFont.Bold)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)

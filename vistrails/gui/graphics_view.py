@@ -40,13 +40,13 @@ QInteractiveGraphicsScene
 QInteractiveGraphicsView
 QPIPGraphicsView
 """
-from __future__ import division
 
-from vistrails.core import debug
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+
 from vistrails.gui.theme import CurrentTheme
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.system
+from vistrails.core import debug
 import math
 from vistrails.gui.qt import qt_super
 ################################################################################
@@ -61,7 +61,7 @@ class QGraphicsItemInterface(object):
     """
     pass
 
-class QGraphicsRubberBandItem(QtGui.QGraphicsRectItem):
+class QGraphicsRubberBandItem(QtWidgets.QGraphicsRectItem):
     """
     QGraphicsRubberBandItem try to replace QRubberBand to have a
     unified look and feel on all platform. In the end, it mimics the
@@ -81,7 +81,7 @@ class QGraphicsRubberBandItem(QtGui.QGraphicsRectItem):
         painter.setPen(CurrentTheme.SELECTION_BOX_PEN)
         painter.drawRect(self.rect())
 
-class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
+class QInteractiveGraphicsScene(QtWidgets.QGraphicsScene):
     """
     QInteractiveGraphicsScene expands QGraphicsScene to allow panning
     freely over the view are
@@ -92,7 +92,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
                                       -> QInteractiveGraphicsScene
         Initialize the actual scene bounding rect
         """
-        QtGui.QGraphicsScene.__init__(self, parent)
+        QtWidgets.QGraphicsScene.__init__(self, parent)
         self.sceneBoundingRect = QtCore.QRectF()
         self.multiSelecting = False
         
@@ -103,7 +103,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         
         """
         self.sceneBoundingRect = QtCore.QRectF()
-        for item in self.items():
+        for item in list(self.items()):
             rect = item.sceneBoundingRect()
             self.sceneBoundingRect = self.sceneBoundingRect.united(rect)
 
@@ -168,7 +168,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         Remove and delete all items belonging to this scene
         
         """
-        self.removeItems(self.items())
+        self.removeItems(list(self.items()))
 
     def removeItems(self, itemList):
         """ removeItems(itemList: sequence of [QGraphicsItem]) -> None
@@ -181,13 +181,13 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
 
     def saveToPDF(self, filename):
         self.updateSceneBoundingRect(False)
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         b_rect = self.sceneBoundingRect
         debug.debug("%sx%s" % (b_rect.width(), b_rect.height()))
         printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
-                             QtGui.QPrinter.Point)
+                             QtPrintSupport.QPrinter.Point)
         painter = QtGui.QPainter(printer)
         brush = self.backgroundBrush()
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(255,255,255)))
@@ -215,25 +215,28 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
                 pixmap = pixmap.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
-        except Exception, e:
+        except Exception as e:
             debug.critical("Exception saving to PNG", e)
 
-class QInteractiveGraphicsView(QtGui.QGraphicsView):
+class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
     """
     QInteractiveGraphicsView is QGraphicsView with abilities to
     zoom/span with right/mid click
     
     """
-    def __init__(self, parent=None):
+    resetQuery = QtCore.pyqtSignal()
+    windowTitleWasChanged = QtCore.pyqtSignal(QtWidgets.QWidget)
+
+    def __init__(self, parent=None, **kwargs):
         """ QInteractiveGraphicsView(parent: QWidget)
                                      -> QInteractiveGraphicsView
         Initialize the graphics view with interactive options
         
         """
-        QtGui.QGraphicsView.__init__(self, parent)
+        super().__init__(parent=parent, **kwargs)
         self.setInteractive(True)
 #        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
-        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
         self.setRenderHints (QtGui.QPainter.Antialiasing |
                              QtGui.QPainter.TextAntialiasing |
                              QtGui.QPainter.SmoothPixmapTransform)
@@ -275,7 +278,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             pinch = event.gesture(QtCore.Qt.PinchGesture)
             if pinch:
                 changeFlags = pinch.changeFlags()
-                if changeFlags & QtGui.QPinchGesture.ScaleFactorChanged:
+                if changeFlags & QtWidgets.QPinchGesture.ScaleFactorChanged:
                     if self.gestureStartScale is None:
                         self.computeScale()
                         self.gestureStartScale = self.currentScale
@@ -289,7 +292,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 if pinch.state() == QtCore.Qt.GestureFinished:
                     self.gestureStartScale = None
                 return True
-        return QtGui.QGraphicsView.viewportEvent(self, event)
+        return QtWidgets.QGraphicsView.viewportEvent(self, event)
 
     def modifiersPressed(self, modifiers):
         """ modifiersPressed(modifiers: QtCore.Qt.KeyboardModifiers) -> None
@@ -313,7 +316,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if not self.isActiveWindow():
             return self.defaultCursorState
         if modifiers==None:
-            modifiers = QtGui.QApplication.keyboardModifiers()
+            modifiers = QtWidgets.QApplication.keyboardModifiers()
         shift = modifiers & QtCore.Qt.ShiftModifier
         alt = modifiers & QtCore.Qt.AltModifier
         meta = modifiers & QtCore.Qt.MetaModifier or (alt and shift)
@@ -339,7 +342,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         self.validateCursorState()
-        return QtGui.QGraphicsView.enterEvent(self, event)
+        return QtWidgets.QGraphicsView.enterEvent(self, event)
         # super(QInteractiveGraphicsView, self).enterEvent(event)
 
     def setCursorState(self, state):
@@ -380,7 +383,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             state2Button = {0: QtCore.Qt.LeftButton,
                             1: QtCore.Qt.MidButton,
                             2: QtCore.Qt.RightButton}
-            if state2Button.has_key(state):
+            if state in state2Button:
                 return state2Button[state]
         return event.buttons()
 
@@ -391,7 +394,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         scenePos = self.mapToScene(e.pos())
-        item = self.scene().itemAt(scenePos)
+        item = self.scene().itemAt(scenePos, QtGui.QTransform())
         buttons = self.translateButton(e)
         if buttons == QtCore.Qt.LeftButton:
             if item is None:
@@ -406,7 +409,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                     self.selectionBox.setRect(rect)
                     self.selectionBox.setVisible(self.canSelectRectangle)
             else:
-                QtGui.QGraphicsView.mousePressEvent(self, e)
+                QtWidgets.QGraphicsView.mousePressEvent(self, e)
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         else:
             if buttons & QtCore.Qt.RightButton:
@@ -414,14 +417,14 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 if item is None:
                     self.setCursorState(2)
                 else:
-                    QtGui.QGraphicsView.mousePressEvent(self, e)
+                    QtWidgets.QGraphicsView.mousePressEvent(self, e)
             elif buttons & QtCore.Qt.MidButton:
                 self.setCursorState(3)
                 self.computeScale()
                 self.startScroll = (self.horizontalScrollBar().value(),
                                     self.verticalScrollBar().value())
             self.lastPos = QtCore.QPoint(QtGui.QCursor.pos())
-            self.setDragMode(QtGui.QGraphicsView.NoDrag)
+            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
 
     def mouseMoveEvent(self, e):
         """ mouseMoveEvent(e: QMouseEvent) -> None        
@@ -441,7 +444,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 self.selectionBox.setRect(rect)
                 self.selectModules()
             else:
-                QtGui.QGraphicsView.mouseMoveEvent(self, e)
+                QtWidgets.QGraphicsView.mouseMoveEvent(self, e)
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         elif self.lastPos:
             if buttons == QtCore.Qt.RightButton:
@@ -473,7 +476,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                                                   self.lastPos.y())
         else:
             self.validateCursorState(e.modifiers())
-            QtGui.QGraphicsView.mouseMoveEvent(self, e)
+            QtWidgets.QGraphicsView.mouseMoveEvent(self, e)
         self.setUpdatesEnabled(True)
 
     def mouseReleaseEvent(self, e):
@@ -489,7 +492,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.lastPos = None
         self.validateCursorState(e.modifiers())
         self.setUpdatesEnabled(True)
-        QtGui.QGraphicsView.mouseReleaseEvent(self, e)
+        QtWidgets.QGraphicsView.mouseReleaseEvent(self, e)
         # super(QInteractiveGraphicsView, self).mouseReleaseEvent(e)
 
     def mouseDoubleClickEvent(self, e):
@@ -524,19 +527,19 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         Update the view matrix with the current scale
         
         """
-        matrix = QtGui.QMatrix()
+        matrix = QtGui.QTransform()
         power = float(self.currentScale - self.scaleMax/2 - self.scaleOffset
                       )/self.scaleRatio
         scale = pow(2.0, power)
         matrix.scale(scale, scale)
-        self.setMatrix(matrix)
+        self.setTransform(matrix)
 
     def computeScale(self):
         """ computeScale() -> None
         Compute the current scale based on the view matrix
         
         """
-        self.currentScale = (math.log(self.matrix().m11(), 2.0)*
+        self.currentScale = (math.log(self.transform().m11(), 2.0)*
                              self.scaleRatio + self.scaleMax/2 +
                              self.scaleOffset)
 
@@ -572,9 +575,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if enabled:
             if not self.resetButton:
                 self.resetButton = QResetQueryButton(self)
-                self.connect(self.resetButton,
-                             QtCore.SIGNAL('resetQuery()'),
-                             self.resetQuery)
+                self.resetButton.resetQuery.connect(self.resetQuery)
             self.resetButton.show()
             self.resetButton.updateGeometry()
         else:
@@ -587,7 +588,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         pass the signal along
         
         """
-        self.emit(QtCore.SIGNAL('resetQuery()'))
+        self.resetQuery.emit()
 
     def resizeEvent(self, event):
         """ resizeEvent(event: QResizeEvent) -> None
@@ -597,7 +598,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             self.pipFrame.updateGeometry()
         if self.resetButton:
             self.resetButton.updateGeometry()
-        return QtGui.QGraphicsView.resizeEvent(self, event)
+        return QtWidgets.QGraphicsView.resizeEvent(self, event)
         # super(QInteractiveGraphicsView, self).resizeEvent(event)
 
     def zoomToFit(self):
@@ -639,10 +640,10 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
 
     def save_pdf(self, filename=None):
         if filename is None:
-            fileName = QtGui.QFileDialog.getSaveFileName(self.window(),
+            fileName = QtWidgets.QFileDialog.getSaveFileName(self.window(),
                 "Save PDF...",
                 vistrails.core.system.vistrails_file_directory(),
-                "PDF files (*.pdf)")
+                "PDF files (*.pdf)")[0]
 
             if not fileName:
                 return None
@@ -665,14 +666,14 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             this.
 
             """
-            QtGui.QGraphicsView.setScene(self, scene)
+            QtWidgets.QGraphicsView.setScene(self, scene)
             if self.scene():
                 palette = QtGui.QPalette(self.viewport().palette())
                 palette.setBrush(QtGui.QPalette.Base, 
                                  self.scene().backgroundBrush())
                 self.viewport().setPalette(palette)
 
-class QPIPGraphicsView(QtGui.QWidget):
+class QPIPGraphicsView(QtWidgets.QWidget):
     """
     QPIPGraphicsView is a tool window contain a
     QInteractiveGraphicsView for PIP display
@@ -682,13 +683,13 @@ class QPIPGraphicsView(QtGui.QWidget):
         """ QPIPGraphicsView(parent: QWidget) -> QPIPGraphicsView
         Initialize a layout with some margin and a central widget
         """
-        QtGui.QWidget.__init__(self, parent, QtCore.Qt.FramelessWindowHint)
+        QtWidgets.QWidget.__init__(self, parent, QtCore.Qt.FramelessWindowHint)
         self.setMouseTracking(True)
         self.setAutoFillBackground(True)
         self.palette().setColor(QtGui.QPalette.Base,
                                 CurrentTheme.PIP_FRAME_COLOR)
-        self.setLayout(QtGui.QHBoxLayout(self))
-        self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+        self.setLayout(QtWidgets.QHBoxLayout(self))
+        self.layout().setContentsMargins(*[CurrentTheme.PIP_OUT_FRAME_WIDTH]*4)
         self.graphicsView = QInteractiveGraphicsView()
         self.layout().addWidget(self.graphicsView)
         self.firstShow = True
@@ -807,7 +808,7 @@ class QPIPGraphicsView(QtGui.QWidget):
         if self.firstShow:
             self.firstShow = False
             self.graphicsView.scene().fitToView(self.graphicsView, True)
-        return QtGui.QWidget.showEvent(self, event)        
+        return QtWidgets.QWidget.showEvent(self, event)        
         # super(QPIPGraphicsView, self).showEvent(event)
 
     def enterEvent(self, event):
@@ -816,7 +817,7 @@ class QPIPGraphicsView(QtGui.QWidget):
         resizing
         
         """
-        self.layout().setMargin(CurrentTheme.PIP_IN_FRAME_WIDTH)
+        self.layout().setContentsMargins(*[CurrentTheme.PIP_IN_FRAME_WIDTH]*4)
 
     def leaveEvent(self, event):
         """ leaveEvent(event: QLeaveEvent) -> None        
@@ -824,19 +825,20 @@ class QPIPGraphicsView(QtGui.QWidget):
         more view
         
         """
-        self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+        self.layout().setContentsMargins(*[CurrentTheme.PIP_OUT_FRAME_WIDTH]*4)
 
 
-class QResetQueryButton(QtGui.QLabel):
+class QResetQueryButton(QtWidgets.QLabel):
     """
     
     """
+    resetQuery = QtCore.pyqtSignal()
     def __init__(self, parent=None):
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
 
         self.setText('Reset Query')
-        self.setFrameStyle(QtGui.QFrame.StyledPanel)
-        self.setFrameShadow(QtGui.QFrame.Raised)
+        self.setFrameStyle(QtWidgets.QFrame.StyledPanel)
+        self.setFrameShadow(QtWidgets.QFrame.Raised)
         self.marginPad = 10
 
     def mousePressEvent(self, e):
@@ -845,11 +847,11 @@ class QResetQueryButton(QtGui.QLabel):
         
         """
         if e.buttons() & QtCore.Qt.LeftButton:
-            self.setFrameShadow(QtGui.QFrame.Sunken)
+            self.setFrameShadow(QtWidgets.QFrame.Sunken)
     
     def mouseReleaseEvent(self, e):
-        self.setFrameShadow(QtGui.QFrame.Raised)
-        self.emit(QtCore.SIGNAL('resetQuery()'))
+        self.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.resetQuery.emit()
 
     def updateGeometry(self):
         parentGeometry = self.parent().geometry()

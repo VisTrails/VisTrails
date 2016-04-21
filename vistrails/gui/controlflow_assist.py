@@ -37,9 +37,10 @@
 
 QControlFlowAssistDialog
 """
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import MissingPackage
@@ -48,7 +49,7 @@ from vistrails.gui.utils import show_info
 
 ################################################################################
 
-class QControlFlowAssistDialog(QtGui.QDialog):
+class QControlFlowAssistDialog(QtWidgets.QDialog):
     def __init__(self, parent, selected_module_ids, selected_connection_ids, scene):
         """ QControlFlowAssistDialog(selected_module_ids: list,
                                      selected_connection_ids: list,
@@ -59,18 +60,18 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         """
 
         # FIXME do this here to avoid circular refs
-        from pipeline_view_select import QReadOnlyPortSelectPipelineView
+        from .pipeline_view_select import QReadOnlyPortSelectPipelineView
 
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.module_ids = selected_module_ids
         self.connection_ids = selected_connection_ids
         
         self.setWindowTitle('Control Flow Assistant')
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(layout)
         
         # Add instruction label
-        self.instructionLabel = QtGui.QLabel('Select one or more Input Ports to receive Lists, and one Output Port to produce a List')
+        self.instructionLabel = QtWidgets.QLabel('Select one or more Input Ports to receive Lists, and one Output Port to produce a List')
         layout.addWidget(self.instructionLabel)
         
         # Add pipeline view
@@ -81,20 +82,20 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         self.enablePackage()
 
         # Add ok/cancel buttons
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
-        self.okButton = QtGui.QPushButton('&OK', self)
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.okButton = QtWidgets.QPushButton('&OK', self)
         self.okButton.setAutoDefault(False)
         self.okButton.setFixedWidth(100)
         buttonLayout.addWidget(self.okButton)
-        self.cancelButton = QtGui.QPushButton('&Cancel', self)
+        self.cancelButton = QtWidgets.QPushButton('&Cancel', self)
         self.cancelButton.setAutoDefault(False)
         self.cancelButton.setShortcut('Esc')
         self.cancelButton.setFixedWidth(100)
         buttonLayout.addWidget(self.cancelButton)
         layout.addLayout(buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okClicked)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
+        self.okButton.clicked.connect(self.okClicked)
+        self.cancelButton.clicked.connect(self.close)
 
     def enablePackage(self):
         """ enablePackge() -> None
@@ -261,7 +262,7 @@ if custom_input_list:
 else:
     cartesian_product = self.force_get_input('UseCartesianProduct', False)
     if cartesian_product:
-        input_lists = [self.get_input(input_ports[x]) for x in xrange(len(input_ports))]
+        input_lists = [self.get_input(input_ports[x]) for x in range(len(input_ports))]
         InputList = [[]]
         pools = map(tuple, input_lists)
         for pool in pools:
@@ -274,7 +275,7 @@ else:
             for p in input_ports[1:]:
                 if len(self.get_input(p)) != length:
                     fail('One or more of the input lists have different lengths.')
-        for x in xrange(length):
+        for x in range(length):
             element_list = []
             for p in input_ports:
                 element_list.append(self.get_input(p)[x])

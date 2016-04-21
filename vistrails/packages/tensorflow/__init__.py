@@ -37,7 +37,7 @@
 TensorFlow package for VisTrails.
 """
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.tensorflow'
 name = 'TensorFlow'

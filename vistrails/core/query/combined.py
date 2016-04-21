@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from version import SearchCompiler
-from visual import VisualQuery
+
+from .version import SearchCompiler
+from .visual import VisualQuery
 
 from vistrails.core.configuration import get_vistrails_configuration
 

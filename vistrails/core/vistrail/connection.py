@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 """ This python module defines Connection class.
 """
@@ -256,13 +256,13 @@ class TestConnection(unittest.TestCase):
         from vistrails.core.modules.basic_modules import identifier as basic_pkg
         source = Port(id=id_scope.getNewId(Port.vtType),
                       type='source', 
-                      moduleId=21L, 
+                      moduleId=21, 
                       moduleName='String', 
                       name='value',
                       signature='(%s:String)' % basic_pkg)
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
-                           moduleId=20L,
+                           moduleId=20,
                            moduleName='Float',
                            name='value',
                            signature='(%s:Float)' % basic_pkg)

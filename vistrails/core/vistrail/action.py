@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from datetime import datetime
-from itertools import izip
+
 import unittest
 
 from vistrails.db.domain import DBAction
@@ -96,7 +96,7 @@ class Action(DBAction):
     def _set_date(self, date):
         if isinstance(date, datetime):
             self.db_date = date
-        elif isinstance(date, basestring) and date.strip() != '':
+        elif isinstance(date, str) and date.strip() != '':
             newDate = datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
@@ -254,7 +254,7 @@ class TestAction(unittest.TestCase):
         p1 = v.getPipeline('final')
         p2 = v.getPipeline('final')
         self.assertEquals(len(p1.modules), len(p2.modules))
-        for k in p1.modules.keys():
+        for k in list(p1.modules.keys()):
             if p1.modules[k] is p2.modules[k]:
                 self.fail("didn't expect aliases in two different pipelines")
 
@@ -267,11 +267,11 @@ class TestAction(unittest.TestCase):
         p1 = v.getPipeline('final')
         v.getPipeline('final')
         p2 = v.getPipeline('final')
-        m1s = p1.modules.items()
-        m2s = p2.modules.items()
+        m1s = list(p1.modules.items())
+        m2s = list(p2.modules.items())
         m1s.sort()
         m2s.sort()
-        for ((i1,m1),(i2,m2)) in izip(m1s, m2s):
+        for ((i1,m1),(i2,m2)) in zip(m1s, m2s):
             self.assertEquals(m1.center.x, m2.center.x)
             self.assertEquals(m1.center.y, m2.center.y)
             

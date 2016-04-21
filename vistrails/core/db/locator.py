@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import base64
 import getpass
@@ -258,7 +258,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 try:
                     shutil.copyfile(thumbnail, cachedir_thumbnail)
                     new_thumbnails.append(cachedir_thumbnail)
-                except Exception, e:
+                except Exception as e:
                     debug.critical("copying %s -> %s failed" % (
                                    thumbnail, cachedir_thumbnail),
                                    e)
@@ -307,10 +307,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 f= open('/dev/tty', 'w')
                 f.write("\nConnect to db with username [%s]: "%self._user)
                 f.close()
-                user = raw_input()
+                user = input()
             except IOError:
                 debug.warning("Couldn't write to terminal. Will try stdout")
-                user = raw_input("Connecting to db with username[%s]: "%self._user)
+                user = input("Connecting to db with username[%s]: "%self._user)
             try:
                 if user != '':
                     self._user = user
@@ -326,10 +326,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 config['succeeded'] = True
                 config['name'] = '%s@%s'%(self._user,self._host)
                 config['id'] = -1
-            except VistrailsDBException, e:
+            except VistrailsDBException as e:
                 debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
-            except Exception, e2:
+            except Exception as e2:
                 debug.critical('VisTrails Exception', e2)
                 config['succeeded'] = False
         if config is not None:
@@ -347,7 +347,7 @@ class DBLocator(_DBLocator, CoreLocator):
                     test_db_connection(dbconfig)
                     config['succeeded'] = True
                     config['passwd'] = self._passwd
-                except VistrailsDBException, e:
+                except VistrailsDBException as e:
                     debug.critical('VisTrails DB Exception', e)
                     config['succeeded'] = False
             
@@ -594,7 +594,7 @@ class FileLocator(CoreLocator):
         if str(type_) == 'file':
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = child.text.encode('latin-1').strip()
+                    filename = child.text.strip()
                     return FileLocator(filename)
         return None
     
@@ -617,7 +617,7 @@ class FileLocator(CoreLocator):
                     return str(value)
                 elif value.strip() != '':
                     if type == 'long':
-                        return long(value)
+                        return int(value)
                     elif type == 'float':
                         return float(value)
                     elif type == 'int':
@@ -688,6 +688,7 @@ class FileLocator(CoreLocator):
         config.showWindow = not showSpreadsheetOnly
         if not forceDB:
             if vtcontent is not None:
+                vtcontent = vtcontent.decode()
                 if url is not None:
                     basename = url.split('/')[-1]
                     base,ext = os.path.splitext(basename)
@@ -720,7 +721,7 @@ class FileLocator(CoreLocator):
                         
                 if create_file:
                     f = open(fname,'wb')
-                    f.write(vtcontent)
+                    f.write(vtcontent.encode())
                     f.close()
                 return FileLocator(fname, version_node=version, version_tag=tag,
                                    mashuptrail=mashuptrail,
@@ -757,6 +758,13 @@ import unittest
 
 # Test vtl files in usersguide
 class TestUsersGuideVTL(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            import vtk
+        except ImportError:
+            raise unittest.SkipTest("vtk is not installed")
+
     vtl_path = os.path.join(vistrails_root_directory(), '..', 'doc',
                             'usersguide', 'vtl')
     @unittest.skipIf(not os.path.isdir(vtl_path), 'Could not find vtl dir')

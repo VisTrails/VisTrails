@@ -33,14 +33,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore
+
 from vistrails.gui.common_widgets import QToolWindowInterface
 
 class QVistrailsPaletteInterface(QToolWindowInterface):
-    def __init__(self):
-        QToolWindowInterface.__init__(self)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.controller = None
         self.title = None
         self.p_id = None
@@ -70,9 +71,7 @@ class QVistrailsPaletteInterface(QToolWindowInterface):
 
     def set_action(self, action):
         self.action = action
-        self.connect(self.toolWindow(), 
-                     QtCore.SIGNAL("visibilityChanged(bool)"),
-                     self.visibility_changed)
+        self.toolWindow().visibilityChanged.connect(self.visibility_changed)
 
     def get_action(self):
         return self.action

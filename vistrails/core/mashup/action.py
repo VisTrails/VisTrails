@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from datetime import datetime
 
@@ -60,7 +60,7 @@ class Action(DBMashupAction):
     def _set_date(self, date):
         if isinstance(date, datetime):
             self.db_date = date
-        elif isinstance(date, basestring) and date.strip() != '':
+        elif isinstance(date, str) and date.strip() != '':
             newDate = datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
@@ -162,16 +162,16 @@ class TestAction(unittest.TestCase):
         from vistrails.core.mashup.alias import Alias
         from vistrails.core.mashup.mashup import Mashup
         c1 = Component(id=id_scope.getNewId('mashup_component'),
-                          vttype='parameter', param_id=15L, 
-                          parent_vttype='function', parent_id=3L, mid=4L,
+                          vttype='parameter', param_id=15, 
+                          parent_vttype='function', parent_id=3, mid=4,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
         a1 = Alias(id=id_scope.getNewId('mashup_alias'), name='alias1', component=c1)
         
         m = Mashup(id=id_scope.getNewId('mashup'), name='mashup1', vtid='empty.vt', 
-                   version=15L, alias_list=[a1])
+                   version=15, alias_list=[a1])
         action = Action(id=id_scope.getNewId('mashup_action'),
-                        prevId=0L,
+                        prevId=0,
                         date=datetime(2007,11,18),
                         mashup=m)
         return action

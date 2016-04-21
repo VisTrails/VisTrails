@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from datetime import datetime
 
@@ -58,7 +58,7 @@ class ActionAnnotation(DBMashupActionAnnotation):
     def _set_date(self, date):
         if isinstance(date, datetime):
             self.db_date = date
-        elif isinstance(date, basestring) and date.strip() != '':
+        elif isinstance(date, str) and date.strip() != '':
             newDate = datetime(*time_strptime(date, '%d %b %Y %H:%M:%S')[0:6])
             self.db_date = newDate
     date = property(_get_date, _set_date)
@@ -155,7 +155,7 @@ class TestActionAnnotation(unittest.TestCase):
 
         annotation = \
             ActionAnnotation(id=id_scope.getNewId('mashup_actionAnnotation'),
-                             key='akey', action_id=1L,
+                             key='akey', action_id=1,
                              value='some value', user='test')
         return annotation
 

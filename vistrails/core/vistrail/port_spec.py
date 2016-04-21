@@ -33,9 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from itertools import izip
+
+
 import operator
 
 from vistrails.core.data_structures.bijectivedict import Bidict
@@ -99,7 +99,7 @@ class PortSpec(DBPortSpec):
 
         if 'optional' not in kwargs:
             kwargs['optional'] = 0 # False
-        elif not isinstance(kwargs['optional'], (int, long)):
+        elif not isinstance(kwargs['optional'], int):
             if isinstance(kwargs['optional'], bool):
                 if kwargs['optional']:
                     kwargs['optional'] = 1
@@ -108,23 +108,8 @@ class PortSpec(DBPortSpec):
             else:
                 raise VistrailsInternalError("Cannot parse 'optional' kw "
                                              "-- must be an int or bool")
-        if 'min_conns' not in kwargs:
-            kwargs['min_conns'] = 0
-        elif kwargs['optional'] == 1 and kwargs['min_conns'] > 0:
-            raise VistrailsInternalError("A mandatory port cannot be set "
-                                         "to optional")
-        if 'max_conns' not in kwargs:
-            kwargs['max_conns'] = -1
-        if kwargs['min_conns'] >= 0 and kwargs['max_conns'] >= 0 and \
-                kwargs['min_conns'] > kwargs['max_conns']:
-            raise VistrailsInternalError("Minimum number of connections "
-                                         "cannot be greater than maximum "
-                                         "number of connections")
-            
         if 'sort_key' not in kwargs:
             kwargs['sort_key'] = -1
-        if 'depth' not in kwargs:
-            kwargs['depth'] = 0
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'tooltip' in kwargs:
@@ -145,6 +130,8 @@ class PortSpec(DBPortSpec):
             self._shape = None
 
         DBPortSpec.__init__(self, *args, **kwargs)
+
+        self.validate()
 
         if sum(1 for container in (self.port_spec_items, signature, sigstring)
                if container) > 1:
@@ -191,6 +178,7 @@ class PortSpec(DBPortSpec):
         if _port_spec.__class__ == PortSpec:
             return
         _port_spec.__class__ = PortSpec
+        _port_spec.validate()
         for _port_spec_item in _port_spec.db_portSpecItems:
             PortSpecItem.convert(_port_spec_item)
         _port_spec._short_sigstring = None
@@ -209,6 +197,23 @@ class PortSpec(DBPortSpec):
 
         """
         return PortSpec(sigstring=sigstring)
+
+    def validate(self):
+        """ Fixes new attributes missing in upgrade translation <=1.0.4  """
+        if self.min_conns is None:
+            self.min_conns = 0
+        elif self.optional == 1 and self.min_conns > 0:
+            raise VistrailsInternalError("A mandatory port cannot be set "
+                                         "to optional")
+        if self.max_conns is None:
+            self.max_conns = -1
+        if self.min_conns >= 0 and self.max_conns >= 0 and \
+                self.min_conns > self.max_conns:
+            raise VistrailsInternalError("Minimum number of connections "
+                                         "cannot be greater than maximum "
+                                         "number of connections")
+        if self.depth is None:
+            self.depth = 0
 
     ##########################################################################
     # Properties
@@ -279,15 +284,15 @@ class PortSpec(DBPortSpec):
     def _resize_attrs(self, target, *lists):
         for rlist in lists:
             if len(target) > len(rlist):
-                rlist.extend(None for i in xrange(len(target)-len(rlist)))
+                rlist.extend(None for i in range(len(target)-len(rlist)))
 
     def _set_attrs(self, item, *attrs):
         attr_order = ['default', 'label', 'values', 'entry_type']
         if item is None:
-            kwargs = dict(izip(attr_order, attrs))
+            kwargs = dict(zip(attr_order, attrs))
             return kwargs
         else:
-            for (attr_key, attr) in izip(attr_order, attrs):
+            for (attr_key, attr) in zip(attr_order, attrs):
                 if attr is not None:
                     setattr(item, attr_key, attr)
 
@@ -297,19 +302,19 @@ class PortSpec(DBPortSpec):
                           entry_types=None):
         if defaults is None:
             defaults = []
-        elif isinstance(defaults, basestring):
+        elif isinstance(defaults, str):
             defaults = literal_eval(defaults)
         if labels is None:
             labels = []
-        elif isinstance(labels, basestring):
+        elif isinstance(labels, str):
             labels = literal_eval(labels)
         if values is None:
             values = []
-        elif isinstance(values, basestring):
+        elif isinstance(values, str):
             values = literal_eval(values)
         if entry_types is None:
             entry_types = []
-        elif isinstance(entry_types, basestring):
+        elif isinstance(entry_types, str):
             entry_types = literal_eval(entry_types)
         attrs = [defaults, labels, values, entry_types]
         if items:
@@ -322,7 +327,7 @@ class PortSpec(DBPortSpec):
 
     def set_items(self, items, *attrs):
         self._resize_attrs(items, *attrs)
-        for i, item_tuple in enumerate(izip(items, *attrs)):
+        for i, item_tuple in enumerate(zip(items, *attrs)):
             item_tuple[0].pos = i
             self._set_attrs(*item_tuple)
 
@@ -360,7 +365,7 @@ class PortSpec(DBPortSpec):
         if not isinstance(signature, list):
             signature = [signature]
         self._resize_attrs(signature, *attrs)
-        for i, item_tuple in enumerate(izip(signature, *attrs)):
+        for i, item_tuple in enumerate(zip(signature, *attrs)):
             descriptor, item_label = canonicalize(item_tuple[0])
             kwargs = self._set_attrs(None, *item_tuple[1:])
             if not kwargs['label']:
@@ -381,7 +386,7 @@ class PortSpec(DBPortSpec):
             return ps_items
 
         self._resize_attrs(specs_list, *attrs)
-        for i, item_tuple in enumerate(izip(specs_list, *attrs)):
+        for i, item_tuple in enumerate(zip(specs_list, *attrs)):
             kwargs = self._set_attrs(None, *item_tuple[1:])
             ps_item = PortSpecItem(pos=i,
                                    package=item_tuple[0][0],
@@ -413,6 +418,9 @@ class PortSpec(DBPortSpec):
     ##########################################################################
     # Operators
     
+    def __hash__(self):
+        return self.id
+
     def __str__(self):
         """__str__() -> str - Returns a string representation of an PortSpec
         object. 
@@ -436,7 +444,7 @@ class PortSpec(DBPortSpec):
             return False
         if len(self.descriptors()) != len(other.descriptors()):
             return False
-        for (mine, their) in izip(self.descriptors(), other.descriptors()):
+        for (mine, their) in zip(self.descriptors(), other.descriptors()):
             if mine != their:
                 return False
         return True
@@ -455,7 +463,7 @@ class PortSpec(DBPortSpec):
             return True
         if len(self.descriptors()) != len(other.descriptors()):
             return False
-        for (mine, their) in izip(self.descriptors(), other.descriptors()):
+        for (mine, their) in zip(self.descriptors(), other.descriptors()):
             if mine != their:
                 return False
         return True

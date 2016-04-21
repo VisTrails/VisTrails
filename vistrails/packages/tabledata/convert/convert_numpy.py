@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module
 
@@ -103,6 +103,6 @@ class ReshapeTestCase(unittest.TestCase):
                     ('shape', [('List', '[9]')]),
                 ]),
             ])
-        self.assertEqual(error.keys(), [0])
+        self.assertEqual(list(error.keys()), [0])
         self.assertIn("total size of new array must be unchanged",
                       error[0].args[0])

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 import locale
@@ -45,11 +45,11 @@ from vistrails.core.query import extract_text
 import vistrails.core.system
 from vistrails.core.db.locator import BaseLocator
 
-from entity import Entity
-from workflow import WorkflowEntity
-from workflow_exec import WorkflowExecEntity
-from thumbnail import ThumbnailEntity
-from mashup import MashupEntity
+from .entity import Entity
+from .workflow import WorkflowEntity
+from .workflow_exec import WorkflowExecEntity
+from .thumbnail import ThumbnailEntity
+from .mashup import MashupEntity
 from vistrails.core.collection.parameter_exploration import ParameterExplorationEntity
 
 class VistrailEntity(Entity):
@@ -144,7 +144,7 @@ class VistrailEntity(Entity):
             if vistrail.db_name:
                 name = vistrail.db_name
             else:
-                name = u"untitled"
+                name = "untitled"
             
         size = vistrail.get_version_count()
         if size < 1:
@@ -181,7 +181,7 @@ class VistrailEntity(Entity):
             tag = self.vistrail.get_tag(version_id)
         try:
             workflow = self.vistrail.getPipeline(version_id)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
@@ -262,7 +262,7 @@ class VistrailEntity(Entity):
             action = self.vistrail.actionMap[version_id]
             try:
                 workflow = self.vistrail.getPipeline(version_id)
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
@@ -287,7 +287,7 @@ class VistrailEntity(Entity):
         added_entry_keys = set()
         inv_tag_map = {}
         tagMap = mashuptrail.getTagMap()
-        tags = tagMap.keys()
+        tags = list(tagMap.keys())
         if len(tags) > 0:
             tags.sort()
             for tag in tags:
@@ -350,7 +350,7 @@ class VistrailEntity(Entity):
             log = None
             try:
                 log = vistrail.get_persisted_log()
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 debug.critical("Failed to read log", debug.format_exc())
                 
@@ -404,13 +404,13 @@ class VistrailEntity(Entity):
         # here we just need to check for changes in tags
         added_tags = []
         deleted_tags = []
-        for version_id, tag in self.vistrail.get_tagMap().iteritems():
+        for version_id, tag in self.vistrail.get_tagMap().items():
             if version_id not in self._vt_tag_map:
                 added_tags.append(self.add_workflow_entity(version_id))
             elif tag != self._vt_tag_map[version_id]:
                 deleted_tags.append(self.wf_entity_map[version_id])
                 added_tags.append(self.add_workflow_entity(version_id))
-        for version_id, tag in self._vt_tag_map.iteritems():
+        for version_id, tag in self._vt_tag_map.items():
             if version_id not in self.vistrail.get_tagMap():
                 deleted_tags.append(self.wf_entity_map[version_id])
                 del self.wf_entity_map[version_id]
@@ -443,7 +443,7 @@ class VistrailEntity(Entity):
                 tagMap = mashuptrail.getTagMap()
                 #mashups tag map is inverted map[tag] -> version
                 new_mshp_map = {}
-                for tag, version_id in tagMap.iteritems():
+                for tag, version_id in tagMap.items():
                     new_mshp_map[version_id] = tag
                     if version_id not in mashup_tag_map:
                         added_mashups.append(self.add_mashup_entity(mashuptrail, version_id, tag))
@@ -451,8 +451,8 @@ class VistrailEntity(Entity):
                         deleted_mashups.append(self.mshp_entity_map[(mashuptrail.id,
                                                                      version_id)])
                         added_mashups.append(self.add_mashup_entity(mashuptrail, version_id, tag))
-                for version_id, tag in mashup_tag_map.iteritems():
-                    if version_id not in tagMap.values():
+                for version_id, tag in mashup_tag_map.items():
+                    if version_id not in list(tagMap.values()):
                         deleted_mashups.append(self.mshp_entity_map[(mashuptrail.id,
                                                                      version_id)])
                         del self.mshp_entity_map[(mashuptrail.id, version_id)]
@@ -467,7 +467,7 @@ class VistrailEntity(Entity):
             for pe in self.vistrail.parameter_explorations:
                 if pe.name and pe.name not in self.pe_entity_map:
                     added_pes.append(self.add_parameter_exploration_entity(pe))
-            for pe_name in self.pe_entity_map.keys():
+            for pe_name in list(self.pe_entity_map.keys()):
                 if not self.vistrail.has_named_paramexp(pe_name):
                     deleted_pes.append(self.pe_entity_map[pe_name])
                     del self.pe_entity_map[pe_name]

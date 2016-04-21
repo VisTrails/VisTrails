@@ -36,14 +36,14 @@
 """ Wrapper for Hadoop Streaming to use with Python mapper/reducer,
 cache files, etc...  """
 
-from __future__ import division
+
 
 import os.path
 
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
-from base import HadoopBaseModule
+from .base import HadoopBaseModule
 from remoteq.core.stack import use_machine
 from remoteq.batch.commandline import Subshell
 
@@ -191,7 +191,7 @@ class HadoopStreaming(HadoopBaseModule):
     def call_hadoop(self, arguments, workdir, identifier, machine):
         config = self.get_hadoop_config(machine)
         argList = [config['hadoop']]
-        if type(arguments) in [str, unicode]:
+        if type(arguments) in [str, str]:
             argList += arguments.split(' ')
         elif type(arguments)==list:
             argList += arguments

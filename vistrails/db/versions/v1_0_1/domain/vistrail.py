@@ -34,14 +34,14 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import copy
 import hashlib
-from auto_gen import DBVistrail as _DBVistrail
-from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
+from .auto_gen import DBVistrail as _DBVistrail
+from .auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
     DBModule
-from id_scope import IdScope
+from .id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):
@@ -127,7 +127,7 @@ class DBVistrail(_DBVistrail):
         # need this for updating aliases...
         # hack it using setattr...
         real_obj = self.db_objects[(obj.vtType, obj.db_id)]
-        for (k, v) in kwargs.iteritems():
+        for (k, v) in kwargs.items():
             if hasattr(real_obj, k):
                 setattr(real_obj, k, v)
 
@@ -176,7 +176,7 @@ class DBVistrail(_DBVistrail):
                 annotations[annotation._db_key] = []
             if annotation._db_value not in annotations[annotation._db_key]:
                 annotations[annotation._db_key].append(annotation._db_value)
-        keys = annotations.keys()
+        keys = list(annotations.keys())
         keys.sort()
         m = hashlib.md5()
         for k in keys:
@@ -195,7 +195,7 @@ class DBVistrail(_DBVistrail):
                     action_annotations[index] = []
                 if annotation.db_value not in action_annotations[index]:
                     action_annotations[index].append(annotation.db_value)
-        keys = action_annotations.keys()
+        keys = list(action_annotations.keys())
         keys.sort()
         m = hashlib.md5()
         for k in keys:

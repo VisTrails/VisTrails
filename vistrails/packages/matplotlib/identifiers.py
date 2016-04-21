@@ -36,14 +36,14 @@
 """Matplotlib package for VisTrails.
 
 This package wrap Matplotlib to provide a plotting tool for
-VisTrails. We are going to use the 'Qt4Agg' backend of the library.
+VisTrails. We are going to use the 'Qt5Agg' backend of the library.
 
 """
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.matplotlib'
 name = 'matplotlib'
-version = '1.0.6'
+version = '1.1'
 old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
                    'org.vistrails.matplotlib.new']

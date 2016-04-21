@@ -26,7 +26,7 @@ or just set to empty to make the images not clickable:
 This extension uses python. If you don't have python on your path, use this 
 to set the python interpreter:
 
-\renewcommand{\vistrailspythonpath}{python}
+\renewcommand{\vistrailspythonpath}{python3}
 
 
 Then include the following command where you would like to include 

@@ -33,7 +33,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
 import copy
 
@@ -98,22 +97,22 @@ class FoldWithModule(Fold):
         # FunctionPort
         suspended = []
         was_suspended = None
-        for port_name, connector_list in self.inputPorts.iteritems():
+        for port_name, connector_list in self.inputPorts.items():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
                     try:
                         connector.obj.update_upstream()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
         if len(suspended) == 1:
             raise suspended[0]
@@ -176,7 +175,7 @@ class FoldWithModule(Fold):
 
                 try:
                     module.update()
-                except ModuleSuspended, e:
+                except ModuleSuspended as e:
                     suspended.append(e)
                     do_operation = False
                     loop.end_iteration(module)

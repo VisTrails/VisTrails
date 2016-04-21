@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 def capitalizeOne(str):
     result = ''
@@ -215,7 +215,7 @@ class Field(object):
         return self.params.get('expandAction', 'true') == 'true'
 
     def hasDiscriminator(self):
-        return self.params.has_key('discriminator')
+        return 'discriminator' in self.params
 
     def getDiscriminator(self):
         try:

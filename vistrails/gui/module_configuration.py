@@ -37,9 +37,8 @@
 the user selects a module's "Edit Configuration"
 
 """
-from __future__ import division
+from PyQt5 import QtCore, QtWidgets
 
-from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 from vistrails.gui.modules.module_configure import DefaultModuleConfigurationWidget
@@ -47,10 +46,10 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
-class QConfigurationWidget(QtGui.QWidget):
+class QConfigurationWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self.setLayout(QtGui.QVBoxLayout())
+        QtWidgets.QWidget.__init__(self, parent)
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.widget = None
 
     def setUpWidget(self, widget):
@@ -78,13 +77,14 @@ class QConfigurationWidget(QtGui.QWidget):
             
 ################################################################################
         
-class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
+class QModuleConfiguration(QtWidgets.QScrollArea, QVistrailsPaletteInterface):
+    doneConfigure = QtCore.pyqtSignal(int)
     def __init__(self, parent=None, scene=None):
         """QModuleConfiguration(parent: QWidget) -> QModuleConfiguration
         Initialize widget constraints
         
         """
-        QtGui.QScrollArea.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowTitle('Module Configuration')
         self.setWidgetResizable(True)
@@ -131,13 +131,11 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
                 pass
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
-            widget = widgetType(module, self.controller)
+            widget = widgetType(module=module, controller=self.controller)
         
             self.confWidget.setUpWidget(widget)
-            self.connect(widget, QtCore.SIGNAL("doneConfigure"),
-                         self.configureDone)
-            self.connect(widget, QtCore.SIGNAL("stateChanged"),
-                         self.stateChanged)
+            widget.doneConfigure.connect(self.configureDone)
+            widget.stateChanged.connect(self.stateChanged)
         self.confWidget.setUpdatesEnabled(True)
         self.confWidget.setVisible(True)
         self.hasChanges = False
@@ -146,7 +144,7 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
     
     def configureDone(self):
         from vistrails.gui.vistrails_window import _app
-        self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)  
+        self.doneConfigure.emit(self.module.id)
         _app.notify('module_done_configure', self.module.id)
         
     def stateChanged(self):

@@ -37,11 +37,12 @@
 """This file implements the main spreadsheet window: SpreadsheetWindow
 """
 
-from __future__ import division
+
 
 import ctypes
 import os.path
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import tempfile
 
 from vistrails.core.modules import module_utils
@@ -55,53 +56,50 @@ from .spreadsheet_sheet import StandardWidgetSheet
 from .spreadsheet_tabcontroller import StandardWidgetTabController
 
 
-class SpreadsheetWindow(QtGui.QMainWindow):
+class SpreadsheetWindow(QtWidgets.QMainWindow):
     """
     SpreadsheetWindow is the top-level main window containing a
     stacked widget of QTabWidget and its stacked widget for slideshow
     mode
 
     """
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
                               -> SpreadsheetWindow
         Layout menu, status bar and tab widget
 
         """
-        QtGui.QMainWindow.__init__(self, parent, f)
+        QtWidgets.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
         self.setWindowTitle('Untitled - VisTrails Spreadsheet')
         self.shownConfig = False #flag to control the window setup code is done only once
-        self.stackedCentralWidget = QtGui.QStackedWidget(self)
+        self.stackedCentralWidget = QtWidgets.QStackedWidget(self)
         self.tabController = StandardWidgetTabController(
             self.stackedCentralWidget)
         self.stackedCentralWidget.addWidget(self.tabController)
-        self.fullScreenStackedWidget = QtGui.QStackedWidget(
+        self.fullScreenStackedWidget = QtWidgets.QStackedWidget(
             self.stackedCentralWidget)
         self.stackedCentralWidget.addWidget(self.fullScreenStackedWidget)
         self.setCentralWidget(self.stackedCentralWidget)
-        self.setStatusBar(QtGui.QStatusBar(self))
-        self.modeActionGroup = QtGui.QActionGroup(self)
+        self.setStatusBar(QtWidgets.QStatusBar(self))
+        self.modeActionGroup = QtWidgets.QActionGroup(self)
 
         self.visApp = QtCore.QCoreApplication.instance()
         self.visApp.installEventFilter(self)
 
         self.setupMenu()
 
-        self.connect(self.tabController,
-                     QtCore.SIGNAL('needChangeTitle'),
-                     self.setWindowTitle)
+        self.tabController.needChangeTitle.connect(self.setWindowTitle)
         self.file_pool = module_utils.FilePool()
         self.echoMode = False
         self.echoCellEvents = []
 
         if hasattr(self.visApp, 'builderWindow'):
-            self.quitAction = QtGui.QAction('&Quit VisTrails', self)
+            self.quitAction = QtWidgets.QAction('&Quit VisTrails', self)
             self.addAction(self.quitAction)
             self.quitAction.setShortcut('Ctrl+Q')
-            self.connect(self.quitAction,
-                         QtCore.SIGNAL('triggered()'),
-                         self.quitActionTriggered)
+            self.quitAction.triggered.connect(self.quitActionTriggered)
 
         # if the spreadsheet has one row and 2 columns
         # this will cause the spreadsheet to have each cell
@@ -129,8 +127,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         Add all available actions to the menu bar
 
         """
-        self.setMenuBar(QtGui.QMenuBar(self))
-        self.mainMenu = QtGui.QMenu('&Main', self.menuBar())
+        self.setMenuBar(QtWidgets.QMenuBar(self))
+        self.mainMenu = QtWidgets.QMenu('&Main', self.menuBar())
         self.menuBar().addAction(self.mainMenu.menuAction())
         self.mainMenu.addAction(self.tabController.saveAction())
         self.mainMenu.addAction(self.tabController.saveAsAction())
@@ -138,20 +136,18 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.mainMenu.addSeparator()
         self.mainMenu.addAction(self.tabController.newSheetAction())
         self.mainMenu.addAction(self.tabController.deleteSheetAction())
-        self.viewMenu = QtGui.QMenu('&View', self.menuBar())
+        self.viewMenu = QtWidgets.QMenu('&View', self.menuBar())
         self.menuBar().addAction(self.viewMenu.menuAction())
         self.viewMenu.addAction(self.interactiveModeAction())
         self.viewMenu.addAction(self.editingModeAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fitToWindowAction())
         self.viewMenu.addAction(self.fullScreenAction())
-        self.windowMenu = QtGui.QMenu('&Window', self.menuBar())
+        self.windowMenu = QtWidgets.QMenu('&Window', self.menuBar())
         self.menuBar().addAction(self.windowMenu.menuAction())
         self.windowMenu.addAction(self.showBuilderWindowAction())
 
-        self.connect(self.modeActionGroup,
-                     QtCore.SIGNAL('triggered(QAction*)'),
-                     self.modeChanged)
+        self.modeActionGroup.triggered.connect(self.modeChanged)
 
     def fitToWindowAction(self):
         """ fitToWindowAction() -> QAction
@@ -159,15 +155,13 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
         """
         if not hasattr(self, 'fitAction'):
-            self.fitAction = QtGui.QAction('Fit to window', self)
+            self.fitAction = QtWidgets.QAction('Fit to window', self)
             self.fitAction.setStatusTip('Stretch spreadsheet cells '
                                         'to fit the window size')
             self.fitAction.setCheckable(True)
             checked = self.tabController.currentWidget().sheet.fitToWindow
             self.fitAction.setChecked(checked)
-            self.connect(self.fitAction,
-                         QtCore.SIGNAL('toggled(bool)'),
-                         self.fitActionToggled)
+            self.fitAction.toggled.connect(self.fitActionToggled)
         return self.fitAction
 
     def fitActionToggled(self, checked):
@@ -183,23 +177,20 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
         """
         if not hasattr(self, 'fullScreenActionVar'):
-            self.fullScreenActionVar = QtGui.QAction('&Full Screen', self)
+            self.fullScreenActionVar = QtWidgets.QAction('&Full Screen', self)
             self.fullScreenActionVar.setShortcut('Ctrl+F')
             self.fullScreenActionVar.setCheckable(True)
             self.fullScreenActionVar.setChecked(False)
             self.fullScreenActionVar.setStatusTip('Show sheets without any '
                                                   'menubar or statusbar')
-            self.connect(self.fullScreenActionVar,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.fullScreenActivated)
-            self.fullScreenAlternativeShortcuts = [QtGui.QShortcut('F11', self),
-                                                   QtGui.QShortcut('Alt+Return',
+            self.fullScreenActionVar.triggered.connect(self.fullScreenActivated)
+            self.fullScreenAlternativeShortcuts = [QtWidgets.QShortcut('F11', self),
+                                                   QtWidgets.QShortcut('Alt+Return',
                                                                    self),
-                                                   QtGui.QShortcut('Alt+Enter',
+                                                   QtWidgets.QShortcut('Alt+Enter',
                                                                    self)]
             for sc in self.fullScreenAlternativeShortcuts:
-                self.connect(sc, QtCore.SIGNAL('activated()'),
-                             self.fullScreenActionVar.trigger)
+                sc.activated.connect(self.fullScreenActionVar.trigger)
         return self.fullScreenActionVar
 
     def fullScreenActivated(self, full=None):
@@ -230,7 +221,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
         """
         if not hasattr(self, 'interactiveModeActionVar'):
-            self.interactiveModeActionVar = QtGui.QAction('&Interactive Mode',
+            self.interactiveModeActionVar = QtWidgets.QAction('&Interactive Mode',
                                                           self.modeActionGroup)
             self.interactiveModeActionVar.setCheckable(True)
             self.interactiveModeActionVar.setChecked(True)
@@ -247,7 +238,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
         """
         if not hasattr(self, 'editingModeActionVar'):
-            self.editingModeActionVar = QtGui.QAction('&Editing Mode',
+            self.editingModeActionVar = QtWidgets.QAction('&Editing Mode',
                                                       self.modeActionGroup)
             self.editingModeActionVar.setCheckable(True)
             self.editingModeActionVar.setShortcut('Ctrl+Shift+E')
@@ -265,7 +256,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """
         if not hasattr(self, 'showBuilderWindowActionVar'):
             self.showBuilderWindowActionVar = \
-                                        QtGui.QAction('&Show Builder Window',
+                                        QtWidgets.QAction('&Show Builder Window',
                                                       self)
             self.showBuilderWindowActionVar.setShortcut('Ctrl+Shift+B')
             self.showBuilderWindowActionVar.setStatusTip('Show the '
@@ -275,9 +266,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             else:
                 self.showBuilderWindowActionVar.setEnabled(False)
 
-            self.connect(self.showBuilderWindowActionVar,
-                         QtCore.SIGNAL('triggered()'),
-                         self.showBuilderWindowActionTriggered)
+            self.showBuilderWindowActionVar.triggered.connect(self.showBuilderWindowActionTriggered)
 
         return self.showBuilderWindowActionVar
 
@@ -299,7 +288,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if self.shownConfig:
                 self.show()
             ### Multiheads
-            desktop = QtGui.QApplication.desktop()
+            desktop = QtWidgets.QApplication.desktop()
             if self.visApp.temp_configuration.multiHeads and desktop.numScreens()>1:
                 builderScreen = desktop.screenNumber(self.visApp.builderWindow)
                 r = desktop.availableGeometry(builderScreen)
@@ -311,7 +300,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                           (frame.height()-rect.height())//2)
                 self.visApp.builderWindow.move(
                     frame.topLeft()+r.center()-frame.center())
-                for i in xrange(desktop.numScreens()):
+                for i in range(desktop.numScreens()):
                     if i!=builderScreen:
                         r = desktop.availableGeometry(i)
                         self.adjustSize()
@@ -362,7 +351,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 #if the window is not visible, we need to quit the application
                 QtCore.QCoreApplication.quit()
         else:
-            QtGui.QMainWindow.closeEvent(self, e)
+            QtWidgets.QMainWindow.closeEvent(self, e)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -411,13 +400,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if isinstance(q, QCellContainer):
                 return q.containedWidget!=None
             p = q
-            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet) and p.parent):
+            while (p and not (hasattr(p, 'isModal') and p.isModal()) and
+                   not isinstance(p, StandardWidgetSheet) and p.parent):
                 p = p.parent()
             if p and isinstance(p, StandardWidgetSheet) and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
-                p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
-                       p.rowAt(pos.y()), p.columnAt(pos.x()),
-                       e.modifiers()==QtCore.Qt.ControlModifier)
+                p.cellActivated.emit(p.rowAt(pos.y()), p.columnAt(pos.x()), e.modifiers()==QtCore.Qt.ControlModifier)
         return False
         #return QtGui.QMainWindow.eventFilter(self,q,e)
 
@@ -426,10 +414,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         Handle all special events from spreadsheet controller
 
         """
-        if self.eventMap.has_key(e.type()):
+        if e.type() in self.eventMap:
             self.eventMap[e.type()](e)
             return False
-        return QtGui.QMainWindow.event(self, e)
+        return QtWidgets.QMainWindow.event(self, e)
 
     def createEventMap(self):
         """ createEventMap() -> None
@@ -486,12 +474,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 sheet.setCellEditingMode(row, col, True)
             #If a cell has to dump its contents to a file, it will be in the
             #extra_info dictionary
-            if cell and e.vistrail.has_key('extra_info'):
+            if cell and 'extra_info' in e.vistrail:
                 dump_as_pdf = False
                 extra_info = e.vistrail['extra_info']
-                if extra_info.has_key('pathDumpCells'):
+                if 'pathDumpCells' in extra_info:
                     dumppath = extra_info['pathDumpCells']
-                    if extra_info.has_key('nameDumpCells'):
+                    if 'nameDumpCells' in extra_info:
                         name = extra_info['nameDumpCells']
                         base_fname = os.path.join(dumppath,
                                                   name)
@@ -503,7 +491,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                             name = 'untitled'
                         version = e.vistrail['version']
                         if version is None:
-                            version = 0L
+                            version = 0
                         base_fname = os.path.join(dumppath,"%s_%s" % \
                                                   (name, e.vistrail['version']))
 
@@ -513,7 +501,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         dump_as_pdf = True
 
                     #extra_info configuration overwrites global configuration
-                    if extra_info.has_key('pdf'):
+                    if 'pdf' in extra_info:
                         dump_as_pdf = extra_info['pdf']
 
                     file_extension = '.png'
@@ -521,7 +509,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         file_extension = '.pdf'
 
                     # add cell location by default
-                    if not extra_info.has_key('nameDumpCells'):
+                    if 'nameDumpCells' not in extra_info:
                         base_fname = base_fname + "_%d_%d" % (row, col)
                     # make a unique filename
                     filename = base_fname + file_extension
@@ -559,8 +547,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         currentTab = self.tabController.currentWidget()
         if currentTab:
             (rCount, cCount) = currentTab.getDimension()
-            for r in xrange(rCount):
-                for c in xrange(cCount):
+            for r in range(rCount):
+                for c in range(cCount):
                     widget = currentTab.getCell(r, c)
                     if widget:
                         widget.repaint()
@@ -589,18 +577,16 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         currentTab = self.tabController.currentWidget()
         if currentTab:
             currentTab.toolBar.hide()
-            buttonLayout = QtGui.QHBoxLayout()
-            buttons = [QtGui.QPushButton('&Accept'),
-                       QtGui.QPushButton('&Discard')]
+            buttonLayout = QtWidgets.QHBoxLayout()
+            buttons = [QtWidgets.QPushButton('&Accept'),
+                       QtWidgets.QPushButton('&Discard')]
             buttonLayout.addStretch()
             buttonLayout.addWidget(buttons[0])
             buttonLayout.addWidget(buttons[1])
             buttonLayout.addStretch()
             currentTab.layout().addLayout(buttonLayout)
-            self.connect(buttons[0], QtCore.SIGNAL('clicked()'),
-                         self.acceptReview)
-            self.connect(buttons[1], QtCore.SIGNAL('clicked()'),
-                         self.discardReview)
+            buttons[0].clicked.connect(self.acceptReview)
+            buttons[1].clicked.connect(self.discardReview)
 
     def discardReview(self):
         """ Just quit the program """
@@ -615,8 +601,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         version = -1
         if currentTab:
             (rCount, cCount) = currentTab.getDimension()
-            for r in xrange(rCount):
-                for c in xrange(cCount):
+            for r in range(rCount):
+                for c in range(cCount):
                     widget = currentTab.getCell(r, c)
                     if widget:
                         version = currentTab.getCellPipelineInfo(r, c)[0]['version']

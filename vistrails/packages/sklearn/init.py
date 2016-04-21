@@ -32,7 +32,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
@@ -48,7 +48,7 @@ from sklearn.utils.testing import all_estimators
 
 
 def try_convert(input_string):
-    if not isinstance(input_string, basestring):
+    if not isinstance(input_string, str):
         # already converted
         return input_string
     if input_string.isdigit():

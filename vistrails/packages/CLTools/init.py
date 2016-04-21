@@ -34,8 +34,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
+
+import contextlib
 import errno
 import json
 import os
@@ -50,7 +51,7 @@ from vistrails.core.packagemanager import get_package_manager
 import vistrails.core.system
 from vistrails.core.system import packages_directory, vistrails_root_directory
 
-import identifiers
+from . import identifiers
 
 
 cl_tools = {}
@@ -79,7 +80,7 @@ def _eintr_retry_call(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, IOError), e: # pragma: no cover
+        except (OSError, IOError) as e: # pragma: no cover
             if e.errno == errno.EINTR:
                 continue
             raise
@@ -88,8 +89,6 @@ def _eintr_retry_call(func, *args):
 def _add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
-    if isinstance(tool_name, unicode):
-        tool_name = tool_name.encode('utf-8')
     if not tool_name.endswith(SUFFIX): # pragma: no cover
         return
     (tool_name, _) = os.path.splitext(tool_name)
@@ -176,7 +175,7 @@ def _add_tool(path):
                         suffix=options.get('suffix', DEFAULTFILESUFFIX))
                 try:
                     shutil.copyfile(value.name, outfile.name)
-                except IOError, e: # pragma: no cover
+                except IOError as e: # pragma: no cover
                     raise ModuleError(self,
                                       "Error copying file '%s': %s" %
                                       (value.name, debug.format_exception(e)))
@@ -201,12 +200,11 @@ def _add_tool(path):
                 elif "string" == type:
                     if file_std:
                         file = self.interpreter.filePool.create_file()
-                        f = open(file.name, 'wb')
-                        f.write(value)
-                        f.close()
+                        with open(file.name, 'wb') as f:
+                            f.write(value.encode())
                         f = open(file.name, 'rb')
                     else:
-                        stdin = value
+                        stdin = value.encode()
                 else: # pragma: no cover
                     raise ValueError
                 if file_std:
@@ -267,7 +265,7 @@ def _add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e: # pragma: no cover
+            except Exception as e: # pragma: no cover
                 raise ModuleError(self,
                                   "Error parsing configuration env: %s" % (
                                   debug.format_exception(e)))
@@ -280,7 +278,7 @@ def _add_tool(path):
                     value = value.strip()
                     if key:
                         env[key] = value
-            except Exception, e: # pragma: no cover
+            except Exception as e: # pragma: no cover
                 raise ModuleError(self,
                                   "Error parsing module env: %s" % (
                                   debug.format_exception(e)))
@@ -296,7 +294,7 @@ def _add_tool(path):
                         value = value.strip()
                         if key:
                             env[key] = value
-                except Exception, e: # pragma: no cover
+                except Exception as e: # pragma: no cover
                     raise ModuleError(self,
                                       "Error parsing env port: %s" % (
                                       debug.format_exception(e)))
@@ -305,7 +303,7 @@ def _add_tool(path):
             kwargs['env'] = dict(os.environ)
             kwargs['env'].update(env)
             # write to execution provenance
-            env = ';'.join(['%s=%s'%(k,v) for k,v in env.iteritems()])
+            env = ';'.join(['%s=%s'%(k,v) for k,v in env.items()])
             self.annotate({'execution_env': env})
 
         if 'dir' in self.conf:
@@ -432,7 +430,7 @@ def initialize(*args, **keywords):
 
 def remove_all_scripts():
     reg = vistrails.core.modules.module_registry.get_module_registry()
-    for tool_name in cl_tools.keys():
+    for tool_name in list(cl_tools.keys()):
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
 
@@ -457,7 +455,7 @@ def reload_scripts(initial=False, name=None):
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Could not create CLTools directory. Make "
                                "sure '%s' does not exist and parent directory "
                                "is writable" % location,
@@ -492,8 +490,8 @@ def menu_items():
     
     """
     try:
-        from wizard import QCLToolsWizardWindow
-    except Exception, e: # pragma: no cover
+        from .wizard import QCLToolsWizardWindow
+    except Exception as e: # pragma: no cover
         if "CLTools" == identifiers.name:
             debug.unexpected_exception(e)
             raise
@@ -559,10 +557,11 @@ class TestCLTools(unittest.TestCase):
         reload_scripts()
 
     def do_the_test(self, toolname):
-        with intercept_results(
+        with contextlib.ExitStack() as stack:
+            return_code, f_out, stdout = [stack.enter_context(c) for c in
+                intercept_results(
                 self._tools[toolname],
-                'return_code', 'f_out', 'stdout') as (
-                return_code, f_out, stdout):
+                'return_code', 'f_out', 'stdout')]
             self.assertFalse(execute([
                     (toolname, 'org.vistrails.vistrails.cltools', [
                         ('f_in', [('File', self.testdir + '/test_1.cltest')]),
@@ -574,8 +573,8 @@ class TestCLTools(unittest.TestCase):
                     ]),
                 ]))
         self.assertEqual(return_code, [0])
-        self.assertEqual(f_out, ['ok\nmessage received'])
-        self.assertEqual(stdout, ['program output here'])
+        self.assertEqual(f_out, [b'ok\nmessage received']) # FIXME: Should this be string?
+        self.assertEqual(stdout, [b'program output here']) # FIXME: Should this be string?
 
     def test_with_pipes(self):
         """Without std_using_files: use pipes instead of files.

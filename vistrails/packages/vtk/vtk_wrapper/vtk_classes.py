@@ -36,7 +36,7 @@
 
 """ Convert VTK classes into functions using spec in vtk.xml"""
 
-from __future__ import division
+
 
 import locale
 import os
@@ -65,7 +65,7 @@ def patch_methods(base_module, cls):
 
     instance_dict = {}
     def update_dict(name, callable_):
-        if instance_dict.has_key(name):
+        if name in instance_dict:
             instance_dict[name] = callable_(types.MethodType(instance_dict[name], base_module))
         elif hasattr(base_module, name):
             instance_dict[name] = callable_(getattr(base_module, name))
@@ -82,7 +82,7 @@ def patch_methods(base_module, cls):
             def ProgressEvent(obj, event):
                 try:
                     self._callback(obj.GetProgress())
-                except Exception, e:
+                except Exception as e:
                     if e.__name__ == 'AbortExecution':
                         obj.SetAbortExecute(True)
                         self.RemoveObserver(cbId)
@@ -130,13 +130,6 @@ def patch_methods(base_module, cls):
                     vtk.vtkImageReader,
                     vtk.vtkDICOMImageReader,
                     vtk.vtkTIFFReader]
-            # vtkPLOT3DReader does not exist from version 6.0.0
-            v = vtk.vtkVersion()
-            version = [v.GetVTKMajorVersion(),
-                       v.GetVTKMinorVersion(),
-                       v.GetVTKBuildVersion()]
-            if version < [6, 0, 0]:
-                skip.append(vtk.vtkPLOT3DReader)
             if not any(issubclass(cls, x) for x in skip):
                 filename = self.vtkInstance.GetFileName()
                 if not os.path.isfile(filename):
@@ -157,8 +150,9 @@ def patch_methods(base_module, cls):
 
         widget = None
         if system() == 'Darwin':
-            from PyQt4 import QtCore, QtGui
-            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            from PyQt5 import QtCore, QtWidgets
+
+            widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)
             widget.show()
             window.SetWindowInfo(str(int(widget.winId())))
@@ -184,7 +178,7 @@ def patch_methods(base_module, cls):
 
     def call_PointIds(self, point_ids):
         self.vtkInstance.GetPointIds().SetNumberOfIds(point_ids.GetNumberOfIds())
-        for i in xrange(point_ids.GetNumberOfIds()):
+        for i in range(point_ids.GetNumberOfIds()):
             self.vtkInstance.GetPointIds().SetId(i, point_ids.vtkInstance.GetId(i))
     if issubclass(cls, vtk.vtkCell):
         instance_dict['PointIds'] = call_PointIds
@@ -200,7 +194,7 @@ def patch_methods(base_module, cls):
     if issubclass(cls, vtk.vtkMultiBlockPLOT3DReader):
         instance_dict['FirstBlock'] = call_GetFirstBlock
 
-    for name, method in instance_dict.iteritems():
+    for name, method in instance_dict.items():
         setattr(base_module, name, types.MethodType(method, base_module))
 
 #### END METHOD PATCHING CODE ####
@@ -238,26 +232,10 @@ class VTKInstancePatcher(object):
         locale.setlocale(locale.LC_ALL, self._previous_locale)
 
     def __getattr__(self, name):
-        v = vtk.vtkVersion()
-        version = [v.GetVTKMajorVersion(),
-                   v.GetVTKMinorVersion(),
-                   v.GetVTKBuildVersion()]
-        if version < [6, 0, 0]:
-            # Translate vtk6 method names to vtk5 method names
-            to_vtk5_names = {'AddInputData':  'AddInput',
-                          'AddDataSetInput':  'AddInput',
-                             'SetInputData':  'SetInput',
-                            'AddSourceData': 'AddSource',
-                            'SetSourceData': 'SetSource'}
-            for new, old in to_vtk5_names.iteritems():
-                if name.startswith(new):
-                    # Keep suffix
-                    name = old + name[len(new):]
-                    break
         # redirect calls to vtkInstance
         def call_wrapper(*args):
             args = list(args)
-            for i in xrange(len(args)):
+            for i in range(len(args)):
                 if hasattr(args[i], 'vtkInstance'):
                     # Unwrap VTK objects
                     args[i] = args[i].vtkInstance

@@ -38,9 +38,10 @@ its subclasses.
 
 """
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtWidgets
+
 
 from vistrails.core.configuration import ConfigPath, ConfigField
 from vistrails.core.modules.basic_modules import Dictionary
@@ -48,9 +49,8 @@ from vistrails.gui.common_widgets import QDirectoryChooserToolButton
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 
 class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module, controller, 
-                                                   parent)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.update_widget()
 
     def get_configuration(self):
@@ -66,7 +66,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                                 [Dictionary.translate_to_string(config)])
 
     def update_widget(self):
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         config = self.get_configuration()
 
         self.mode_widgets = []
@@ -81,7 +81,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
             mode_layouts.append(mode_w.layout())
             self.found_modes.add(mode.mode_type)
             
-        for mode_type, mode_config in config.iteritems():
+        for mode_type, mode_config in config.items():
             if mode_type not in self.found_modes:
                 mode_w = self.build_mode_config(layout, None, mode_config, 
                                                 title=mode_type)
@@ -90,7 +90,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 
         width = 0
         for mode_layout in mode_layouts:
-            for row in xrange(mode_layout.rowCount()):
+            for row in range(mode_layout.rowCount()):
                 item = mode_layout.itemAtPosition(row, 0)
                 if item and item.widget():
                     width = max(width, item.widget().sizeHint().width())
@@ -101,12 +101,12 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         # neither been set before nor are registered?
         # DK: not now...
         layout.addStretch(5)
-        scroll_area = QtGui.QScrollArea()
-        inner_widget =  QtGui.QWidget()
+        scroll_area = QtWidgets.QScrollArea()
+        inner_widget =  QtWidgets.QWidget()
         inner_widget.setLayout(layout)
         scroll_area.setWidget(inner_widget)
         scroll_area.setWidgetResizable(True)
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().addWidget(scroll_area, 1)
         self.layout().addLayout(self.create_buttons())
         self.layout().setContentsMargins(0,0,0,0)
@@ -123,20 +123,18 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         Create and connect signals to Save & Reset button
         
         """
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton('&Save', self)
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton('&Reset', self)
+        self.resetButton = QtWidgets.QPushButton('&Reset', self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         buttonLayout.addWidget(self.resetButton)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.save_triggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.reset_triggered)
+        self.saveButton.clicked.connect(self.save_triggered)
+        self.resetButton.clicked.connect(self.reset_triggered)
         return buttonLayout
 
     def save_triggered(self):
@@ -153,7 +151,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def reset_triggered(self):
         config = self.get_configuration()
         for mode_widget in self.mode_widgets:
-            for config_key, field in mode_widget._changed_fields.iteritems():
+            for config_key, field in mode_widget._changed_fields.items():
                 widget = mode_widget.field_widgets[config_key]
                 mode_type = config_key[0]
                 mode_config = None
@@ -167,13 +165,13 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
 
-class OutputModeConfigurationWidget(QtGui.QGroupBox):
+class OutputModeConfigurationWidget(QtWidgets.QGroupBox):
     fieldChanged = QtCore.pyqtSignal(object)
 
     def __init__(self, mode, mode_config=None, title=None, parent=None):
         assert(mode is not None or mode_config is not None)
 
-        QtGui.QGroupBox.__init__(self, parent)
+        QtWidgets.QGroupBox.__init__(self, parent)
         self.field_widgets = {}
         self._changed_config = {}
         self._changed_fields = {}
@@ -185,13 +183,13 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         else:
             self.setTitle("unknown")
 
-        group_layout = QtGui.QGridLayout()
-        group_layout.setMargin(5)
+        group_layout = QtWidgets.QGridLayout()
+        group_layout.setContentsMargins(5, 5, 5, 5)
         group_layout.setSpacing(5)
         group_layout.setColumnStretch(1,1)
 
         if mode is None:
-            for k, v in mode_config.iteritems():
+            for k, v in mode_config.items():
                 dummy_field = ConfigField(k, None, str)
                 self.add_field(group_layout, dummy_field, mode_config,
                                         k)
@@ -264,7 +262,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             self.set_checkbox_value(widget, val)
 
     def add_checkbox(self, layout, field, config_key, config_desc, config_val):
-        cb = QtGui.QCheckBox(config_desc)
+        cb = QtWidgets.QCheckBox(config_desc)
         self.set_checkbox_value(cb, config_val)
         row = layout.rowCount()
         layout.addWidget(cb, row, 1)
@@ -286,11 +284,11 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             label_text = options["label"]
         else:
             label_text = config_desc
-        label = QtGui.QLabel(label_text)
+        label = QtWidgets.QLabel(label_text)
         row = layout.rowCount()
         layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
 
-        line_edit = QtGui.QLineEdit()
+        line_edit = QtWidgets.QLineEdit()
         self.set_line_edit_value(line_edit, config_val)
         layout.addWidget(line_edit, row, 1)
 
@@ -303,29 +301,29 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
     def set_line_edit_value(self, line_edit, config_val):
         if config_val is None:
             config_val = ""
-        line_edit.setText(unicode(config_val))
+        line_edit.setText(str(config_val))
 
     def add_path_edit(self, layout, field, config_key, config_desc, config_val):
         options = {}
         if field.widget_options is not None:
             options = field.widget_options
 
-        path_edit = QtGui.QWidget()
+        path_edit = QtWidgets.QWidget()
         if "label" in options:
             label_text = options["label"]
         else:
             label_text = config_desc
-        label = QtGui.QLabel(label_text)
+        label = QtWidgets.QLabel(label_text)
         row = layout.rowCount()
         layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
 
-        sub_layout = QtGui.QHBoxLayout()
-        sub_layout.setMargin(0)
+        sub_layout = QtWidgets.QHBoxLayout()
+        sub_layout.setContentsMargins(0, 0, 0, 0)
         sub_layout.setSpacing(5)
-        line_edit = QtGui.QLineEdit()
+        line_edit = QtWidgets.QLineEdit()
         if config_val is None:
             config_val = ""
-        line_edit.setText(unicode(config_val))
+        line_edit.setText(str(config_val))
         sub_layout.addWidget(line_edit)
         path_edit.line_edit = line_edit
 
@@ -347,7 +345,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
     def set_path_edit_value(self, path_edit, config_val):
         if config_val is None:
             config_val = ""
-        path_edit.line_edit.setText(unicode(config_val))
+        path_edit.line_edit.setText(str(config_val))
 
     def add_combo(self, layout, field, config_key, config_desc, config_val):
         options = {}
@@ -358,17 +356,17 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             label_text = options["label"]
         else:
             label_text = config_desc
-        label = QtGui.QLabel(label_text)
+        label = QtWidgets.QLabel(label_text)
         row = layout.rowCount()
         layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
 
-        combo = QtGui.QComboBox()
+        combo = QtWidgets.QComboBox()
         inv_remap = None
         if "allowed_values" in options:
             values = options["allowed_values"]
             if "remap" in options:
                 remap = options["remap"]
-                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
+                inv_remap = dict((v, k) for (k, v) in remap.items())
                 entries = [remap[v] for v in values]
             else:
                 entries = values
@@ -381,7 +379,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             if inv_remap is not None:
                 val = inv_remap[val]
             self.field_changed(config_key, field, val, config_val)
-        combo.currentIndexChanged[unicode].connect(call_field_changed)
+        combo.currentIndexChanged.connect(call_field_changed)
         return combo
 
     def set_combo_value(self, combo, config_val, field):

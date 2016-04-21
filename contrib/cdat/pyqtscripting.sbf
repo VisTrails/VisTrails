@@ -1,3 +1,0 @@
-target = coreappwrap
-sources = sipcoreappwrapcmodule.cpp sipcoreappwrapVCSQtManager.cpp sipcoreappwrapMainWindow.cpp
-headers = sipAPIcoreappwrap.h

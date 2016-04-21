@@ -35,9 +35,10 @@
 ###############################################################################
 """ This file describe the virtual cell layout widget used in
 Parameter Exploration Tab """
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
@@ -49,7 +50,7 @@ import os.path
 
 def split_camel_case(text):
     if not text:
-        return u''
+        return ''
     lines = []
     # State machine!
     #                                 empty?
@@ -95,7 +96,7 @@ def split_camel_case(text):
             mark = i
     lines.append(text[mark:])
 
-    return u'\n'.join(lines)
+    return '\n'.join(lines)
 
 ###############################################################################
 
@@ -115,7 +116,7 @@ def decodeConfiguration(pipeline, cells):
     for id_list in inspector.spreadsheet_cells:
         pipeline = orig_pipeline
         id_iter = iter(id_list)
-        m = pipeline.modules[id_iter.next()]
+        m = pipeline.modules[next(id_iter)]
         m_id = m.id
         for m_id in id_iter:
             pipeline = m.pipeline
@@ -153,7 +154,7 @@ def positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
 
     modifiedPipelines = []
     pipelinePositions = []
-    for pId in xrange(len(pipelines)):
+    for pId in range(len(pipelines)):
         root_pipeline = copy.copy(pipelines[pId])
         col = pId % colCount
         row = (pId // colCount) % rowCount
@@ -194,7 +195,7 @@ def assembleThumbnails(images, name, background='#000000'):
     painter = QtGui.QPainter()
     
     # paint thumbnails on correct positions
-    for pos, filename in images.iteritems():
+    for pos, filename in images.items():
         row, col, sheet = pos
 
         if not os.path.exists(filename + '.png'):
@@ -208,7 +209,7 @@ def assembleThumbnails(images, name, background='#000000'):
             sizeX = w*maxCol
             sizeY = h*maxRow
             # init sheets with correct background
-            for i in xrange(maxSheet):
+            for i in range(maxSheet):
                 _sheet = QtGui.QPixmap(sizeX, sizeY)
                 sheets.append(_sheet)
                 painter.begin(_sheet)
@@ -228,12 +229,12 @@ def assembleThumbnails(images, name, background='#000000'):
         #    painter.drawLine(0, y*w-0.01, size, y*w-0.01)
         #self.setIcon(0, QtGui.QIcon(pic))
     
-    for i in xrange(len(sheets)):
+    for i in range(len(sheets)):
         sheet = sheets[i]
         filename = '%s_%s.png' % (name, i)
         sheet.save(filename)
         
-class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
+class QVirtualCellWindow(QtWidgets.QFrame, QToolWindowInterface):
     """
     QVirtualCellWindow contains a caption, a virtual cell
     configuration
@@ -244,38 +245,38 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         Initialize the widget
 
         """
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameShape(QtGui.QFrame.StyledPanel)
+        QtWidgets.QFrame.__init__(self, parent)
+        self.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.setWindowTitle('Spreadsheet Virtual Cell')
-        vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(2)
+        vLayout = QtWidgets.QVBoxLayout(self)
+        vLayout.setContentsMargins(2, 2, 2, 2)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
-        label = QtGui.QLabel('Arrange the cell(s) below to construct'
+        label = QtWidgets.QLabel('Arrange the cell(s) below to construct'
                              ' a virtual cell')
         font = QtGui.QFont(label.font())
         label.setFont(font)
         label.setWordWrap(True)        
         vLayout.addWidget(label)
 
-        hLayout = QtGui.QVBoxLayout()
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QVBoxLayout()
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         vLayout.addLayout(hLayout)
         self.config = QVirtualCellConfiguration()
-        self.config.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                                  QtGui.QSizePolicy.Maximum)
+        self.config.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                                  QtWidgets.QSizePolicy.Maximum)
         hLayout.addWidget(self.config)
-        hPadWidget = QtGui.QWidget()
+        hPadWidget = QtWidgets.QWidget()
         hLayout.addWidget(hPadWidget)
-        hPadWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                 QtGui.QSizePolicy.Ignored)
+        hPadWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                 QtWidgets.QSizePolicy.Ignored)
 
-        vPadWidget = QtGui.QWidget()
+        vPadWidget = QtWidgets.QWidget()
         vLayout.addWidget(vPadWidget)
-        vPadWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                QtGui.QSizePolicy.Expanding)
+        vPadWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                QtWidgets.QSizePolicy.Expanding)
 
         self.inspector = PipelineInspector()
         self.pipeline = None
@@ -293,7 +294,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
             for id_list in self.inspector.spreadsheet_cells:
                 pipeline = self.pipeline
                 id_iter = iter(id_list)
-                m = pipeline.modules[id_iter.next()]
+                m = pipeline.modules[next(id_iter)]
                 m_id = m.id
                 for m_id in id_iter:
                     pipeline = m.pipeline
@@ -336,7 +337,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         """
         self.config.setConfiguration(info)
 
-class QVirtualCellConfiguration(QtGui.QWidget):
+class QVirtualCellConfiguration(QtWidgets.QWidget):
     """
     QVirtualCellConfiguration is a widget provide a virtual layout of
     the spreadsheet cell. Given a number of cells want to layout, it
@@ -350,10 +351,10 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         Initialize the widget
 
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.rowCount = 1
         self.colCount = 1
-        gridLayout = QtGui.QGridLayout(self)
+        gridLayout = QtWidgets.QGridLayout(self)
         gridLayout.setSpacing(0)
         self.setLayout(gridLayout)
         label = QVirtualCellLabel('')
@@ -370,9 +371,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
             item = self.layout().takeAt(0)
             if item is None:
                 break
-            self.disconnect(item.widget(),
-                            QtCore.SIGNAL('finishedDragAndDrop'),
-                            self.compressCells)
+            item.widget().finishedDragAndDrop.connect(self.compressCells)
             item.widget().deleteLater()
             del item
         self.cells = []
@@ -387,23 +386,21 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         self.clear()
         self.numCell = len(cells)
         row = []
-        for i in xrange(self.numCell):
+        for i in range(self.numCell):
             label = QVirtualCellLabel(*cells[i])
             row.append(label)
             self.layout().addWidget(label, 0, i, 1, 1, QtCore.Qt.AlignCenter)
-            self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
-                         self.compressCells)
+            label.finishedDragAndDrop.connect(self.compressCells)
         self.cells.append(row)
 
-        for r in xrange(self.numCell-1):
+        for r in range(self.numCell-1):
             row = []
-            for c in xrange(self.numCell):
+            for c in range(self.numCell):
                 label = QVirtualCellLabel()
                 row.append(label)
                 self.layout().addWidget(label, r+1, c, 1, 1,
                                         QtCore.Qt.AlignCenter)
-                self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
-                             self.compressCells)
+                label.finishedDragAndDrop.connect(self.compressCells)
             self.cells.append(row)
 
     def compressCells(self):
@@ -413,15 +410,15 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         """
         # Check row by row first
         visibleRows = []
-        for r in xrange(self.numCell):
+        for r in range(self.numCell):
             row = self.cells[r]
             hasRealCell = [True for label in row if label.type]!=[]
             if hasRealCell:                
                 visibleRows.append(r)
 
         # Move rows up
-        for i in xrange(len(visibleRows)):
-            for c in xrange(self.numCell):
+        for i in range(len(visibleRows)):
+            for c in range(self.numCell):
                 label = self.cells[visibleRows[i]][c]
                 if label.type is None:
                     label.type = ''
@@ -429,29 +426,29 @@ class QVirtualCellConfiguration(QtGui.QWidget):
 
         # Now check column by column        
         visibleCols = []
-        for c in xrange(self.numCell):
+        for c in range(self.numCell):
             hasRealCell = [True
-                           for r in xrange(self.numCell)
+                           for r in range(self.numCell)
                            if self.cells[r][c].type]!=[]
             if hasRealCell:
                 visibleCols.append(c)
                     
         # Move columns left
-        for i in xrange(len(visibleCols)):
-            for r in xrange(self.numCell):
+        for i in range(len(visibleCols)):
+            for r in range(self.numCell):
                 label = self.cells[r][visibleCols[i]]
                 if label.type is None:
                     label.type = ''
                 self.cells[r][i].setCellData(label.type, label.id)
 
         # Clear redundant rows
-        for i in xrange(self.numCell-len(visibleRows)):
+        for i in range(self.numCell-len(visibleRows)):
             for label in self.cells[i+len(visibleRows)]:
                 label.setCellData(None, -1)
                 
         # Clear redundant columns
-        for i in xrange(self.numCell-len(visibleCols)):
-            for r in xrange(self.numCell):
+        for i in range(self.numCell-len(visibleCols)):
+            for r in range(self.numCell):
                 self.cells[r][i+len(visibleCols)].setCellData(None, -1)
 
     def getConfiguration(self):
@@ -464,8 +461,8 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         result = {}
         rCount = 0
         cCount = 0
-        for r in xrange(self.numCell):
-            for c in xrange(self.numCell):
+        for r in range(self.numCell):
+            for c in range(self.numCell):
                 cell = self.cells[r][c]
                 if cell.type:
                     result[(cell.type, cell.id)] = (r, c)
@@ -491,11 +488,11 @@ class QVirtualCellConfiguration(QtGui.QWidget):
             rCount, cCount, result = info
         # Reset the layout of the virtual cell to default state
         config_cells = []
-        for cell_type, cell_id in result.iterkeys():
+        for cell_type, cell_id in result.keys():
             config_cells.append((cell_type, cell_id))
         self.configVirtualCells(config_cells)
         # Unset the 0th row types/ids, since they're auto-set for the default state
-        for c in xrange(len(config_cells)):
+        for c in range(len(config_cells)):
             self.cells[0][c].setCellData('', -1)
         # Set the new types/ids
         for cell_type, cell_id in config_cells:
@@ -504,12 +501,13 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         # Compress to properly reset newly empty cells
         self.compressCells()
 
-class QVirtualCellLabel(QtGui.QLabel):
+class QVirtualCellLabel(QtWidgets.QLabel):
     """
     QVirtualCellLabel is a label represent a cell inside a cell. It
     has rounded shape with a caption text
     
     """
+    finishedDragAndDrop = QtCore.pyqtSignal()
     def __init__(self, label=None, id=-1, parent=None):
         """ QVirtualCellLabel(text: QString, id: int,
                               parent: QWidget)
@@ -517,12 +515,12 @@ class QVirtualCellLabel(QtGui.QLabel):
         Construct the label image
 
         """
-        QtGui.QLabel.__init__(self, parent)
-        self.setMargin(2)
+        QtWidgets.QLabel.__init__(self, parent)
+        self.setContentsMargins(2,2,2,2)
         self.cellType = None
         self.setCellData(label, id)
         self.setAcceptDrops(True)
-        self.setFrameStyle(QtGui.QFrame.Panel)
+        self.setFrameStyle(QtWidgets.QFrame.Panel)
         self.palette().setColor(QtGui.QPalette.WindowText,
                                 CurrentTheme.HOVER_SELECT_COLOR)
 
@@ -538,6 +536,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         """
         self.type = cellType
         self.id = cellId
+        size = QtCore.QSize(*CurrentTheme.VIRTUAL_CELL_LABEL_SIZE)
         size = QtCore.QSize(*CurrentTheme.VIRTUAL_CELL_LABEL_SIZE)
         image = QtGui.QImage(size.width() + 12,
                              size.height()+ 12,
@@ -559,7 +558,7 @@ class QVirtualCellLabel(QtGui.QLabel):
             else:
                 painter.setPen(QtCore.Qt.black)
                 painter.setBrush(QtCore.Qt.lightGray)
-        painter.drawRoundRect(QtCore.QRectF(0.5, 0.5, image.width()-1,
+        painter.drawRoundedRect(QtCore.QRectF(0.5, 0.5, image.width()-1,
                                             image.height()-1), 25, 25)
 
         painter.setFont(font)
@@ -593,10 +592,10 @@ class QVirtualCellLabel(QtGui.QLabel):
             
             self.setCellData('', -1)
             
-            drag.start(QtCore.Qt.MoveAction)
+            drag.exec_(QtCore.Qt.MoveAction)
             if mimeData.cellData!=('', -1):
                 self.setCellData(*mimeData.cellData)
-            self.emit(QtCore.SIGNAL('finishedDragAndDrop'))
+            self.finishedDragAndDrop.emit()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -641,9 +640,9 @@ class QVirtualCellLabel(QtGui.QLabel):
         
         """
         if on:
-            self.setFrameStyle(QtGui.QFrame.Panel | QtGui.QFrame.Plain)
+            self.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
         else:
-            self.setFrameStyle(QtGui.QFrame.Panel)
+            self.setFrameStyle(QtWidgets.QFrame.Panel)
 
 ###############################################################################
 

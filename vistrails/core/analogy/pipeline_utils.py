@@ -37,13 +37,13 @@
 
 ############################################################################
 # Utility functions for debugging on eigen.py
-from __future__ import division
+
 
 from vistrails.core.data_structures.point import Point
 
 def smart_sum(v):
     try:
-        fst = v.next()
+        fst = next(v)
         return sum(v, fst)
     except Exception:
         pass
@@ -53,7 +53,7 @@ def smart_sum(v):
 def pipeline_centroid(pipeline):
     """Returns the centroid of a given pipeline."""
     return (smart_sum(x.location for
-                      x in pipeline.modules.itervalues()) *
+                      x in pipeline.modules.values()) *
             (1.0 / len(pipeline.modules)))
 
 def pipeline_bbox(pipeline):
@@ -61,7 +61,7 @@ def pipeline_bbox(pipeline):
     mn_y = 1000000000.0
     mx_x = -1000000000.0
     mx_y = -1000000000.0
-    for m in pipeline.modules.itervalues():
+    for m in pipeline.modules.values():
         mn_x = min(mn_x, m.location.x)
         mn_y = min(mn_y, m.location.y)
         mx_x = max(mx_x, m.location.x)

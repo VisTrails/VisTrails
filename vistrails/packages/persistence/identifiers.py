@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.persistence'
 version = '0.3.2'

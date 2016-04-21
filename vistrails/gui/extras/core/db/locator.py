@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
@@ -42,7 +42,8 @@ from vistrails.core.db.locator import DBLocator, FileLocator
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
 import vistrails.db.services.io
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+
 import vistrails.core.system
 import os
 
@@ -86,11 +87,11 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         dialog = QConnectionDBSetupWindow(parent, id, name, host, port, user,
                                           passwd, database, create)
         config = None
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             config = {'host': str(dialog.hostEdt.text()),
                       'port': int(dialog.portEdt.value()),
-                      'user': unicode(dialog.userEdt.text()),
-                      'passwd': unicode(dialog.passwdEdt.text()),
+                      'user': str(dialog.userEdt.text()),
+                      'passwd': str(dialog.passwdEdt.text()),
                       'db': str(dialog.databaseEdt.text())
                       }
             try:
@@ -98,7 +99,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                 config['succeeded'] = True
                 config['name'] = str(dialog.nameEdt.text())
                 config['id'] = dialog.id
-            except VistrailsDBException, e:
+            except VistrailsDBException as e:
                 debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
         return config
@@ -114,7 +115,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
         try:
             vistrails.db.services.io.test_db_connection(testconfig)
             config['succeeded'] = True
-        except VistrailsDBException, e:
+        except VistrailsDBException as e:
             config = show_dialog(parent, config['id'],
                                  config['name'], host, port, config['user'],
                                  passwd, database, create = False)
@@ -141,82 +142,79 @@ suffix_map = {'vistrail': ['.vt', '.xml', '.vtl'],
 
 def get_load_file_locator_from_gui(parent, obj_type):
     suffixes = "*" + " *".join(suffix_map[obj_type])
-    fileName = QtGui.QFileDialog.getOpenFileName(
+    fileName = QtWidgets.QFileDialog.getOpenFileName(
         parent,
         "Open %s..." % obj_type.capitalize(),
         vistrails.core.system.vistrails_file_directory(),
-        "VisTrails files (%s)\nOther files (*)" % suffixes)
+        "VisTrails files (%s)\nOther files (*)" % suffixes)[0]
     if not fileName:
         return None
-    filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
-    dirName = os.path.dirname(filename)
+    dirName = os.path.dirname(fileName)
     setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
     setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
-    return FileLocator(filename)
+    return FileLocator(fileName)
 
 def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     # Ignore current locator for now
     # In the future, use locator to guide GUI for better starting directory
 
     suffixes = "*" + " *".join(suffix_map[obj_type])
-    fileName = QtGui.QFileDialog.getSaveFileName(
+    fileName = QtWidgets.QFileDialog.getSaveFileName(
         parent,
         "Save Vistrail...",
         vistrails.core.system.vistrails_file_directory(),
         filter="VisTrails files (%s)" % suffixes, # filetypes.strip()
-        options=QtGui.QFileDialog.DontConfirmOverwrite)
+        options=QtWidgets.QFileDialog.DontConfirmOverwrite)[0]
     if not fileName:
         return None
-    f = str(QtCore.QFile.encodeName(fileName))
-
     # check for proper suffix
     found_suffix = False
     for suffix in suffix_map[obj_type]:
-        if f.endswith(suffix):
+        if fileName.endswith(suffix):
             found_suffix = True
             break
     if not found_suffix:
         if obj_type == 'vistrail':
-            f += get_vistrails_configuration().defaultFileType
+            fileName += get_vistrails_configuration().defaultFileType
         else:
-            f += suffix_map[obj_type][0]
+            fileName += suffix_map[obj_type][0]
 
-    if os.path.isfile(f):
-        msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+    if os.path.isfile(fileName):
+        msg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
                                 "VisTrails",
                                 "File exists. Overwrite?",
-                                (QtGui.QMessageBox.Yes |
-                                 QtGui.QMessageBox.No),
+                                (QtWidgets.QMessageBox.Yes |
+                                 QtWidgets.QMessageBox.No),
                                 parent)
-        if msg.exec_() == QtGui.QMessageBox.No:
+        if msg.exec_() == QtWidgets.QMessageBox.No:
             return None
-    dirName = os.path.dirname(f)
+    dirName = os.path.dirname(fileName)
     setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
     setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
-    return FileLocator(f)
+    return FileLocator(fileName)
    
 def get_autosave_prompt(parent):
     """ get_autosave_prompt(parent: QWidget) -> bool
     
     """
-    result = QtGui.QMessageBox.question(parent, 
+    result = QtWidgets.QMessageBox.question(parent, 
                                         "AutoSave",
                                         "Autosave data has been found.\nDo you want to open autosave data?",
-                                        QtGui.QMessageBox.Open,
-                                        QtGui.QMessageBox.Ignore)
-    return result == QtGui.QMessageBox.Open
+                                        QtWidgets.QMessageBox.Open,
+                                        QtWidgets.QMessageBox.Ignore)
+    return result == QtWidgets.QMessageBox.Open
 
 def ask_to_overwrite_file(parent=None, obj_type='vistrail'):
     overwrite = True
     fname = None
-    msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+    msg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
                             "VisTrails",
                             "File exists and contains changes. Overwrite?",
-                            (QtGui.QMessageBox.Yes | QtGui.QMessageBox.No),
+                            (QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No),
                             parent)
-    if msg.exec_() == QtGui.QMessageBox.No:
+    if msg.exec_() == QtWidgets.QMessageBox.No:
         overwrite = False
         locator = get_save_file_locator_from_gui(parent, obj_type)
         if locator:

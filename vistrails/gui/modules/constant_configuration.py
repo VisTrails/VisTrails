@@ -41,15 +41,13 @@ constants.
 
 """
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression, versions_increasing
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from vistrails.core.utils import expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
-
-import copy
-import os
 
 ############################################################################
 
@@ -66,7 +64,8 @@ class ConstantWidgetMixin(object):
     # subclasses need to add this signal:
     # contentsChanged = QtCore.pyqtSignal(tuple)
 
-    def __init__(self, contents=None):
+    def __init__(self, contents=None, **kwargs):
+        super().__init__(**kwargs)
         if not hasattr(self, 'contentsChanged'):
             raise Exception('ConstantWidget must define contentsChanged signal')
         self._last_contents = contents
@@ -94,7 +93,7 @@ class ConstantWidgetBase(ConstantWidgetMixin):
                 self.__cwidget._focus_out(event)
             return False
 
-    def __init__(self, param):
+    def __init__(self, param, **kwargs):
         if param is None:
             raise ValueError("Must pass param as first argument.")
         psi = param.port_spec_item
@@ -103,7 +102,7 @@ class ConstantWidgetBase(ConstantWidgetMixin):
             value = psi.default
         else:
             value = param.strValue
-        ConstantWidgetMixin.__init__(self, value)
+        super().__init__(contents=value, **kwargs)
 
         self.psi = psi
         if psi and psi.default and param.strValue == '':
@@ -148,14 +147,14 @@ class ConstantWidgetBase(ConstantWidgetMixin):
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
 class ConstantEnumWidgetBase(ConstantWidgetBase):
-    def __init__(self, param):
+    def __init__(self, param, **kwargs):
         psi = param.port_spec_item
         self.setValues(psi.values)
 
         self.setFree(psi.entry_type == "enumFree")
         self.setNonEmpty(psi.entry_type == "enumNonEmpty")
 
-        ConstantWidgetBase.__init__(self, param)
+        super().__init__(param=param, **kwargs)
 
     def setValues(self, values):
         raise NotImplementedError("Subclass must implement this method.")
@@ -166,13 +165,15 @@ class ConstantEnumWidgetBase(ConstantWidgetBase):
     def setNonEmpty(self, is_non_empty):
         pass
 
-class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
+class QGraphicsLineEdit(QtWidgets.QGraphicsTextItem, ConstantWidgetBase):
     """ A GraphicsItem version of ConstantWidget
 
     """
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QtGui.QGraphicsTextItem.__init__(self, parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.setTabChangesFocus(True)
         self.setFont(CurrentTheme.MODULE_EDIT_FONT)
@@ -180,8 +181,8 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         self.offset = 0
         self.is_valid = True
         self.document().setDocumentMargin(1)
-        ConstantWidgetBase.__init__(self, param)
-        self.document().contentsChanged.connect(self.ensureCursorVisible)
+        d = self.document()
+        d.contentsChanged.connect(self.ensureCursorVisible)
 
     def setContents(self, value, silent=False):
         self.setPlainText(expression.evaluate_expressions(value))
@@ -194,7 +195,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         self.validate(value)
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        contents = expression.evaluate_expressions(str(self.toPlainText()))
         self.setPlainText(contents)
         self.validate(contents)
         return contents
@@ -203,7 +204,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         try:
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
-        except Exception, e:
+        except Exception as e:
             self.setToolTip("Invalid value: %s" % str(e))
             self.is_valid = False
         else:
@@ -224,7 +225,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
            event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
                 self.clearFocus()
                 return True
-        result = QtGui.QGraphicsTextItem.eventFilter(self, obj, event)
+        result = QtWidgets.QGraphicsTextItem.eventFilter(self, obj, event)
         if event.type() in [QtCore.QEvent.KeyPress, QtCore.QEvent.MouseButtonPress, QtCore.QEvent.GraphicsSceneMouseMove]:
             if not self.hasFocus():
                 self.setFocus()
@@ -247,7 +248,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
 
     def focusOutEvent(self, event):
         self.update_parent()
-        result = QtGui.QGraphicsTextItem.focusOutEvent(self, event)
+        result = QtWidgets.QGraphicsTextItem.focusOutEvent(self, event)
         # show last part of text
         block = self.document().firstBlock()
         w = self.document().documentLayout().blockBoundingRect(block).width()
@@ -256,7 +257,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         return result
 
     def focusInEvent(self, event):
-        result = QtGui.QGraphicsTextItem.focusInEvent(self, event)
+        result = QtWidgets.QGraphicsTextItem.focusInEvent(self, event)
         # set cursor to last if not already set
         cursor = self.textCursor()
         cursor.setPosition(self.document().firstBlock().length()-1)
@@ -267,34 +268,33 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         """ Override striped selection border
             First unset selected and hasfocus flags
             Then draw custom rect """
-        s = QtGui.QStyle.State_Selected | QtGui.QStyle.State_HasFocus
+        s = QtWidgets.QStyle.State_Selected | QtWidgets.QStyle.State_HasFocus
         state = s.__class__(option.state) # option.state
         option.state &= ~s
         painter.pen().setWidth(1)
-        result = QtGui.QGraphicsTextItem.paint(self, painter, option, widget)
+        result = QtWidgets.QGraphicsTextItem.paint(self, painter, option, widget)
         option.state = state
 
         if state & s:
-            color = QtGui.QApplication.palette().color(QtGui.QPalette.Highlight)
+            color = QtWidgets.QApplication.palette().color(QtGui.QPalette.Highlight)
             painter.setPen(QtGui.QPen(color, 0))
             painter.drawRect(self.boundingRect())
         elif not self.is_valid:
             painter.setPen(QtGui.QPen(CurrentTheme.PARAM_INVALID_COLOR, 0))
             painter.drawRect(self.boundingRect())
         else:
-            color = QtGui.QApplication.palette().color(QtGui.QPalette.Dark)
+            color = QtWidgets.QApplication.palette().color(QtGui.QPalette.Dark)
             painter.setPen(QtGui.QPen(color, 0))
             painter.drawRect(self.boundingRect())
         return result
 
-class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
+class StandardConstantWidget(QtWidgets.QLineEdit, ConstantWidgetBase):
     contentsChanged = QtCore.pyqtSignal(tuple)
     GraphicsItem = QGraphicsLineEdit
-    def __init__(self, param, parent=None):
-        QtGui.QLineEdit.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
-        self.connect(self, QtCore.SIGNAL("returnPressed()"), 
-                     self.update_parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
+        self.returnPressed.connect(self.update_parent)
 
     def setContents(self, value, silent=False):
         self.setText(expression.evaluate_expressions(value))
@@ -303,7 +303,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
             self.update_parent()
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.text()))
+        contents = expression.evaluate_expressions(str(self.text()))
         self.setText(contents)
         self.validate(contents)
         return contents
@@ -312,7 +312,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
         try:
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
-        except Exception, e:
+        except Exception as e:
             # Color background yellow and add tooltip
             self.setStyleSheet("border:2px dashed %s;" %
                                CurrentTheme.PARAM_INVALID_COLOR.name())
@@ -334,15 +334,14 @@ def findEmbeddedParentWidget(widget):
         return findEmbeddedParentWidget(widget.parentWidget())
     return None
 
-class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
+class StandardConstantEnumWidget(QtWidgets.QComboBox, ConstantEnumWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
     GraphicsItem = None
-    def __init__(self, param, parent=None):
-        QtGui.QComboBox.__init__(self, parent)
-        ConstantEnumWidgetBase.__init__(self, param)
-        self.connect(self,
-                     QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.update_parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
+        self.currentIndexChanged.connect(self.update_parent)
 
     def setValues(self, values):
         self.addItems(values)
@@ -350,10 +349,8 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
     def setFree(self, is_free):
         if is_free:
             self.setEditable(True)
-            self.setInsertPolicy(QtGui.QComboBox.NoInsert)
-            self.connect(self.lineEdit(),
-                         QtCore.SIGNAL('returnPressed()'),
-                         self.update_parent)
+            self.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
+            self.lineEdit().returnPressed.connect(self.update_parent)
 
     def setNonEmpty(self, is_non_empty):
         if not is_non_empty:
@@ -386,7 +383,7 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
 
         """
 
-        QtGui.QComboBox.showPopup(self, *args, **kwargs)
+        QtWidgets.QComboBox.showPopup(self, *args, **kwargs)
         parent = findEmbeddedParentWidget(self)
         if parent:
             item = parent.graphicsProxyWidget()
@@ -395,7 +392,7 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
             if scene:
                 views = scene.views()
                 for v in views:
-                    if v == QtGui.QApplication.focusWidget():
+                    if v == QtWidgets.QApplication.focusWidget():
                         view = v
                 if not view:
                     view = views[0]
@@ -416,25 +413,26 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
 
         if o.parentWidget() and e.type() == QtCore.QEvent.MouseButtonPress:
             return True
-        return QtGui.QComboBox.eventFilter(self, o, e)
+        return QtWidgets.QComboBox.eventFilter(self, o, e)
 
 
 
 ###############################################################################
 # Multi-line String Widget
 
-class MultiLineStringWidget(QtGui.QTextEdit, ConstantWidgetBase):
+class MultiLineStringWidget(QtWidgets.QTextEdit, ConstantWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QtGui.QTextEdit.__init__(self, parent)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
         self.setAcceptRichText(False)
-        ConstantWidgetBase.__init__(self, param)
 
     def setContents(self, contents):
         self.setPlainText(expression.evaluate_expressions(contents))
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        contents = expression.evaluate_expressions(str(self.toPlainText()))
         self.setPlainText(contents)
         return contents
 
@@ -442,7 +440,7 @@ class MultiLineStringWidget(QtGui.QTextEdit, ConstantWidgetBase):
         metrics = QtGui.QFontMetrics(self.font())
         # On Mac OS X 10.8, the scrollbar doesn't show up correctly
         # with 3 lines
-        return QtCore.QSize(QtGui.QTextEdit.sizeHint(self).width(),
+        return QtCore.QSize(QtWidgets.QTextEdit.sizeHint(self).width(),
                             (metrics.height() + 1) * 4 + 5)
 
     def minimumSizeHint(self):
@@ -451,26 +449,27 @@ class MultiLineStringWidget(QtGui.QTextEdit, ConstantWidgetBase):
 ###############################################################################
 # File Constant Widgets
 
-class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
+class PathChooserWidget(QtWidgets.QWidget, ConstantWidgetMixin):
     """
     PathChooserWidget is a widget containing a line edit and a button that
     opens a browser for paths. The lineEdit is updated with the pathname that is
     selected.
 
     """    
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
+
+    def __init__(self, param, parent=None, **kwargs):
         """__init__(param: core.vistrail.module_param.ModuleParam,
         parent: QWidget)
         Initializes the line edit with contents
 
         """
-        QtGui.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
-        layout = QtGui.QHBoxLayout()
+        super().__init__(parent=parent, **kwargs)
+        layout = QtWidgets.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = self.create_browse_button()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_button)
@@ -512,11 +511,11 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         """
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QWidget.focusInEvent(self, event)   
+        QtWidgets.QWidget.focusInEvent(self, event)   
         
     def focusOutEvent(self, event):
         self.update_parent()
-        QtGui.QWidget.focusOutEvent(self, event)
+        QtWidgets.QWidget.focusOutEvent(self, event)
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
@@ -541,21 +540,20 @@ class OutputPathChooserWidget(PathChooserWidget):
 ###############################################################################
 # Constant Boolean widget
 
-class BooleanWidget(QtGui.QCheckBox, ConstantWidgetBase):
+class BooleanWidget(QtWidgets.QCheckBox, ConstantWidgetBase):
 
     _values = ['True', 'False']
     _states = [QtCore.Qt.Checked, QtCore.Qt.Unchecked]
 
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
+
+    def __init__(self, param, parent=None, **kwargs):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)
         Initializes the line edit with contents
         """
-        QtGui.QCheckBox.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
-        self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
-                     self.change_state)
+        super().__init__(parent=parent, param=param, **kwargs)
+        self.stateChanged.connect(self.change_state)
         
     def contents(self):
         return self._values[self._states.index(self.checkState())]
@@ -576,10 +574,14 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetBase):
 
 # FIXME ColorChooserButton remains because the parameter exploration
 # code uses it, really should be removed at some point
-class ColorChooserButton(QtGui.QPushButton):
+
+class ColorChooserButton(QtWidgets.QPushButton):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
+    color_selected = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
-        QtGui.QPushButton.__init__(self, parent)
+        QtWidgets.QPushButton.__init__(self, parent=parent)
         # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
         # self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setFlat(True)
@@ -598,7 +600,7 @@ class ColorChooserButton(QtGui.QPushButton):
                            (qcolor.red(), qcolor.green(), qcolor.blue()))
         self.update()
         if not silent:
-            self.emit(QtCore.SIGNAL("color_selected"))
+            self.color_selected.emit()
 
     def sizeHint(self):
         return QtCore.QSize(24,24)
@@ -608,15 +610,15 @@ class ColorChooserButton(QtGui.QPushButton):
         openChooser() -> None
 
         """
-        color = QtGui.QColorDialog.getColor(self.qcolor, self.parent())
+        color = QtWidgets.QColorDialog.getColor(self.qcolor, self.parent())
         if color.isValid():
             self.setColor(color, silent=False)
         else:
             self.setColor(self.qcolor)
 
-class QColorWidget(QtGui.QToolButton):
-    def __init__(self, parent=None):
-        QtGui.QToolButton.__init__(self, parent)
+class QColorWidget(QtWidgets.QToolButton):
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.setIconSize(QtCore.QSize(26,18))        
         self.color_str = '1.0,1.0,1.0'
@@ -655,18 +657,19 @@ class QColorWidget(QtGui.QToolButton):
 
         """
         qcolor = self.colorFromString(self.color_str)
-        color = QtGui.QColorDialog.getColor(qcolor, self.parent())
+        color = QtWidgets.QColorDialog.getColor(qcolor, self.parent())
         if color.isValid():
             self.setColor(color, silent=False)
         else:
             self.setColor(qcolor)
 
 class ColorWidget(QColorWidget, ConstantWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QColorWidget.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
-        self.connect(self, QtCore.SIGNAL("clicked()"), self.openChooser)
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
+        self.clicked.connect(self.openChooser)
 
     def contents(self):
         return self.color_str
@@ -675,27 +678,27 @@ class ColorWidget(QColorWidget, ConstantWidgetBase):
         self.setColorString(strValue, silent)
 
 class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
+
     contentsChanged = QtCore.pyqtSignal(tuple)
-    def __init__(self, param, parent=None):
-        QColorWidget.__init__(self, parent)
-        self.setPopupMode(QtGui.QToolButton.MenuButtonPopup)
-        ConstantEnumWidgetBase.__init__(self, param)
-    
+
+    def __init__(self, param, parent=None, **kwargs):
+        super().__init__(parent=parent, param=param, **kwargs)
+        self.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
+
     def setFree(self, is_free):
         if is_free:
-            self.connect(self, QtCore.SIGNAL("clicked()"), self.openChooser)
+            self.clicked.connect(self.openChooser)
 
     def wasTriggered(self, action):
         self.setColorString(action.data())
         self.update_parent()
 
     def setValues(self, values):
-        menu = QtGui.QMenu()
-        self.action_group = QtGui.QActionGroup(menu)
+        menu = QtWidgets.QMenu()
+        self.action_group = QtWidgets.QActionGroup(menu)
         self.action_group.setExclusive(True)
-        self.connect(self.action_group, QtCore.SIGNAL('triggered(QAction*)'),
-                     self.wasTriggered)
-        size = menu.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize)
+        self.action_group.triggered.connect(self.wasTriggered)
+        size = menu.style().pixelMetric(QtWidgets.QStyle.PM_SmallIconSize)
         for i, color_str in enumerate(values):
             qcolor = self.colorFromString(color_str)
             icon = self.buildIcon(qcolor, QtCore.QSize(size, size))

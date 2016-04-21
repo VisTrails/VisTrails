@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import re
 
@@ -43,15 +43,6 @@ from .common import get_numpy, TableObject, Table, \
     choose_column, choose_columns
 
 # FIXME use pandas?
-
-
-def utf8(obj):
-    if isinstance(obj, bytes):
-        return obj
-    elif isinstance(obj, unicode):
-        return obj.encode('utf-8')
-    else:
-        return bytes(obj)
 
 
 class JoinedTables(TableObject):
@@ -79,7 +70,7 @@ class JoinedTables(TableObject):
 
         def get_col_names(table, other, prefix):
             names = []
-            for i in xrange(table.columns):
+            for i in range(table.columns):
                 should_prefix = self.always_prefix
                 if table.names is not None:
                     n = table.names[i]
@@ -104,13 +95,13 @@ class JoinedTables(TableObject):
         result = []
         if index < self.left_t.columns:
             column = self.left_t.get_column(index, numeric)
-            for i in xrange(self.left_t.rows):
+            for i in range(self.left_t.rows):
                 if i in self.row_map:
                     result.append(column[i])
         else:
             column = self.right_t.get_column(index - self.left_t.columns,
                                              numeric)
-            for i in xrange(self.left_t.rows):
+            for i in range(self.left_t.rows):
                 if i in self.row_map:
                     j = self.row_map[i]
                     result.append(column[j])
@@ -125,10 +116,10 @@ class JoinedTables(TableObject):
         def build_key_dict(table, key_col):
             column = table.get_column(key_col)
             if self.case_sensitive:
-                key_dict = dict((utf8(val).strip(), i)
+                key_dict = dict((val.strip(), i)
                                 for i, val in enumerate(column))
             else:
-                key_dict = dict((utf8(val).strip().upper(), i)
+                key_dict = dict((str(val).strip().upper(), i)
                                 for i, val in enumerate(column))
             return key_dict
 
@@ -137,7 +128,7 @@ class JoinedTables(TableObject):
         self.row_map = {}
         for left_row_idx, key in enumerate(
                 self.left_t.get_column(self.left_key_col)):
-            key = utf8(key).strip()
+            key = str(key).strip()
             if not self.case_sensitive:
                 key = key.upper()
             if key in right_keys:
@@ -180,7 +171,7 @@ class JoinTables(Table):
                         column_names=table.names,
                         name=self.force_get_input(col_name_port, None),
                         index=self.force_get_input(col_idx_port, None))
-            except ValueError, e:
+            except ValueError as e:
                 raise ModuleError(self, e.message)
 
             return col_idx
@@ -230,8 +221,8 @@ class ProjectTable(Table):
                     column_names=table.names,
                     names=self.force_get_input('column_names', None),
                     indexes=self.force_get_input('column_indexes', None))
-        except ValueError, e:
-            raise ModuleError(self, e.message)
+        except ValueError as e:
+            raise ModuleError(self, str(e))
         if self.has_input('new_column_names'):
             column_names = self.get_input('new_column_names')
             if len(column_names) != len(indexes):
@@ -324,7 +315,7 @@ class SelectFromTable(Table):
                         for i, col_val in enumerate(column)
                         if condition(col_val)]
         columns = []
-        for col in xrange(table.columns):
+        for col in range(table.columns):
             column = table.get_column(col)
             columns.append([column[row] for row in matched_rows])
         selected_table = TableObject(columns, len(matched_rows), table.names)
@@ -347,7 +338,7 @@ class AggregatedTable(TableObject):
                 agg_map[val].append(i)
             else:
                 agg_map[val] = [i]
-        self.agg_rows = [(min(rows), rows) for rows in agg_map.itervalues()]
+        self.agg_rows = [(min(rows), rows) for rows in agg_map.values()]
         self.agg_rows.sort()
         self.rows = len(self.agg_rows)
         self.columns = 2
@@ -549,8 +540,8 @@ class TestProjection(unittest.TestCase):
                      'org.vistrails.vistrails.basic:List'),
                 ])
         if error is not None:
-            self.assertEqual([1], errors.keys())
-            self.assertIn(error, errors[1].message)
+            self.assertEqual([1], list(errors.keys()))
+            self.assertIn(error, str(errors[1]))
             return None
         else:
             self.assertFalse(errors)
@@ -635,8 +626,8 @@ class TestSelect(unittest.TestCase):
                     (1, 'value', 2, 'table'),
                 ])
         if error is not None:
-            self.assertEqual([2], errors.keys())
-            self.assertIn(error, errors[2].message)
+            self.assertEqual([2], list(errors.keys()))
+            self.assertIn(error, str(errors[2]))
             return None
         else:
             self.assertFalse(errors)

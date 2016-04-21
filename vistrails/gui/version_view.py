@@ -45,9 +45,10 @@ QGraphicsVersionItem
 QVersionTreeScene
 QVersionTreeView
 """
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.system import systemType
@@ -69,7 +70,7 @@ import vistrails.gui.utils
 ################################################################################
 # QGraphicsLinkItem
 
-class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
+class QGraphicsLinkItem(QGraphicsItemInterface, QtWidgets.QGraphicsPolygonItem):
     """
     QGraphicsLinkItem is a connection shape connecting two versions
     
@@ -80,8 +81,8 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        super().__init__(parent=parent)
+        self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
         self.linkPen = CurrentTheme.LINK_PEN
         self.ghosted = False
@@ -115,7 +116,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Set this link to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             if ghosted:
                 self.linkPen = CurrentTheme.GHOSTED_LINK_PEN
@@ -251,15 +252,15 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Do not allow link to be selected with version shape
         
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+        if change==QtWidgets.QGraphicsItem.ItemSelectedChange and value:
             return False
-        return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
+        return QtWidgets.QGraphicsPolygonItem.itemChange(self, change, value)
 
 
 ##############################################################################
 # QGraphicsVerstionTextItem
 
-class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
+class QGraphicsVersionTextItem(QGraphicsItemInterface, QtWidgets.QGraphicsTextItem):
     """
     QGraphicsVersionTextItem is an editable text item that appears on top of
     a QGraphicsVersionItem to allow the tag to be changed
@@ -272,7 +273,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         Create the shape, intialize its drawing style
 
         """
-        QtGui.QGraphicsTextItem.__init__(self, parent, scene)
+        super().__init__(parent=parent)
         self.timer = None
         self.isEditable = None
         self.setEditable(False)
@@ -304,8 +305,8 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
     def setEditableLater(self):
         self.timer = QtCore.QTimer(self)
         self.timer.setSingleShot(True)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.setEditable)
-        self.timer.start(QtGui.QApplication.doubleClickInterval() + 5)
+        self.timer.timeout.connect(self.setEditable)
+        self.timer.start(QtWidgets.QApplication.doubleClickInterval() + 5)
 
     def setGhosted(self, ghosted):
         if ghosted:
@@ -318,7 +319,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         Change the position and text label from outside the editor
 
         """
-        if self.centerX <> x or self.centerY <> y or self.label <> label:
+        if self.centerX != x or self.centerY != y or self.label != label:
             self.centerX = x
             self.centerY = y
             self.label = label
@@ -394,22 +395,23 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 # QGraphicsVersionItem
 
 
-class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
+class QGraphicsVersionItem(QGraphicsItemInterface, QtWidgets.QGraphicsEllipseItem):
     """
     QGraphicsVersionItem is the version shape holding version id and
     label
     
     """
+    versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
     def __init__(self, parent=None, scene=None):
         """ QGraphicsVersionItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsVersionItem
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsEllipseItem.__init__(self, parent, scene)
+        super().__init__(parent=parent)
         self.setZValue(1)
         self.setAcceptDrops(True)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setFlags(QtWidgets.QGraphicsItem.ItemIsSelectable)
         self._versionPenNormal = CurrentTheme.VERSION_PEN
         self._versionPen = CurrentTheme.VERSION_PEN
         self._versionBrush = CurrentTheme.VERSION_USER_BRUSH
@@ -433,9 +435,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # Need a timer to start a drag to avoid stalls on QGraphicsView
         self.dragTimer = QtCore.QTimer()
         self.dragTimer.setSingleShot(True)
-        self.dragTimer.connect(self.dragTimer,
-                               QtCore.SIGNAL('timeout()'),
-                               self.startDrag)
+        self.dragTimer.timeout.connect(self.startDrag)
 
         self.dragPos = QtCore.QPoint()
 
@@ -454,7 +454,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     versionBrush = property(_get_versionBrush, _set_versionBrush)
 
     def itemChange(self, change, value):
-        if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
+        if change == QtWidgets.QGraphicsItem.ItemSelectedHasChanged:
             if self.isSelected():
                 self.versionPen = CurrentTheme.VERSION_SELECTED_PEN
                 self.text.setEditableLater()
@@ -462,14 +462,14 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self.versionPen = self._versionPenNormal
                 self.text.setEditable(False)
             self.updatePainterState()
-        return QtGui.QGraphicsItem.itemChange(self, change, value)
+        return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
     def setGhosted(self, ghosted=True):
         """ setGhosted(ghosted: True) -> None
         Set this version to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             self.text.setGhosted(ghosted)
             if ghosted:
@@ -609,8 +609,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         return self.rect().adjusted(-2, -2, 2, 2)
 
     def paint(self, painter, option, widget=None):
-        option.state &= ~QtGui.QStyle.State_Selected
-        QtGui.QGraphicsEllipseItem.paint(self, painter, option, widget)
+        option.state &= ~QtWidgets.QStyle.State_Selected
+        QtWidgets.QGraphicsEllipseItem.paint(self, painter, option, widget)
 
     def updatePainterState(self):
         self.setPen(self._versionPen)
@@ -624,7 +624,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if event.button()==QtCore.Qt.LeftButton:
             self.dragging = True
             self.dragPos = QtCore.QPoint(event.screenPos())
-        return QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
+        return QtWidgets.QGraphicsEllipseItem.mousePressEvent(self, event)
         
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None        
@@ -641,7 +641,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self.dragTimer.start(1)
             else:
                 self.startDrag()
-        QtGui.QGraphicsEllipseItem.mouseMoveEvent(self, event)
+        QtWidgets.QGraphicsEllipseItem.mouseMoveEvent(self, event)
         # super(QGraphicsVersionItem, self).mouseMoveEvent(event)
 
     def startDrag(self):
@@ -655,7 +655,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         drag = QtGui.QDrag(self.scene().views()[0])
         drag.setMimeData(data)
         drag.setPixmap(CurrentTheme.VERSION_DRAG_PIXMAP)
-        drag.start()
+        drag.exec_()
 
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -663,7 +663,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         
         """
         self.dragging = False
-        QtGui.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
+        QtWidgets.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -686,8 +686,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if (hasattr(data, 'versionId') and hasattr(data, 'controller') and
             data.controller==self.scene().controller):
             event.accept()
-            self.scene().emit(QtCore.SIGNAL('diffRequested(int,int)'),
-                              data.versionId, self.id)
+            self.scene().diffRequested.emit(data.versionId, self.id)
             # visDiff = QVisualDiff(self.scene().controller.vistrail,
             #                       data.versionId,
             #                       self.id,
@@ -710,7 +709,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         analogy_name = str(sender.text())
         # selectedItems = self.scene().selectedItems()
         controller = self.scene().controller
-        print "calling perform analogy", analogy_name, self.id
+        print("calling perform analogy", analogy_name, self.id)
         # for item in selectedItems:
         controller.perform_analogy(analogy_name, self.id)
 
@@ -720,9 +719,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             item.setSelected(False)
         self.setSelected(True)
         self.scene().emit_selection = True
-        self.scene().emit(
-            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-            self.id, True, False, True, True)
+        self.scene().versionSelected.emit(self.id, True, False, True, True)
             
     def construct_from_root(self):
         self.scene().emit_selection = False
@@ -730,9 +727,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             item.setSelected(False)
         self.setSelected(True)
         self.scene().emit_selection = True
-        self.scene().emit(
-            QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-            self.id, True, True, True, True)
+        self.scene().versionSelected.emit(self.id, True, True, True, True)
 
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
@@ -740,25 +735,19 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
         """
         controller = self.scene().controller
-        menu = QtGui.QMenu()
-        raw_action = QtGui.QAction("Display raw pipeline", self.scene())
-        from_root_action = QtGui.QAction("Construct from root", self.scene())
-        QtCore.QObject.connect(raw_action,
-                               QtCore.SIGNAL("triggered()"),
-                               self.show_raw_pipeline)
-        QtCore.QObject.connect(from_root_action,
-                               QtCore.SIGNAL("triggered()"),
-                               self.construct_from_root)
+        menu = QtWidgets.QMenu()
+        raw_action = QtWidgets.QAction("Display raw pipeline", self.scene())
+        from_root_action = QtWidgets.QAction("Construct from root", self.scene())
+        raw_action.triggered.connect(self.show_raw_pipeline)
+        from_root_action.triggered.connect(self.construct_from_root)
         menu.addAction(raw_action)
         menu.addAction(from_root_action)
         if len(controller.analogy) > 0:
-            analogies = QtGui.QMenu("Perform analogy...")
+            analogies = QtWidgets.QMenu("Perform analogy...")
             for title in sorted(controller.analogy.keys()):
-                act = QtGui.QAction(title, self.scene())
+                act = QtWidgets.QAction(title, self.scene())
                 analogies.addAction(act)
-                QtCore.QObject.connect(act,
-                                       QtCore.SIGNAL("triggered()"),
-                                       self.perform_analogy)
+                act.triggered.connect(self.perform_analogy)
             menu.addMenu(analogies)
         menu.exec_(event.screenPos())
 
@@ -775,12 +764,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     
     """
 
+    diffRequested = QtCore.pyqtSignal(int,int)
+    versionSelected = QtCore.pyqtSignal(int,bool,bool,bool,bool)
+    twoVersionsSelected = QtCore.pyqtSignal(int,int)
+
     def __init__(self, parent=None):
         """ QVersionTree(parent: QWidget) -> QVersionTree
         Initialize the graphics scene with no shapes
         
         """
-        QInteractiveGraphicsScene.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setBackgroundBrush(CurrentTheme.VERSION_TREE_BACKGROUND_BRUSH)
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
         self.versions = {}  # id -> version gui object
@@ -789,8 +782,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.fullGraph = None
         self.emit_selection = True
         self.select_by_click = True
-        self.connect(self, QtCore.SIGNAL("selectionChanged()"),
-                     self.selectionChanged)
+        self.selectionChanged.connect(self._selectionChanged)
 
     def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: str, description: str,
@@ -859,7 +851,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 else:
                     ranks[nodeId] = otherMaxRank
                     otherMaxRank += 1
-        for (nodeId, item) in self.versions.iteritems():
+        for (nodeId, item) in self.versions.items():
             if nodeId == 0:
                 item.setGhosted(True)
                 continue
@@ -889,7 +881,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 if custom_color is not None:
                     try:
                         custom_color = parse_custom_color(custom_color.value)
-                    except ValueError, e:
+                    except ValueError as e:
                         debug.warning("Version %r has invalid color annotation "
                                       "(%s)" % (nodeId, e))
                         custom_color = None
@@ -899,7 +891,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
                               max_rank, ghosted, custom_color)
-        for (version_from, version_to), link in self.edges.iteritems():
+        for (version_from, version_to), link in self.edges.items():
             if self.versions[version_from].ghosted and \
                     self.versions[version_to].ghosted:
                 link.setGhosted(True)
@@ -988,7 +980,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
         self.emit_selection = False
-        for node in layout.nodes.itervalues():
+        for node in layout.nodes.values():
             # version id
             v = node.id
 
@@ -1007,7 +999,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 self.versions[v].setSelected(v == controller.current_base_version)
 
         self.emit_selection = True
-        self.selectionChanged()
+        self._selectionChanged()
 
         # remove gui edges from scene
         for (v1, v2) in removeEdgeSet:
@@ -1021,12 +1013,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.adjust_version_colors(controller)
 
         # Add or update links
-        for source, source_tag in tree.vertices.iteritems():
+        for source, source_tag in tree.vertices.items():
             eFrom = tree.edges_from(source)
             for target, (expand, collapse) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
-                if self.edges.has_key((source,target)):
+                if (source,target) in self.edges:
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,
                                         expand, collapse)
@@ -1063,33 +1055,28 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         else:
             qt_super(QVersionTreeScene, self).keyPressEvent(event)
 
-    def selectionChanged(self):
+    @QtCore.pyqtSlot()
+    def _selectionChanged(self):
         if not self.emit_selection:
             return
 
         selected_items = self.selectedItems()
         if len(selected_items) == 1:
             # emit versionSelected selected_id
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                      selected_items[0].id, self.select_by_click, 
-                      True, False, False)
+            self.versionSelected.emit(selected_items[0].id, self.select_by_click, True, False, False)
         else:
             # emit versionSelected -1
             for item in selected_items:
                 if item.text.isEditable:
                     item.text.setEditable(False)
-            self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                      -1, self.select_by_click, True, False, False)
+            self.versionSelected.emit(-1, self.select_by_click, True, False, False)
 
         if len(selected_items) == 2:
-            self.emit(
-                QtCore.SIGNAL('twoVersionsSelected(int, int)'),
-                selected_items[0].id, selected_items[1].id)
+            self.twoVersionsSelected.emit(selected_items[0].id, selected_items[1].id)
 
     def double_click(self, version_id):
         self.mouseGrabberItem().ungrabMouse()
-        self.emit(QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                  version_id, self.select_by_click, True, False, True)
+        self.versionSelected.emit(version_id, self.select_by_click, True, False, True)
 
 class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     """
@@ -1098,13 +1085,14 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     
     """
 
-    def __init__(self, parent=None):
+    vistrailChanged = QtCore.pyqtSignal()
+
+    def __init__(self, parent=None, **kwargs):
         """ QVersionTreeView(parent: QWidget) -> QVersionTreeView
         Initialize the graphics view and its properties
         
         """
-        QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        super().__init__(parent=parent, **kwargs)
         self.controller = None
         self.set_title('Version Tree')
         self.setScene(QVersionTreeScene(self))
@@ -1204,26 +1192,14 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('vistrailChanged()'),
-                                self.vistrailChanged)
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                                self.single_node_changed)
-                self.disconnect(oldController,
-                                QtCore.SIGNAL('notesChanged()'),
-                                self.notesChanged)
+                oldController.vistrailChanged.disconnect(self._vistrailChanged)
+                oldController.invalidateSingleNodeInVersionTree.disconnect(self.single_node_changed)
+                oldController.notesChanged.disconnect(self.notesChanged)
             self.controller = controller
             self.scene().controller = controller
-            self.connect(controller,
-                         QtCore.SIGNAL('vistrailChanged()'),
-                         self.vistrailChanged)
-            self.connect(controller,
-                         QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                         self.single_node_changed)
-            self.connect(controller,
-                         QtCore.SIGNAL("notesChanged()"),
-                         self.notesChanged)
+            controller.vistrailChanged.connect(self._vistrailChanged)
+            controller.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
+            controller.notesChanged.connect(self.notesChanged)
             if controller:
                 self.versionProp.updateController(controller)
                 self.scene().setupScene(controller)
@@ -1231,7 +1207,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
                 # self.versionProp.updateController(controller)
                 # self.versionView.versionProp.updateController(controller)
 
-    def vistrailChanged(self):
+    def _vistrailChanged(self):
         """ vistrailChanged() -> None
         An action was performed on the current vistrail
         
@@ -1246,7 +1222,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         if self.controller:
             # self.versionProp.updateVersion(self.controller.current_version)
             self.versionProp.updateVersion(self.controller.current_version)
-        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+        self.vistrailChanged.emit()
 
     def single_node_changed(self, old_version, new_version):
         """ single_node_changed(old_version, new_version)
@@ -1262,7 +1238,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         if self.controller:
             # self.versionProp.updateVersion(self.controller.current_version)
             self.versionProp.updateVersion(self.controller.current_version)
-        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+        self.vistrailChanged.emit()
 
     def notesChanged(self):
         """ notesChanged() -> None

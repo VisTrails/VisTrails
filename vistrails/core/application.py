@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import sys
@@ -45,7 +45,6 @@ from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
 from vistrails.core.configuration import ConfigurationObject
-import vistrails.core.db.action
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
 import vistrails.core.db.action
@@ -107,7 +106,7 @@ class VistrailsApplicationInterface(object):
         try:
             parser.parse_args(args, namespace=command_line_config)
         except SystemError:
-            print "GOT SYSTEM ERROR!"
+            print("GOT SYSTEM ERROR!")
             debug.print_exc()
 
         self.input = command_line_config.vistrails
@@ -174,8 +173,8 @@ class VistrailsApplicationInterface(object):
     def check_all_requirements(self):
         # check scipy
         vistrails.core.requirements.require_python_module('scipy', {
-                'linux-debian': 'python-scipy',
-                'linux-ubuntu': 'python-scipy',
+                'linux-debian': 'python3-scipy',
+                'linux-ubuntu': 'python3-scipy',
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
 
@@ -314,7 +313,7 @@ class VistrailsApplicationInterface(object):
         if notification_id not in notifications:
             notifications[notification_id] = set()
         else:
-            print "already added notification", notification_id
+            print("already added notification", notification_id)
 
     def register_notification(self, notification_id, method, *args, **kwargs):
         notifications = self.notifications     
@@ -339,7 +338,7 @@ class VistrailsApplicationInterface(object):
                 try:
                     #print "  m: ", m
                     m(*args)
-                except Exception, e:
+                except Exception as e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
 
@@ -384,11 +383,11 @@ class VistrailsApplicationInterface(object):
         raise NotImplementedError("Subclass must implement update_locator")
 
     def convert_version(self, version):
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             try:
                 version = \
                     self.get_controller().vistrail.get_version_number(version)
-            except Exception, e:
+            except Exception as e:
                 debug.unexpected_exception(e)
                 version = None
         return version
@@ -397,7 +396,7 @@ class VistrailsApplicationInterface(object):
         return self.open_vistrail(None)
 
     def open_vistrail(self, locator=None, version=None, is_abstraction=False):
-        if isinstance(locator, basestring):
+        if isinstance(locator, str):
             locator = BaseLocator.from_url(locator)
         elif locator is None:
             locator = UntitledLocator()
@@ -439,7 +438,7 @@ class VistrailsApplicationInterface(object):
         return controller
 
     def open_workflow(self, locator):
-        if isinstance(locator, basestring):
+        if isinstance(locator, str):
             locator = BaseLocator.from_url(locator)
 
         new_locator = UntitledLocator()
@@ -475,7 +474,7 @@ class VistrailsApplicationInterface(object):
                 return False
         if locator is None and controller is not None:
             locator = controller.locator
-        elif isinstance(locator, basestring):
+        elif isinstance(locator, str):
             locator = BaseLocator.from_url(locator)
 
         if not locator:
@@ -485,7 +484,7 @@ class VistrailsApplicationInterface(object):
         controller.flush_delayed_actions()
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Failed to save vistrail", debug.format_exc())
             raise
@@ -508,7 +507,7 @@ class VistrailsApplicationInterface(object):
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
-        except Exception, e:
+        except Exception as e:
             debug.critical('Failed to index vistrail', debug.format_exc())
         return controller.locator
 
@@ -519,7 +518,7 @@ class VistrailsApplicationInterface(object):
                 return False
         if locator is None and controller is not None:
             locator = controller.locator
-        elif isinstance(locator, basestring):
+        elif isinstance(locator, str):
             locator = BaseLocator.from_url(locator)
         
         controller.close_vistrail(locator)
@@ -558,7 +557,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             locator = self._cur_controller.locator
         del self._controllers[locator]
         if len(self._controllers) > 0:
-            self._cur_controller = next(self._controllers.itervalues())
+            self._cur_controller = next(iter(self._controllers.values()))
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:

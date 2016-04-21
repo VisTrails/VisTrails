@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBAction, DBTag, DBModule, \
@@ -61,7 +61,7 @@ def translateVistrail(_vistrail):
         if not old_obj.db_session:
             session = None
         else:
-            session = long(old_obj.db_session)
+            session = int(old_obj.db_session)
         return session
 
     def update_workflow(old_obj, translate_dict):

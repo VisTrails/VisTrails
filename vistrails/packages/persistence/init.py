@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from ast import literal_eval
 import copy
@@ -54,13 +54,13 @@ from vistrails.core.system import current_dot_vistrails, execute_cmdline2, \
     execute_piped_cmdlines, systemType, \
     current_user, current_time, get_executable_path
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
-from compute_hash import compute_hash
-from widgets import PersistentRefInlineWidget, \
+from .compute_hash import compute_hash
+from .widgets import PersistentRefInlineWidget, \
     PersistentInputFileConfiguration, PersistentOutputFileConfiguration, \
     PersistentInputDirConfiguration, PersistentOutputDirConfiguration, \
     PersistentRefModel, PersistentConfiguration
-from db_utils import DatabaseAccessSingleton
-import repo
+from .db_utils import DatabaseAccessSingleton
+from . import repo
 
 try:
     import hashlib
@@ -83,8 +83,8 @@ def debug_print(*args):
     global debug
     if debug:
         for arg in args:
-            print arg,
-        print ''
+            print(arg, end=' ')
+        print('')
 
 class PersistentRef(Constant):
 
@@ -344,7 +344,7 @@ class PersistentPath(Module):
             # this is a static method so we need to add module ourselves
             try:
                 new_hash = repo.get_current_repo().compute_hash(path)
-            except ModuleError, e:
+            except ModuleError as e:
                 e.module = self
                 raise e
             rep_path = os.path.join(local_db, ref.id)
@@ -600,13 +600,13 @@ def initialize():
         try:
             check_paths = literal_eval(configuration.search_dbs)
         except Exception:
-            print "*** persistence error: cannot parse search_dbs ***"
+            print("*** persistence error: cannot parse search_dbs ***")
         else:
             for path in check_paths:
                 if os.path.exists(path):
                     search_dbs.append(path)
                 else:
-                    print '*** persistence warning: cannot find path "%s"' % path
+                    print('*** persistence warning: cannot find path "%s"' % path)
 
 _configuration_widget = None
 

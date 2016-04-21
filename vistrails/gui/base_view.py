@@ -33,18 +33,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from __future__ import division
-
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
 
 class BaseView(object):
     """ BaseView is the base class for the views in VisTrails.
 
 
     """
-
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.controller = None
         self.title = None
         self.index = -1
@@ -113,8 +110,8 @@ class BaseView(object):
     
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.WindowTitleChange:
-            self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
-        QtGui.QWidget.changeEvent(self, event)
+            self.windowTitleWasChanged.emit(self)
+        QtWidgets.QWidget.changeEvent(self, event)
 
     def viewSelected(self):
         pass

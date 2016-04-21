@@ -33,17 +33,21 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 
-class RSourceConfigurationWidget(SourceConfigurationWidget):
 
+class RSourceConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, None,
-                                           True, True, parent)
+        super().__init__(module=module,
+                         controller=controller,
+                         parent=parent)
+
 
 class RFigureConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, None,
-                                           True, False, parent)
+        super().__init__(module=module,
+                         controller=controller,
+                         has_outputs=False,
+                         parent=parent)

@@ -33,12 +33,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from ast import literal_eval
 import os
 import sys
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import rpy2.robjects as robjects
 
 from vistrails.core.modules.basic_modules import PathObject, new_constant
@@ -62,14 +62,14 @@ def create_vector(v_list, desired_type=None):
     is_float = True
     is_str = True
     for elt in v_list:
-        if isinstance(elt, basestring):
+        if isinstance(elt, str):
             is_bool = False
             is_int = False
             is_float = False
         elif isinstance(elt, float):
             is_bool = False
             is_int = False
-        elif isinstance(elt, (int, long)):
+        elif isinstance(elt, int):
             is_bool = False
         else:
             is_bool = False
@@ -179,7 +179,7 @@ RMatrix._input_ports.extend([('rvector', '(Types|RVector)'),
 
 def create_list(v_dict):
     data_dict = {}
-    for k,v in v_dict.iteritems():
+    for k,v in v_dict.items():
         if isinstance(v, list):
             data_dict[k] = create_vector(v)
         elif isinstance(v, dict):
@@ -200,7 +200,7 @@ RList = new_constant('RList', staticmethod(list_conv),
 
 def create_data_frame(v_dict):
     data_dict = {}
-    for k,v in v_dict.iteritems():
+    for k,v in v_dict.items():
         if isinstance(v, list):
             data_dict[k] = create_vector(v)
         elif isinstance(v, dict):
@@ -255,7 +255,7 @@ class NestedListFromRMatrix(Module):
         nrows = rmatrix.nrow
         ncols = len(mlist) // nrows
         olist = [] 
-        for row in xrange(nrows):
+        for row in range(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])
         self.set_output('list', olist)
 
@@ -276,7 +276,7 @@ class DictFromRDataFrame(Module):
         rdataframe = self.get_input('rdataframe')
         colnames = list(rdataframe.colnames())
         odict = {}
-        for i in xrange(len(rdataframe)):
+        for i in range(len(rdataframe)):
             # FIXME !!! just assume that each row can be converted to a list!!!
             odict[colnames[i]] = list(rdataframe[i])
         self.set_output('dict', odict)
@@ -300,7 +300,7 @@ class DictFromRList(Module):
         rlist = self.get_input('rlist')
         colnames = list(rlist.names)
         odict = {}
-        for i in xrange(len(rlist)):
+        for i in range(len(rlist)):
             # FIXME !!! just assume that each row can be converted to a list!!!
             # FIXME this may need to be a list of lists
             odict[colnames[i]] = list(rlist[i])
@@ -345,7 +345,6 @@ class RReadDelim2(RRead):
     def compute(self):
         self.do_read('read.delim2')
 
-# class RSource(NotCacheable, Module):
 class RSource(Module):
     _input_ports = [('source', '(basic:String)', True)]
     def run_code(self, code_str,
@@ -357,22 +356,17 @@ class RSource(Module):
         use_input and use_output control whether to use the inputport
         and output port dictionary as local variables inside the
         execution."""
-        import vistrails.core.packagemanager
-        def fail(msg):
-            raise ModuleError(self, msg)
-        def cache_this():
-            self.is_cacheable = lambda *args, **kwargs: True
         if use_input:
             inputDict = dict([(k, self.get_input(k))
                               for k in self.inputPorts
                               if k not in excluded_inputs])
-            for k,v in inputDict.iteritems():
-                robjects.globalEnv[k] = v
+            for k,v in inputDict.items():
+                robjects.globalenv[k] = v
         robjects.r(code_str)
         if use_output:
             for k in self.outputPorts:
-                if k not in excluded_outputs and k in robjects.globalEnv:
-                    self.set_output(k, robjects.globalEnv[k])
+                if k not in excluded_outputs and k in robjects.globalenv:
+                    self.set_output(k, robjects.globalenv[k])
 
     def run_file(self, fname, excluded_inputs=set(['source']), 
                  excluded_outputs=set()):
@@ -384,17 +378,17 @@ class RSource(Module):
                       excluded_outputs=excluded_outputs)
 
     def set_variable(self, name, value):
-        robjects.globalEnv[name] = value
+        robjects.globalenv[name] = value
 
     def get_variable(self, name):
-        # return robjects.globalEnv[name]
+        # return robjects.globalenv[name]
         return robjects.r(name)
 
     def chdir(self, dir):
         robjects.r('setwd("%s")' % dir)
 
     def compute(self):
-        code_str = urllib.unquote(str(self.force_get_input('source', '')))
+        code_str = urllib.parse.unquote(str(self.force_get_input('source', '')))
         self.run_code(code_str, use_input=True, use_output=True,
                       excluded_inputs=set(['source']))
 
@@ -402,13 +396,12 @@ class RFigure(RSource):
     _output_ports = [('imageFile', '(basic:File)')]
     def run_figure(self, code_str, graphics_dev, width, height, 
                    excluded_inputs=set(['source'])):
-        fname = self.interpreter.filePool.create_file(prefix='vtr', suffix='.' + graphics_dev)
-        r_temp_files.append(fname)
-        robjects.r[graphics_dev](file=fname, width=width, height=height)
+        image_file = self.interpreter.filePool.create_file(prefix='vtr', suffix='.' + graphics_dev)
+        r_temp_files.append(image_file.name)
+        robjects.r[graphics_dev](file=image_file.name, width=width, height=height)
         self.run_code(code_str, use_input=True, 
                       excluded_inputs=excluded_inputs)
         robjects.r['dev.off']()
-        image_file = PathObject(fname)
         self.set_output('imageFile', image_file)
 
     def run_figure_file(self, fname, graphics_dev, width, height, 
@@ -421,19 +414,19 @@ class RFigure(RSource):
 class RSVGFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.force_get_input('source', '')))
+            urllib.parse.unquote(str(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'svg', 4, 3)
 
 class RPNGFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.force_get_input('source', '')))
+            urllib.parse.unquote(str(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'png', 640, 480)
 
 class RPDFFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.force_get_input('source', '')))
+            urllib.parse.unquote(str(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'pdf', 4, 3)
 
 class RFactor(Module):

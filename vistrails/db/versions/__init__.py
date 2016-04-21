@@ -33,9 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from itertools import izip
+
+
 import os
 
 from vistrails.core import debug
@@ -107,7 +107,7 @@ def translate_object(obj, method_name, version=None, target_version=None):
     old_tuple = version.split('.')
     new_tuple = target_version.split('.')
     map = version_map
-    for i, j in izip(old_tuple, new_tuple):
+    for i, j in zip(old_tuple, new_tuple):
         if i < j:
             # forward
             break
@@ -124,7 +124,7 @@ def translate_object(obj, method_name, version=None, target_version=None):
         next_version = map[version]
         try:
             translate_module = get_translate_module(map, version, next_version)
-        except Exception, e:
+        except Exception as e:
             import traceback
             raise VistrailsDBException("Cannot translate version: "
                                        "error loading translation version %s method '%s': %s" % \

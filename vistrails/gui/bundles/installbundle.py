@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Module with utilities to try and install a bundle if possible."""
-from __future__ import division
+
 
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
@@ -46,20 +46,16 @@ from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 from vistrails.gui.requirements import qt_available
-import imp
+import importlib
 import os
 import subprocess
 import sys
 
 ##############################################################################
 
-pip_installed = True
-try:
-    imp.find_module('pip')
-    # Here we do not actually import pip, to avoid pip issue #1314
-    # https://github.com/pypa/pip/issues/1314
-except ImportError:
-    pip_installed = False
+# Here we do not actually import pip, to avoid pip issue #1314
+# https://github.com/pypa/pip/issues/1314
+pip_installed = bool(importlib.util.find_spec('pip'))
 
 def hide_splash_if_necessary():
     """Disables the splashscreen, otherwise it sits in front of windows.
@@ -74,11 +70,11 @@ def shell_escape(arg):
 
 
 def run_install_command(graphical, cmd, args, as_root=True):
-    if isinstance(args, basestring):
+    if isinstance(args, str):
         cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
         for package in args:
-            if not isinstance(package, basestring):
+            if not isinstance(package, str):
                 raise TypeError("Expected string or list of strings")
             cmd += ' %s' % shell_escape(package)
     else:
@@ -103,17 +99,19 @@ def run_install_command(graphical, cmd, args, as_root=True):
         else:
             cmd = sucmd % cmd
 
-    print "about to run: %s" % cmd
+    print("about to run: %s" % cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT,
                               shell=True)
     lines = []
     try:
-        for line in iter(p.stdout.readline, ''):
-            print line,
-            lines.append(line)
-    except IOError, e:
-        print "Ignoring IOError: %s" % e
+        line = p.stdout.readline()
+        while line:
+            sys.stdout.buffer.write(line)
+            lines.append(line.decode())
+            line = p.stdout.readline()
+    except IOError as e:
+        print("Ignoring IOError: %s" % e)
     result = p.wait()
 
     if result != 0:
@@ -179,15 +177,16 @@ def pip_install(package_name):
     return run_install_command(qt_available(), cmd, package_name, use_root)
 
 def show_question(which_files, has_distro_pkg, has_pip):
-    if isinstance(which_files, basestring):
+    if isinstance(which_files, str):
         which_files = [which_files]
     if qt_available():
-        from PyQt4 import QtCore, QtGui
-        dialog = QtGui.QDialog()
-        dialog.setWindowTitle("Required packages missing")
-        layout = QtGui.QVBoxLayout()
+        from PyQt5 import QtCore, QtWidgets
 
-        label = QtGui.QLabel(
+        dialog = QtWidgets.QDialog()
+        dialog.setWindowTitle("Required packages missing")
+        layout = QtWidgets.QVBoxLayout()
+
+        label = QtWidgets.QLabel(
                 "One or more required packages are missing: %s. VisTrails can "
                 "automatically install them. If you click OK, VisTrails will "
                 "need administrator privileges, and you might be asked for "
@@ -196,7 +195,7 @@ def show_question(which_files, has_distro_pkg, has_pip):
         layout.addWidget(label)
 
         if pip_installed and has_pip:
-            use_pip = QtGui.QCheckBox("Use pip")
+            use_pip = QtWidgets.QCheckBox("Use pip")
             use_pip.setChecked(
                 not has_distro_pkg or (
                     has_pip and
@@ -205,27 +204,25 @@ def show_question(which_files, has_distro_pkg, has_pip):
             use_pip.setEnabled(has_distro_pkg and has_pip)
             layout.addWidget(use_pip)
 
-            remember_align = QtGui.QHBoxLayout()
+            remember_align = QtWidgets.QHBoxLayout()
             remember_align.addSpacing(20)
-            remember_pip = QtGui.QCheckBox("Remember my choice")
+            remember_pip = QtWidgets.QCheckBox("Remember my choice")
             remember_pip.setChecked(False)
             remember_pip.setEnabled(use_pip.isEnabled())
             remember_align.addWidget(remember_pip)
             layout.addLayout(remember_align)
         elif has_pip:
-            label = QtGui.QLabel("pip package is available but pip is not installed")
+            label = QtWidgets.QLabel("pip package is available but pip is not installed")
             layout.addWidget(label)
-        buttons = QtGui.QDialogButtonBox(
-                QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                               dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                               dialog, QtCore.SLOT('reject()'))
+        buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
 
         dialog.setLayout(layout)
         hide_splash_if_necessary()
-        if dialog.exec_() != QtGui.QDialog.Accepted:
+        if dialog.exec_() != QtWidgets.QDialog.Accepted:
             return False
         else:
             if pip_installed and has_pip:
@@ -238,18 +235,18 @@ def show_question(which_files, has_distro_pkg, has_pip):
                     return 'pip'
             return 'distro'
     else:
-        print "\nRequired package(s) missing: %s" % (" ".join(which_files))
+        print("\nRequired package(s) missing: %s" % (" ".join(which_files)))
         print ("A required package is missing, but VisTrails can "
                "automatically install it. "
                "If you say Yes, VisTrails will need "
                "administrator privileges, and you "
                "might be asked for the administrator password.")
         if has_distro_pkg:
-            print "(VisTrails will use your distribution's package manager)"
+            print("(VisTrails will use your distribution's package manager)")
         else:
-            print "(VisTrails will use the 'pip' installer)"
-        print "Give VisTrails permission to try to install package? (y/N)"
-        v = raw_input().upper()
+            print("(VisTrails will use the 'pip' installer)")
+        print("Give VisTrails permission to try to install package? (y/N)")
+        v = input().upper()
         if v == 'Y' or v == 'YES':
             if has_distro_pkg:
                 return 'distro'

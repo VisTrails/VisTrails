@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.loop_exec import LoopExec

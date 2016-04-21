@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import functools
 import re
@@ -47,6 +47,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 
 from .base import Op, TFOperation, Variable, Optimizer, \
     _modules as base_modules, wrapped
+import collections
 
 
 def apply_kw(f, kw1):
@@ -174,7 +175,7 @@ def register_operations(reg, pkg, namespace, exclude=set()):
         op = getattr(pkg, name)
         if isinstance(op, types.ModuleType) or name.startswith('_'):
             continue
-        if not callable(op):
+        if not isinstance(op, collections.Callable):
             continue
         if op.__doc__ is None:
             debug.log("Object has no __doc__: %r" % op)

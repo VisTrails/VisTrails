@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from ast import literal_eval
 import copy
@@ -141,11 +141,11 @@ def create_opm(workflow, version, log, reg):
 
     def do_create_process(workflow, item_exec, account, module_processes):
         process = create_process(item_exec, account, id_scope)
-        print 'adding process', process.db_id,
+        print('adding process', process.db_id, end=' ')
         if hasattr(item_exec, 'db_module_name'):
-            print item_exec.db_module_name
+            print(item_exec.db_module_name)
         elif hasattr(item_exec, 'db_group_name'):
-            print item_exec.db_group_name
+            print(item_exec.db_group_name)
         processes.append(process)
         module = workflow.db_modules_id_index[item_exec.db_module_id]
         module_processes[module.db_id] = (module, process)
@@ -156,9 +156,9 @@ def create_opm(workflow, version, log, reg):
                 return reg.db_packages_identifier_index[(pkg_identifier,
                                                          pkg_version)]
             except:
-                print (("Warning: Version '%s' package '%s' "
+                print((("Warning: Version '%s' package '%s' "
                         "is not in the registry") %
-                       (pkg_version, pkg_identifier))
+                       (pkg_version, pkg_identifier)))
         # spin and get current package
         for pkg in reg.db_packages:
             if pkg.db_identifier == pkg_identifier:
@@ -172,10 +172,10 @@ def create_opm(workflow, version, log, reg):
                      in_upstream_artifacts={}, in_downstream_artifacts={},
                      add_extras=False):
 
-        print 'in_upstream:', [(n, x.db_id) 
-                               for n, x_list in in_upstream_artifacts.iteritems() for x in x_list]
-        print 'in_downstream:', [(n, x.db_id)  
-                                 for n, x_list in in_downstream_artifacts.iteritems() for x in x_list]
+        print('in_upstream:', [(n, x.db_id) 
+                               for n, x_list in in_upstream_artifacts.items() for x in x_list])
+        print('in_downstream:', [(n, x.db_id)  
+                                 for n, x_list in in_downstream_artifacts.items() for x in x_list])
         # FIXME merge conn_artifacts and function_artifacts
         # problem is that a conn_artifact is OUTPUT while function_artifact
         # is INPUT
@@ -193,7 +193,7 @@ def create_opm(workflow, version, log, reg):
             source = conn.db_ports_type_index['source']
             source_t = (source.db_moduleId, source.db_name)
             in_cache = False
-            print '!!! processing', source_t
+            print('!!! processing', source_t)
             if source_t in conn_artifacts:
                 artifact = conn_artifacts[source_t]
                 in_cache = True
@@ -207,7 +207,7 @@ def create_opm(workflow, version, log, reg):
                     module = source.db_module
                 else:
                     module = workflow.db_modules_id_index[source.db_moduleId]
-                print module.db_name, module.db_id
+                print(module.db_name, module.db_id)
 
                 pkg = get_package(reg, module.db_package, module.db_version)
 
@@ -249,18 +249,18 @@ def create_opm(workflow, version, log, reg):
                     # module_desc = pkg.db_module_descriptors_id_index[base_id]
                 if port_spec is None:
                     port_spec = module_desc.db_portSpecs_name_index[spec_t]
-                print module_desc.db_name
+                print(module_desc.db_name)
                 
                 artifact = \
                     create_artifact_from_port_spec(port_spec, account, id_scope)
                 artifacts.append(artifact)
-                print 'adding conn_artifact', artifact.db_id, source_t, \
-                    source.db_moduleName
+                print('adding conn_artifact', artifact.db_id, source_t, \
+                    source.db_moduleName)
                 conn_artifacts[source_t] = artifact
             return (artifact, in_cache)
 
         def process_map(module, found_input_ports, found_output_ports):
-            print "*** Processing Map"
+            print("*** Processing Map")
             if depth+1 in depth_accounts:
                 account = depth_accounts[depth+1]
             else:
@@ -345,7 +345,7 @@ def create_opm(workflow, version, log, reg):
                                                             id_scope))
 
         def process_module_loop(module, found_input_ports, found_output_ports):
-            print "*** Processing Module with loops"
+            print("*** Processing Module with loops")
             if depth+1 in depth_accounts:
                 account = depth_accounts[depth+1]
             else:
@@ -458,7 +458,7 @@ def create_opm(workflow, version, log, reg):
                                                                     id_scope))
 
         def process_if_module(module, found_input_ports, found_output_ports):
-            print 'processing IFFFF'
+            print('processing IFFFF')
             # need to decide which path was taken?
             # check which module was executed, then know which branch was
             # taken?
@@ -466,10 +466,10 @@ def create_opm(workflow, version, log, reg):
             false_conn = found_input_ports['FalsePort']
             true_id = true_conn.db_ports_type_index['source'].db_moduleId
             false_id = false_conn.db_ports_type_index['source'].db_moduleId
-            print '$$ TRUE ID:', true_id
-            print '$$ FALSE ID:', false_id
-            for x,y in module_processes.iteritems():
-                print x, ':', y
+            print('$$ TRUE ID:', true_id)
+            print('$$ FALSE ID:', false_id)
+            for x,y in module_processes.items():
+                print(x, ':', y)
             if true_id in module_processes:
                 cond_process = module_processes[true_id][1]
             elif false_id in module_processes:
@@ -485,14 +485,14 @@ def create_opm(workflow, version, log, reg):
                                                         id_scope))
 
         if add_extras:
-            print '***adding extras'
+            print('***adding extras')
             out_upstream_artifacts = copy.copy(in_upstream_artifacts)
             out_downstream_artifacts = copy.copy(in_downstream_artifacts)
-            for port_name, artifact_list in in_upstream_artifacts.iteritems():
+            for port_name, artifact_list in in_upstream_artifacts.items():
                 for artifact in artifact_list:
                     dependencies.append(create_used(process, artifact,
                                                     account, id_scope))
-            for port_name, artifact_list in in_downstream_artifacts.iteritems():
+            for port_name, artifact_list in in_downstream_artifacts.items():
                 for artifact in artifact_list:
                     # conn_artifacts[(port_name, 'output')] = artifact
                     dependencies.append(create_was_generated_by(artifact,
@@ -607,7 +607,7 @@ def create_opm(workflow, version, log, reg):
                 artifact = create_artifact_from_function(function, 
                                                          account,
                                                          id_scope)
-                print 'adding artifact', artifact.db_id
+                print('adding artifact', artifact.db_id)
                 artifacts.append(artifact)
                 function_artifacts[function_t] = artifact
             if function.db_name in special_ports[0]:
@@ -620,7 +620,7 @@ def create_opm(workflow, version, log, reg):
 
         # process connections
         if module.db_id in upstream_lookup:
-            for conns in upstream_lookup[module.db_id].itervalues():
+            for conns in upstream_lookup[module.db_id].values():
                 for conn in conns:
                     dest = conn.db_ports_type_index['destination']
                     if dest.db_name in special_ports[0]:
@@ -633,15 +633,15 @@ def create_opm(workflow, version, log, reg):
                     if dest.db_name not in out_upstream_artifacts:
                         out_upstream_artifacts[dest.db_name] = []
                     out_upstream_artifacts[dest.db_name].append(artifact)
-                    print 'adding dependency (pa)', process.db_id, \
-                        artifact.db_id
+                    print('adding dependency (pa)', process.db_id, \
+                        artifact.db_id)
                     dependencies.append(create_used(process, artifact, 
                                                     account, id_scope))
 
         if item_exec.db_completed == 1:
             if module.db_id in downstream_lookup:
                 # check if everything completed successfully for this?
-                for conns in downstream_lookup[module.db_id].itervalues():
+                for conns in downstream_lookup[module.db_id].values():
                     for conn in conns:
                         source = conn.db_ports_type_index['source']
                         if source.db_name in special_ports[1]:
@@ -657,7 +657,7 @@ def create_opm(workflow, version, log, reg):
                                                                    [{}, {}, None])
                         if dest.db_name in dest_special_ports[0] and \
                                 not dest_special_ports[0][dest.db_name]:
-                            print 'skipping', dest.db_name
+                            print('skipping', dest.db_name)
                             continue
                         (artifact, in_cache) = process_connection(conn)
                         if not in_cache:
@@ -666,8 +666,8 @@ def create_opm(workflow, version, log, reg):
                             if source.db_name not in out_downstream_artifacts:
                                 out_downstream_artifacts[source.db_name] = []
                             out_downstream_artifacts[source.db_name].append(artifact)
-                            print 'adding dependency (ap)', artifact.db_id, \
-                                process.db_id
+                            print('adding dependency (ap)', artifact.db_id, \
+                                process.db_id)
                             dependencies.append(create_was_generated_by(artifact, 
                                                                         process, 
                                                                         account,
@@ -689,7 +689,7 @@ def create_opm(workflow, version, log, reg):
         # associated with a transient data item
         # use wasDerivedBy and used relationships to tie things together
         # check run-time annotations?
-        print 'processing workflow', parent_exec
+        print('processing workflow', parent_exec)
 
         upstream_lookup = {}
         downstream_lookup = {}
@@ -711,15 +711,15 @@ def create_opm(workflow, version, log, reg):
         conn_artifacts = {}
         function_artifacts = {}
         module_processes = {}
-        print '  upstream_lookup:'
+        print('  upstream_lookup:')
         lookup = upstream_lookup
-        for id, name_list in lookup.iteritems():
-            print '    ', id, ':', name_list.keys()
+        for id, name_list in lookup.items():
+            print('    ', id, ':', list(name_list.keys()))
 
-        print '  downstream_lookup:'
+        print('  downstream_lookup:')
         lookup = downstream_lookup
-        for id, name_list in lookup.iteritems():
-            print '    ', id, ':', name_list.keys()
+        for id, name_list in lookup.items():
+            print('    ', id, ':', list(name_list.keys()))
             
         # print '  upstream_lookup:', upstream_lookup
         # print '  downstream_lookup:', downstream_lookup
@@ -783,19 +783,19 @@ def create_opm(workflow, version, log, reg):
                     can_update = False
             if can_update:
                 min_depth = int(obj.db_accounts[0].db_id[4:])
-                for i in xrange(min_depth+1, max_depth+1):
+                for i in range(min_depth+1, max_depth+1):
                     obj.db_add_account(DBOpmAccountId(id='acct' + str(i)))
         return new_p_ids
 
     # FIXME: also exclude group dependencies (used, wasGeneratedBy)...
     p_ids = add_finer_depths(processes, True)
-    print p_ids
+    print(p_ids)
     add_finer_depths(artifacts)
     add_finer_depths(dependencies, False, True, set(p_ids))
 
     overlaps = []
-    for i in xrange(max_depth+1):
-        for j in xrange(i+1, max_depth+1):
+    for i in range(max_depth+1):
+        for j in range(i+1, max_depth+1):
             ids = [DBOpmAccountId(id='acct' + str(i)),
                    DBOpmAccountId(id='acct' + str(j))]
             overlaps.append(DBOpmOverlaps(opm_account_ids=ids))
@@ -869,7 +869,7 @@ def run(vistrail_xml, version, log_xml, registry_xml, output_fname):
 
 if __name__ == '__main__':
     if len(sys.argv) < 5:
-        print "Usage: python %s <vt_xml> <version> <log_xml> <registry_xml> <out_xml>" % sys.argv[0]
+        print("Usage: python %s <vt_xml> <version> <log_xml> <registry_xml> <out_xml>" % sys.argv[0])
         sys.exit(1)
     run(*sys.argv[1:])
                     

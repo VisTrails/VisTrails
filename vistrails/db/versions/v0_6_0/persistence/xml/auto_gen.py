@@ -35,9 +35,9 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-from __future__ import division
 
-from xml_dao import XMLDAO
+
+from .xml_dao import XMLDAO
 from vistrails.db.versions.v0_6_0.domain import *
 
 class DBPortSpecXMLDAOBase(XMLDAO):
@@ -120,7 +120,7 @@ class DBModuleXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBModule(id=id,
                        cache=cache,
@@ -155,7 +155,7 @@ class DBModuleXMLDAOBase(XMLDAO):
         # set elements
         location = module.db_location
         if location is not None:
-            if nodeMap.has_key(('location', location.db_id)):
+            if ('location', location.db_id) in nodeMap:
                 childNode = nodeMap[('location', location.db_id)]
                 del nodeMap[('location', location.db_id)]
             else:
@@ -164,7 +164,7 @@ class DBModuleXMLDAOBase(XMLDAO):
             self.getDao('location').toXML(location, doc, childNode)
         functions = module.db_functions
         for function in functions:
-            if nodeMap.has_key(('function', function.db_id)):
+            if ('function', function.db_id) in nodeMap:
                 childNode = nodeMap[('function', function.db_id)]
                 del nodeMap[('function', function.db_id)]
             else:
@@ -172,8 +172,8 @@ class DBModuleXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('function').toXML(function, doc, childNode)
         annotations = module.db_annotations
-        for annotation in annotations.itervalues():
-            if nodeMap.has_key(('annotation', annotation.db_id)):
+        for annotation in annotations.values():
+            if ('annotation', annotation.db_id) in nodeMap:
                 childNode = nodeMap[('annotation', annotation.db_id)]
                 del nodeMap[('annotation', annotation.db_id)]
             else:
@@ -181,8 +181,8 @@ class DBModuleXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('annotation').toXML(annotation, doc, childNode)
         portSpecs = module.db_portSpecs
-        for portSpec in portSpecs.itervalues():
-            if nodeMap.has_key(('portSpec', portSpec.db_id)):
+        for portSpec in portSpecs.values():
+            if ('portSpec', portSpec.db_id) in nodeMap:
                 childNode = nodeMap[('portSpec', portSpec.db_id)]
                 del nodeMap[('portSpec', portSpec.db_id)]
             else:
@@ -191,7 +191,7 @@ class DBModuleXMLDAOBase(XMLDAO):
             self.getDao('portSpec').toXML(portSpec, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -297,7 +297,7 @@ class DBLogXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBLog(id=id,
                     workflow_execs=workflow_execs,
@@ -321,8 +321,8 @@ class DBLogXMLDAOBase(XMLDAO):
         
         # set elements
         workflow_execs = log.db_workflow_execs
-        for workflow_exec in workflow_execs.itervalues():
-            if nodeMap.has_key(('workflow_exec', workflow_exec.db_id)):
+        for workflow_exec in workflow_execs.values():
+            if ('workflow_exec', workflow_exec.db_id) in nodeMap:
                 childNode = nodeMap[('workflow_exec', workflow_exec.db_id)]
                 del nodeMap[('workflow_exec', workflow_exec.db_id)]
             else:
@@ -330,8 +330,8 @@ class DBLogXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('workflow_exec').toXML(workflow_exec, doc, childNode)
         machines = log.db_machines
-        for machine in machines.itervalues():
-            if nodeMap.has_key(('machine', machine.db_id)):
+        for machine in machines.values():
+            if ('machine', machine.db_id) in nodeMap:
                 childNode = nodeMap[('machine', machine.db_id)]
                 del nodeMap[('machine', machine.db_id)]
             else:
@@ -340,7 +340,7 @@ class DBLogXMLDAOBase(XMLDAO):
             self.getDao('machine').toXML(machine, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -437,7 +437,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBAdd(id=id,
                     what=what,
@@ -469,7 +469,7 @@ class DBAddXMLDAOBase(XMLDAO):
         # set elements
         data = add.db_data
         if data.vtType == 'module':
-            if nodeMap.has_key(('module', data.db_id)):
+            if ('module', data.db_id) in nodeMap:
                 childNode = nodeMap[('module', data.db_id)]
                 del nodeMap[('module', data.db_id)]
             else:
@@ -477,7 +477,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('module').toXML(data, doc, childNode)
         elif data.vtType == 'location':
-            if nodeMap.has_key(('location', data.db_id)):
+            if ('location', data.db_id) in nodeMap:
                 childNode = nodeMap[('location', data.db_id)]
                 del nodeMap[('location', data.db_id)]
             else:
@@ -485,7 +485,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('location').toXML(data, doc, childNode)
         elif data.vtType == 'annotation':
-            if nodeMap.has_key(('annotation', data.db_id)):
+            if ('annotation', data.db_id) in nodeMap:
                 childNode = nodeMap[('annotation', data.db_id)]
                 del nodeMap[('annotation', data.db_id)]
             else:
@@ -493,7 +493,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('annotation').toXML(data, doc, childNode)
         elif data.vtType == 'function':
-            if nodeMap.has_key(('function', data.db_id)):
+            if ('function', data.db_id) in nodeMap:
                 childNode = nodeMap[('function', data.db_id)]
                 del nodeMap[('function', data.db_id)]
             else:
@@ -501,7 +501,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('function').toXML(data, doc, childNode)
         elif data.vtType == 'connection':
-            if nodeMap.has_key(('connection', data.db_id)):
+            if ('connection', data.db_id) in nodeMap:
                 childNode = nodeMap[('connection', data.db_id)]
                 del nodeMap[('connection', data.db_id)]
             else:
@@ -509,7 +509,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('connection').toXML(data, doc, childNode)
         elif data.vtType == 'port':
-            if nodeMap.has_key(('port', data.db_id)):
+            if ('port', data.db_id) in nodeMap:
                 childNode = nodeMap[('port', data.db_id)]
                 del nodeMap[('port', data.db_id)]
             else:
@@ -517,7 +517,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('port').toXML(data, doc, childNode)
         elif data.vtType == 'parameter':
-            if nodeMap.has_key(('parameter', data.db_id)):
+            if ('parameter', data.db_id) in nodeMap:
                 childNode = nodeMap[('parameter', data.db_id)]
                 del nodeMap[('parameter', data.db_id)]
             else:
@@ -525,7 +525,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('parameter').toXML(data, doc, childNode)
         elif data.vtType == 'portSpec':
-            if nodeMap.has_key(('portSpec', data.db_id)):
+            if ('portSpec', data.db_id) in nodeMap:
                 childNode = nodeMap[('portSpec', data.db_id)]
                 del nodeMap[('portSpec', data.db_id)]
             else:
@@ -533,7 +533,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('portSpec').toXML(data, doc, childNode)
         elif data.vtType == 'abstractionRef':
-            if nodeMap.has_key(('abstractionRef', data.db_id)):
+            if ('abstractionRef', data.db_id) in nodeMap:
                 childNode = nodeMap[('abstractionRef', data.db_id)]
                 del nodeMap[('abstractionRef', data.db_id)]
             else:
@@ -541,7 +541,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('abstractionRef').toXML(data, doc, childNode)
         elif data.vtType == 'other':
-            if nodeMap.has_key(('other', data.db_id)):
+            if ('other', data.db_id) in nodeMap:
                 childNode = nodeMap[('other', data.db_id)]
                 del nodeMap[('other', data.db_id)]
             else:
@@ -550,7 +550,7 @@ class DBAddXMLDAOBase(XMLDAO):
             self.getDao('other').toXML(data, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -580,7 +580,7 @@ class DBOtherXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBOther(id=id,
                       key=key,
@@ -606,7 +606,7 @@ class DBOtherXMLDAOBase(XMLDAO):
         # set elements
         if other.db_value is not None:
             child = other.db_value
-            if nodeMap.has_key(('value',child.db_id)):
+            if ('value',child.db_id) in nodeMap:
                 childNode = nodeMap[('value',child.db_id)]
                 del nodeMap[('value', child.db_id)]
                 textNode = childNode.firstChild
@@ -618,7 +618,7 @@ class DBOtherXMLDAOBase(XMLDAO):
                 childNode.appendChild(textNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -692,7 +692,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBWorkflowExec(id=id,
                              user=user,
@@ -733,8 +733,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         
         # set elements
         module_execs = workflow_exec.db_module_execs
-        for module_exec in module_execs.itervalues():
-            if nodeMap.has_key(('module_exec', module_exec.db_id)):
+        for module_exec in module_execs.values():
+            if ('module_exec', module_exec.db_id) in nodeMap:
                 childNode = nodeMap[('module_exec', module_exec.db_id)]
                 del nodeMap[('module_exec', module_exec.db_id)]
             else:
@@ -743,7 +743,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             self.getDao('module_exec').toXML(module_exec, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -776,7 +776,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBFunction(id=id,
                          pos=pos,
@@ -804,7 +804,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
         # set elements
         parameters = function.db_parameters
         for parameter in parameters:
-            if nodeMap.has_key(('parameter', parameter.db_id)):
+            if ('parameter', parameter.db_id) in nodeMap:
                 childNode = nodeMap[('parameter', parameter.db_id)]
                 del nodeMap[('parameter', parameter.db_id)]
             else:
@@ -813,7 +813,7 @@ class DBFunctionXMLDAOBase(XMLDAO):
             self.getDao('parameter').toXML(parameter, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -849,7 +849,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBAbstraction(id=id,
                             name=name,
@@ -875,8 +875,8 @@ class DBAbstractionXMLDAOBase(XMLDAO):
         
         # set elements
         actions = abstraction.db_actions
-        for action in actions.itervalues():
-            if nodeMap.has_key(('action', action.db_id)):
+        for action in actions.values():
+            if ('action', action.db_id) in nodeMap:
                 childNode = nodeMap[('action', action.db_id)]
                 del nodeMap[('action', action.db_id)]
             else:
@@ -884,8 +884,8 @@ class DBAbstractionXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('action').toXML(action, doc, childNode)
         tags = abstraction.db_tags
-        for tag in tags.itervalues():
-            if nodeMap.has_key(('tag', tag.db_id)):
+        for tag in tags.values():
+            if ('tag', tag.db_id) in nodeMap:
                 childNode = nodeMap[('tag', tag.db_id)]
                 del nodeMap[('tag', tag.db_id)]
             else:
@@ -894,7 +894,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             self.getDao('tag').toXML(tag, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -943,7 +943,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBWorkflow(id=id,
                          name=name,
@@ -972,8 +972,8 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         
         # set elements
         modules = workflow.db_modules
-        for module in modules.itervalues():
-            if nodeMap.has_key(('module', module.db_id)):
+        for module in modules.values():
+            if ('module', module.db_id) in nodeMap:
                 childNode = nodeMap[('module', module.db_id)]
                 del nodeMap[('module', module.db_id)]
             else:
@@ -981,8 +981,8 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('module').toXML(module, doc, childNode)
         connections = workflow.db_connections
-        for connection in connections.itervalues():
-            if nodeMap.has_key(('connection', connection.db_id)):
+        for connection in connections.values():
+            if ('connection', connection.db_id) in nodeMap:
                 childNode = nodeMap[('connection', connection.db_id)]
                 del nodeMap[('connection', connection.db_id)]
             else:
@@ -991,7 +991,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             self.getDao('connection').toXML(connection, doc, childNode)
         annotations = workflow.db_annotations
         for annotation in annotations:
-            if nodeMap.has_key(('annotation', annotation.db_id)):
+            if ('annotation', annotation.db_id) in nodeMap:
                 childNode = nodeMap[('annotation', annotation.db_id)]
                 del nodeMap[('annotation', annotation.db_id)]
             else:
@@ -1000,7 +1000,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             self.getDao('annotation').toXML(annotation, doc, childNode)
         others = workflow.db_others
         for other in others:
-            if nodeMap.has_key(('other', other.db_id)):
+            if ('other', other.db_id) in nodeMap:
                 childNode = nodeMap[('other', other.db_id)]
                 del nodeMap[('other', other.db_id)]
             else:
@@ -1008,8 +1008,8 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('other').toXML(other, doc, childNode)
         abstractionRefs = workflow.db_abstractionRefs
-        for abstractionRef in abstractionRefs.itervalues():
-            if nodeMap.has_key(('abstractionRef', abstractionRef.db_id)):
+        for abstractionRef in abstractionRefs.values():
+            if ('abstractionRef', abstractionRef.db_id) in nodeMap:
                 childNode = nodeMap[('abstractionRef', abstractionRef.db_id)]
                 del nodeMap[('abstractionRef', abstractionRef.db_id)]
             else:
@@ -1018,7 +1018,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             self.getDao('abstractionRef').toXML(abstractionRef, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -1138,7 +1138,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBChange(id=id,
                        what=what,
@@ -1172,7 +1172,7 @@ class DBChangeXMLDAOBase(XMLDAO):
         # set elements
         data = change.db_data
         if data.vtType == 'module':
-            if nodeMap.has_key(('module', data.db_id)):
+            if ('module', data.db_id) in nodeMap:
                 childNode = nodeMap[('module', data.db_id)]
                 del nodeMap[('module', data.db_id)]
             else:
@@ -1180,7 +1180,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('module').toXML(data, doc, childNode)
         elif data.vtType == 'location':
-            if nodeMap.has_key(('location', data.db_id)):
+            if ('location', data.db_id) in nodeMap:
                 childNode = nodeMap[('location', data.db_id)]
                 del nodeMap[('location', data.db_id)]
             else:
@@ -1188,7 +1188,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('location').toXML(data, doc, childNode)
         elif data.vtType == 'annotation':
-            if nodeMap.has_key(('annotation', data.db_id)):
+            if ('annotation', data.db_id) in nodeMap:
                 childNode = nodeMap[('annotation', data.db_id)]
                 del nodeMap[('annotation', data.db_id)]
             else:
@@ -1196,7 +1196,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('annotation').toXML(data, doc, childNode)
         elif data.vtType == 'function':
-            if nodeMap.has_key(('function', data.db_id)):
+            if ('function', data.db_id) in nodeMap:
                 childNode = nodeMap[('function', data.db_id)]
                 del nodeMap[('function', data.db_id)]
             else:
@@ -1204,7 +1204,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('function').toXML(data, doc, childNode)
         elif data.vtType == 'connection':
-            if nodeMap.has_key(('connection', data.db_id)):
+            if ('connection', data.db_id) in nodeMap:
                 childNode = nodeMap[('connection', data.db_id)]
                 del nodeMap[('connection', data.db_id)]
             else:
@@ -1212,7 +1212,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('connection').toXML(data, doc, childNode)
         elif data.vtType == 'port':
-            if nodeMap.has_key(('port', data.db_id)):
+            if ('port', data.db_id) in nodeMap:
                 childNode = nodeMap[('port', data.db_id)]
                 del nodeMap[('port', data.db_id)]
             else:
@@ -1220,7 +1220,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('port').toXML(data, doc, childNode)
         elif data.vtType == 'parameter':
-            if nodeMap.has_key(('parameter', data.db_id)):
+            if ('parameter', data.db_id) in nodeMap:
                 childNode = nodeMap[('parameter', data.db_id)]
                 del nodeMap[('parameter', data.db_id)]
             else:
@@ -1228,7 +1228,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('parameter').toXML(data, doc, childNode)
         elif data.vtType == 'portSpec':
-            if nodeMap.has_key(('portSpec', data.db_id)):
+            if ('portSpec', data.db_id) in nodeMap:
                 childNode = nodeMap[('portSpec', data.db_id)]
                 del nodeMap[('portSpec', data.db_id)]
             else:
@@ -1236,7 +1236,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('portSpec').toXML(data, doc, childNode)
         elif data.vtType == 'abstractionRef':
-            if nodeMap.has_key(('abstractionRef', data.db_id)):
+            if ('abstractionRef', data.db_id) in nodeMap:
                 childNode = nodeMap[('abstractionRef', data.db_id)]
                 del nodeMap[('abstractionRef', data.db_id)]
             else:
@@ -1244,7 +1244,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('abstractionRef').toXML(data, doc, childNode)
         elif data.vtType == 'other':
-            if nodeMap.has_key(('other', data.db_id)):
+            if ('other', data.db_id) in nodeMap:
                 childNode = nodeMap[('other', data.db_id)]
                 del nodeMap[('other', data.db_id)]
             else:
@@ -1253,7 +1253,7 @@ class DBChangeXMLDAOBase(XMLDAO):
             self.getDao('other').toXML(data, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -1327,7 +1327,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBConnection(id=id,
                            ports=ports)
@@ -1351,7 +1351,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
         # set elements
         ports = connection.db_ports
         for port in ports:
-            if nodeMap.has_key(('port', port.db_id)):
+            if ('port', port.db_id) in nodeMap:
                 childNode = nodeMap[('port', port.db_id)]
                 del nodeMap[('port', port.db_id)]
             else:
@@ -1360,7 +1360,7 @@ class DBConnectionXMLDAOBase(XMLDAO):
             self.getDao('port').toXML(port, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -1405,7 +1405,7 @@ class DBActionXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBAction(id=id,
                        prevId=prevId,
@@ -1435,8 +1435,8 @@ class DBActionXMLDAOBase(XMLDAO):
         
         # set elements
         annotations = action.db_annotations
-        for annotation in annotations.itervalues():
-            if nodeMap.has_key(('annotation', annotation.db_id)):
+        for annotation in annotations.values():
+            if ('annotation', annotation.db_id) in nodeMap:
                 childNode = nodeMap[('annotation', annotation.db_id)]
                 del nodeMap[('annotation', annotation.db_id)]
             else:
@@ -1446,7 +1446,7 @@ class DBActionXMLDAOBase(XMLDAO):
         operations = action.db_operations
         for operation in operations:
             if operation.vtType == 'add':
-                if nodeMap.has_key(('add', operation.db_id)):
+                if ('add', operation.db_id) in nodeMap:
                     childNode = nodeMap[('add', operation.db_id)]
                     del nodeMap[('add', operation.db_id)]
                 else:
@@ -1454,7 +1454,7 @@ class DBActionXMLDAOBase(XMLDAO):
                     node.appendChild(childNode)
                 self.getDao('add').toXML(operation, doc, childNode)
             elif operation.vtType == 'delete':
-                if nodeMap.has_key(('delete', operation.db_id)):
+                if ('delete', operation.db_id) in nodeMap:
                     childNode = nodeMap[('delete', operation.db_id)]
                     del nodeMap[('delete', operation.db_id)]
                 else:
@@ -1462,7 +1462,7 @@ class DBActionXMLDAOBase(XMLDAO):
                     node.appendChild(childNode)
                 self.getDao('delete').toXML(operation, doc, childNode)
             elif operation.vtType == 'change':
-                if nodeMap.has_key(('change', operation.db_id)):
+                if ('change', operation.db_id) in nodeMap:
                     childNode = nodeMap[('change', operation.db_id)]
                     del nodeMap[('change', operation.db_id)]
                 else:
@@ -1471,7 +1471,7 @@ class DBActionXMLDAOBase(XMLDAO):
                 self.getDao('change').toXML(operation, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -1555,7 +1555,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBVistrail(id=id,
                          version=version,
@@ -1590,8 +1590,8 @@ class DBVistrailXMLDAOBase(XMLDAO):
         
         # set elements
         actions = vistrail.db_actions
-        for action in actions.itervalues():
-            if nodeMap.has_key(('action', action.db_id)):
+        for action in actions.values():
+            if ('action', action.db_id) in nodeMap:
                 childNode = nodeMap[('action', action.db_id)]
                 del nodeMap[('action', action.db_id)]
             else:
@@ -1599,8 +1599,8 @@ class DBVistrailXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('action').toXML(action, doc, childNode)
         tags = vistrail.db_tags
-        for tag in tags.itervalues():
-            if nodeMap.has_key(('tag', tag.db_id)):
+        for tag in tags.values():
+            if ('tag', tag.db_id) in nodeMap:
                 childNode = nodeMap[('tag', tag.db_id)]
                 del nodeMap[('tag', tag.db_id)]
             else:
@@ -1608,8 +1608,8 @@ class DBVistrailXMLDAOBase(XMLDAO):
                 node.appendChild(childNode)
             self.getDao('tag').toXML(tag, doc, childNode)
         abstractions = vistrail.db_abstractions
-        for abstraction in abstractions.itervalues():
-            if nodeMap.has_key(('abstraction', abstraction.db_id)):
+        for abstraction in abstractions.values():
+            if ('abstraction', abstraction.db_id) in nodeMap:
                 childNode = nodeMap[('abstraction', abstraction.db_id)]
                 del nodeMap[('abstraction', abstraction.db_id)]
             else:
@@ -1618,7 +1618,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
             self.getDao('abstraction').toXML(abstraction, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 
@@ -1653,7 +1653,7 @@ class DBModuleExecXMLDAOBase(XMLDAO):
                 # node.removeChild(child)
                 pass
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         obj = DBModuleExec(id=id,
                            ts_start=ts_start,
@@ -1685,7 +1685,7 @@ class DBModuleExecXMLDAOBase(XMLDAO):
         # set elements
         annotations = module_exec.db_annotations
         for annotation in annotations:
-            if nodeMap.has_key(('annotation', annotation.db_id)):
+            if ('annotation', annotation.db_id) in nodeMap:
                 childNode = nodeMap[('annotation', annotation.db_id)]
                 del nodeMap[('annotation', annotation.db_id)]
             else:
@@ -1694,7 +1694,7 @@ class DBModuleExecXMLDAOBase(XMLDAO):
             self.getDao('annotation').toXML(annotation, doc, childNode)
         
         # delete nodes not around anymore
-        for childNode in nodeMap.itervalues():
+        for childNode in nodeMap.values():
             childNode.parentNode.removeChild(childNode)
         return node
 

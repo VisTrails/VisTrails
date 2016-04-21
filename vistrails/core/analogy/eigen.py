@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
-from itertools import imap, chain
+from itertools import chain
 import math
 import operator
 import scipy
@@ -90,8 +90,8 @@ class EigenBase(object):
         # vertex_maps: vertex_id to matrix index
         self._g1_vertex_map = get_vertex_map(self._p1.graph)
         self._g2_vertex_map = get_vertex_map(self._p2.graph)
-        for i in xrange(num_verts_p1):
-            for j in xrange(num_verts_p2):
+        for i in range(num_verts_p1):
+            for j in range(num_verts_p2):
                 v1_id = self._g1_vertex_map.inverse[i]
                 v2_id = self._g2_vertex_map.inverse[j]
                 (in_s8y, out_s8y) = self.compare_modules(v1_id, v2_id)
@@ -105,7 +105,7 @@ class EigenBase(object):
 
     def init_edge_similarity(self):
         def get_edge_map(g):
-            itor = enumerate(imap(lambda x: x[2],
+            itor = enumerate(map(lambda x: x[2],
                                   g.iter_all_edges()))
             return Bidict([(v, k) for (k, v)
                            in itor])
@@ -116,8 +116,8 @@ class EigenBase(object):
         m_e = mzeros((len(self._g1_edge_map),
                       len(self._g2_edge_map)))
 
-        for i in xrange(len(self._g1_edge_map)):
-            for j in xrange(len(self._g2_edge_map)):
+        for i in range(len(self._g1_edge_map)):
+            for j in range(len(self._g2_edge_map)):
                 c1_id = self._g1_edge_map.inverse[i]
                 c2_id = self._g2_edge_map.inverse[j]
                 s8y = self.compare_connections(c1_id, c2_id)
@@ -129,7 +129,7 @@ class EigenBase(object):
 
     def create_type_portmap(self, ports):
         result = {}
-        for port_name, port_descs in ports.iteritems():
+        for port_name, port_descs in ports.items():
             for port_desc in port_descs:
                 sp = tuple(port_desc)
                 append_to_dict_of_lists(result, sp, port_name)
@@ -151,19 +151,19 @@ class EigenBase(object):
         total = 0
         # Outputs can be covariant, inputs can be contravariant
         # FIXME: subtypes, etc etc
-        for (port_name, port_descs) in m1_outputs.iteritems():
+        for (port_name, port_descs) in m1_outputs.items():
             # we use max() .. because we want to count
             # nullary ports as well
             total_descs = max(len(port_descs), 1)
             total += total_descs
             # assert len(port_descs) == 1
-            if (m2_outputs.has_key(port_name) and
+            if (port_name in m2_outputs and
                 m2_outputs[port_name] == port_descs):
                 output_similarity += float(total_descs)
             else:
                 for port_desc in port_descs:
                     port_desc = tuple(port_desc)
-                    if m2_output_hist.has_key(port_desc):
+                    if port_desc in m2_output_hist:
                         output_similarity += 1
         if len(m1_outputs):
             output_similarity /= total
@@ -178,18 +178,18 @@ class EigenBase(object):
         total = 0
         # FIXME: consider supertypes, etc etc
         
-        for (port_name, port_descs) in m1_inputs.iteritems():
+        for (port_name, port_descs) in m1_inputs.items():
             # we use max() .. because we want to count
             # nullary ports as well
             total_descs = max(len(port_descs), 1)
             total += total_descs
-            if (m2_inputs.has_key(port_name) and
+            if (port_name in m2_inputs and
                 m2_inputs[port_name] == port_descs):
                 input_similarity += 1.0
             else:
                 for port_desc in port_descs:
                     port_desc = tuple(port_desc)
-                    if m2_input_hist.has_key(port_desc):
+                    if port_desc in m2_input_hist:
                         input_similarity += 1
 
         if len(m1_inputs):
@@ -211,18 +211,18 @@ class EigenBase(object):
 
         # FIXME: Make this softer in the future
         if self._debug:
-            print "COMPARING %s:%s -> %s:%s with %s:%s -> %s:%s" % \
+            print("COMPARING %s:%s -> %s:%s with %s:%s -> %s:%s" % \
                 (self._p1.modules[c1.sourceId].name, c1.source.name,
                  self._p1.modules[c1.destinationId].name, c1.destination.name,
                  self._p2.modules[c2.sourceId].name, c2.source.name,
-                 self._p2.modules[c2.destinationId].name, c2.destination.name),
+                 self._p2.modules[c2.destinationId].name, c2.destination.name), end=' ')
         if c1.source.name != c2.source.name:
             if self._debug:
-                print 0.0
+                print(0.0)
             return 0.0
         if c1.destination.name != c2.destination.name:
             if self._debug:
-                print 0.0
+                print(0.0)
             return 0.0
 
         m_c1_sid = self._g1_vertex_map[c1.sourceId]
@@ -231,8 +231,8 @@ class EigenBase(object):
         m_c2_did = self._g2_vertex_map[c2.destinationId]
 
         if self._debug:
-            print (self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
-                    self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0
+            print((self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
+                    self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0)
         return (self._output_vertex_s8y[m_c1_sid, m_c2_sid] +
                 self._input_vertex_s8y[m_c1_did, m_c2_did]) / 2.0
 
@@ -249,7 +249,7 @@ class EigenBase(object):
         dm = vd(m)
         widths = dm.max(0)
         (l, c) = m.shape
-        for i in xrange(l):
+        for i in range(l):
             EigenBase.pv(m[i,:],
                          digits=digits,
                          left_digits=widths)
@@ -261,8 +261,8 @@ class EigenBase(object):
         if isinstance(v, scipy.matrix):
             v = scipy.array(v)[0]
         (c,) = v.shape
-        print "[ ",
-        for j in xrange(c):
+        print("[ ", end=' ')
+        for j in range(c):
             if left_digits is not None:
                 d = left_digits[0,j]
             else:
@@ -270,17 +270,17 @@ class EigenBase(object):
             fmt = ("%" +
                    str(d + digits + 1) + 
                    "." + str(digits) + "f ")
-            print (fmt % v[j]),
-        print "]"
+            print((fmt % v[j]), end=' ')
+        print("]")
 
     def print_s8ys(self):
-        print "Input s8y"
+        print("Input s8y")
         self.pm(self._input_vertex_s8y)
-        print "\nOutput s8y"
+        print("\nOutput s8y")
         self.pm(self._output_vertex_s8y)
-        print "\nConnection s8y"
+        print("\nConnection s8y")
         self.pm(self._edge_s8y)
-        print "\nCombined s8y"
+        print("\nCombined s8y")
         self.pm(self._vertex_s8y)
 
     # FIXME: move this somewhere decent.
@@ -294,7 +294,7 @@ class EigenBase(object):
             def update_elements(spec):
                 return [v.name for v
                         in spec.descriptors()]
-            for k in d.keys():
+            for k in list(d.keys()):
                 v = update_elements(d[k])
                 if len(v):
                     d[k] = v
@@ -326,8 +326,8 @@ class EigenPipelineSimilarity2(EigenBase):
         def edges(pip, v_id):
             def from_fn(x): return (x[1], x[2])
             def to_fn(x): return (x[0], x[2])
-            return chain(imap(from_fn,   pip.graph.iter_edges_from(v_id)),
-                         imap(to_fn,     pip.graph.iter_edges_to(v_id)))
+            return chain(map(from_fn,   pip.graph.iter_edges_from(v_id)),
+                         map(to_fn,     pip.graph.iter_edges_to(v_id)))
         num_verts_p1 = len(self._p1.graph.vertices)
         num_verts_p2 = len(self._p2.graph.vertices)
         n = num_verts_p1 * num_verts_p2
@@ -337,9 +337,9 @@ class EigenPipelineSimilarity2(EigenBase):
         h = sparse.lil_matrix((n, n))
         # a is the dangling node vector
         a = mzeros(n)
-        for i in xrange(num_verts_p1):
+        for i in range(num_verts_p1):
             v1_id = self._g1_vertex_map.inverse[i]
-            for j in xrange(num_verts_p2):
+            for j in range(num_verts_p2):
                 ix_ij = ix(i,j)
                 v2_id = self._g2_vertex_map.inverse[j]
                 running_sum = 0.0
@@ -382,8 +382,8 @@ class EigenPipelineSimilarity2(EigenBase):
                                        self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
-            for i in xrange(len(self._p1.modules)):
-                for j in xrange(len(self._p2.modules)):
+            for i in range(len(self._p1.modules)):
+                for j in range(len(self._p2.modules)):
                     f.write('%f ' % x[i,j])
                 f.write('\n')
             f.close()
@@ -403,15 +403,15 @@ class EigenPipelineSimilarity2(EigenBase):
         def write_debug_pipeline_positions(pipeline, mmap, f):
             f.write('%d %d\n' % (len(pipeline.modules),
                                  len(pipeline.connections)))
-            for k, v in mmap.iteritems():
+            for k, v in mmap.items():
                 f.write('%d %d\n' % (k, v))
             c = pipeline_centroid(pipeline)
             mn, mx = pipeline_bbox(pipeline)
             f.write('%f %f %f %f\n' % (mn.x, mn.y, mx.x, mx.y))
-            for i, m in pipeline.modules.iteritems():
+            for i, m in pipeline.modules.items():
                 nc = m.center - c
                 f.write('%d %s %f %f\n' % (i, m.name, nc.x, nc.y))
-            for i, c in pipeline.connections.iteritems():
+            for i, c in pipeline.connections.items():
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
 
         if self._debug:
@@ -445,18 +445,18 @@ class EigenPipelineSimilarity2(EigenBase):
         r_out = r_out * 0.9 + r_combined * 0.1
 
         if self._debug:
-            print "== G1 =="
-            for (k,v) in sorted(self._g1_vertex_map.iteritems(), key=operator.itemgetter(1)):
-                print v, k, self._p1.modules[k].name
-            print "== G2 =="
-            for (k,v) in sorted(self._g2_vertex_map.iteritems(), key=operator.itemgetter(1)):
-                print v, k, self._p2.modules[k].name
+            print("== G1 ==")
+            for (k,v) in sorted(iter(self._g1_vertex_map.items()), key=operator.itemgetter(1)):
+                print(v, k, self._p1.modules[k].name)
+            print("== G2 ==")
+            for (k,v) in sorted(iter(self._g2_vertex_map.items()), key=operator.itemgetter(1)):
+                print(v, k, self._p2.modules[k].name)
             
-            print "input similarity"
+            print("input similarity")
             self.pm(r_in, digits=3)
-            print "output similarity"
+            print("output similarity")
             self.pm(r_out, digits=3)
-            print "combined similarity"
+            print("combined similarity")
             self.pm(r_combined, digits=3)
 
         inputmap = dict([(self._g1_vertex_map.inverse[ix],

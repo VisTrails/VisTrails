@@ -36,7 +36,7 @@
 
 """This file contains code to handle InvalidPipeline exceptions that contain
 upgrade requests."""
-from __future__ import division
+
 
 import copy
 import os
@@ -109,7 +109,7 @@ class UpgradeModuleRemap(object):
     @classmethod
     def __copy__(cls, obj):
         newobj = cls()
-        for k, v in obj.__dict__.iteritems():
+        for k, v in obj.__dict__.items():
             if k.startswith('_') and k.endswith('_remap'):
                 v = copy.copy(v)
             newobj.__dict__[k] = v
@@ -130,8 +130,8 @@ class UpgradeModuleRemap(object):
             raise TypeError("UpgradeModuleRemap.from_tuple() got a tuple of "
                             "length %d" % len(t))
         if remap is not None:
-            for remap_type, remap_dict in remap.iteritems():
-                for remap_name, remap_change in remap_dict.iteritems():
+            for remap_type, remap_dict in remap.items():
+                for remap_name, remap_change in remap_dict.items():
                     obj.add_remap(remap_type, remap_name, remap_change)
         return obj
 
@@ -192,13 +192,13 @@ class UpgradePackageRemap(object):
     def __copy__(cls, obj):
         newobj = cls()
         newobj.remaps = dict((modname, copy.copy(modremap))
-                             for modname, modremap in obj.remaps.iteritems())
+                             for modname, modremap in obj.remaps.items())
         return newobj
 
     @classmethod
     def from_dict(cls, d):
         pkg_remap = cls()
-        for module_name, remap_list in d.iteritems():
+        for module_name, remap_list in d.items():
             for remap in remap_list:
                 pkg_remap.add_module_remap(remap, module_name)
         return pkg_remap
@@ -278,7 +278,7 @@ class UpgradeWorkflowHandler(object):
                 found = True
 
                 spec_tuples = parse_port_spec_string(sigstring, basic_pkg)
-                for i in xrange(len(spec_tuples)):
+                for i in range(len(spec_tuples)):
                     spec_tuple = spec_tuples[i]
                     port_pkg = reg.get_package_by_name(spec_tuple[0])
                     if port_pkg.identifier != spec_tuple[0]:
@@ -323,7 +323,7 @@ class UpgradeWorkflowHandler(object):
         try:
             try:
                 d = get_descriptor(mpkg, mname, mnamespace, '', desired_version)
-            except MissingModule, e:
+            except MissingModule as e:
                 r = None
                 if pkg.can_handle_missing_modules():
                     r = pkg.handle_missing_module(controller, module_id, 
@@ -332,7 +332,7 @@ class UpgradeWorkflowHandler(object):
                                        desired_version)
                 if not r:
                     raise e
-        except MissingModule, e:
+        except MissingModule as e:
             return None
         assert isinstance(d, ModuleDescriptor)
         return d
@@ -427,7 +427,7 @@ class UpgradeWorkflowHandler(object):
                               dst_module, dst_port):
         # spec -> name, type, signature
         output_port_id = controller.id_scope.getNewId(Port.vtType)
-        if isinstance(src_port, basestring):
+        if isinstance(src_port, str):
             output_port_spec = src_module.get_port_spec(src_port, 'output')
             output_port = Port(id=output_port_id,
                                spec=output_port_spec,
@@ -442,7 +442,7 @@ class UpgradeWorkflowHandler(object):
                                moduleName=src_module.name)
 
         input_port_id = controller.id_scope.getNewId(Port.vtType)
-        if isinstance(dst_port, basestring):
+        if isinstance(dst_port, str):
             input_port_spec = dst_module.get_port_spec(dst_port, 'input')
             input_port = Port(id=input_port_id,
                               spec=input_port_spec,
@@ -491,7 +491,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add the annotation back in
                     continue
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     ops.extend(remap(annotation))
                     continue
                 else:
@@ -511,7 +511,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add the control param back in
                     continue
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     ops.extend(remap(control_param))
                     continue
                 else:
@@ -533,7 +533,7 @@ class UpgradeWorkflowHandler(object):
                         remap = dst_port_remap[port_spec.name]
                         if remap is None:
                             continue
-                        elif not isinstance(remap, basestring):
+                        elif not isinstance(remap, str):
                             ops.extend(remap(port_spec))
                             continue
                         else:
@@ -545,7 +545,7 @@ class UpgradeWorkflowHandler(object):
                         remap = src_port_remap[port_spec.name]
                         if remap is None:
                             continue
-                        elif not isinstance(remap, basestring):
+                        elif not isinstance(remap, str):
                             ops.extend(remap(port_spec))
                             continue
                         else:
@@ -563,15 +563,15 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add the function back in
                     continue                    
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     function_ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
 
             if len(function.parameters) > 0:
-                new_param_vals, aliases = zip(*[(p.strValue, p.alias) 
-                                                for p in function.parameters])
+                new_param_vals, aliases = list(zip(*[(p.strValue, p.alias) 
+                                                for p in function.parameters]))
             else:
                 new_param_vals = []
                 aliases = []
@@ -585,7 +585,7 @@ class UpgradeWorkflowHandler(object):
                 n_items = len(new_param_vals)
                 function_port_spec = PortSpec(name=function_name,
                                               items=[mk_psi(i) 
-                                                     for i in xrange(n_items)])
+                                                     for i in range(n_items)])
             new_function = controller.create_function(new_module, 
                                                       function_port_spec,
                                                       new_param_vals,
@@ -612,7 +612,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add this connection back in
                     continue
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     ops.extend(remap(old_conn, new_module))
                     continue
                 else:
@@ -643,7 +643,7 @@ class UpgradeWorkflowHandler(object):
                 if remap is None:
                     # don't add this connection back in
                     continue
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     ops.extend(remap(old_conn, new_module))
                     continue
                 else:
@@ -688,8 +688,9 @@ class UpgradeWorkflowHandler(object):
         # try to determine whether new module is an abstraction
         if (hasattr(new_descriptor, 'module') and
             hasattr(new_descriptor.module, "vistrail") and 
-            hasattr(new_descriptor.module, "internal_version")):
-            internal_version = new_descriptor.version
+            hasattr(new_descriptor.module, "internal_version") and
+            new_descriptor.version is not None):
+            internal_version = int(new_descriptor.version)
         new_module = \
             controller.create_module_from_descriptor(new_descriptor,
                                                      old_module.location.x,
@@ -776,7 +777,7 @@ class UpgradeWorkflowHandler(object):
             new_module_type = module_remap.new_module
             if new_module_type is None:
                 new_module_t = old_module_t
-            elif isinstance(new_module_type, basestring):
+            elif isinstance(new_module_type, str):
                 new_module_t = parse_descriptor_string(new_module_type,
                                                        old_module_t[0])
             elif isinstance(new_module_type, ModuleDescriptor):
@@ -795,7 +796,7 @@ class UpgradeWorkflowHandler(object):
                 # upgrading to the current version
                 try:
                     new_module_desc = reg.get_descriptor_by_name(*new_module_t)
-                except MissingModule, e:
+                except MissingModule as e:
                     # if the replacement is an abstraction,
                     # and it has been upgraded, we use that
                     if reg.has_abs_upgrade(*new_module_t):
@@ -995,18 +996,18 @@ class TestUpgradePackageRemap(unittest.TestCase):
             created_vistrail = True
             c = app.get_controller()
             current_version = self.create_workflow(c)
-            for m in c.current_pipeline.modules.itervalues():
+            for m in c.current_pipeline.modules.values():
                 self.assertEqual(m.version, '0.8')
 
             c.change_selected_version(current_version, from_root=True)
             
             self.assertEqual(len(c.current_pipeline.modules), 2)
-            for m in c.current_pipeline.modules.itervalues():
+            for m in c.current_pipeline.modules.values():
                 self.assertEqual(m.version, '1.0')
                 if m.name == "TestUpgradeA":
                     self.assertEqual(m.functions[0].name, 'aaa')
             self.assertEqual(len(c.current_pipeline.connections), 1)
-            conn = c.current_pipeline.connections.values()[0]
+            conn = list(c.current_pipeline.connections.values())[0]
             self.assertEqual(conn.source.name, 'zzz')
             self.assertEqual(conn.destination.name, 'b')
                 

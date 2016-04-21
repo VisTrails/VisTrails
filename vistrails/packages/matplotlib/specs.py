@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import inspect
-import mixins
+from . import mixins
 from xml.etree import ElementTree as ET
 
 def capfirst(s):
@@ -218,7 +218,7 @@ class PortSpec(object):
         self.set_defaults(**kwargs)
 
     def set_defaults(self, **kwargs):
-        for attr, props in self.attrs.iteritems():
+        for attr, props in self.attrs.items():
             if isinstance(props, tuple):
                 default_val = props[0]
             else:
@@ -238,7 +238,7 @@ class PortSpec(object):
         if elt is None:
             elt = ET.Element(self.xml_name)
         elt.set("arg", self.arg)
-        for attr, props in self.attrs.iteritems():
+        for attr, props in self.attrs.items():
             attr_val = getattr(self, attr)
             is_subelt = False
             if isinstance(props, tuple):
@@ -272,7 +272,7 @@ class PortSpec(object):
             child_elts[child.tag].append(child)
 
         kwargs = {}
-        for attr, props in obj.attrs.iteritems():
+        for attr, props in obj.attrs.items():
             is_subelt = False
             run_eval = False
             if isinstance(props, tuple):
@@ -286,7 +286,7 @@ class PortSpec(object):
                     attr_vals = [c.text for c in child_elts[attr]
                                  if c.text is not None]
                     if attr == "docstring":
-                        print "()() docstring attr_vals:", attr_vals
+                        print("()() docstring attr_vals:", attr_vals)
             else:
                 attr_val = elt.get(attr)
                 if attr_val is not None:
@@ -423,18 +423,18 @@ class AlternatePortSpec(InputPortSpec):
         self.arg = self._parent.arg
 
     def get_port_attr_dict(self):
-        print "CALLING AlternatePortSpec.get_port_attr_dict", self.arg
+        print("CALLING AlternatePortSpec.get_port_attr_dict", self.arg)
         my_attrs = InputPortSpec.get_port_attr_dict(self)
-        print "=> my_attrs:", my_attrs
+        print("=> my_attrs:", my_attrs)
         par_attrs = self._parent.get_port_attr_dict()
-        print "=> par_attrs:", par_attrs
-        for k, v in par_attrs.iteritems():
+        print("=> par_attrs:", par_attrs)
+        for k, v in par_attrs.items():
             if k == 'defaults' or k == "values" or k == "entry_types" or \
                     k == "translations":
                 continue
             if k not in my_attrs or my_attrs[k] is None:
                 my_attrs[k] = v
-        print my_attrs
+        print(my_attrs)
         return my_attrs
 
 class OutputPortSpec(PortSpec):

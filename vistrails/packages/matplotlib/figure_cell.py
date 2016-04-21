@@ -38,18 +38,22 @@
 Matplotlib viewer into our spreadsheet
 """
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import os
 
 import matplotlib
 import pylab
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
-from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, \
+    NavigationToolbar2QT
+from matplotlib.backend_bases import NavigationToolbar2
 
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
+    SpreadsheetMode
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
+    QCellToolBar, SpreadsheetAction
 
 FigureCanvasQTAgg.DEBUG = True
 
@@ -95,11 +99,11 @@ class MplFigureCellWidget(QCellWidget):
         Initialize the widget with its central layout
         
         """
-        QCellWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        centralLayout = QtGui.QVBoxLayout()
+        centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.canvas = None
         self.figure = None
@@ -121,8 +125,8 @@ class MplFigureCellWidget(QCellWidget):
 
             self.canvas = FigureCanvasQTAgg(self.figure)
             self.mplToolbar = MplNavigationToolbar(self.canvas, None)
-            self.canvas.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                      QtGui.QSizePolicy.Expanding)
+            self.canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                      QtWidgets.QSizePolicy.Expanding)
             self.layout().addWidget(self.canvas)
 
     def keyPressEvent(self, event):
@@ -147,7 +151,7 @@ class MplFigureCellWidget(QCellWidget):
         Widget special grabbing function
         
         """
-        return QtGui.QPixmap.grabWidget(self.canvas)
+        return QtGui.QPixmap.grab(self.canvas)
 
     def dumpToFile(self, filename):
         previous_size = tuple(self.figure.get_size_inches())
@@ -207,7 +211,7 @@ class MplFigureCellToolBar(QCellToolBar):
         actions = {}
         for (text, tooltip_text, image_file, callback, checkable) in toolitems:
             icon = QtGui.QIcon(os.path.join(icondir, image_file))
-            action = QtGui.QAction(icon, text, self)
+            action = SpreadsheetAction(icon, text, self)
             action.setStatusTip(tooltip_text)
             action.setCheckable(checkable)
             actions[text] = action
@@ -219,7 +223,7 @@ class MplFigureCellToolBar(QCellToolBar):
                 cellWidget = act.toolBar.getSnappedWidget()
                 getattr(cellWidget.mplToolbar, cb)()
                 if txt in exclusive_actions:
-                    for t, a in exclusive_actions.iteritems():
+                    for t, a in exclusive_actions.items():
                         if txt != t:
                             a.setChecked(False)
             return callback

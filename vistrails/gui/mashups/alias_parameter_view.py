@@ -39,10 +39,10 @@ of parameters
 
 QAliasParameterView
 """
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
@@ -52,20 +52,22 @@ from vistrails.gui.theme import CurrentTheme
 from vistrails.core.utils import InstanceObject
 
 ################################################################################
-class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
+
+
+class QAliasParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super().__init__(parent=parent)
         self.set_title("Mashup Pipeline")
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.parameter_panel = QAliasParameterPanel()
         font = QtGui.QFont("Arial", 11, QtGui.QFont.Normal)
         font.setItalic(True)
-        label = QtGui.QLabel("Double-click a parameter to change alias")
+        label = QtWidgets.QLabel("Double-click a parameter to change alias")
         label.setFont(font)
-        param_group = QtGui.QGroupBox(self.parameter_panel.windowTitle())
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        param_group = QtWidgets.QGroupBox(self.parameter_panel.windowTitle())
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(2)
         g_layout.addWidget(label)
         g_layout.addWidget(self.parameter_panel)
@@ -74,9 +76,9 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         
         self.pipeline_view = QAnnotatedPipelineView()
         self.pipeline_view.setReadOnlyMode(True)
-        p_view_group = QtGui.QGroupBox(self.pipeline_view.windowTitle())
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        p_view_group = QtWidgets.QGroupBox(self.pipeline_view.windowTitle())
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.pipeline_view)
         p_view_group.setLayout(g_layout)
@@ -147,7 +149,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
     
     """
     #signals
-    aliasChanged = pyqtSignal(InstanceObject)
+    aliasChanged = QtCore.pyqtSignal(InstanceObject)
     
     def __init__(self, parent=None):
         """ QAliasParameterTreeWidget(parent: QWidget) -> QParameterTreeWidget
@@ -161,6 +163,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
         self.setItemDelegate(self.delegate)
         self.aliasNames = []
         self.itemDoubleClicked.connect(self.changeAlias)
+
     def updateFromPipeline(self, pipeline):
         """ updateFromPipeline(pipeline: Pipeline) -> None
         Read the list of aliases and parameters from the pipeline
@@ -197,20 +200,20 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
 #            aliasRoot.setExpanded(True)
             
         # Now go through all modules and functions
-        self.aliasNames = pipeline.aliases.keys()
+        self.aliasNames = list(pipeline.aliases.keys())
         inspector = PipelineInspector()
         inspector.inspect_ambiguous_modules(pipeline)
-        sortedModules = sorted(pipeline.modules.iteritems(),
+        sortedModules = sorted(iter(pipeline.modules.items()),
                                key=lambda item: item[1].name)
         for mId, module in sortedModules:
             if len(module.functions)>0:
                 mLabel = [module.name]
                 moduleItem = None
-                for fId in xrange(len(module.functions)):
+                for fId in range(len(module.functions)):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QAliasParameterTreeWidgetItem(annotatedId,
                                                                        self, mLabel)
@@ -230,7 +233,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                                            parent_id=function.real_id,
                                            alias=function.params[pId].alias,
                                            mId=mId)
-                             for pId in xrange(len(function.params))]
+                             for pId in range(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter!=None:
                         mName += '(%d)' % moduleItem.parameter
@@ -241,7 +244,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                 if moduleItem:
                     moduleItem.setExpanded(True)
                     
-    @pyqtSlot(QtGui.QTreeWidgetItem, int)    
+    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def changeAlias(self, item, column ):
         """ itemClicked(item:  , column: int) -> None        
         If mouse click on the item, show up a dialog to change/add
@@ -249,18 +252,18 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
         
         """
         if isinstance(item.parameter, InstanceObject):
-            (text, ok) = QtGui.QInputDialog.getText(self,
+            (text, ok) = QtWidgets.QInputDialog.getText(self,
                                                     'Set Parameter Alias',
                                                     'Enter the parameter alias',
-                                                    QtGui.QLineEdit.Normal,
+                                                    QtWidgets.QLineEdit.Normal,
                                                     item.parameter.alias)
             while ok and str(text) in self.aliasNames:
                 msg =" This alias is already being used.\
  Please enter a different parameter alias "
-                (text, ok) = QtGui.QInputDialog.getText(self,
+                (text, ok) = QtWidgets.QInputDialog.getText(self,
                                                         'Set Parameter Alias',
                                                         msg,
-                                                        QtGui.QLineEdit.Normal,
+                                                        QtWidgets.QLineEdit.Normal,
                                                         text)
             if ok and item.parameter.alias != str(text):
                 item.parameter.alias = str(text)
@@ -269,7 +272,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
             
             
         
-class QAliasParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
+class QAliasParameterTreeWidgetItemDelegate(QtWidgets.QItemDelegate):
     """    
     QAliasParameterTreeWidgetItemDelegate will override the original
     QTreeWidget paint function to draw buttons for top-level item
@@ -285,7 +288,7 @@ class QAliasParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Create the item delegate given the tree view
         
         """
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
         self.treeView = view
 
     def paint(self, painter, option, index):
@@ -335,18 +338,18 @@ class QAliasParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                               QtCore.Qt.AlignLeft |
                                               QtCore.Qt.AlignVCenter)
         else:
-            QtGui.QItemDelegate.paint(self, painter, option, index)
+            QtWidgets.QItemDelegate.paint(self, painter, option, index)
 
     def sizeHint(self, option, index):
         """ sizeHint(option: QStyleOptionViewItem, index: QModelIndex) -> None
         Take into account the size of the top-level button
         
         """
-        return (QtGui.QItemDelegate.sizeHint(self, option, index) +
+        return (QtWidgets.QItemDelegate.sizeHint(self, option, index) +
                 QtCore.QSize(2, 2))
             
 
-class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
+class QAliasParameterTreeWidgetItem(QtWidgets.QTreeWidgetItem):
     """
     QParameterTreeWidgetItem represents module on QParameterTreeWidget
     
@@ -366,7 +369,7 @@ class QAliasParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
 
         """
         self.parameter = info
-        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, labelList)
         if isinstance(self.parameter, int):
             self.setData(0, QtCore.Qt.UserRole+1, self.parameter)
         elif isinstance(self.parameter, tuple):

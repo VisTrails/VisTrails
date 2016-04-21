@@ -36,11 +36,11 @@
 ################################################################################
 # RichText plugin for VisTrails Spreadsheet
 ################################################################################
-from __future__ import division
+
 
 from vistrails.core.modules.output_modules import RichTextOutput
 
-from richtext import RichTextCell, XSLCell, RichTextToSpreadsheet
+from .richtext import RichTextCell, XSLCell, RichTextToSpreadsheet
 
 ################################################################################
 

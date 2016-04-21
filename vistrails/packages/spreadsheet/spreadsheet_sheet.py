@@ -41,14 +41,15 @@ others:
   StandardWidgetSheet
 """
 
-from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 from .spreadsheet_helpers import CellHelpers, CellResizer
 
 
-class StandardWidgetHeaderView(QtGui.QHeaderView):
+class StandardWidgetHeaderView(QtWidgets.QHeaderView):
     """
     StandardWidgetHeaderView is the standard header view (containing
     column/row labels) inheriting from QHeaderView. The main
@@ -68,18 +69,17 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         Initialize the header view to be like the one in the spreadsheet table
 
         """
-        QtGui.QHeaderView.__init__(self, orientation, parent)
-        self.setMovable(True)
+        QtWidgets.QHeaderView.__init__(self, orientation, parent)
+        self.setSectionsMovable(True)
         self.setFont(QtGui.QFont("Helvetica",12,QtGui.QFont.Bold))
-        self.resizeSections(QtGui.QHeaderView.Stretch)
-        self.setClickable(True)
+        self.resizeSections(QtWidgets.QHeaderView.Stretch)
+        self.setSectionsClickable(True)
         self.setHighlightSections(True)
         if orientation==QtCore.Qt.Vertical:
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter |
                                      QtCore.Qt.AlignVCenter)
 
-        self.connect(self, QtCore.SIGNAL('sectionResized(int, int, int)'),
-                     self.section_resized)
+        self.sectionResized.connect(self.section_resized)
         self._target_size = None
 
     section_sizes = None
@@ -87,7 +87,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         if (self.section_sizes is None or
                 len(self.section_sizes) != self.count()):
             self.section_sizes = [float(self.sectionSize(self.logicalIndex(i)))
-                                  for i in xrange(self.count())]
+                                  for i in range(self.count())]
 
     _resizing = False
 
@@ -136,7 +136,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         # Can't take other cells below minimum size
         if new_size > old_size:
             min_right = 0
-            for i in xrange(vis_index + 1, self.count()):
+            for i in range(vis_index + 1, self.count()):
                 if not self.isSectionHidden(self.logicalIndex(i)):
                     min_right += self.MINIMUM_SIZE
             pos = self.sectionPosition(log_index)
@@ -179,7 +179,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         Set a default thickness of the bar to 30
 
         """
-        size = QtGui.QHeaderView.sizeHint(self)
+        size = QtWidgets.QHeaderView.sizeHint(self)
         if self.orientation()==QtCore.Qt.Vertical:
             size.setWidth(self.THICKNESS)
         else:
@@ -187,7 +187,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         return size
 
 
-class StandardWidgetItemDelegate(QtGui.QItemDelegate):
+class StandardWidgetItemDelegate(QtWidgets.QItemDelegate):
     """
     StandardWidgetItemDelegate will replace the QTableWidget default
     display to have a padding around every cell widget
@@ -201,7 +201,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
         """
         self.table = table
         self.padding = 4
-        QtGui.QItemDelegate.__init__(self, None)
+        QtWidgets.QItemDelegate.__init__(self, None)
 
     def setPadding(self, padding):
         """ setPadding(padding: int) -> None
@@ -229,7 +229,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
         Paint the current cell with a ring outside
 
         """
-        QtGui.QItemDelegate.paint(self, painter, option, index)
+        QtWidgets.QItemDelegate.paint(self, painter, option, index)
         if ((index.row(), index.column())==self.table.activeCell):
             painter.save()
             painter.setPen(QtGui.QPen(QtGui.QBrush(
@@ -242,7 +242,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
             painter.restore()
 
 
-class StandardWidgetSheet(QtGui.QTableWidget):
+class StandardWidgetSheet(QtWidgets.QTableWidget):
     """
     StandardWidgetSheet is a standard sheet that can contain any type
     of cell widget. Each of them will be put into a separate cell. In
@@ -251,47 +251,35 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     VTK sheet need to be derived from this one
 
     """
+    cellActivated = QtCore.pyqtSignal(int,int,bool)
+
     def __init__(self, rows=0, cols=0, parent=None):
         """ StandardWidgetSheet(rows: int, cols: int, parent: QWidget)
                                 -> StandardWidgetSheet
         Construct a sheet with rows x cols cells
 
         """
-        QtGui.QTableWidget.__init__(self, 0, 0, parent)
-        self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+        QtWidgets.QTableWidget.__init__(self, 0, 0, parent)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
         self.fitToWindow = False
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setHorizontalHeader(StandardWidgetHeaderView(QtCore.Qt.Horizontal,
                                                           self))
         self.horizontalHeader().setSelectionModel(self.selectionModel())
-        self.connect(self.horizontalHeader(),
-                     QtCore.SIGNAL('sectionCountChanged(int, int)'),
-                     self.updateColumnLabels)
-        self.connect(self.horizontalHeader(),
-                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
-                     self.columnMoved)
-        self.connect(self.horizontalHeader(),
-                     QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceColumnMultiSelect)
+        self.horizontalHeader().sectionCountChanged.connect(self.updateColumnLabels)
+        self.horizontalHeader().sectionMoved.connect(self.columnMoved)
+        self.horizontalHeader().sectionPressed.connect(self.forceColumnMultiSelect)
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
-        self.connect(self.verticalHeader(),
-                     QtCore.SIGNAL('sectionCountChanged(int, int)'),
-                     self.updateRowLabels)
-        self.connect(self.verticalHeader(),
-                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
-                     self.rowMoved)
-        self.connect(self.verticalHeader(),
-                     QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceRowMultiSelect)
+        self.verticalHeader().sectionCountChanged.connect(self.updateRowLabels)
+        self.verticalHeader().sectionMoved.connect(self.rowMoved)
+        self.verticalHeader().sectionPressed.connect(self.forceRowMultiSelect)
 
         # A hack to force the select all button in single click mode
-        cornerButton = self.findChild(QtGui.QAbstractButton)
+        cornerButton = self.findChild(QtWidgets.QAbstractButton)
         if cornerButton:
-            self.connect(cornerButton,
-                         QtCore.SIGNAL('clicked()'),
-                         self.forceSheetSelect)
+            cornerButton.clicked.connect(self.forceSheetSelect)
 
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
@@ -299,9 +287,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
-        self.connect(self,
-                     QtCore.SIGNAL('cellActivated(int, int, bool)'),
-                     self.selectCell)
+        self.cellActivated.connect(self.selectCell)
         self.activeCell = (-1,-1)
 
     def forceColumnMultiSelect(self, logicalIndex):
@@ -313,12 +299,12 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         if (self.selectionModel().isColumnSelected(logicalIndex, QtCore.QModelIndex())):
             self.selectionModel().select(self.model().index(0, logicalIndex),
-                                         QtGui.QItemSelectionModel.Deselect |
-                                         QtGui.QItemSelectionModel.Columns)
+                                         QtCore.QItemSelectionModel.Deselect |
+                                         QtCore.QItemSelectionModel.Columns)
         else:
             self.selectionModel().select(self.model().index(0, logicalIndex),
-                                         QtGui.QItemSelectionModel.Select |
-                                         QtGui.QItemSelectionModel.Columns)
+                                         QtCore.QItemSelectionModel.Select |
+                                         QtCore.QItemSelectionModel.Columns)
 
     def forceRowMultiSelect(self, logicalIndex):
         """ forceRowMultiSelect(logicalIndex: int) -> None
@@ -329,12 +315,12 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         if (self.selectionModel().isRowSelected(logicalIndex, QtCore.QModelIndex())):
             self.selectionModel().select(self.model().index(logicalIndex, 0),
-                                         QtGui.QItemSelectionModel.Deselect |
-                                         QtGui.QItemSelectionModel.Rows)
+                                         QtCore.QItemSelectionModel.Deselect |
+                                         QtCore.QItemSelectionModel.Rows)
         else:
             self.selectionModel().select(self.model().index(logicalIndex, 0),
-                                         QtGui.QItemSelectionModel.Select |
-                                         QtGui.QItemSelectionModel.Rows)
+                                         QtCore.QItemSelectionModel.Select |
+                                         QtCore.QItemSelectionModel.Rows)
 
     def forceSheetSelect(self):
         """ forceSheetSelect() -> None
@@ -344,10 +330,10 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         totalCells = self.rowCount()*self.columnCount()
         if (len(self.selectionModel().selectedIndexes())<totalCells):
             self.selectionModel().select(
-                QtGui.QItemSelection(self.model().index(0,0),
+                QtCore.QItemSelection(self.model().index(0,0),
                                      self.model().index(self.rowCount()-1,
                                                         self.columnCount()-1)),
-                QtGui.QItemSelectionModel.Select)
+                QtCore.QItemSelectionModel.Select)
         else:
             self.selectionModel().clearSelection()
 
@@ -369,7 +355,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         vLabels = []
         vIdx = self.verticalHeader().visualIndex
-        for i in xrange(newCount):
+        for i in range(newCount):
             vLabels.append(str(vIdx(i)+1))
         self.setVerticalHeaderLabels(vLabels)
         self.updateHeaderStatus()
@@ -388,7 +374,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         hLabels = []
         vIdx = self.horizontalHeader().visualIndex
-        for i in xrange(newCount):
+        for i in range(newCount):
             hLabels.append(chr(vIdx(i)+ord('A')))
         self.setHorizontalHeaderLabels(hLabels)
         self.updateHeaderStatus()
@@ -438,8 +424,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
 
         """
         if self.fitToWindow:
-            self.horizontalHeader().resizeSections(QtGui.QHeaderView.Stretch)
-            self.verticalHeader().resizeSections(QtGui.QHeaderView.Stretch)
+            self.horizontalHeader().resizeSections(QtWidgets.QHeaderView.Stretch)
+            self.verticalHeader().resizeSections(QtWidgets.QHeaderView.Stretch)
 
     def showHelpers(self, show, row, col):
         """ showHelpers(show: boolean, row: int, col: int) -> None
@@ -483,18 +469,18 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             row = self.verticalHeader().logicalIndex(vRow)
             col = self.horizontalHeader().logicalIndex(vCol)
         cellSet = set()
-        for r in xrange(self.rowCount()):
-            for c in xrange(self.columnCount()):
+        for r in range(self.rowCount()):
+            for c in range(self.columnCount()):
                 cellSet.add((r, c))
-        for r in xrange(self.rowCount()):
-            for c in xrange(self.columnCount()):
+        for r in range(self.rowCount()):
+            for c in range(self.columnCount()):
                 if (r, c) not in cellSet:
                     continue
                 rect = self.visualRect(self.model().index(r, c))
                 rSpan = self.rowSpan(r, c)
                 cSpan = self.columnSpan(r, c)
-                for rs in xrange(rSpan):
-                    for cs in xrange(cSpan):
+                for rs in range(rSpan):
+                    for cs in range(cSpan):
                         if (row==r+rs) and (col==c+cs):
                             return (r, c)
                         if (r+rs, c+cs) in cellSet:
@@ -555,7 +541,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         (row, col) = self.getRealLocation(row, col, visual=True)
         if toggling:
             self.selectionModel().setCurrentIndex(self.model().index(row, col),
-                                                  QtGui.QItemSelectionModel.Toggle)
+                                                  QtCore.QItemSelectionModel.Toggle)
             if (self.selectionModel().isSelected(self.model().index(row, col))):
                 self.setActiveCell(row, col)
             else:
@@ -564,7 +550,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             if len(self.selectionModel().selectedIndexes())<=1:
                 self.selectionModel().setCurrentIndex(
                     self.model().index(row, col),
-                    QtGui.QItemSelectionModel.ClearAndSelect)
+                    QtCore.QItemSelectionModel.ClearAndSelect)
             self.setActiveCell(row, col)
         self.viewport().repaint()
 

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
@@ -119,9 +119,10 @@ class RQModule(JobMixin, Module):
             return RQModule.default_machine[3]
         if password:
             text = 'Enter password for %s@%s' % (username, server)
-            from PyQt4 import QtGui
-            (password, ok) = QtGui.QInputDialog.getText(None, text, text,
-                                                     QtGui.QLineEdit.Password)
+            from PyQt5 import QtWidgets
+
+            (password, ok) = QtWidgets.QInputDialog.getText(None, text, text,
+                                                     QtWidgets.QLineEdit.Password)
             if not ok:
                 raise ModuleError(self, "Canceled password")
         machine = Machine.create_machine(server, username, password, port)
@@ -539,9 +540,9 @@ def initialize():
     global _modules
     _modules = [Machine, RQModule, RunPBSScript, RunCommand, RunJob,
                 SyncDirectories, CopyFile]
-    import base
-    import hdfs
-    import streaming
+    from . import base
+    from . import hdfs
+    from . import streaming
     _modules.extend(base.register())
     _modules.extend(hdfs.register())
     _modules.extend(streaming.register())

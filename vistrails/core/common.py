@@ -33,13 +33,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.utils import \
      InstanceObject, \
      enum, \
      trace_method_args, trace_method_args, bump_trace, report_stack, \
      memo_method, \
-     all, any, \
      eprint, \
      VistrailsInternalError

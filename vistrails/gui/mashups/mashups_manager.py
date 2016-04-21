@@ -33,14 +33,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import base64
 import copy
 import os
 import tempfile
 import uuid
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.core.db.action
 from vistrails.core.vistrail.controller import VistrailController as BaseVistrailController
@@ -74,7 +75,7 @@ class MashupsManager(object):
         if not MashupsManager._instance:
             MashupsManager._instance = self
         else:
-            raise RuntimeError, 'Only one instance of MashupsManager is allowed'
+            raise RuntimeError('Only one instance of MashupsManager is allowed')
 
     def createMashupController(self, vt_controller, version, view=DummyView()):
         #print "Manager creating mashup controller ", vt_controller, version
@@ -87,7 +88,7 @@ class MashupsManager(object):
             (p_mashuptrail, p_version) = \
                      MashupsManager.findClosestParentMashuptrail(vt_controller, 
                                                                  version)
-            id_scope = IdScope(1L)
+            id_scope = IdScope(1)
             if p_mashuptrail is not None:
                 version_name = vt_controller.get_pipeline_name(p_version)
                 (res, mshpv) = MashupsManager.showFoundMashupsDialog(p_mashuptrail, 
@@ -163,7 +164,7 @@ class MashupsManager(object):
                                               newvt_controller, 
                                               version, mashuptrail)
             mshpController.setCurrentVersion(mashuptrail.currentVersion)
-            if mshpController.currentVersion == 1L:
+            if mshpController.currentVersion == 1:
                 mshpController.updateCurrentTag("ROOT")
         else:
             #print "----> found mashuptrail ", mashuptrail.currentVersion
@@ -237,30 +238,30 @@ class MashupsManager(object):
     
     @staticmethod
     def showFoundMashupsDialog(mashup_trail, version_name, parent=None):
-        class FoundMashupDialog(QtGui.QDialog):
+        class FoundMashupDialog(QtWidgets.QDialog):
             
             def __init__(self, mashup_trail, version_name, parent=None):
-                QtGui.QDialog.__init__(self, parent)
+                QtWidgets.QDialog.__init__(self, parent)
                 self.setWindowTitle('VisTrails - Mashup')
-                dlgLayout = QtGui.QVBoxLayout()
+                dlgLayout = QtWidgets.QVBoxLayout()
                 str_label = "VisTrails found mashup(s) already created in parent %s."
-                label = QtGui.QLabel(str_label%str(version_name))
+                label = QtWidgets.QLabel(str_label%str(version_name))
                 label.setWordWrap(True)
-                gb = QtGui.QGroupBox("What would you like to do?")
-                gblayout = QtGui.QVBoxLayout()
+                gb = QtWidgets.QGroupBox("What would you like to do?")
+                gblayout = QtWidgets.QVBoxLayout()
                 
-                self.btnNew = QtGui.QRadioButton("Create new mashup (starting from current pipeline's aliases)")
+                self.btnNew = QtWidgets.QRadioButton("Create new mashup (starting from current pipeline's aliases)")
                 self.btnNew.setChecked(True)
-                self.btnCopy = QtGui.QRadioButton("Copy selected mashup (aliases will be merged)")
-                self.btnMove = QtGui.QRadioButton("Move all mashups to current pipeline")
-                self.mashupsList = QtGui.QListWidget()
-                self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+                self.btnCopy = QtWidgets.QRadioButton("Copy selected mashup (aliases will be merged)")
+                self.btnMove = QtWidgets.QRadioButton("Move all mashups to current pipeline")
+                self.mashupsList = QtWidgets.QListWidget()
+                self.mashupsList.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
                 self.mashupsList.setMaximumSize(100, 120)
                 self.mashupsList.setEnabled(False)
                 self.setMashupsList(mashup_trail)
                 
-                hlayout = QtGui.QHBoxLayout()
-                hlayout.setMargin(5)
+                hlayout = QtWidgets.QHBoxLayout()
+                hlayout.setContentsMargins(5, 5, 5, 5)
                 hlayout.setSpacing(5)
                 hlayout.addWidget(self.mashupsList)
                 hlayout.addStretch()
@@ -271,8 +272,8 @@ class MashupsManager(object):
                 gblayout.addLayout(hlayout)
                 
                 gb.setLayout(gblayout)
-                btnOk = QtGui.QPushButton("OK")
-                btnLayout = QtGui.QHBoxLayout()
+                btnOk = QtWidgets.QPushButton("OK")
+                btnLayout = QtWidgets.QHBoxLayout()
                 btnLayout.addStretch()
                 btnLayout.addWidget(btnOk)
                 btnLayout.addStretch()
@@ -283,10 +284,8 @@ class MashupsManager(object):
                 dlgLayout.addWidget(gb)
                 dlgLayout.addLayout(btnLayout)
                 self.setLayout(dlgLayout)
-                self.connect(self.btnCopy, QtCore.SIGNAL("toggled(bool)"),
-                             self.mashupsList.setEnabled)
-                self.connect(btnOk, QtCore.SIGNAL("clicked()"), 
-                             self.btnOkPressed)      
+                self.btnCopy.toggled.connect(self.mashupsList.setEnabled)
+                btnOk.clicked.connect(self.btnOkPressed)
                 
             def btnOkPressed(self):
                 if self.btnNew.isChecked():
@@ -302,7 +301,7 @@ class MashupsManager(object):
                 from vistrails.gui.mashups.mashups_inspector import QMashupListPanelItem
                 self.mashupsList.clear()
                 tagMap = mshptrail.getTagMap()
-                tags = tagMap.keys()
+                tags = list(tagMap.keys())
                 latestversion = mshptrail.getLatestVersion()
                 item_selected = False
                 if not mshptrail.hasTagForActionId(latestversion):
@@ -328,7 +327,7 @@ class MashupsManager(object):
                     return items[0].version
             
         dialog = FoundMashupDialog(mashup_trail, version_name, parent)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             return (dialog.btnPressed,dialog.mashup_version) 
         else:
             return ('New', -1)                
@@ -397,14 +396,14 @@ class MashupsManager(object):
                     action = vistrails.core.db.action.create_paste_action(pip, 
                                                         vistrail.idScope,
                                                         id_remap)
-                    vistrail.add_action(action, 0L, 0)
+                    vistrail.add_action(action, 0, 0)
                    
                     tag = vtcontroller.vistrail.get_tag(version)
                     if tag is None:
                         tag = "Imported workflow"
                     vistrail.addTag(tag, action.id)
                     node.set('version', str(action.id))
-                    id_scope = IdScope(1L)
+                    id_scope = IdScope(1)
                     newmashuptrail = Mashuptrail(
                                      MashupsManager.getNewMashuptrailId(), 
                                      action.id, 
