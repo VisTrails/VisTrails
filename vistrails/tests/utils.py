@@ -238,11 +238,12 @@ def run_file(filename, tag_filter=lambda x: True):
     locator = FileLocator(filename)
     loaded_objs = vistrails.core.db.io.load_vistrail(locator)
     controller = VistrailController(loaded_objs[0], locator, *loaded_objs[1:])
-
     errors = []
     for version, name in controller.vistrail.get_tagMap().iteritems():
         if tag_filter(name):
+            controller.change_selected_version(0)
             controller.change_selected_version(version)
+            assert controller.current_version != 0
             (result,), _ = controller.execute_current_workflow()
             if result.errors:
                 errors.append(("%d: %s" % (version, name), result.errors))
