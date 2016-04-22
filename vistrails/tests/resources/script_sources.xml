@@ -1,0 +1,43 @@
+<workflow id="0" name="untitled" version="1.0.4" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/workflow.xsd">
+  <connection id="0">
+    <port id="0" moduleId="0" moduleName="PythonSource" name="o" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    <port id="1" moduleId="1" moduleName="PythonSource" name="a" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="1">
+    <port id="2" moduleId="2" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+    <port id="3" moduleId="1" moduleName="PythonSource" name="someint" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
+  </connection>
+  <module cache="1" id="0" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="0" x="-135.0" y="78.0" />
+    <function id="1" name="i" pos="0">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="42" />
+    </function>
+    <function id="2" name="source" pos="1">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="o%20%3D%201%0Ao%20%3D%20i%20%23%20comment%0Ainternal_var%20%3D%204" />
+    </function>
+    <portSpec depth="0" id="0" maxConns="-1" minConns="0" name="i" optional="0" sortKey="0" type="input">
+      <portSpecItem default="" entryType="" id="0" label="" module="Integer" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+    <portSpec depth="0" id="1" maxConns="-1" minConns="0" name="o" optional="0" sortKey="0" type="output">
+      <portSpecItem default="" entryType="" id="1" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+  <module cache="1" id="1" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="1" x="15.0" y="-78.0" />
+    <function id="0" name="source" pos="0">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="try%3A%0A%20%20%20%20print%28o%29%20%23%20note%20that%20this%20will%20be%20allowed%20to%20collide%0Aexcept%20NameError%3A%0A%20%20%20%20pass%0Aprint%28a%29%20%23%20Yeah%0Ainternal_var%20%3D%20someint" />
+    </function>
+    <portSpec depth="0" id="2" maxConns="-1" minConns="0" name="a" optional="0" sortKey="0" type="input">
+      <portSpecItem default="" entryType="" id="2" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+    <portSpec depth="0" id="3" maxConns="-1" minConns="0" name="someint" optional="0" sortKey="1" type="input">
+      <portSpecItem default="" entryType="" id="0" label="" module="Integer" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+  <module cache="1" id="2" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="2" x="113.395973154" y="70.4429530201" />
+    <function id="3" name="value" pos="0">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="8" />
+    </function>
+  </module>
+</workflow>

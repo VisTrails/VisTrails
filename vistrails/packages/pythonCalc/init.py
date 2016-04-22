@@ -38,6 +38,7 @@ from __future__ import division
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import IPort, OPort
+from vistrails.core.scripting import Prelude, Script
 
 ###############################################################################
 # PythonCalc
@@ -116,6 +117,53 @@ class PythonCalc(Module):
         # to capture the error and report it to the caller of the evaluation
         # function.
         raise ModuleError(self, "unrecognized operation: '%s'" % op)
+
+    # These next two methods handle the translation of this module between a
+    # VisTrails pipeline and a Python script
+
+    OPS_DEFINITION = Prelude('''\
+import operator
+
+pythoncalc_ops = {'+': operator.add, '-': operator.sub,
+                  '*': operator.mul, '/': operator.truediv}
+''')
+
+    @classmethod
+    def to_python_script(cls, module):
+        # look up the operator in a dict; provide that dict in a Prelude so it
+        # will only appear once in the script
+        script = Script("result = pythoncalc_ops[op](value1, value2)",
+                        'variables', {'value': 'result'})
+        return script, [cls.OPS_DEFINITION]
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if (isinstance(node, redbaron.AssignmentNode) and
+                isinstance(node.target, redbaron.NameNode) and
+                isinstance(node.value, redbaron.AtomtrailersNode) and
+                node.value.getitem and
+                node.value.name.value == 'pythoncalc_ops' and
+                len(node.value.call.value) == 2):
+            output = node.target.value
+            if isinstance(node.value.getitem.value, redbaron.NameNode):
+                op = 'var', node.value.getitem.value.value
+            else:
+                return None
+            inputs = []
+            for i in xrange(2):
+                if isinstance(node.value.call.value[i].value,
+                              redbaron.NameNode):
+                    inputs.append(('var', node.value.call.value[i].value.value))
+                else:
+                    return None
+            return pos, (cls,
+                         {'op': op, 'value1': inputs[0], 'value2': inputs[1]},
+                         {'value': ('var', output)})
+        return None
 
 # VisTrails will only load the modules specified in the _modules list.
 # This list contains all of the modules a package defines.
