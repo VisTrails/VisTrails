@@ -37,6 +37,7 @@ from __future__ import division
 
 import os.path
 
+from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, \
@@ -51,6 +52,14 @@ from identifiers import *
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 _modules = []
+
+class Glyph(Module):
+    """ Bokeh glyph function
+
+    """
+    _settings = ModuleSettings(namespace='plotting', abstract=True)
+
+_modules.append(Glyph)
 
 class_spec_name = os.path.join(this_dir,'classes.xml')
 class_list = SpecList.read_from_xml(class_spec_name, ClassSpec)
@@ -138,5 +147,11 @@ class BokehOutput(OutputModule):
                                                 WebViewCellWidget, (None, po))
         _output_modes.append(bokehToSpreadsheetMode)
 
+
+class Glyph(Module):
+    """ Bokeh glyph function
+
+    """
+    _settings = ModuleSettings(abstract=True)
 
 _modules.append(BokehOutput)

@@ -1,5 +1,5 @@
 <specs>
-  <moduleSpec code_ref="annular_wedge" is_method="True" module_name="annular_wedge" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="annular_wedge" method_type="operation" module_name="annular_wedge" namespace="'plotting'" output_type="self">
     <docstring>Configure and add AnnularWedge glyphs to this Figure.
 
 Args:
@@ -212,12 +212,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="annulus" is_method="True" module_name="annulus" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="annulus" method_type="operation" module_name="annulus" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Annulus glyphs to this Figure.
 
 Args:
@@ -408,12 +409,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="arc" is_method="True" module_name="arc" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="arc" method_type="operation" module_name="arc" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Arc glyphs to this Figure.
 
 Args:
@@ -594,12 +596,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="asterisk" is_method="True" module_name="asterisk" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="asterisk" method_type="operation" module_name="asterisk" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Asterisk glyphs to this Figure.
 
 Args:
@@ -786,12 +789,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="bezier" is_method="True" module_name="bezier" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="bezier" method_type="operation" module_name="bezier" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Bezier glyphs to this Figure.
 
 Args:
@@ -971,12 +975,13 @@ Property: y1:NumberSpec(String, Dict(String, Either(String, Float)), Float)</doc
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="circle" is_method="True" module_name="circle" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="circle" method_type="operation" module_name="circle" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Circle glyphs to this Figure.
 
 Args:
@@ -1206,12 +1211,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="circle_cross" is_method="True" module_name="circle_cross" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="circle_cross" method_type="operation" module_name="circle_cross" namespace="'plotting'" output_type="self">
     <docstring>Configure and add CircleCross glyphs to this Figure.
 
 Args:
@@ -1399,12 +1405,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="circle_x" is_method="True" module_name="circle_x" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="circle_x" method_type="operation" module_name="circle_x" namespace="'plotting'" output_type="self">
     <docstring>Configure and add CircleX glyphs to this Figure.
 
 Args:
@@ -1592,12 +1599,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="cross" is_method="True" module_name="cross" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="cross" method_type="operation" module_name="cross" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Cross glyphs to this Figure.
 
 Args:
@@ -1785,12 +1793,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="diamond" is_method="True" module_name="diamond" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="diamond" method_type="operation" module_name="diamond" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Diamond glyphs to this Figure.
 
 Args:
@@ -1978,12 +1987,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="diamond_cross" is_method="True" module_name="diamond_cross" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="diamond_cross" method_type="operation" module_name="diamond_cross" namespace="'plotting'" output_type="self">
     <docstring>Configure and add DiamondCross glyphs to this Figure.
 
 Args:
@@ -2171,12 +2181,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="image" is_method="True" module_name="image" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="image" method_type="operation" module_name="image" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Image glyphs to this Figure.
 
 Args:
@@ -2317,12 +2328,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="image_rgba" is_method="True" module_name="image_rgba" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="image_rgba" method_type="operation" module_name="image_rgba" namespace="'plotting'" output_type="self">
     <docstring>Configure and add ImageRGBA glyphs to this Figure.
 
 Args:
@@ -2474,12 +2486,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="image_url" is_method="True" module_name="image_url" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="image_url" method_type="operation" module_name="image_url" namespace="'plotting'" output_type="self">
     <docstring>Configure and add ImageURL glyphs to this Figure.
 
 Args:
@@ -2666,12 +2679,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="inverted_triangle" is_method="True" module_name="inverted_triangle" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="inverted_triangle" method_type="operation" module_name="inverted_triangle" namespace="'plotting'" output_type="self">
     <docstring>Configure and add InvertedTriangle glyphs to this Figure.
 
 Args:
@@ -2858,12 +2872,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="line" is_method="True" module_name="line" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="line" method_type="operation" module_name="line" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Line glyphs to this Figure.
 
 Args:
@@ -3007,12 +3022,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="multi_line" is_method="True" module_name="multi_line" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="multi_line" method_type="operation" module_name="multi_line" namespace="'plotting'" output_type="self">
     <docstring>Configure and add MultiLine glyphs to this Figure.
 
 Args:
@@ -3161,12 +3177,13 @@ Property: ys:NumberSpec(String, Dict(String, Either(String, Float)), Float)</doc
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="oval" is_method="True" module_name="oval" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="oval" method_type="operation" module_name="oval" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Oval glyphs to this Figure.
 
 Args:
@@ -3373,12 +3390,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="patch" is_method="True" module_name="patch" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="patch" method_type="operation" module_name="patch" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Patch glyphs to this Figure.
 
 Args:
@@ -3550,12 +3568,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="patches" is_method="True" module_name="patches" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="patches" method_type="operation" module_name="patches" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Patches glyphs to this Figure.
 
 Args:
@@ -3732,12 +3751,13 @@ Property: ys:NumberSpec(String, Dict(String, Either(String, Float)), Float)</doc
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="quad" is_method="True" module_name="quad" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="quad" method_type="operation" module_name="quad" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Quad glyphs to this Figure.
 
 Args:
@@ -3916,12 +3936,13 @@ default is True</docstring>
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="quadratic" is_method="True" module_name="quadratic" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="quadratic" method_type="operation" module_name="quadratic" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Quadratic glyphs to this Figure.
 
 Args:
@@ -4085,12 +4106,13 @@ Property: y1:NumberSpec(String, Dict(String, Either(String, Float)), Float)</doc
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="ray" is_method="True" module_name="ray" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="ray" method_type="operation" module_name="ray" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Ray glyphs to this Figure.
 
 Args:
@@ -4264,12 +4286,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="rect" is_method="True" module_name="rect" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="rect" method_type="operation" module_name="rect" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Rect glyphs to this Figure.
 
 Args:
@@ -4488,12 +4511,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="segment" is_method="True" module_name="segment" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="segment" method_type="operation" module_name="segment" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Segment glyphs to this Figure.
 
 Args:
@@ -4655,12 +4679,13 @@ Property: y1:NumberSpec(String, Dict(String, Either(String, Float)), Float)</doc
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="square" is_method="True" module_name="square" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="square" method_type="operation" module_name="square" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Square glyphs to this Figure.
 
 Args:
@@ -4847,12 +4872,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="square_cross" is_method="True" module_name="square_cross" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="square_cross" method_type="operation" module_name="square_cross" namespace="'plotting'" output_type="self">
     <docstring>Configure and add SquareCross glyphs to this Figure.
 
 Args:
@@ -5040,12 +5066,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="square_x" is_method="True" module_name="square_x" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="square_x" method_type="operation" module_name="square_x" namespace="'plotting'" output_type="self">
     <docstring>Configure and add SquareX glyphs to this Figure.
 
 Args:
@@ -5233,12 +5260,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="text" is_method="True" module_name="text" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="text" method_type="operation" module_name="text" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Text glyphs to this Figure.
 
 Args:
@@ -5425,12 +5453,13 @@ default is 0</docstring>
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="triangle" is_method="True" module_name="triangle" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="triangle" method_type="operation" module_name="triangle" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Triangle glyphs to this Figure.
 
 Args:
@@ -5618,12 +5647,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="wedge" is_method="True" module_name="wedge" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="wedge" method_type="operation" module_name="wedge" namespace="'plotting'" output_type="self">
     <docstring>Configure and add Wedge glyphs to this Figure.
 
 Args:
@@ -5835,12 +5865,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="x" is_method="True" module_name="x" namespace="'plotting'" output_type="self">
+  <moduleSpec code_ref="x" method_type="operation" module_name="x" namespace="'plotting'" output_type="self">
     <docstring>Configure and add X glyphs to this Figure.
 
 Args:
@@ -6027,12 +6058,13 @@ Property: y:NumberSpec(String, Dict(String, Either(String, Float)), Float)</docs
       <docstring>control the render level order for this glyph
 </docstring>
     </inputPortSpec>
-    <inputPortSpec arg_pos="-4" max_conns="1" min_conns="1" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
-      <docstring>The class instance to use</docstring>
+    <inputPortSpec arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" sort_key="-1000">
+      <docstring>Chained operations</docstring>
     </inputPortSpec>
-    <outputPortSpec arg="Instance" name="Instance" port_type="plotting|Figure" show_port="True" />
+    <inputPortSpec arg="operation" arg_pos="-5" depth="1" name="operation" port_type="plotting|Glyph" show_port="True" />
+    <outputPortSpec arg="Instance" depth="1" name="Instance" port_type="plotting|Glyph" show_port="True" />
   </moduleSpec>
-  <moduleSpec code_ref="bokeh.plotting.figure" module_name="figure" namespace="'plotting'">
+  <moduleSpec code_ref="bokeh.plotting.figure" module_name="Figure" namespace="'plotting'">
     <docstring>Create a new :class:`~bokeh.plotting.Figure` for plotting, and add it to
 the current document.
 
@@ -6427,6 +6459,7 @@ default is 'auto'</docstring>
       <docstring>The (default) data range of the vertical dimension of the plot.
 Property: y_range:Instance(Range)</docstring>
     </inputPortSpec>
+    <inputPortSpec arg="glyph" arg_pos="-5" depth="1" name="glyph" port_type="plotting|Glyph" show_port="True" />
     <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0" />
   </moduleSpec>
   <moduleSpec code_ref="bokeh.charts.Area" module_name="Area" namespace="'charts'">
@@ -6575,7 +6608,7 @@ default is 'auto'</docstring>
       <alternateSpec arg="y" depth="1" name="y(list)" />
     </inputPortSpec>
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate the scatter points
 </docstring>
     </outputPortSpec>
@@ -6763,7 +6796,7 @@ used. (Defaults to None)
     </inputPortSpec>
     <inputPortSpec arg="color" name="color" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate bars
 </docstring>
     </outputPortSpec>
@@ -6954,7 +6987,7 @@ marker glyph to use for the outliers</docstring>
     <inputPortSpec arg="group" name="group" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="continuous_range" name="continuous_range" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate Boxes and Whiskers
 </docstring>
     </outputPortSpec>
@@ -7126,7 +7159,7 @@ boxes.</docstring>
     <inputPortSpec arg="agg" name="agg" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="hover_text" name="hover_text" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate Boxes and Whiskers
 </docstring>
     </outputPortSpec>
@@ -7314,7 +7347,7 @@ used. (Defaults to None)
     </inputPortSpec>
     <inputPortSpec arg="color" name="color" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate bars
 </docstring>
     </outputPortSpec>
@@ -7493,7 +7526,7 @@ the aggregation and the values column.
     <inputPortSpec arg="y" name="y" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="x" name="x" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" />
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" />
   </moduleSpec>
   <moduleSpec code_ref="bokeh.charts.Histogram" module_name="Histogram" namespace="'charts'">
     <docstring>Create a histogram chart with one or more histograms.
@@ -7669,7 +7702,7 @@ histogram.</docstring>
     </inputPortSpec>
     <inputPortSpec arg="continuous_range" name="continuous_range" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate the histograms
 </docstring>
     </outputPortSpec>
@@ -7821,7 +7854,7 @@ default is 'auto'</docstring>
     </inputPortSpec>
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="series" name="series" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate the scatter points
 </docstring>
     </outputPortSpec>
@@ -7994,7 +8027,7 @@ source with columns of data for each line.</docstring>
 </docstring>
       <alternateSpec arg="y" depth="1" name="y(list)" />
     </inputPortSpec>
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate the lines
 </docstring>
     </outputPortSpec>
@@ -8145,7 +8178,7 @@ default is 'auto'</docstring>
       <alternateSpec arg="y" depth="1" name="y(list)" />
     </inputPortSpec>
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" sort_key="0">
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" sort_key="0">
       <docstring>class:`Chart`: includes glyph renderers that generate the scatter points
 </docstring>
     </outputPortSpec>
@@ -8308,7 +8341,7 @@ or a pandas DataFrame)
     <inputPortSpec arg="y" name="y" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="x" name="x" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" />
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" />
   </moduleSpec>
   <moduleSpec code_ref="bokeh.charts.TimeSeries" module_name="TimeSeries" namespace="'charts'">
     <docstring>Create a line chart using :class:`TimeSeriesBuilder &lt;bokeh.charts.builder.line_builder.LineBuilder&gt;` to
@@ -8469,7 +8502,7 @@ or a pandas DataFrame)
     <inputPortSpec arg="x" name="x" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="data" name="data" port_type="basic:Variant" show_port="True" />
     <inputPortSpec arg="builder_type" name="builder_type" port_type="basic:Variant" show_port="True" />
-    <outputPortSpec arg="value" name="value" port_type="basic:Variant" show_port="True" />
+    <outputPortSpec arg="value" name="value" port_type="plotting|Figure" show_port="True" />
   </moduleSpec>
   <translation signature="basic:Color">def input_t(value):
     return '#%02X%02X%02X' % tuple([int(c*255) for c in value.tuple])

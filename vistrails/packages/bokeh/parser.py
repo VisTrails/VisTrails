@@ -38,7 +38,6 @@
 from __future__ import division
 
 from bokeh.properties import *
-import importlib
 import os.path
 import pydoc
 
@@ -237,7 +236,7 @@ def parser():
                     continue
                 func_names.append(fname)
                 functions.append(f)
-    add('bokeh.plotting', 'Figure', namespace='plotting')
+    #add('bokeh.plotting', 'Figure', namespace='plotting')
 
     # Wrap figure methods
     fig_method_parser = PythonParser(parsers=[parse_fig_method, parse_googledoc],
@@ -253,7 +252,9 @@ def parser():
                                   code_ref=name,
                                   namespace='plotting',
                                   method='plotting|Figure',
-                                  is_empty=True))
+                                  is_empty=True,
+                                  is_operation=True,
+                                  output_type='plotting|Glyph'))
 
     fun_spec_name = os.path.join(this_dir, 'functions.xml')
     raw_fun_spec_name = fun_spec_name[:-4] + '-raw.xml'
@@ -268,8 +269,10 @@ def parser():
                                  key_to_type=key_to_type,
                                  alt_suffixes=alt_suffixes)
     figure = figure_parser.parse_function('bokeh.plotting.figure',
+                                          name='Figure',
                                           namespace='plotting',
-                                          output_type='plotting|Figure')
+                                          output_type='plotting|Figure',
+                                          operations={'glyph': 'plotting|Glyph'})
     functions.append(figure)
 
     # wrap charts
@@ -278,7 +281,8 @@ def parser():
         chart = getattr(charts, name)
         if hasattr(chart, '__module__') and 'bokeh.charts.builders.' in chart.__module__:
             figure = parser.parse_function('bokeh.charts.' + name,
-                                           namespace='charts')
+                                           namespace='charts',
+                                           output_type='plotting|Figure')
             functions.append(figure)
 
     class_list = SpecList(classes, translations)
