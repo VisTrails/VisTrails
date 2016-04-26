@@ -481,7 +481,7 @@ class PythonParser(object):
             port_specs[arg] = (arg_pos, default)
         return port_specs
 
-    def parse_arguments(self, sig_dict, arguments, klass=False, method=None):
+    def parse_arguments(self, sig_dict, arguments, klass=False, method=None, is_operation=False, output_type=None):
         """ parsing arguments using signature and documentation
             returns list of parsed input ports
         """
@@ -647,7 +647,18 @@ class PythonParser(object):
                 input_spec.method_type = 'argument'
             input_specs.append(input_spec)
 
-        if method:
+        if is_operation:
+            # Add op port
+            input_spec = Spec.InputSpecType(
+                name='operation',
+                port_type=output_type or method,
+                depth=1,
+                arg_pos=-5,
+                show_port=True,
+                sort_key=-1000,
+                docstring='Chained operations')
+            input_specs.append(input_spec)
+        elif method:
             # Add self port
             input_spec = Spec.InputSpecType(
                 name='Instance',
@@ -940,7 +951,7 @@ class PythonParser(object):
                                output_port_specs=output_specs)
         return spec
 
-    def parse_class_methods(self, c, classname=None, namespace=None):
+    def parse_class_methods(self, c, classname=None, namespace=None, operation=False):
         """
         Create a module for each class method
 
@@ -952,6 +963,9 @@ class PythonParser(object):
           class type signature
         namespace : string
           module namespace
+        operation: string or boolean
+          Create as operations that is input to class
+          Can be a type string
 
         """
         if isinstance(c, basestring):
@@ -964,11 +978,13 @@ class PythonParser(object):
         for arg, _, _ in methods:
             specs.append(self.parse_function(getattr(c, arg),
                                              namespace=namespace,
-                                             method=classname or self.instance_type))
+                                             method=classname or self.instance_type,
+                                             is_operation=operation))
         return specs
 
     def parse_function(self, f, name=None, code_ref=None, namespace=None,
-                       method=None, is_empty=False, output_type=None):
+                       method=None, is_empty=False, output_type=None,
+                       is_operation=False, operations={}):
         """
         Parmeters
         ---------
@@ -981,8 +997,15 @@ class PythonParser(object):
             If set the function will be parsed as a class method
         is_empty : bool
             Ignore return values (Methods returns instance)
+        is_operation : string or bool
+            Ignore return values (Methods returns itself as operation)
+            Can contain operation type
 
         """
+        if isinstance(is_operation, bool):
+            custom_output_type = output_type
+        else:
+            custom_output_type = is_operation
         if method is True:
             method = self.instance_type
         if isinstance(f, basestring):
@@ -1019,26 +1042,50 @@ class PythonParser(object):
         arg_dict = self.parse_argspec(f)
         if not arg_dict and signature:
             arg_dict = self.parse_argspec(signature)
-        input_specs = self.parse_arguments(arg_dict, parameters, method=method)
+        input_specs = self.parse_arguments(arg_dict, parameters, method=method,
+                                           is_operation=is_operation,
+                                           output_type=custom_output_type)
+
+        if is_operation:
+            # add base type input port for chaining operations
+            input_specs.append(self.function_spec.InputSpecType(
+                name='operation',
+                arg='operation',
+                arg_pos=-5, # is operation type
+                port_type=custom_output_type or self.default_type,
+                depth=1,
+                show_port=True))
+
+        for op_name, op_type in operations.items():
+            # operations that will be applied to the result of this function
+            input_specs.append(self.function_spec.InputSpecType(
+                name=op_name,
+                arg=op_name,
+                arg_pos=-5, # is operation type
+                port_type=op_type,
+                depth=1,
+                show_port=True))
 
         output_specs = []
         if not is_empty:
-            output_specs = self.parse_function_returns(returns, output_type)
+            output_specs = self.parse_function_returns(returns, custom_output_type)
             if not output_specs:
                 # Add default port
                 output_specs.append(self.function_spec.OutputSpecType(
                     name='value',
                     arg='value',
-                    port_type=output_type or self.default_type,
+                    port_type=custom_output_type or self.default_type,
                     show_port=True))
 
+        depth = 1 if is_operation else 0
         if not output_specs and method:
             # Methods without return value returns instance
             output_type = 'self'
             output_specs.append(self.function_spec.OutputSpecType(
                 name='Instance',
                 arg='Instance',
-                port_type=method,
+                port_type=custom_output_type or method,
+                depth=depth,
                 show_port=True))
         elif not output_specs:
             output_type = 'none'
@@ -1047,11 +1094,18 @@ class PythonParser(object):
         else:
             output_type = 'list'
 
+        if is_operation:
+            method_type = 'operation'
+        elif method:
+            method_type = 'method'
+        else:
+            method_type = 'function'
+
         spec = self.function_spec(module_name=name,
                                   code_ref=code_ref,
                                   docstring=pydoc.getdoc(f) or '',
                                   namespace=namespace,
-                                  is_method=method is not None,
+                                  method_type=method_type,
                                   output_type=output_type,
                                   input_port_specs=input_specs,
                                   output_port_specs=output_specs)

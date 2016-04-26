@@ -44,6 +44,7 @@ IN_KWARG = -1
 ARGV = -2
 KWARG = -3
 SELF = -4
+OPERATION = -5
 
 
 def gen_function_module(spec, lib=None, klasses=None, translations={},
@@ -83,6 +84,7 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
         args = []
         kwargs = {}
         instance = None
+        ops = []
         for port in spec.all_input_port_specs():
             if self.has_input(port.name):
                 value = self.get_input(port.name)
@@ -95,11 +97,28 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
                     kwargs.update(value)
                 elif SELF == port.arg_pos:
                     instance = value
+                elif OPERATION == port.arg_pos:
+                    ops.extend(value)
                 else:
                     # make room for arg
                     while len(args) <= port.arg_pos:
                         args.append(None)
                     args[port.arg_pos] = value
+
+        if 'operation' == spec.method_type:
+            # Set module info on self output and quit
+            # FIXME: using spec.name assumes same package
+            # FIXME: serialize kwargs?
+            # NOTE: tempfile/callback not supported on operations
+            info = (spec.code_ref, args, kwargs)
+            ops.append(info)
+            for name in self.output_specs_order: # there is only one
+                self.set_output(name, ops)
+            return
+
+        # Optional temp file
+        if spec.tempfile:
+            kwargs[spec.tempfile] = self.file_pool.create_file
 
         # Optional callback used for progress reporting
         if spec.callback:
@@ -107,11 +126,7 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
                 self.logging.update_progress(self, c)
             kwargs[spec.callback] = callback
 
-        # Optional temp file
-        if spec.tempfile:
-            kwargs[spec.tempfile] = self.file_pool.create_file
-
-        if spec.is_method:
+        if 'method' == spec.method_type:
             if instance:
                 function = getattr(instance, spec.code_ref)
             elif '.' in spec.code_ref:
@@ -119,13 +134,14 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
                 # full paths are imported directly
                 m, c, n = spec.code_ref.rsplit('.', 2)
                 function = getattr(getattr(importlib.import_module(m), c), n)
-        else:
+        elif 'function' == spec.method_type:
             if '.' in spec.code_ref:
                 # full paths are imported directly
                 m, f = spec.code_ref.rsplit('.', 1)
                 function = getattr(importlib.import_module(m), f)
             else:
                 function = getattr(lib, spec.code_ref)
+
 
         try:
             print args, kwargs
@@ -140,6 +156,24 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
 
         if spec.output_type is None or spec.output_type == 'object':
             # single object
+            if 'operation' != spec.method_type:
+                # apply operations
+                # the function must return a class instance for this to work
+                for op, op_args, op_kwargs in ops:
+                    if '.' in op:
+                        # Run as a function with obj as first argument
+                        # TODO: Support result on other position and as kwarg
+                        m, c, n = op.rsplit('.', 2)
+                        function = getattr(getattr(importlib.import_module(m), c), n)
+                        op_args[0] = result
+                    else:
+                        # it is a class method
+                        function = getattr(result, op)
+                    try:
+                        print op, op_args, op_kwargs
+                        function(*op_args, **op_kwargs)
+                    except Exception, e:
+                        raise ModuleError(self, e.message)
             for name in self.output_specs_order:
                 outputs[name] = result
         elif spec.output_type == 'list':
