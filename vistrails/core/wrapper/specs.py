@@ -519,7 +519,7 @@ class ModuleSpec(SpecObject):
 class FunctionInputPortSpec(InputPortSpec):
     attrs = {"arg":     "",                # function argument name
              # arg_pos: argument position
-             # -1=kwarg, -2=*argv, -3=*kwarg, -4=self
+             # -1=kwarg, -2=*argv, -3=*kwarg, -4=self, -5=operation
              # *-types replaces/extends arglist/dict
              "arg_pos": (-1, False, True)}
     attrs.update(InputPortSpec.attrs)
@@ -552,15 +552,21 @@ class FunctionSpec(ModuleSpec):
     InputSpecType = FunctionInputPortSpec
     OutputSpecType = FunctionOutputPortSpec
 
-    # output_type tells VisTrails what the function returns
-    # None - single result
-    # "none" - no return value
-    # "list" - ordered list
-    # "dict" - dict with attr:value
-    # "self" - instance passthrough for object methods
-    attrs = {'output_type': 'object',
-             # is this a class method?
-             'is_method': (False, False, True)}
+    attrs = {
+        # output_type tells VisTrails what the function returns
+        # None - single result
+        # "none" - no return value
+        # "list" - ordered list
+        # "dict" - dict with attr:value
+        # "self" - instance passthrough for object methods
+        'output_type': 'object',
+        # method_type deascribes what kind of function this is
+        # "function"  - a normal function (not method)
+        # "method"    - class method that can have any output but
+        #               may also mutate the class
+        # "operation" - class method without outputs that is an input
+        #               to the class and is executed within the class module
+        'method_type': ('function', False, False)}
     attrs.update(ModuleSpec.attrs)
 
 
@@ -577,7 +583,8 @@ class ClassInputPortSpec(InputPortSpec):
         # 'method' - class method caller
         # or method type like 'nullary', 'OnOff' or 'SetXToY'
         "method_type": "method",
-        # arg_pos: argument position (-1=kwarg, -2=*argv, -3=*kwarg)
+        # arg_pos: argument position (-1=kwarg, -2=*argv, -3=*kwarg,
+        #                             -4=self, -5=operation)
         # *-types replaces/extends arglist/dict
         # attributes only
         "arg_pos": (-1, False, True),        # argument position (-1 means kwarg)
