@@ -224,6 +224,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         self.my_widgets = []
         self.my_labels = []
         self.group_box = QtGui.QGroupBox()
+        self.group_box.setContentsMargins(0, 0, 0, 0)
         layout = QtGui.QGridLayout()
         layout.setMargin(5)
         layout.setSpacing(5)
