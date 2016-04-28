@@ -309,6 +309,15 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             descr.setOpenExternalLinks(True)
             descr.setHtml(news['news_html'])
             layout.addWidget(descr)
+
+            hlayout = QtGui.QHBoxLayout()
+            button = QtGui.QPushButton('&Close')
+            hlayout.addStretch(1)
+            hlayout.addWidget(button)
+            hlayout.addStretch(1)
+            layout.addLayout(hlayout)
+            button.clicked.connect(dialog.close)
+
             dialog.exec_()
         self.configuration.lastShownNews = news['version']
 
