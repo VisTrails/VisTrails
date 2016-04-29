@@ -38,7 +38,7 @@
 
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.2.3
+AppVerName=VisTrails 2.2.4
 OutputBaseFilename=vistrails-gdal-setup
 DefaultGroupName=VisTrails
 
