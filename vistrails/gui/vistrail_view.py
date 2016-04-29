@@ -41,6 +41,7 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
+from vistrails.core.reportusage import record_vistrail
 from vistrails.core.system import vistrails_default_file_type, \
     vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
@@ -52,6 +53,7 @@ from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import reportusage
 
 from vistrails.gui.collection.vis_log import QLogView
 from vistrails.gui.common_widgets import QMouseTabBar
@@ -922,6 +924,7 @@ class QVistrailView(QtGui.QWidget):
         self.controller.check_delayed_update()
         controller_b.check_delayed_update()
         self.view_changed()
+        reportusage.record_feature('diff', self.controller)
 
     def save_vistrail(self, locator_class, force_choose_locator=False, export=False):
         """
@@ -952,6 +955,7 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         try:
+            record_vistrail('save', self.controller)
             self.controller.write_vistrail(locator, export=export)
         except Exception:
             debug.critical('Failed to save vistrail', debug.format_exc())
@@ -1010,6 +1014,7 @@ class QVistrailView(QtGui.QWidget):
         locator = gui_get(self, Pipeline.vtType)
         if not locator:
             return False
+        record_vistrail('export_stable', self.controller.current_pipeline)
         self.controller.write_workflow(locator, '1.0.3')
         return True
 
@@ -1027,6 +1032,7 @@ class QVistrailView(QtGui.QWidget):
             locator = gui_get(self, Pipeline.vtType, self.controller.locator)
         if not locator:
             return False
+        record_vistrail('save_pipeline', self.controller.current_pipeline)
         self.controller.write_workflow(locator)
 
     def save_log(self, locator_class, force_choose_locator=True):
