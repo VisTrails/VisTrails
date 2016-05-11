@@ -468,6 +468,19 @@ class PortSpec(DBPortSpec):
                 self.name,
                 self.signature)
 
+
+    def type_name(self):
+        """ Returns a one-line type description
+        """
+        depths = 'List of ' * self.depth
+        descriptors = self.descriptors()
+        if len(descriptors) > 1:
+            name = "(" + ",".join(d.name for d in descriptors) + ")"
+        else:
+            name = descriptors[0].name
+        return depths + name
+
+
 ################################################################################
 # Testing
 
