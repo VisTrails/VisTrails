@@ -20,6 +20,7 @@ requirements = [
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
     'requests',
+    'IPython',
     'usagestats>=0.3',
     'xlrd',
     'xlwt',
