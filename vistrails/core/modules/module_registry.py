@@ -1405,7 +1405,7 @@ class ModuleRegistry(DBRegistry):
                          optional=False, sort_key=-1, labels=None, 
                          defaults=None, values=None, entry_types=None,
                          docstring=None, shape=None, 
-                         min_conns=0, max_conns=-1, depth=0):
+                         min_conns=0, max_conns=-1, depth=0, union=''):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
@@ -1487,7 +1487,8 @@ class ModuleRegistry(DBRegistry):
                         shape=shape,
                         min_conns=min_conns,
                         max_conns=max_conns,
-                        depth=depth)
+                        depth=depth,
+                        union=union)
 
         # don't know how many port spec items are created until after...
         for psi in spec.port_spec_items:
@@ -1539,19 +1540,20 @@ class ModuleRegistry(DBRegistry):
                  port_sigstring=None, optional=False, sort_key=-1,
                  labels=None, defaults=None, values=None, entry_types=None, 
                  docstring=None, shape=None, min_conns=0, max_conns=-1,
-                 depth=0):
+                 depth=0, union=''):
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
                                      labels, defaults, values, entry_types,
                                      docstring, shape,
-                                     min_conns, max_conns, depth)
+                                     min_conns, max_conns, depth, union)
 
         self.add_port_spec(descriptor, spec)
 
     def add_input_port(self, module, portName, portSignature, optional=False, 
                        sort_key=-1, labels=None, defaults=None,
                        values=None, entry_types=None, docstring=None,
-                       shape=None, min_conns=0, max_conns=-1, depth=0):
+                       shape=None, min_conns=0, max_conns=-1, depth=0,
+                       union=''):
         """add_input_port(module: class,
                           portName: string,
                           portSignature: string,
@@ -1565,7 +1567,8 @@ class ModuleRegistry(DBRegistry):
                           shape: tuple,
                           min_conns: int,
                           max_conns: int,
-                          depth: int) -> None
+                          depth: int,
+                          union: string) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
@@ -1577,12 +1580,12 @@ class ModuleRegistry(DBRegistry):
             self.add_port(descriptor, portName, 'input', None, portSignature,
                           optional, sort_key, labels, defaults, values,
                           entry_types, docstring, shape, min_conns, max_conns,
-                          depth)
+                          depth, union)
         else:
             self.add_port(descriptor, portName, 'input', portSignature, None, 
                           optional, sort_key, labels, defaults, values,
                           entry_types, docstring, shape, min_conns, max_conns,
-                          depth)
+                          depth, union)
 
 
     def add_output_port(self, module, portName, portSignature, optional=False, 

@@ -336,9 +336,9 @@ class PortItem(QtGui.QTreeWidgetItem):
     def set_visible(self, visible):
         self.is_visible = visible
         if visible:
-            self.setIcon(0, PortItem.eye_open_icon)
+            self.setIcon(1, PortItem.eye_open_icon)
         else:
-            self.setIcon(0, PortItem.eye_closed_icon)
+            self.setIcon(1, PortItem.eye_closed_icon)
 
     def set_editable(self, edit):
         self.is_editable = edit
@@ -494,20 +494,15 @@ class PortsList(QtGui.QTreeWidget):
             else:
                 raise TypeError("Unknown port type: '%s'" % self.port_type)
             
-            # Create common portitem for union ports (ports having same sort_key)
-            ps_groups = {-1: []}
+            # Create common portitem for union ports
+            ps_groups = {'': []}
             for port_spec in port_specs:
-                if port_spec.sort_key not in ps_groups:
-                    ps_groups[port_spec.sort_key] = []
-                ps_groups[port_spec.sort_key].append(port_spec)
-
-            # add unsorted keys at the end sorted by name
-            next = max(ps_groups)
-            for port_spec in sorted(ps_groups.pop(-1), key=lambda x: x.name):
-                next += 1
-                ps_groups[next] = [port_spec]
-            for ps_sort_key in sorted(ps_groups):
-                port_specs = ps_groups[ps_sort_key]
+                if port_spec.union not in ps_groups:
+                    ps_groups[port_spec.union] = []
+                ps_groups[port_spec.union].append(port_spec)
+            non_unions = ps_groups.pop('')
+            ps_groups = ps_groups.values() + [[ps] for ps in non_unions]
+            for port_specs in sorted(ps_groups, key=lambda x: x[0].union or x[0].name):
                 first_port_spec = port_specs[0]
                 connected = True in [port_spec.name in connected_ports and \
                     connected_ports[port_spec.name] > 0 for port_spec in port_specs]
@@ -639,7 +634,11 @@ class PortsList(QtGui.QTreeWidget):
                         if item.union_items:
                             port_spec = self.select_type(item, 'Show on module as type')
                             if not port_spec:
-                                item.set_editable(False)
+                                # item may have been deleted on focus change
+                                try:
+                                    item.set_editable(False)
+                                except:
+                                    pass
                                 return
                         else:
                             port_spec = item.port_spec
@@ -666,7 +665,11 @@ class PortsList(QtGui.QTreeWidget):
                     if item.union_items:
                         port_spec = self.select_type(item, 'Show port as type')
                         if not port_spec:
-                            item.set_visible(False)
+                            # item may have been deleted on focus change
+                            try:
+                                item.set_visible(False)
+                            except:
+                                pass
                             return
                     else:
                         port_spec = item.port_spec
@@ -788,7 +791,7 @@ class PortsList(QtGui.QTreeWidget):
         menu = QtGui.QMenu(self)
         for port_spec in item.union_items:
             type_name = port_spec.type_name()
-            label = text + ' "%s" (%s)' % (type_name, port_spec.name)
+            label = text + ' ' + type_name
             act = QtGui.QAction(label, self)
             act.setStatusTip(label)
             act.triggered.connect(add_selector(port_spec))

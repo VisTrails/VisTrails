@@ -125,6 +125,8 @@ class PortSpec(DBPortSpec):
             kwargs['sort_key'] = -1
         if 'depth' not in kwargs:
             kwargs['depth'] = 0
+        if 'union' not in kwargs:
+            kwargs['union'] = ''
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'tooltip' in kwargs:
@@ -221,6 +223,7 @@ class PortSpec(DBPortSpec):
     min_conns = DBPortSpec.db_min_conns
     max_conns = DBPortSpec.db_max_conns
     _depth = DBPortSpec.db_depth
+    union = DBPortSpec.db_union
     port_spec_items = DBPortSpec.db_portSpecItems
     items = DBPortSpec.db_portSpecItems
 
@@ -406,7 +409,7 @@ class PortSpec(DBPortSpec):
             port_string = 'Invalid'
         _depth = " (depth %s)" % self.depth if self.depth else ''
         self._tooltip = "%s port %s\n%s%s" % (port_string,
-                                            self.name,
+                                            self.union if self.union else self.name,
                                             self._short_sigstring,
                                             _depth)
         
@@ -418,8 +421,8 @@ class PortSpec(DBPortSpec):
         object. 
 
         """
-        rep = "<portSpec id=%s name=%s type=%s signature=%s depth=%s />"
-        return  rep % (str(self.id), str(self.name), 
+        rep = "<portSpec id=%s name=%s union=%s type=%s signature=%s depth=%s />"
+        return  rep % (str(self.id), str(self.name), str(self.union),
                        str(self.type), str(self.sigstring), str(self.depth))
 
     def __eq__(self, other):
