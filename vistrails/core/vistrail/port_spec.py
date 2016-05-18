@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -125,6 +125,8 @@ class PortSpec(DBPortSpec):
             kwargs['sort_key'] = -1
         if 'depth' not in kwargs:
             kwargs['depth'] = 0
+        if 'union' not in kwargs:
+            kwargs['union'] = ''
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'tooltip' in kwargs:
@@ -221,6 +223,7 @@ class PortSpec(DBPortSpec):
     min_conns = DBPortSpec.db_min_conns
     max_conns = DBPortSpec.db_max_conns
     _depth = DBPortSpec.db_depth
+    union = DBPortSpec.db_union
     port_spec_items = DBPortSpec.db_portSpecItems
     items = DBPortSpec.db_portSpecItems
 
@@ -339,7 +342,6 @@ class PortSpec(DBPortSpec):
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
         registry = get_module_registry()
-        entries = []
         def canonicalize(sig_item):
             if isinstance(sig_item, tuple):
                 # assert len(sig_item) == 2
@@ -407,7 +409,7 @@ class PortSpec(DBPortSpec):
             port_string = 'Invalid'
         _depth = " (depth %s)" % self.depth if self.depth else ''
         self._tooltip = "%s port %s\n%s%s" % (port_string,
-                                            self.name,
+                                            self.union if self.union else self.name,
                                             self._short_sigstring,
                                             _depth)
         
@@ -419,8 +421,8 @@ class PortSpec(DBPortSpec):
         object. 
 
         """
-        rep = "<portSpec id=%s name=%s type=%s signature=%s depth=%s />"
-        return  rep % (str(self.id), str(self.name), 
+        rep = "<portSpec id=%s name=%s union=%s type=%s signature=%s depth=%s />"
+        return  rep % (str(self.id), str(self.name), str(self.union),
                        str(self.type), str(self.sigstring), str(self.depth))
 
     def __eq__(self, other):
@@ -468,6 +470,19 @@ class PortSpec(DBPortSpec):
         return (self.type,
                 self.name,
                 self.signature)
+
+
+    def type_name(self):
+        """ Returns a one-line type description
+        """
+        depths = 'List of ' * self.depth
+        descriptors = self.descriptors()
+        if len(descriptors) > 1:
+            name = "(" + ",".join(d.name for d in descriptors) + ")"
+        else:
+            name = descriptors[0].name
+        return depths + name
+
 
 ################################################################################
 # Testing
