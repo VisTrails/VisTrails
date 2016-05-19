@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -47,6 +47,7 @@ from vistrails.core import debug
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.reportusage import record_usage
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.db.domain import DBPackage
 
@@ -413,6 +414,7 @@ class Package(DBPackage):
 
         self.set_properties()
         self.do_load_configuration()
+        record_usage(loaded_package='%s %s' % (self.identifier, self.version))
 
     def initialize(self):
         if not self._loaded:

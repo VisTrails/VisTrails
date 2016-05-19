@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -35,6 +35,7 @@
 ###############################################################################
 from __future__ import division
 
+import ast
 from base64 import b16encode, b16decode
 import copy
 from itertools import izip, product, chain
@@ -600,9 +601,9 @@ class Module(object):
         except Exception, e:
             debug.unexpected_exception(e)
             raise ModuleError(
-                    self,
-                    "Uncaught exception: %s" % debug.format_exception(e),
-                    errorTrace=traceback.format_exc())
+                self,
+                "Uncaught exception: %s" % debug.format_exception(e).rstrip(),
+                errorTrace=traceback.format_exc())
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
@@ -706,6 +707,8 @@ class Module(object):
 
             ## Getting the result from the output port
             for nameOutput in module.outputPorts:
+                if nameOutput == 'self':
+                    continue
                 if nameOutput not in outputs:
                     outputs[nameOutput] = []
                 output = module.get_output(nameOutput)
@@ -955,13 +958,24 @@ class Module(object):
             ModuleControlParam.WHILE_MAX_KEY, 20))
         delay = float(self.control_params.get(
             ModuleControlParam.WHILE_DELAY_KEY, 0.0))
-        # todo only one state port supported right now
         name_state_input = self.control_params.get(
             ModuleControlParam.WHILE_INPUT_KEY, None)
-        name_state_input = [name_state_input] if name_state_input else None
+        if not name_state_input:
+            name_state_input = None
+        else:
+            try:
+                name_state_input = list(ast.literal_eval(name_state_input))
+            except ValueError:
+                name_state_input = [name_state_input]
         name_state_output = self.control_params.get(
             ModuleControlParam.WHILE_OUTPUT_KEY, None)
-        name_state_output = [name_state_output] if name_state_output else None
+        if not name_state_output:
+            name_state_output = None
+        else:
+            try:
+                name_state_output = list(ast.literal_eval(name_state_output))
+            except ValueError:
+                name_state_output = [name_state_output]
 
         from vistrails.core.modules.basic_modules import create_constant
 
@@ -1173,12 +1187,6 @@ class Module(object):
                     return defaultValue
             raise ModuleError(self, "Missing value from port %s" % port_name)
 
-        # Cannot resolve circular reference here, need to be fixed later
-        from vistrails.core.modules.sub_module import InputPort
-        for conn in self.inputPorts[port_name]:
-            if isinstance(conn.obj, InputPort):
-                return conn()
-
         # Check for generator
         from vistrails.core.modules.basic_modules import Generator
         raw = self.inputPorts[port_name][0].get_raw()
@@ -1213,19 +1221,21 @@ class Module(object):
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
+        from vistrails.core.modules.basic_modules import List, Variant
 
         if port_name not in self.inputPorts:
             raise ModuleError(self, "Missing value from port %s" % port_name)
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
-        fromInputPortModule = [connector()
-                               for connector in self.inputPorts[port_name]
-                               if isinstance(connector.obj, InputPort)]
-        if len(fromInputPortModule)>0:
-            return fromInputPortModule
-        ports = []
+        connectors = []
         for connector in self.inputPorts[port_name]:
-            from vistrails.core.modules.basic_modules import List, Variant
+            if isinstance(connector.obj, InputPort):
+                # add external connectors
+                connectors.extend(connector.obj.inputPorts['ExternalPipe'])
+            else:
+                connectors.append(connector)
+        ports = []
+        for connector in connectors:
             value = connector()
             src_depth = connector.depth()
             if not self.input_specs:
@@ -1255,16 +1265,15 @@ class Module(object):
             root = value
             for i in xrange(1, src_depth):
                 try:
-                    # flatten
-                    root = [item for sublist in root for item in sublist]
+                    # only check first item
+                    root = root[0]
                 except TypeError:
                     raise ModuleError(self, "List on port %s has wrong"
                                             " depth %s, expected %s." %
                                             (port_name, i-1, src_depth))
 
             if src_depth and root is not None:
-                self.typeChecking(self, [port_name],
-                                  [[r] for r in root] if src_depth else [[root]])
+                self.typeChecking(self, [port_name], [[root]])
             ports.append(value)
         return ports
 
@@ -1628,7 +1637,7 @@ class Module(object):
 
     @deprecated("update_upstream_port")
     def updateUpstreamPort(self, *args, **kwargs):
-        return self.updateUpstreamPort(*args, **kwargs)
+        return self.update_upstream_port(*args, **kwargs)
 
 ################################################################################
 
@@ -1744,7 +1753,7 @@ class ModuleConnector(object):
             # flatten list
             for i in xrange(1, depth):
                 try:
-                    value = [item for sublist in value for item in sublist]
+                    value = value[0]
                 except TypeError:
                     raise ModuleError(self.obj, "List on port %s has wrong"
                                       " depth %s, expected %s." %

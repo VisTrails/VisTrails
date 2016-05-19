@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -137,7 +137,8 @@ class Vistrail(object):
             # Copied from VistrailsApplicationInterface#open_vistrail()
             locator = UntitledLocator()
             loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-            self.controller = VistrailController(*loaded_objs)
+            self.controller = VistrailController(loaded_objs[0], locator,
+                                                 *loaded_objs[1:])
         elif isinstance(arg, (_Pipeline, Pipeline)):
             if isinstance(arg, Pipeline):
                 pipeline = arg.pipeline
@@ -655,8 +656,6 @@ class ModuleClass(type):
     def __call__(self, *args, **kwargs):
         return Module(self.descriptor, *args, **kwargs)
 
-    # Ignored by IPython because of bug 6709
-    # https://github.com/ipython/ipython/issues/6709
     def __repr__(self):
         return "<Module class %r from %s>" % (self.descriptor.name,
                                               self.descriptor.identifier)
@@ -718,6 +717,16 @@ class Module(object):
     def module_class(self):
         return ModuleClass(self.descriptor)
 
+    @property
+    def name(self):
+        if self.module_id is None:
+            raise ValueError("This module is not part of a pipeline")
+        mod = self.pipeline.pipeline.modules[self.module_id]
+        if '__desc__' in mod.db_annotations_key_index:
+            return mod.get_annotation_by_key('__desc__').value
+        else:
+            return None
+
     def __repr__(self):
         desc = "<Module %r from %s" % (self.descriptor.name,
                                        self.descriptor.identifier)
@@ -726,7 +735,7 @@ class Module(object):
             if self.pipeline is not None:
                 mod = self.pipeline.pipeline.modules[self.module_id]
                 if '__desc__' in mod.db_annotations_key_index:
-                    desc += (", label \"%s\"" %
+                    desc += (", name \"%s\"" %
                              mod.get_annotation_by_key('__desc__').value)
         return desc + ">"
 
@@ -883,7 +892,10 @@ def load_vistrail(filename, version=None):
     controller = VistrailController(loaded_objs[0], locator,
                                     *loaded_objs[1:])
 
-    return Vistrail(controller)
+    vistrail = Vistrail(controller)
+    if version is not None:
+        vistrail.select_version(version)
+    return vistrail
 
 
 def load_pipeline(filename):

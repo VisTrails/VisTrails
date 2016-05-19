@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -209,6 +209,7 @@ def set_vistrails_default_file_type(t):
 
     """
     global __defaultFileType
+    t = t.lower()
     if t in ['.vt', '.xml']:
         __defaultFileType = t
     else:
@@ -298,7 +299,7 @@ def default_connections_file():
     """
     return os.path.join(current_dot_vistrails(), 'connections.xml')
 
-VERSION = '2.2.3'
+VERSION = '2.2.4'
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
     # 0.1 was the Vis2005 version
@@ -381,7 +382,7 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s (%s) -- contact@vistrails.org
 
-Copyright (C) 2014-2015 New York University. Copyright (C) 2011-2014 NYU-Poly.
+Copyright (C) 2014-2016 New York University. Copyright (C) 2011-2014 NYU-Poly.
 Copyright (C) 2006-2011 University of Utah.
 All rights reserved.
 http://www.vistrails.org
