@@ -40,8 +40,6 @@ from itertools import izip
 import os
 import string
 
-from os.path import commonprefix
-
 from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.basic_modules import identifier as basic_identifier
@@ -377,16 +375,7 @@ class PortItem(QtGui.QTreeWidgetItem):
 
         if is_connected:
             self.setIcon(2, PortItem.conn_icon)
-        if union_items:
-            names = [p.name for p in union_items]
-            # find common prefix
-            name = commonprefix(names)
-            if not name:
-                name = port_spec.name
-            self.setText(3, name)
-
-        else:
-            self.setText(3, port_spec.name)
+        self.setText(3, port_spec.union if union_items else port_spec.name)
 
         if self.is_constant():
             if len(self.port_spec.port_spec_items)>0:
