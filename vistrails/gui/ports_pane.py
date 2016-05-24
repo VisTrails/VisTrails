@@ -622,18 +622,26 @@ class PortsList(QtGui.QTreeWidget):
             if item.is_constant() and len(item.port_spec.port_spec_items)>0:
                 item.set_editable(not item.is_editable)
                 if item.is_editable:
-                        if item.union_items:
-                            port_spec = self.select_type(item, 'Show on module as type')
-                            if not port_spec or not item.is_constant(port_spec):
-                                # item may have been deleted on focus change
-                                try:
-                                    item.set_editable(False)
-                                except:
-                                    pass
-                                return
+                    if item.union_items:
+                        candidates = [ps for ps in item.union_items
+                                      if item.is_constant(ps)]
+                        if len(candidates) == 0:
+                            return
+                        elif len(candidates) == 1:
+                            port_spec = candidates[0]
                         else:
-                            port_spec = item.port_spec
-                        editable_ports.add(port_spec.name)
+                            port_spec = self.select_type(candidates,
+                                                    'Show on module as type:')
+                        if not port_spec:
+                            try:
+                                item.set_editable(False)
+                            except:
+                                # item may have been deleted on focus change
+                                pass
+                            return
+                    else:
+                        port_spec = item.port_spec
+                    editable_ports.add(port_spec.name)
                 else:
                     if item.union_items:
                         # iterate items
@@ -675,16 +683,18 @@ class PortsList(QtGui.QTreeWidget):
                 item.setExpanded(True)
             elif (not item.union_items and item.childCount() == 0 and
                   item.is_constant()):
-                if item.union_items:
-                    port_spec = self.select_type(item, 'Add as')
-                else:
-                    port_spec = item.port_spec
-                if port_spec:
-                    self.do_add_method(port_spec, item)
+                self.do_add_method(item.port_spec, item)
             elif item.union_items:
                 # union port always ask to add new port when clicked
-                port_spec = self.select_type(item, 'Add as')
-                if not port_spec or not item.is_constant(port_spec):
+                candidates = [ps for ps in item.union_items
+                              if item.is_constant(ps)]
+                if len(candidates) == 0:
+                    return
+                elif len(candidates) == 1:
+                    port_spec = candidates[0]
+                else:
+                    port_spec = self.select_type(candidates, 'Add as:')
+                if not port_spec:
                     return
                 self.do_add_method(port_spec, item)
 
@@ -770,7 +780,7 @@ class PortsList(QtGui.QTreeWidget):
         if item:
             item.contextMenuEvent(event, self)
 
-    def select_type(self, item, text):
+    def select_type(self, port_specs, text):
         """ Prompts user to select a specific type in a union type
         """
         selected_port_spec = [None]
@@ -779,7 +789,7 @@ class PortsList(QtGui.QTreeWidget):
                 selected_port_spec[0] = ps
             return triggered
         menu = QtGui.QMenu(self)
-        for port_spec in item.union_items:
+        for port_spec in port_specs:
             type_name = port_spec.type_name()
             label = text + ' ' + type_name
             act = QtGui.QAction(label, self)
