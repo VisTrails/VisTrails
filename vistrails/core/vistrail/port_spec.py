@@ -134,6 +134,11 @@ class PortSpec(DBPortSpec):
             del kwargs['tooltip']
         else:
             self._tooltip = None
+        if 'union_tooltip' in kwargs:
+            self._union_tooltip = kwargs['union_tooltip']
+            del kwargs['union_tooltip']
+        else:
+            self._union_tooltip = None
 
         if 'docstring' in kwargs:
             self._docstring = kwargs['docstring']
@@ -262,7 +267,11 @@ class PortSpec(DBPortSpec):
         self._depth = depth
     depth = property(_get_depth, _set_depth)
 
-    def toolTip(self):
+    def toolTip(self, union=None):
+        if union:
+            if self._union_tooltip is None:
+                self.create_union_tooltip(union)
+            return self._union_tooltip
         if self._tooltip is None:
             self.create_tooltip()
         return self._tooltip
@@ -412,7 +421,23 @@ class PortSpec(DBPortSpec):
                                             self.union if self.union else self.name,
                                             self._short_sigstring,
                                             _depth)
-        
+
+    def create_union_tooltip(self, union):
+        """Creates a tooltip for a union port
+        """
+
+        type_list = []
+        for ps in union:
+            type_list.append(ps.type_name())
+
+        if self.type in ['input', 'output']:
+            port_string = self.type.capitalize()
+        else:
+            port_string = 'Invalid'
+        self._union_tooltip = "%s port %s\n%s" % (port_string,
+                                                  self.union if self.union else self.name,
+                                                  '\n'.join(type_list))
+
     ##########################################################################
     # Operators
     
@@ -470,7 +495,6 @@ class PortSpec(DBPortSpec):
         return (self.type,
                 self.name,
                 self.signature)
-
 
     def type_name(self):
         """ Returns a one-line type description

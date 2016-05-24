@@ -337,6 +337,23 @@ class Module(DBModule):
         ports.extend(self.input_port_specs)
         return ports
 
+    def unionPorts(self):
+        """unionPorts() -> dict of {union_name: list of ports}
+        Returns dict of union (input) ports module supports
+
+        They are used to indicate that ports are really the same port but of
+        different types.
+        """
+        ports = self.destinationPorts()
+        groups = {}
+        for port_spec in ports:
+            if port_spec.union:
+                if port_spec.union not in groups:
+                    groups[port_spec.union] = []
+                groups[port_spec.union].append(port_spec)
+        return groups
+
+
     ##########################################################################
     # Debugging
 
