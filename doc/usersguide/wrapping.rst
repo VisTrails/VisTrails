@@ -134,6 +134,46 @@ One option is to have one class with constructor, one attribute inspector class,
              parse_class(c, argument_parsing=False), name=classname + 'Inspector']
   functions = parse_class_methods(c, namespace=classname + 'Methods')
 
+Automatic Port Translations
+--------------------------
+
+Sometimes functions use types that is similar to an
+existing type, but not identical. It may then be better to convert the
+value to the supported type, rather than to create a completely new
+type. This is especially true for common types that are already
+supported, such as ``Color`` and ``File``. A type translation will be used
+for all ports in a specification file. The ``translations`` argument
+``port_type: code_string``. ``port_type`` should match a port type as
+specified in the specification. ``code_string`` should be python code
+block declaring the functions ``input_f`` and ``output_f``, which will
+be applied to input and output ports, respectively.  An example for
+translating ``basic:Color`` to a tuple of floats would be:
+
+.. code-block:: python
+
+    # Translate File and Color ports
+    translations = {
+        'basic:Color':
+            "def input_t(value):\n"
+            "    return value.tuple\n"
+            "def output_t(value):\n"
+            "    from vistrails.core.utils import InstanceObject\n"
+            "    return InstanceObject(tuple=value)"}
+
+
+    specs = SpecList(specs_list, translations=translations)
+
+Note that this will not automatically work on subclasses. Each
+subclass will need its own translation.
+
+For the translation to be used it needs to be passed to the final module:
+
+.. code-block:: python
+
+    modules = [gen_class_module(spec,
+                                translations=speclist.get_translations())
+                                for spec in speclist.module_specs]
+
 Examples in Packages
 ====================
 
