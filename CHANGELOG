@@ -1,6 +1,38 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2.3 build 02ad04a622c4 from v2.2 branch
+Release Name: v2.2.4 build 000000000000 from v2.2 branch
+
+Bug fixes:
+ - Fix module with optional connected port having the wrong size
+ - Fix InputPort with ports that have depth>0
+ - ReproUnzip: actually populate 'stdout' and 'stderr' ports
+ - Fix ReproUnzip not working in Mac OS binary installation
+ - Fix tej failing to setup a queue in Mac OS binary installation
+ - Show full stacktrace in module's "Show Error" popup
+ - Fix Module Info tab showing wrong module in some cases
+ - Fix Search Mode (#1149)
+   - Visual query did not work without string query
+   - Workflow query did not display matching modules
+   - Updated Search Mode documentation
+   - Upgraded pipelines will now be searched when hideUpgrades is set
+ - Fix visual diff not using upgraded pipeline
+ - Hide empty Mashup and Parameter exploration items in workspace
+ - Fix mashup link in Workflow Info tab
+ - Fix workspace not updating mashup list
+ - improvements to upgrades
+   - Upgrades are now correctly chained from the latest upgrade (#1164)
+   - Fixed multi-step upgrades that replaces modules to other packages (#1165)
+
+Enhancements:
+ - Add a TensorFlow package
+ - Allow multiple versions of the same package to be installed, load the
+   latest working one
+ - If loading a file with an unknown extension, assume .vt format
+ - API: allow constructing vistrails.Vistrail() without argument
+ - Added usage stats reporting
+ - Added news widget
+
+From Release: v2.2.3 build 02ad04a622c4 from v2.2 branch
 
 Bug fixes:
  - Fixed showing "invalid pipeline" instead of failure from auto-enabled package

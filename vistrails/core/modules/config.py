@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -495,7 +495,8 @@ InputPort = subnamedtuple('InputPort', Port,
                           [(('label', None),),
                            (('default', None),),
                            (('values', None),),
-                           (('entry_type', None),)])
+                           (('entry_type', None),),
+                           (('union', ''),)])
 OutputPort = subnamedtuple('OutputPort', Port)
 
 CompoundPort = subnamedtuple('CompoundPort', Port,
@@ -505,7 +506,8 @@ CompoundInputPort = subnamedtuple('CompoundInputPort', CompoundPort,
                                   [(('labels', None),), 
                                    (('defaults', None),),
                                    (('values', None),),
-                                   (('entry_types', None),)])
+                                   (('entry_types', None),),
+                                   (('union', ''),)])
 CompoundOutputPort = subnamedtuple('CompoundOutputPort', CompoundPort)
 
 PortItem = namedtuple('PortItem', [('signature', None)])

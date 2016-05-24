@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -51,14 +51,22 @@ class SearchParseError(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+
+def validModuleStmt(stmt):
+    """ Modules are only queried by name, and shown by default if
+    name is not given
+    """
+    return type(stmt) in [AndSearchStmt, OrSearchStmt, NotSearchStmt,
+                          ModuleSearchStmt, TrueSearch]
+
 class SearchStmt(object):
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         return True
 
     def matchModule(self, v, m):
-        return True
+        return False
 
-    def run(self, v, n):
+    def run(self, controller, n):
         pass
 
     def __call__(self):
@@ -393,14 +401,14 @@ class TimeSearchStmt(SearchStmt):
         return time.mktime(this)
         
 class BeforeSearchStmt(TimeSearchStmt):
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         if not action.date:
             return False
         t = time.mktime(time_strptime(action.date, "%d %b %Y %H:%M:%S"))
         return t <= self.date
 
 class AfterSearchStmt(TimeSearchStmt):
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         if not action.date:
             return False
         t = time.mktime(time_strptime(action.date, "%d %b %Y %H:%M:%S"))
@@ -417,67 +425,91 @@ class RegexEnabledSearchStmt(SearchStmt):
         if self.use_regex:
             return self.regex.match(v)
         else:
-            return v in self.content
+            return self.content in v
 
 class UserSearchStmt(RegexEnabledSearchStmt):
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         if not action.user:
             return False
         return self._content_matches(action.user)
 
 class NotesSearchStmt(RegexEnabledSearchStmt):
-    def match(self, vistrail, action):
-        if vistrail.has_notes(action.id):
-            plainNotes = extract_text(vistrail.get_notes(action.id))
+    def match(self, controller, action):
+        notes = controller.get_notes(action.id)
+        if notes:
+            plainNotes = extract_text(notes)
             return self._content_matches(plainNotes)
         return False
 
 class NameSearchStmt(RegexEnabledSearchStmt):
-    def match(self, vistrail, action):
-        m = 0
-        tm = vistrail.get_tagMap()
-        if action.timestep in tm:
-            m = self._content_matches(tm[action.timestep])
+    def match(self, controller, action):
+        tag = controller.get_tag(action.timestep) or ''
+        m = self._content_matches(tag)
         if bool(m) == False:
-            m = self._content_matches(vistrail.get_description(action.timestep))
+            m = self._content_matches(controller.vistrail.get_description(action.timestep))
         return bool(m)
 
 class ModuleSearchStmt(RegexEnabledSearchStmt):
-    def match(self, vistrail, action):
-        pipeline = vistrail.getPipeline(action.timestep)
-        for module in pipeline.modules.itervalues():
+    def match(self, controller, action):
+        version = action.timestep
+        from vistrails.core.configuration import get_vistrails_configuration
+        hide_upgrades = getattr(get_vistrails_configuration(),
+                                'hideUpgrades', True)
+        if hide_upgrades:
+            version = controller.create_upgrade(version, delay_update=True)
+        p = controller.get_pipeline(version, do_validate=False)
+        for module in p.modules.itervalues():
             if self._content_matches(module.name):
                 return True
         return False
+    def matchModule(self, v, m):
+        return self._content_matches(m.name)
 
 class AndSearchStmt(SearchStmt):
     def __init__(self, lst):
         self.matchList = lst
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         for s in self.matchList:
-            if not s.match(vistrail, action):
+            if not s.match(controller, action):
                 return False
+        return True
+    def matchModule(self, v, m):
+        for s in self.matchList:
+            if validModuleStmt(s):
+                return s.matchModule(v, m)
         return True
 
 class OrSearchStmt(SearchStmt):
     def __init__(self, lst):
         self.matchList = lst
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         for s in self.matchList:
-            if s.match(vistrail, action):
+            if s.match(controller, action):
                 return True
         return False
+    def matchModule(self, v, m):
+        for s in self.matchList:
+            if validModuleStmt(s):
+                return s.matchModule(v, m)
+        return True
 
 class NotSearchStmt(SearchStmt):
     def __init__(self, stmt):
         self.stmt = stmt
-    def match(self, vistrail, action):
+    def match(self, controller, action):
         return not self.stmt.match(action)
+    def matchModule(self, v, m):
+        if validModuleStmt(self.stmt):
+            return not self.stmt.matchModule(v, m)
+        return False
 
 class TrueSearch(SearchStmt):
     def __init__(self):
         pass
-    def match(self, vistrail, action):
+    def match(self, controller, action):
+        return True
+
+    def matchModule(self, v, m):
         return True
 
 ################################################################################
@@ -487,6 +519,8 @@ class SearchCompiler(object):
     def __init__(self, searchStr, use_regex=False):
         self.searchStmt = self.compile(searchStr, use_regex)
     def compile(self, searchStr, use_regex):
+        if not searchStr or not searchStr.strip():
+            return TrueSearch()
         lst = []
         t1 = searchStr.split(' ')
         while t1:

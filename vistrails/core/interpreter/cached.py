@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -41,6 +41,8 @@ import copy
 import gc
 import cPickle as pickle
 
+import time
+
 from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
@@ -54,6 +56,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
     ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
     ModuleSuspended, ModuleWasSuspended
+from vistrails.core.reportusage import record_usage
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
@@ -156,7 +159,7 @@ class ViewUpdatingLogController(object):
         elif error is None:
             self.view.set_module_success(i)
         else:
-            self.view.set_module_error(i, error)
+            self.view.set_module_error(i, error.msg, error.errorTrace)
 
         if i in self.ids:
             self.ids.remove(i)
@@ -553,6 +556,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             if stop_on_error or abort:
                 break
 
+        if Generator.generators:
+            record_usage(generators=len(Generator.generators))
         # execute all generators until inputs are exhausted
         # this makes sure branching and multiple sinks are executed correctly
         if not logging_obj.errors and not logging_obj.suspended and \
@@ -638,13 +643,18 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         self.clean_modules(to_delete)
 
-        def dict2set(s):
-            return set(k for k, v in s.iteritems() if v)
         if view is not None:
-            persistent = set(objs) - (dict2set(errs) | dict2set(execs) |
-                                      dict2set(suspended) | dict2set(cached))
-            for i in persistent:
-                view.set_module_persistent(i)
+            for i in objs:
+                if i in errs:
+                    view.set_module_error(i, errs[i].msg, errs[i].errorTrace)
+                elif i in suspended and suspended[i]:
+                    view.set_module_suspended(i, suspended[i])
+                elif i in execs and execs[i]:
+                    view.set_module_success(i)
+                elif i in cached and cached[i]:
+                    view.set_module_not_executed(i)
+                else:
+                    view.set_module_persistent(i)
 
         if reset_computed:
             for module in self._objects.itervalues():
@@ -717,6 +727,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                                          'to execute: %s' % kwargs)
         self.clean_non_cacheable_modules()
 
+        record_usage(execute=True)
 
 #         if controller is not None:
 #             vistrail = controller.vistrail
@@ -731,6 +742,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             vistrail = None
 
+        time_start = time.time()
         logger = logger.start_workflow_execution(
                 parent_exec,
                 vistrail, pipeline, current_version)
@@ -747,18 +759,23 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             res = (to_delete, res[0], errors, {}, {}, {}, [])
             for (i, error) in errors.iteritems():
-                view.set_module_error(i, error)
+                view.set_module_error(i, error.msg, error.errorTrace)
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
+        time_end = time.time()
 
         result = InstanceObject(objects=res[1],
-                              errors=res[2],
-                              executed=res[3],
-                              suspended=res[4],
-                              parameter_changes=res[6],
-                              modules_added=modules_added,
-                              conns_added=conns_added)
+                                errors=res[2],
+                                executed=res[3],
+                                suspended=res[4],
+                                parameter_changes=res[6],
+                                modules_added=modules_added,
+                                conns_added=conns_added)
 
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
+
+        record_usage(time=time_end - time_start, modules=len(res[1]),
+                     errors=len(res[2]), executed=len(res[3]),
+                     suspended=len(res[4]))
 
         return result
 

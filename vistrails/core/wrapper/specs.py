@@ -306,10 +306,11 @@ class InputPortSpec(PortSpec):
     _parent = None
 
     prop_attrs = {
-        "entry_types": (None, True, True), # custom entry type (like enum)
-        "values": (None, True, True),      # values for enums
-        "labels": (None, True, True),      # custom labels on enum values
-        "defaults": (None, True, True),    # default value list
+        "entry_types": (None, True, True),  # custom entry type (like enum)
+        "values": (None, True, True),       # values for enums
+        "labels": (None, True, True),       # custom labels on enum values
+        "defaults": (None, True, True),     # default value list
+        "union": ''                         # union port name
         }
 
     attrs = {}
@@ -359,7 +360,8 @@ class InputPortSpec(PortSpec):
             default, _, _ = parse_props(self.attrs[k])
             # never copy port type attributes and name
             # FIXME remove "translations"
-            type_props = ['name', 'defaults', 'values', 'entry_types', 'translations', 'port_type']
+            type_props = ['name', 'defaults', 'values', 'entry_types',
+                          'translations', 'port_type']
             if k in type_props:
                 continue
             alt_value = getattr(self, k)
