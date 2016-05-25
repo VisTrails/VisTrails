@@ -843,6 +843,7 @@ def parse_plots(plot_types, table_overrides):
         module_specs.append(ModuleSpec(module_name=module_name, superklass=super_name,
                                        code_ref="matplotlib.pyplot.%s" % plot,
                                        docstring=cleaned_docstring,
+                                       output_type='none',
                                        input_port_specs=port_specs.values(),
                                        output_port_specs=output_port_specs))
     my_specs = SpecList(module_specs)
