@@ -25,3 +25,4 @@ scikit-learn
 nose
 file_archive>=0.6
 tej>=0.3
+usagestats>=0.3

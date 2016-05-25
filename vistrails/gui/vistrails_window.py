@@ -48,6 +48,7 @@ from vistrails.core.interpreter.cached import CachedInterpreter
 from vistrails.core.recent_vistrails import RecentVistrailList
 import vistrails.core.system
 import vistrails.core.db.action
+from vistrails.core.reportusage import record_vistrail
 from vistrails.core.system import vistrails_default_file_type
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -1868,6 +1869,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         
         if locator is not None:
             get_vistrails_application().close_vistrail(locator, current_view.controller)
+        record_vistrail('close', current_view.controller)
         return True
 
     def close_all_vistrails(self, quiet=False):

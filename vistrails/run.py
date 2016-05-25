@@ -108,6 +108,10 @@ def main():
     from vistrails.core import debug
     debug.DebugPrint.getInstance().log_to_console()
 
+    # Setup usage reporting
+    from vistrails.core import reportusage
+    reportusage.setup_usage_report()
+
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 
@@ -125,6 +129,8 @@ def main():
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
+        reportusage.submit_usage_report(result='init exit %s' %
+                                               getattr(e, 'code', '(unknown)'))
         sys.exit(e)
     except Exception, e:
         app = vistrails.gui.application.get_vistrails_application()
@@ -134,11 +140,17 @@ def main():
         print >>sys.stderr, "Uncaught exception on initialization: %s" % (
                 traceback._format_final_exc_line(type(e).__name__, e).strip())
         traceback.print_exc(None, sys.stderr)
+        reportusage.submit_usage_report(result='init %s' % type(e).__name__)
         sys.exit(255)
-    if not app.temp_configuration.batch:
-        v = app.exec_()
 
-    vistrails.gui.application.stop_application()
+    try:
+        if not app.temp_configuration.batch:
+            v = app.exec_()
+        vistrails.gui.application.stop_application()
+    except BaseException, e:
+        reportusage.submit_usage_report(result=type(e).__name__)
+        raise
+    reportusage.submit_usage_report(result='success %s' % v)
     sys.exit(v)
 
 if __name__ == '__main__':

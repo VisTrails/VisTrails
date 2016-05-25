@@ -37,6 +37,7 @@ from __future__ import division
 
 from vistrails.core import query
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core import reportusage
 from vistrails.core.utils import append_to_dict_of_lists
 import copy
 import re
@@ -88,6 +89,7 @@ class VisualQuery(query.Query):
             template_ids = nextTemplateIds
 
     def run(self, controller, name):
+        reportusage.record_feature('visualquery', controller)
         result = []
         self.tupleLength = 2
         for version in self.versions_to_check:

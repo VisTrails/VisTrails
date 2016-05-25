@@ -106,6 +106,9 @@ packageDir: System packages directory
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
+reportUsage: Report anonymous usage statistics to the developers
+enableUsage: Enable sending anonymous usage statistics
+disableUsage: Disable sending anonymous usage statistics
 repositoryHTTPURL: Remote package repository URL
 repositoryLocalPath: Local package repository directory
 rootDirectory: Directory that contains the VisTrails source code
@@ -123,6 +126,7 @@ showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
 showSpreadsheetOnly: Hides the VisTrails main window
 showVariantErrors: Show error when variant input value doesn't match type during execution
+showVistrailsNews: Show news from VisTrails (once per message)
 showWindow: Show the main window
 singleInstance: Do not allow more than one instance of VisTrails to run at once
 spreadsheetDumpCells: Defines the location for generated cells
@@ -371,6 +375,18 @@ recentVistrailList: String
 
     Storage for recent vistrails. Users should not edit.
 
+reportUsage: Integer
+
+    Report anonymous usage statistics to the developers
+
+enableUsage: Boolean
+
+    Enable sending anonymous usage statistics
+
+disableUsage: Boolean
+
+    Disable sending anonymous usage statistics
+
 repositoryHTTPURL: URL
 
     URL used to locate packages available to be installed.
@@ -457,6 +473,11 @@ showVariantErrors: Boolean
 
     Alert the user if the value along a connection coming from a
     Variant output doesn't match the input port.
+
+showVistrailsNews: Boolean
+
+    Show news from VisTrails on startup. Each message will only be displayed
+    once.
 
 showWindow: Boolean
 
@@ -656,7 +677,9 @@ base_config = {
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("outputVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('enableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('disableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
      ConfigField("port", None, int, ConfigType.COMMAND_LINE),
@@ -690,7 +713,11 @@ base_config = {
                                  "remap": {0: "Critical Errors Only",
                                            1: "Critical Errors and Warnings",
                                            2: "Errors, Warnings, and "
-                                              "Debug Messages"}})],
+                                              "Debug Messages"}}),
+     ConfigField('reportUsage', -1, int, ConfigType.INTERNAL,
+                 widget_type="usagestats",
+                 widget_options={'label': 'Anonymous usage reporting'}),
+     ConfigField('showVistrailsNews', True, bool, ConfigType.SHOW_HIDE)],
     "Startup":
     [ConfigField('maximizeWindows', False, bool, ConfigType.ON_OFF),
      ConfigField('multiHeads', False, bool, ConfigType.ON_OFF),
@@ -770,7 +797,8 @@ base_config = {
      ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL),
      ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL),
      ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL),
-     ConfigField('maxPipelineFixAttempts', 50, int, ConfigType.INTERNAL)],
+     ConfigField('maxPipelineFixAttempts', 50, int, ConfigType.INTERNAL),
+     ConfigField('lastShownNews', '', str, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),

@@ -45,6 +45,7 @@ from vistrails.core.configuration import ConfigurationObject, \
     ConfigFieldParent, ConfigPath, \
     get_vistrails_configuration, find_simpledoc
 
+from vistrails.core import reportusage
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
     QDirectoryChooserToolButton
@@ -427,6 +428,38 @@ class QConfigurationLinuxHandler(QConfigurationLabelButton):
         if app.ask_update_default_application(False):
             self.label.setText(".vt, .vtl handlers installed")
 
+class QConfigurationUsageStats(QtGui.QWidget, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+        layout = QtGui.QHBoxLayout()
+        self.turn_on = QtGui.QPushButton("Send anonymous statistics to developers")
+        layout.addWidget(self.turn_on)
+        self.turn_on.clicked.connect(self.do_turn_on)
+        self.turn_on.setEnabled(reportusage.usage_report.enableable)
+        self.turn_off = QtGui.QPushButton("Don't send")
+        layout.addWidget(self.turn_off)
+        self.turn_off.clicked.connect(self.do_turn_off)
+        self.turn_off.setEnabled(reportusage.usage_report.disableable)
+        self.setLayout(layout)
+
+    def do_turn_on(self):
+        reportusage.usage_report.enable_reporting()
+        self.value_changed(1)
+        self.set_value(1)
+
+    def do_turn_off(self):
+        reportusage.usage_report.disable_reporting()
+        self.value_changed(0)
+        self.set_value(0)
+
+    def set_value(self, value, signal=True):
+        report = reportusage.usage_report
+        self.turn_on.setEnabled(report.enableable)
+        self.turn_off.setEnabled(report.disableable)
+        if signal:
+            self.value_changed(value)
+
 class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
     def __init__(self, key, field, callback_f, parent=None):
         QtGui.QComboBox.__init__(self, parent)
@@ -572,6 +605,9 @@ class QConfigurationPane(QtGui.QWidget):
         elif widget_type == "linuxext":
             widget = QConfigurationLinuxHandler(config_key, field,
                                                 self.field_changed)
+        elif widget_type == "usagestats":
+            widget = QConfigurationUsageStats(config_key, field,
+                                              self.field_changed)
         else:
             config_val = bool(config_val)
             widget = QConfigurationCheckBox(config_key, field,

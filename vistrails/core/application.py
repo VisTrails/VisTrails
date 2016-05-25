@@ -54,6 +54,7 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
+from vistrails.core import reportusage
 import vistrails.core.requirements
 from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
@@ -170,6 +171,9 @@ class VistrailsApplicationInterface(object):
 
         self.package_manager = PackageManager(self.registry,
                                               self.startup)
+
+        if reportusage.update_config(self.temp_configuration):
+            self.temp_configuration.batch = True
 
     def check_all_requirements(self):
         # check scipy

@@ -37,6 +37,8 @@ Enhancements:
    latest working one
  - If loading a file with an unknown extension, assume .vt format
  - API: allow constructing vistrails.Vistrail() without argument
+ - Added usage stats reporting
+ - Added news widget
 
 From Release: v2.2.3 build 02ad04a622c4 from v2.2 branch
 

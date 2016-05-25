@@ -1,3 +1,4 @@
+
 ###############################################################################
 ##
 ## Copyright (C) 2014-2016, New York University.
@@ -35,6 +36,8 @@
 ###############################################################################
 from __future__ import division
 
+from vistrails.core import reportusage
+
 from version import SearchCompiler
 from visual import VisualQuery
 
@@ -48,6 +51,8 @@ class CombinedSearch(VisualQuery):
         self.use_regex = use_regex
 
     def run(self, controller, name):
+        if self.search_str:
+            reportusage.record_feature('query', controller)
         if self.queryPipeline is not None and \
             len(self.queryPipeline.modules) > 0:
             VisualQuery.run(self, controller, name)
