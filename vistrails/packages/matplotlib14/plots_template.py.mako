@@ -154,7 +154,7 @@ ${get_port_val(spec, ps)}\
         % endif
         % if spec.get_compute_inner():
         ${spec.get_compute_inner()}
-        % elif spec.output_type is None:
+        % elif spec.output_type == 'none':
         ${spec.code_ref}(*args, **kwargs)
         % elif spec.output_type == "object":
         ${spec.get_returned_output_port_specs()[0].compute_name} = ${spec.code_ref}(*args, **kwargs)

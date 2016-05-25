@@ -88,7 +88,7 @@ lags.</docstring>
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="2" property_type="matplotlib.lines.Line2D" />
     <outputPortSpec arg="xaxis" compute_name="xaxis" name="xaxisProperties" port_type="__property__" property_key="3" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.arrow" module_name="MplArrow" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.arrow" module_name="MplArrow" output_type="none" superklass="MplPlot">
     <docstring>Add an arrow to the axes.
 
 Call signature:
@@ -115,7 +115,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="dy" arg_pos="3" name="dy" port_type="basic:Float" show_port="True" />
     <inputPortSpec arg="arrow" constructor_arg="True" name="arrowProperties" port_type="__property__" property_type="matplotlib.patches.FancyArrow" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.axhline" module_name="MplAxhline" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.axhline" module_name="MplAxhline" superklass="MplPlot">
     <docstring>Add a horizontal line across the axis.
 
 Parameters
@@ -187,7 +187,7 @@ far right of the plot.</docstring>
     </inputPortSpec>
     <outputPortSpec arg="line" compute_name="line" name="lineProperties" port_type="__property__" property_key="0" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.axhspan" module_name="MplAxhspan" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.axhspan" module_name="MplAxhspan" superklass="MplPlot">
     <docstring>Add a horizontal span (rectangle) across the axis.
 
 Call signature:
@@ -224,7 +224,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <outputPortSpec arg="patch" compute_name="patch" name="patchProperties" port_type="__property__" property_key="-1" property_type="matplotlib.patches.Polygon" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.axvline" module_name="MplAxvline" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.axvline" module_name="MplAxvline" superklass="MplPlot">
     <docstring>Add a vertical line across the axes.
 
 Parameters
@@ -291,7 +291,7 @@ far right of the plot.</docstring>
     </inputPortSpec>
     <outputPortSpec arg="line" compute_name="line" name="lineProperties" port_type="__property__" property_key="0" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.axvspan" module_name="MplAxvspan" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.axvspan" module_name="MplAxvspan" superklass="MplPlot">
     <docstring>Add a vertical span (rectangle) across the axes.
 
 Call signature:
@@ -328,7 +328,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="xmax" arg_pos="1" name="xmax" port_type="basic:Float" show_port="True" />
     <outputPortSpec arg="patch" compute_name="patch" name="patchProperties" port_type="__property__" property_key="-1" property_type="matplotlib.patches.Polygon" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.bar" module_name="MplBar" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.bar" module_name="MplBar" superklass="MplPlot">
     <docstring>Make a bar plot.
 
 Make a bar plot with rectangles bounded by:
@@ -494,7 +494,7 @@ the `left` argument as the coordinates of the centers of the bars.
     </inputPortSpec>
     <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.Rectangle" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.barh" module_name="MplBarh" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.barh" module_name="MplBarh" superklass="MplPlot">
     <docstring>Make a horizontal bar plot.
 
 Make a horizontal bar plot with rectangles bounded by:
@@ -655,7 +655,7 @@ the `left` argument as the coordinates of the centers of the bars.
     </inputPortSpec>
     <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.Rectangle" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.broken_barh" module_name="MplBrokenBarh" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.broken_barh" module_name="MplBrokenBarh" superklass="MplPlot">
     <docstring>Plot horizontal bars.
 
 Call signature:
@@ -1010,7 +1010,7 @@ meanline : bool, default = False
     <outputPortSpec arg="boxPatch" compute_name="boxPatches" name="boxPatchProperties" plural="True" port_type="__property__" property_key="boxPatches" property_type="matplotlib.artist.PathPatch" />
     <outputPortSpec arg="whisker" compute_name="whiskers" name="whiskerProperties" plural="True" port_type="__property__" property_key="whiskers" property_type="matplotlib.artist.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.cohere" module_name="MplCohere" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.cohere" module_name="MplCohere" output_type="none" superklass="MplPlot">
     <docstring>Plot the coherence between x and y.
 
 Call signature:
@@ -1066,7 +1066,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="line" constructor_arg="True" name="lineProperties" port_type="__property__" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.clabel" module_name="MplClabel" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.clabel" module_name="MplClabel" superklass="MplPlot">
     <docstring>Label a contour plot.
 
 Call signature:
@@ -1405,7 +1405,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
     <outputPortSpec arg="contourSet" compute_name="contourSet" name="contourSet" port_type="MplQuadContourSet" property_key="0" />
     <outputPortSpec arg="polyCollection" compute_name="polyCollections" name="polyCollectionProperties" plural="True" port_type="__property__" property_key="1" property_type="matplotlib.collections.PolyCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.csd" module_name="MplCsd" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.csd" module_name="MplCsd" output_type="none" superklass="MplPlot">
     <docstring>Plot the cross-spectral density.
 
 Call signature:
@@ -1558,7 +1558,7 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
     <outputPortSpec arg="barline" compute_name="barlines" name="barlineProperties" plural="True" port_type="__property__" property_key="2" property_type="matplotlib.collections.LineCollection" />
     <outputPortSpec arg="plotline" compute_name="plotline" name="plotlineProperties" port_type="__property__" property_key="0" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.fill" module_name="MplFill" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.fill" module_name="MplFill" superklass="MplPlot">
     <docstring>Plot filled polygons.
 
 Call signature:
@@ -1592,7 +1592,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     <outputPortSpec arg="polygon" compute_name="polygons" name="polygonProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.patches.Polygon" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.fill_between" module_name="MplFillBetween" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.fill_between" module_name="MplFillBetween" superklass="MplPlot">
     <docstring>Make filled polygons between two curves.
 
 Call signature:
@@ -1635,7 +1635,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <outputPortSpec arg="polyCollection" compute_name="polyCollection" name="polyCollectionProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.collections.PolyCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.fill_betweenx" module_name="MplFillBetweenx" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.fill_betweenx" module_name="MplFillBetweenx" superklass="MplPlot">
     <docstring>Make filled polygons between two horizontal curves.
 
 Call signature:
@@ -1673,7 +1673,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <outputPortSpec arg="polyCollection" compute_name="polyCollection" name="polyCollectionProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.collections.PolyCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.hexbin" module_name="MplHexbin" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.hexbin" module_name="MplHexbin" superklass="MplPlot">
     <docstring>Make a hexagonal binning plot.
 
 Call signature:
@@ -2120,7 +2120,7 @@ Default is ``False``
     </inputPortSpec>
     <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="2" property_type="matplotlib.patches.Rectangle" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.hist2d" module_name="MplHist2d" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.hist2d" module_name="MplHist2d" output_type="none" superklass="MplPlot">
     <docstring>Make a 2D histogram plot.
 
 Parameters
@@ -2232,7 +2232,7 @@ return value count histogram will also be set to nan upon return</docstring>
       <defaults>[10]</defaults>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.hlines" module_name="MplHlines" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.hlines" module_name="MplHlines" superklass="MplPlot">
     <docstring>Plot horizontal lines at each `y` from `xmin` to `xmax`.
 
 Parameters
@@ -2299,7 +2299,7 @@ provided, all lines will have same length.
     <inputPortSpec arg="hold" arg_pos="6" name="hold" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.collections.LineCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.imshow" module_name="MplImshow" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.imshow" module_name="MplImshow" output_type="none" superklass="MplPlot">
     <docstring>Display an image on the axes.
 
 Parameters
@@ -2509,7 +2509,7 @@ on the Agg, ps and pdf backends. Other backends will fall back to
 </docstring>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.loglog" module_name="MplLoglog" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.loglog" module_name="MplLoglog" superklass="MplPlot">
     <docstring>Make a plot with log scaling on both the x and y axis.
 
 Call signature:
@@ -2555,7 +2555,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.pcolor" module_name="MplPcolor" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.pcolor" module_name="MplPcolor" superklass="MplPlot">
     <docstring>Create a pseudocolor plot of a 2-D array.
 
 pcolor can be very slow for large arrays; consider using the similar but much faster :func:`~matplotlib.pyplot.pcolormesh` instead.
@@ -2660,7 +2660,7 @@ An mpl color or sequence of colors will set the edge color</docstring>
     <inputPortSpec arg="Z" arg_pos="2" in_args="True" name="Z" port_type="basic:List" show_port="True" />
     <outputPortSpec arg="polyCollection" compute_name="polyCollection" name="polyCollectionProperties" port_type="__property__" property_key="0" property_type="matplotlib.collections.PolyCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.pcolormesh" module_name="MplPcolormesh" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.pcolormesh" module_name="MplPcolormesh" output_type="none" superklass="MplPlot">
     <docstring>Plot a quadrilateral mesh.
 
 Call signatures:
@@ -2792,7 +2792,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <outputPortSpec arg="wedge" compute_name="wedges" name="wedgeProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.patches.Wedge" />
     <outputPortSpec arg="text" compute_name="texts" name="textProperties" plural="True" port_type="__property__" property_key="1" property_type="matplotlib.text.Text" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.plot_date" module_name="MplPlotDate" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.plot_date" module_name="MplPlotDate" superklass="MplPlot">
     <docstring>Plot with data with dates.
 
 Call signature:
@@ -2840,7 +2840,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="hold" arg_pos="6" name="hold" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.psd" module_name="MplPsd" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.psd" module_name="MplPsd" output_type="none" superklass="MplPlot">
     <docstring>Plot the power spectral density.
 
 Call signature:
@@ -2898,7 +2898,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="line" constructor_arg="True" name="lineProperties" port_type="__property__" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.quiver" module_name="MplQuiver" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.quiver" module_name="MplQuiver" superklass="MplPlot">
     <docstring>Plot a 2-D field of arrows.
 
 call signatures:
@@ -2999,7 +2999,7 @@ If scale_units is 'x' then the vector will be 0.5 x-axis units.  To plot vectors
     </inputPortSpec>
     <outputPortSpec arg="polyCollection" compute_name="polyCollection" name="polyCollectionProperties" port_type="__property__" property_key="0" property_type="matplotlib.collections.PolyCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.quiverkey" module_name="MplQuiverkey" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.quiverkey" module_name="MplQuiverkey" output_type="none" superklass="MplPlot">
     <docstring>Add a key to a quiver plot.
 
 Call signature:
@@ -3060,7 +3060,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>[0.1]</defaults>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.scatter" module_name="MplScatter" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.scatter" module_name="MplScatter" superklass="MplPlot">
     <docstring>Make a scatter plot of x vs y, where x and y are sequence like objects
 of the same lengths.
 
@@ -3204,7 +3204,7 @@ floats. If `None`, use the default :func:`normalize`.
     </inputPortSpec>
     <outputPortSpec arg="pathCollection" compute_name="pathCollection" name="pathCollectionProperties" port_type="__property__" property_key="0" property_type="matplotlib.collections.PathCollection" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.semilogx" module_name="MplSemilogx" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.semilogx" module_name="MplSemilogx" superklass="MplPlot">
     <docstring>Make a plot with log scaling on the x axis.
 
 Call signature:
@@ -3239,7 +3239,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" show_port="True" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.semilogy" module_name="MplSemilogy" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.semilogy" module_name="MplSemilogy" superklass="MplPlot">
     <docstring>Make a plot with log scaling on the y axis.
 
 call signature:
@@ -3274,7 +3274,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.specgram" module_name="MplSpecgram" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.specgram" module_name="MplSpecgram" output_type="none" superklass="MplPlot">
     <docstring>Plot a spectrogram.
 
 Call signature:
@@ -3332,7 +3332,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
       <defaults>[128]</defaults>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.stackplot" module_name="MplStackplot" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.stackplot" module_name="MplStackplot" output_type="none" superklass="MplPlot">
     <docstring>Draws a stacked area plot.
 
 x : 1d array of dimension N
@@ -3374,7 +3374,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <outputPortSpec arg="markerline" compute_name="markerline" name="markerlineProperties" port_type="__property__" property_key="0" property_type="matplotlib.lines.Line2D" />
     <outputPortSpec arg="baseline" compute_name="baseline" name="baselineProperties" port_type="__property__" property_key="2" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.step" module_name="MplStep" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.step" module_name="MplStep" superklass="MplPlot">
     <docstring>Make a step plot.
 
 Call signature:
@@ -3401,7 +3401,7 @@ If 'mid', the jumps in y occur half-way between the x-values.</docstring>
     </inputPortSpec>
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.streamplot" module_name="MplStreamplot" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.streamplot" module_name="MplStreamplot" output_type="none" superklass="MplPlot">
     <docstring>Draws streamlines of a vector flow.
 
 Returns:
@@ -3435,7 +3435,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="linewidth" arg_pos="5" name="linewidth" />
     <inputPortSpec arg="norm" arg_pos="8" name="norm" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.tricontour" module_name="MplTricontour" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.tricontour" module_name="MplTricontour" output_type="none" superklass="MplPlot">
     <docstring>Draw contours on an unstructured triangular grid. :func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
 
 The triangulation can be specified in one of two ways; either:
@@ -3553,7 +3553,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
       <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.tricontourf" module_name="MplTricontourf" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.tricontourf" module_name="MplTricontourf" output_type="none" superklass="MplPlot">
     <docstring>Draw contours on an unstructured triangular grid. :func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
 
 The triangulation can be specified in one of two ways; either:
@@ -3671,7 +3671,7 @@ If a tuple of matplotlib color args (string, float, rgb, etc), different levels 
       <values>[['Normalize']]</values>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.tripcolor" module_name="MplTripcolor" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.tripcolor" module_name="MplTripcolor" output_type="none" superklass="MplPlot">
     <docstring>Create a pseudocolor plot of an unstructured triangular grid.
 
 The triangulation can be specified in one of two ways; either:
@@ -3696,7 +3696,7 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.triplot" module_name="MplTriplot" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.triplot" module_name="MplTriplot" output_type="none" superklass="MplPlot">
     <docstring>Draw a unstructured triangular grid as lines and/or markers.
 
 The triangulation to plot can be specified in one of two ways; either:
@@ -3723,7 +3723,7 @@ Example:
 
 Additional kwargs: hold = [True|False] overrides default hold state</docstring>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.vlines" module_name="MplVlines" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.vlines" module_name="MplVlines" output_type="none" superklass="MplPlot">
     <docstring>Plot vertical lines.
 
 Plot vertical lines at each `x` from `ymin` to `ymax`.
@@ -3878,7 +3878,7 @@ lags.</docstring>
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="2" property_type="matplotlib.lines.Line2D" />
     <outputPortSpec arg="xaxis" compute_name="xaxis" name="xaxisProperties" port_type="__property__" property_key="3" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.barbs" module_name="MplBarbs" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.barbs" module_name="MplBarbs" superklass="MplPlot">
     <docstring>Plot a 2-D field of barbs.
 
 Call signatures:
@@ -4094,7 +4094,7 @@ If None, default to rc ``image.aspect`` value.
     <outputPortSpec arg="image" compute_name="image" name="imageProperties" port_type="__property__" property_key="0" property_type="matplotlib.image.AxesImage" />
     <outputPortSpec arg="marks" compute_name="marks" name="marksProperties" port_type="__property__" property_key="1" property_type="matplotlib.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.polar" module_name="MplPolar" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.polar" module_name="MplPolar" superklass="MplPlot">
     <docstring>Make a polar plot.
 
 call signature:
@@ -4106,7 +4106,7 @@ Multiple theta, r arguments are supported, with format strings, as in :func:`~ma
     <inputPortSpec arg="r" arg_pos="1" in_args="True" name="r" port_type="basic:List" show_port="True" />
     <outputPortSpec arg="line" compute_name="lines" name="lineProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.lines.Line2D" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.legend" module_name="MplLegend" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.legend" module_name="MplLegend" output_type="none" superklass="MplPlot">
     <docstring>Place a legend on the current axes.
 
 Call signature:
@@ -4331,7 +4331,7 @@ of ``None`` (default) the Axes'
 </docstring>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.annotate" module_name="MplAnnotate" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.annotate" module_name="MplAnnotate" superklass="MplPlot">
     <docstring>Create an annotation: a piece of text referring to a data
 point.
 
@@ -4513,7 +4513,7 @@ options. Default is None.</docstring>
     <inputPortSpec arg="arrow" in_kwargs="False" name="arrowProperties" port_type="MplYAArrowProperties" />
     <outputPortSpec arg="annotation" compute_name="annotation" name="annotationProperties" port_type="__property__" property_key="0" property_type="matplotlib.text.Annotation" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.plot" module_name="MplLinePlot" output_type="object" superklass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.plot" module_name="MplLinePlot" superklass="MplPlot">
     <docstring>Plot lines and/or markers to the :class:`~matplotlib.axes.Axes`.  args is a variable length argument, allowing for multiple x, y pairs with an optional format string.  For example, each of the following is legal:
 
 plot(x, y)        # plot x and y using default line style and color plot(x, y, 'bo')  # plot x and y using blue circle markers plot(y)           # plot y using x as index array 0..N-1 plot(y, 'r+')     # ditto, but with red plusses
