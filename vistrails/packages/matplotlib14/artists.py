@@ -152,1191 +152,6 @@ class MplArtistProperties(MplProperties):
             artist.props['figure'] = self.get_input('figure')
 
 
-class MplPcolorImageProperties(MplArtistProperties):
-    """
-    Make a pcolor-style plot with an irregular rectangular grid.
-
-    This uses a variation of the original irregular image code,
-    and it is used by pcolorfast for the corresponding grid type.
-    
-    """
-    _input_ports = [
-              ("A", "basic:Null",
-                {'optional': True}),
-              ("ax", "basic:Null",
-                {'optional': True}),
-              ("cmap", "basic:Null",
-                {'optional': True}),
-              ("x", "basic:Null",
-                {'optional': True}),
-              ("y", "basic:Null",
-                {'optional': True}),
-              ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'Set the alpha value used for blending - not supported on all backends'}),
-              ("data", "basic:String",
-                {'optional': True}),
-              ("norm", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplPcolorImageProperties)")]
-
-    class Artist(MplArtistProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplArtistProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplPcolorImageProperties.Artist()
-            self.set_output("value", artist)
-
-        MplArtistProperties.compute(self, artist)
-        if self.has_input('A'):
-            artist.constructor_props['A'] = self.get_input('A')
-        if self.has_input('ax'):
-            artist.constructor_props['ax'] = self.get_input('ax')
-        if self.has_input('cmap'):
-            artist.constructor_props['cmap'] = self.get_input('cmap')
-        if self.has_input('x'):
-            artist.constructor_props['x'] = self.get_input('x')
-        if self.has_input('y'):
-            artist.constructor_props['y'] = self.get_input('y')
-        if self.has_input('alpha'):
-            artist.props['alpha'] = self.get_input('alpha')
-        if self.has_input('data'):
-            artist.props['data'] = self.get_input('data')
-        if self.has_input('norm'):
-            artist.constructor_props['norm'] = self.get_input('norm')
-
-
-class MplCollectionProperties(MplArtistProperties):
-    """
-    Base class for Collections.  Must be subclassed to be usable.
-
-    All properties in a collection must be sequences or scalars;
-    if scalars, they will be converted to sequences.  The
-    property of the ith element of the collection is::
-
-      prop[i % len(props)]
-
-    Keyword arguments and default values:
-
-        * *edgecolors*: None
-        * *facecolors*: None
-        * *linewidths*: None
-        * *antialiaseds*: None
-        * *offsets*: None
-        * *transOffset*: transforms.IdentityTransform()
-        * *offset_position*: 'screen' (default) or 'data'
-        * *norm*: None (optional for
-          :class:`matplotlib.cm.ScalarMappable`)
-        * *cmap*: None (optional for
-          :class:`matplotlib.cm.ScalarMappable`)
-        * *hatch*: None
-        * *zorder*: 1
-
-
-    *offsets* and *transOffset* are used to translate the patch after
-    rendering (default no offsets).  If offset_position is 'screen'
-    (default) the offset is applied after the master transform has
-    been applied, that is, the offsets are in screen coordinates.  If
-    offset_position is 'data', the offset is applied before the master
-    transform, i.e., the offsets are in data coordinates.
-
-    If any of *edgecolors*, *facecolors*, *linewidths*, *antialiaseds*
-    are None, they default to their :data:`matplotlib.rcParams` patch
-    setting, in sequence form.
-
-    The use of :class:`~matplotlib.cm.ScalarMappable` is optional.  If
-    the :class:`~matplotlib.cm.ScalarMappable` matrix _A is not None
-    (i.e., a call to set_array has been made), at draw time a call to
-    scalar mappable will be made to set the face colors.
-    
-    """
-    _input_ports = [
-              ("transOffset", "basic:Null",
-                {'optional': True}),
-              ("edgecolor", "basic:Color",
-                {'optional': True, 'docstring': "Set the edgecolor(s) of the collection. c can be a matplotlib color arg (all patches have same color), or a sequence of rgba tuples; if it is a sequence the patches will cycle through the sequence.\n\nIf c is 'face', the edge color will always be the same as the face color.  If it is 'none', the patch boundary will not be drawn."}),
-              ("offset_position", "basic:String",
-                {'optional': True, 'docstring': "Set how offsets are applied.  If offset_position is 'screen' (default) the offset is applied after the master transform has been applied, that is, the offsets are in screen coordinates. If offset_position is 'data', the offset is applied before the master transform, i.e., the offsets are in data coordinates."}),
-              ("edgecolors", "basic:Null",
-                {'optional': True}),
-              ("facecolor", "basic:Color",
-                {'optional': True, 'docstring': "Set the facecolor(s) of the collection.  c can be a matplotlib color arg (all patches have same color), or a sequence of rgba tuples; if it is a sequence the patches will cycle through the sequence.\n\nIf c is 'none', the patch will not be filled."}),
-              ("linestyles", "basic:String",
-                {'optional': True, 'defaults': [u'solid']}),
-              ("offsets", "basic:List",
-                {'optional': True, 'docstring': 'Set the offsets for the collection.  offsets can be a scalar or a sequence.'}),
-              ("color", "basic:Color",
-                {'optional': True, 'docstring': 'Set both the edgecolor and the facecolor. .. seealso:\n\n:meth:`set_facecolor`, :meth:`set_edgecolor`    For setting the edge or face color individually.'}),
-              ("zorder", "basic:Integer",
-                {'optional': True, 'defaults': [1]}),
-              ("pickradius", "basic:String",
-                {'optional': True}),
-              ("antialiaseds", "basic:Null",
-                {'optional': True}),
-              ("linewidths", "basic:Null",
-                {'optional': True}),
-              ("cmap", "basic:Null",
-                {'optional': True}),
-              ("antialiased", "basic:List",
-                {'optional': True, 'docstring': 'Set the antialiasing state for rendering.'}),
-              ("urls", "basic:String",
-                {'optional': True}),
-              ("hatch", "basic:String",
-                {'values': [['/', "'\\'", "'", "'", '-', '+', 'x', 'o', 'O', '.', '*']], 'entry_types': ['enum'], 'docstring': 'Set the hatching pattern\n\nhatch can be one of:\n\n/   - diagonal hatching \\   - back diagonal |   - vertical -   - horizontal +   - crossed x   - crossed diagonal o   - small circle O   - large circle .   - dots *   - stars\n\nLetters can be combined, in which case all the specified hatchings are done.  If same letter repeats, it increases the density of hatching of that pattern.\n\nHatching is supported in the PostScript, PDF, SVG and Agg backends only.\n\nUnlike other properties such as linewidth and colors, hatching can only be specified for the collection as a whole, not separately for each member.', 'optional': True}),
-              ("alpha", "basic:Float",
-                {'optional': True, 'docstring': 'Set the alpha tranparencies of the collection.  alpha must be a float or None.'}),
-              ("linewidth", "basic:List",
-                {'optional': True, 'docstring': 'Set the linewidth(s) for the collection.  lw can be a scalar or a sequence; if it is a sequence the patches will cycle through the sequence'}),
-              ("linestyleScalar", "basic:String",
-                {'values': [['solid', ('dashed', 'dashdot', 'dotted'), '(offset, on-off-dash-seq)']], 'entry_types': ['enum'], 'docstring': 'Set the linestyle(s) for the collection.', 'optional': True}),
-              ("linestyleSequence", "basic:List",
-               {'docstring': 'Set the linestyle(s) for the collection.', 'optional': True}),
-              ("facecolors", "basic:Null",
-                {'optional': True}),
-              ("norm", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplCollectionProperties)")]
-
-    class Artist(MplArtistProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplArtistProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplArtistProperties.compute(self, artist)
-        if self.has_input('transOffset'):
-            artist.constructor_props['transOffset'] = self.get_input('transOffset')
-        if self.has_input('edgecolor'):
-            artist.props['edgecolor'] = self.get_input('edgecolor')
-            artist.props['edgecolor'] = translate_color(artist.props['edgecolor'])
-        if self.has_input('offset_position'):
-            artist.props['offset_position'] = self.get_input('offset_position')
-        if self.has_input('edgecolors'):
-            artist.constructor_props['edgecolors'] = self.get_input('edgecolors')
-        if self.has_input('facecolor'):
-            artist.props['facecolor'] = self.get_input('facecolor')
-            artist.props['facecolor'] = translate_color(artist.props['facecolor'])
-        if self.has_input('linestyles'):
-            artist.constructor_props['linestyles'] = self.get_input('linestyles')
-        if self.has_input('offsets'):
-            artist.props['offsets'] = self.get_input('offsets')
-        if self.has_input('color'):
-            artist.props['color'] = self.get_input('color')
-            artist.props['color'] = translate_color(artist.props['color'])
-        if self.has_input('zorder'):
-            artist.constructor_props['zorder'] = self.get_input('zorder')
-        if self.has_input('pickradius'):
-            artist.props['pickradius'] = self.get_input('pickradius')
-        if self.has_input('antialiaseds'):
-            artist.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
-        if self.has_input('linewidths'):
-            artist.constructor_props['linewidths'] = self.get_input('linewidths')
-        if self.has_input('cmap'):
-            artist.constructor_props['cmap'] = self.get_input('cmap')
-        if self.has_input('antialiased'):
-            artist.props['antialiased'] = self.get_input('antialiased')
-        if self.has_input('urls'):
-            artist.props['urls'] = self.get_input('urls')
-        if self.has_input('hatch'):
-            artist.props['hatch'] = self.get_input('hatch')
-        if self.has_input('alpha'):
-            artist.props['alpha'] = self.get_input('alpha')
-        if self.has_input('linewidth'):
-            artist.props['linewidth'] = self.get_input('linewidth')
-        if self.has_input('linestyleScalar'):
-            artist.props['linestyle'] = self.get_input('linestyleScalar')
-        elif self.has_input('linestyleSequence'):
-            artist.props['linestyle'] = self.get_input('linestyleSequence')
-        if self.has_input('facecolors'):
-            artist.constructor_props['facecolors'] = self.get_input('facecolors')
-        if self.has_input('norm'):
-            artist.constructor_props['norm'] = self.get_input('norm')
-
-
-class MplTriMeshProperties(MplCollectionProperties):
-    """
-    Class for the efficient drawing of a triangular mesh using
-    Gouraud shading.
-
-    A triangular mesh is a :class:`~matplotlib.tri.Triangulation`
-    object.
-    
-    """
-    _input_ports = [
-              ("triangulation", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplTriMeshProperties)")]
-
-    class Artist(MplCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplTriMeshProperties.Artist()
-            self.set_output("value", artist)
-
-        MplCollectionProperties.compute(self, artist)
-        if self.has_input('triangulation'):
-            artist.constructor_props['triangulation'] = self.get_input('triangulation')
-
-
-class MplQuadMeshProperties(MplCollectionProperties):
-    """
-    Class for the efficient drawing of a quadrilateral mesh.
-
-    A quadrilateral mesh consists of a grid of vertices. The
-    dimensions of this array are (*meshWidth* + 1, *meshHeight* +
-    1). Each vertex in the mesh has a different set of "mesh
-    coordinates" representing its position in the topology of the
-    mesh. For any values (*m*, *n*) such that 0 <= *m* <= *meshWidth*
-    and 0 <= *n* <= *meshHeight*, the vertices at mesh coordinates
-    (*m*, *n*), (*m*, *n* + 1), (*m* + 1, *n* + 1), and (*m* + 1, *n*)
-    form one of the quadrilaterals in the mesh. There are thus
-    (*meshWidth* * *meshHeight*) quadrilaterals in the mesh.  The mesh
-    need not be regular and the polygons need not be convex.
-
-    A quadrilateral mesh is represented by a (2 x ((*meshWidth* + 1) *
-    (*meshHeight* + 1))) numpy array *coordinates*, where each row is
-    the *x* and *y* coordinates of one of the vertices.  To define the
-    function that maps from a data point to its corresponding color,
-    use the :meth:`set_cmap` method.  Each of these arrays is indexed in
-    row-major order by the mesh coordinates of the vertex (or the mesh
-    coordinates of the lower left vertex, in the case of the
-    colors).
-
-    For example, the first entry in *coordinates* is the
-    coordinates of the vertex at mesh coordinates (0, 0), then the one
-    at (0, 1), then at (0, 2) .. (0, meshWidth), (1, 0), (1, 1), and
-    so on.
-
-    *shading* may be 'flat', or 'gouraud'
-    
-    """
-    _input_ports = [
-              ("meshWidth", "basic:Null",
-                {'optional': True}),
-              ("meshHeight", "basic:Null",
-                {'optional': True}),
-              ("antialiased", "basic:Boolean",
-                {'optional': True, 'defaults': [True]}),
-              ("coordinates", "basic:Null",
-                {'optional': True}),
-              ("shading", "basic:String",
-                {'optional': True, 'defaults': [u'flat']}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplQuadMeshProperties)")]
-
-    class Artist(MplCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplQuadMeshProperties.Artist()
-            self.set_output("value", artist)
-
-        MplCollectionProperties.compute(self, artist)
-        if self.has_input('meshWidth'):
-            artist.constructor_props['meshWidth'] = self.get_input('meshWidth')
-        if self.has_input('meshHeight'):
-            artist.constructor_props['meshHeight'] = self.get_input('meshHeight')
-        if self.has_input('antialiased'):
-            artist.constructor_props['antialiased'] = self.get_input('antialiased')
-        if self.has_input('coordinates'):
-            artist.constructor_props['coordinates'] = self.get_input('coordinates')
-        if self.has_input('shading'):
-            artist.constructor_props['shading'] = self.get_input('shading')
-
-
-class MplEllipseCollectionProperties(MplCollectionProperties):
-    """
-    A collection of ellipses, drawn using splines.
-    
-    """
-    _input_ports = [
-              ("units", "basic:String",
-                {'optional': True, 'defaults': [u'points']}),
-              ("widths", "basic:Null",
-                {'optional': True}),
-              ("angles", "basic:Null",
-                {'optional': True}),
-              ("heights", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplEllipseCollectionProperties)")]
-
-    class Artist(MplCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplEllipseCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplCollectionProperties.compute(self, artist)
-        if self.has_input('units'):
-            artist.constructor_props['units'] = self.get_input('units')
-        if self.has_input('widths'):
-            artist.constructor_props['widths'] = self.get_input('widths')
-        if self.has_input('angles'):
-            artist.constructor_props['angles'] = self.get_input('angles')
-        if self.has_input('heights'):
-            artist.constructor_props['heights'] = self.get_input('heights')
-
-
-class MplPatchCollectionProperties(MplCollectionProperties):
-    """
-    A generic collection of patches.
-
-    This makes it easier to assign a color map to a heterogeneous
-    collection of patches.
-
-    This also may improve plotting speed, since PatchCollection will
-    draw faster than a large number of patches.
-    
-    """
-    _input_ports = [
-              ("paths", "basic:String",
-                {'optional': True}),
-              ("patches", "basic:Null",
-                {'optional': True}),
-              ("match_original", "basic:Boolean",
-                {'optional': True, 'defaults': [False]}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplPatchCollectionProperties)")]
-
-    class Artist(MplCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplPatchCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplCollectionProperties.compute(self, artist)
-        if self.has_input('paths'):
-            artist.props['paths'] = self.get_input('paths')
-        if self.has_input('patches'):
-            artist.constructor_props['patches'] = self.get_input('patches')
-        if self.has_input('match_original'):
-            artist.constructor_props['match_original'] = self.get_input('match_original')
-
-
-class MplLineCollectionProperties(MplCollectionProperties):
-    """
-    All parameters must be sequences or scalars; if scalars, they will
-    be converted to sequences.  The property of the ith line
-    segment is::
-
-       prop[i % len(props)]
-
-    i.e., the properties cycle if the ``len`` of props is less than the
-    number of segments.
-    
-    """
-    _input_ports = [
-              ("paths", "basic:String",
-                {'optional': True}),
-              ("antialiaseds", "basic:Null",
-                {'optional': True}),
-              ("linestyles", "basic:String",
-                {'optional': True, 'defaults': [u'solid']}),
-              ("offsets", "basic:Null",
-                {'optional': True}),
-              ("color", "basic:Color",
-                {'optional': True, 'docstring': 'Set the color(s) of the line collection.  c can be a matplotlib color arg (all patches have same color), or a sequence or rgba tuples; if it is a sequence the patches will cycle through the sequence.'}),
-              ("segments", "basic:String",
-                {'optional': True}),
-              ("linewidths", "basic:Null",
-                {'optional': True}),
-              ("colors", "basic:Null",
-                {'optional': True}),
-              ("cmap", "basic:Null",
-                {'optional': True}),
-              ("transOffset", "basic:Null",
-                {'optional': True}),
-              ("verts", "basic:String",
-                {'optional': True}),
-              ("pickradius", "basic:Integer",
-                {'optional': True, 'defaults': [5]}),
-              ("zorder", "basic:Integer",
-                {'optional': True, 'defaults': [2]}),
-              ("norm", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplLineCollectionProperties)")]
-
-    class Artist(MplCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplLineCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplCollectionProperties.compute(self, artist)
-        if self.has_input('paths'):
-            artist.props['paths'] = self.get_input('paths')
-        if self.has_input('antialiaseds'):
-            artist.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
-        if self.has_input('linestyles'):
-            artist.constructor_props['linestyles'] = self.get_input('linestyles')
-        if self.has_input('offsets'):
-            artist.constructor_props['offsets'] = self.get_input('offsets')
-        if self.has_input('color'):
-            artist.props['color'] = self.get_input('color')
-            artist.props['color'] = translate_color(artist.props['color'])
-        if self.has_input('segments'):
-            artist.props['segments'] = self.get_input('segments')
-        if self.has_input('linewidths'):
-            artist.constructor_props['linewidths'] = self.get_input('linewidths')
-        if self.has_input('colors'):
-            artist.constructor_props['colors'] = self.get_input('colors')
-        if self.has_input('cmap'):
-            artist.constructor_props['cmap'] = self.get_input('cmap')
-        if self.has_input('transOffset'):
-            artist.constructor_props['transOffset'] = self.get_input('transOffset')
-        if self.has_input('verts'):
-            artist.props['verts'] = self.get_input('verts')
-        if self.has_input('pickradius'):
-            artist.constructor_props['pickradius'] = self.get_input('pickradius')
-        if self.has_input('zorder'):
-            artist.constructor_props['zorder'] = self.get_input('zorder')
-        if self.has_input('norm'):
-            artist.constructor_props['norm'] = self.get_input('norm')
-
-
-class MplEventCollectionProperties(MplLineCollectionProperties):
-    """
-    A collection of discrete events.
-
-    An event is a 1-dimensional value, usually the position of something along
-    an axis, such as time or length.  Events do not have an amplitude.  They
-    are displayed as v
-    
-    """
-    _input_ports = [
-              ("linelength", "basic:String",
-                {'optional': True, 'docstring': 'set the length of the lines used to mark each event'}),
-              ("orientation", "basic:String",
-                {'optional': True, 'docstring': "set the orientation of the event line [ 'horizontal' | 'vertical' | None ] defaults to 'horizontal' if not specified or None"}),
-              ("color", "basic:Null",
-                {'optional': True}),
-              ("positions", "basic:String",
-                {'optional': True, 'docstring': 'set the positions of the events to the specified value'}),
-              ("antialiased", "basic:Null",
-                {'optional': True}),
-              ("lineoffset", "basic:String",
-                {'optional': True, 'docstring': 'set the offset of the lines used to mark each event'}),
-              ("linewidth", "basic:Null",
-                {'optional': True}),
-              ("linestyle", "basic:String",
-                {'optional': True, 'defaults': [u'solid']}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplEventCollectionProperties)")]
-
-    class Artist(MplLineCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplLineCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplEventCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplLineCollectionProperties.compute(self, artist)
-        if self.has_input('linelength'):
-            artist.props['linelength'] = self.get_input('linelength')
-        if self.has_input('orientation'):
-            artist.props['orientation'] = self.get_input('orientation')
-        if self.has_input('color'):
-            artist.constructor_props['color'] = self.get_input('color')
-        if self.has_input('positions'):
-            artist.props['positions'] = self.get_input('positions')
-        if self.has_input('antialiased'):
-            artist.constructor_props['antialiased'] = self.get_input('antialiased')
-        if self.has_input('lineoffset'):
-            artist.props['lineoffset'] = self.get_input('lineoffset')
-        if self.has_input('linewidth'):
-            artist.constructor_props['linewidth'] = self.get_input('linewidth')
-        if self.has_input('linestyle'):
-            artist.constructor_props['linestyle'] = self.get_input('linestyle')
-
-
-class Mpl_CollectionWithSizesProperties(MplCollectionProperties):
-    """
-    Base class for collections that have an array of sizes.
-    
-    """
-    _input_ports = [
-              ("edgecolors", "basic:Null",
-                {'optional': True}),
-              ("antialiaseds", "basic:Null",
-                {'optional': True}),
-              ("pickradius", "basic:Float",
-                {'optional': True, 'defaults': [5.0]}),
-              ("linestyles", "basic:String",
-                {'optional': True, 'defaults': [u'solid']}),
-              ("offsets", "basic:Null",
-                {'optional': True}),
-              ("sizes", "basic:List",
-                {'optional': True, 'docstring': "\n        Set the sizes of each member of the collection.\n\n        Parameters\n        ----------\n        sizes : ndarray or None\n            The size to set for each element of the collection.  The\n            value is the 'area' of the element.\n\n        dpi : float\n            The dpi of the canvas. Defaults to 72.0.\n        "}),
-              ("offset_position", "basic:String",
-                {'optional': True, 'defaults': [u'screen']}),
-              ("linewidths", "basic:Null",
-                {'optional': True}),
-              ("cmap", "basic:Null",
-                {'optional': True}),
-              ("transOffset", "basic:Null",
-                {'optional': True}),
-              ("urls", "basic:Null",
-                {'optional': True}),
-              ("hatch", "basic:Null",
-                {'optional': True}),
-              ("zorder", "basic:Integer",
-                {'optional': True, 'defaults': [1]}),
-              ("facecolors", "basic:Null",
-                {'optional': True}),
-              ("norm", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(Mpl_CollectionWithSizesProperties)")]
-
-    class Artist(MplCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = Mpl_CollectionWithSizesProperties.Artist()
-            self.set_output("value", artist)
-
-        MplCollectionProperties.compute(self, artist)
-        if self.has_input('edgecolors'):
-            artist.constructor_props['edgecolors'] = self.get_input('edgecolors')
-        if self.has_input('antialiaseds'):
-            artist.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
-        if self.has_input('pickradius'):
-            artist.constructor_props['pickradius'] = self.get_input('pickradius')
-        if self.has_input('linestyles'):
-            artist.constructor_props['linestyles'] = self.get_input('linestyles')
-        if self.has_input('offsets'):
-            artist.constructor_props['offsets'] = self.get_input('offsets')
-        if self.has_input('sizes'):
-            artist.props['sizes'] = self.get_input('sizes')
-        if self.has_input('offset_position'):
-            artist.constructor_props['offset_position'] = self.get_input('offset_position')
-        if self.has_input('linewidths'):
-            artist.constructor_props['linewidths'] = self.get_input('linewidths')
-        if self.has_input('cmap'):
-            artist.constructor_props['cmap'] = self.get_input('cmap')
-        if self.has_input('transOffset'):
-            artist.constructor_props['transOffset'] = self.get_input('transOffset')
-        if self.has_input('urls'):
-            artist.constructor_props['urls'] = self.get_input('urls')
-        if self.has_input('hatch'):
-            artist.constructor_props['hatch'] = self.get_input('hatch')
-        if self.has_input('zorder'):
-            artist.constructor_props['zorder'] = self.get_input('zorder')
-        if self.has_input('facecolors'):
-            artist.constructor_props['facecolors'] = self.get_input('facecolors')
-        if self.has_input('norm'):
-            artist.constructor_props['norm'] = self.get_input('norm')
-
-
-class MplRegularPolyCollectionProperties(Mpl_CollectionWithSizesProperties):
-    """Draw a collection of regular polygons with *numsides*.
-    """
-    _input_ports = [
-              ("numsides", "basic:Null",
-                {'optional': True}),
-              ("rotation", "basic:Integer",
-                {'optional': True, 'defaults': [0]}),
-              ("sizes", "basic:List",
-                {'optional': True, 'defaults': [(1,)]}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplRegularPolyCollectionProperties)")]
-
-    class Artist(Mpl_CollectionWithSizesProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplRegularPolyCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        Mpl_CollectionWithSizesProperties.compute(self, artist)
-        if self.has_input('numsides'):
-            artist.constructor_props['numsides'] = self.get_input('numsides')
-        if self.has_input('rotation'):
-            artist.constructor_props['rotation'] = self.get_input('rotation')
-        if self.has_input('sizes'):
-            artist.constructor_props['sizes'] = self.get_input('sizes')
-
-
-class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties):
-    """
-    Draw a collection of regular asterisks with *numsides* points.
-    """
-    _input_ports = [
-              ("numsides", "basic:Null",
-                {'optional': True}),
-              ("rotation", "basic:Integer",
-                {'optional': True, 'defaults': [0]}),
-              ("sizes", "basic:List",
-                {'optional': True, 'defaults': [(1,)]}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplAsteriskPolygonCollectionProperties)")]
-
-    class Artist(MplRegularPolyCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplRegularPolyCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplAsteriskPolygonCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplRegularPolyCollectionProperties.compute(self, artist)
-        if self.has_input('numsides'):
-            artist.constructor_props['numsides'] = self.get_input('numsides')
-        if self.has_input('rotation'):
-            artist.constructor_props['rotation'] = self.get_input('rotation')
-        if self.has_input('sizes'):
-            artist.constructor_props['sizes'] = self.get_input('sizes')
-
-
-class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
-    """
-    Draw a collection of regular stars with *numsides* points.
-    """
-    _input_ports = [
-              ("numsides", "basic:Null",
-                {'optional': True}),
-              ("rotation", "basic:Integer",
-                {'optional': True, 'defaults': [0]}),
-              ("sizes", "basic:List",
-                {'optional': True, 'defaults': [(1,)]}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplStarPolygonCollectionProperties)")]
-
-    class Artist(MplRegularPolyCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplRegularPolyCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplStarPolygonCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplRegularPolyCollectionProperties.compute(self, artist)
-        if self.has_input('numsides'):
-            artist.constructor_props['numsides'] = self.get_input('numsides')
-        if self.has_input('rotation'):
-            artist.constructor_props['rotation'] = self.get_input('rotation')
-        if self.has_input('sizes'):
-            artist.constructor_props['sizes'] = self.get_input('sizes')
-
-
-class MplPathCollectionProperties(Mpl_CollectionWithSizesProperties):
-    """
-    This is the most basic :class:`Collection` subclass.
-    
-    """
-    _input_ports = [
-              ("paths", "basic:String",
-                {'optional': True}),
-              ("sizes", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplPathCollectionProperties)")]
-
-    class Artist(Mpl_CollectionWithSizesProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplPathCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        Mpl_CollectionWithSizesProperties.compute(self, artist)
-        if self.has_input('paths'):
-            artist.props['paths'] = self.get_input('paths')
-        if self.has_input('sizes'):
-            artist.constructor_props['sizes'] = self.get_input('sizes')
-
-
-class MplPolyCollectionProperties(Mpl_CollectionWithSizesProperties):
-    """
-    """
-    _input_ports = [
-              ("paths", "basic:String",
-                {'optional': True, 'docstring': 'This allows one to delay initialization of the vertices.'}),
-              ("verts", "basic:String",
-                {'optional': True, 'docstring': 'This allows one to delay initialization of the vertices.'}),
-              ("closed", "basic:Boolean",
-                {'optional': True, 'defaults': [True]}),
-              ("sizes", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplPolyCollectionProperties)")]
-
-    class Artist(Mpl_CollectionWithSizesProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplPolyCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        Mpl_CollectionWithSizesProperties.compute(self, artist)
-        if self.has_input('paths'):
-            artist.props['paths'] = self.get_input('paths')
-        if self.has_input('verts'):
-            artist.props['verts'] = self.get_input('verts')
-        if self.has_input('closed'):
-            artist.constructor_props['closed'] = self.get_input('closed')
-        if self.has_input('sizes'):
-            artist.constructor_props['sizes'] = self.get_input('sizes')
-
-
-class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
-    """
-    A collection of horizontal bars spanning *yrange* with a sequence of
-    *xranges*.
-    
-    """
-    _input_ports = [
-              ("xranges", "basic:Null",
-                {'optional': True}),
-              ("yrange", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplBrokenBarHCollectionProperties)")]
-
-    class Artist(MplPolyCollectionProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplPolyCollectionProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplBrokenBarHCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        MplPolyCollectionProperties.compute(self, artist)
-        if self.has_input('xranges'):
-            artist.constructor_props['xranges'] = self.get_input('xranges')
-        if self.has_input('yrange'):
-            artist.constructor_props['yrange'] = self.get_input('yrange')
-
-
-class MplCircleCollectionProperties(Mpl_CollectionWithSizesProperties):
-    """
-    A collection of circles, drawn using splines.
-    
-    """
-    _input_ports = [
-              ("sizes", "basic:Null",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplCircleCollectionProperties)")]
-
-    class Artist(Mpl_CollectionWithSizesProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplCircleCollectionProperties.Artist()
-            self.set_output("value", artist)
-
-        Mpl_CollectionWithSizesProperties.compute(self, artist)
-        if self.has_input('sizes'):
-            artist.constructor_props['sizes'] = self.get_input('sizes')
-
-
 class Mpl_AxesImageBaseProperties(MplArtistProperties):
     """
     """
@@ -1647,6 +462,1191 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
             artist.constructor_props['filterrad'] = self.get_input('filterrad')
         if self.has_input('bbox'):
             artist.constructor_props['bbox'] = self.get_input('bbox')
+
+
+class MplCollectionProperties(MplArtistProperties):
+    """
+    Base class for Collections.  Must be subclassed to be usable.
+
+    All properties in a collection must be sequences or scalars;
+    if scalars, they will be converted to sequences.  The
+    property of the ith element of the collection is::
+
+      prop[i % len(props)]
+
+    Keyword arguments and default values:
+
+        * *edgecolors*: None
+        * *facecolors*: None
+        * *linewidths*: None
+        * *antialiaseds*: None
+        * *offsets*: None
+        * *transOffset*: transforms.IdentityTransform()
+        * *offset_position*: 'screen' (default) or 'data'
+        * *norm*: None (optional for
+          :class:`matplotlib.cm.ScalarMappable`)
+        * *cmap*: None (optional for
+          :class:`matplotlib.cm.ScalarMappable`)
+        * *hatch*: None
+        * *zorder*: 1
+
+
+    *offsets* and *transOffset* are used to translate the patch after
+    rendering (default no offsets).  If offset_position is 'screen'
+    (default) the offset is applied after the master transform has
+    been applied, that is, the offsets are in screen coordinates.  If
+    offset_position is 'data', the offset is applied before the master
+    transform, i.e., the offsets are in data coordinates.
+
+    If any of *edgecolors*, *facecolors*, *linewidths*, *antialiaseds*
+    are None, they default to their :data:`matplotlib.rcParams` patch
+    setting, in sequence form.
+
+    The use of :class:`~matplotlib.cm.ScalarMappable` is optional.  If
+    the :class:`~matplotlib.cm.ScalarMappable` matrix _A is not None
+    (i.e., a call to set_array has been made), at draw time a call to
+    scalar mappable will be made to set the face colors.
+    
+    """
+    _input_ports = [
+              ("transOffset", "basic:Null",
+                {'optional': True}),
+              ("edgecolor", "basic:Color",
+                {'optional': True, 'docstring': "Set the edgecolor(s) of the collection. c can be a matplotlib color arg (all patches have same color), or a sequence of rgba tuples; if it is a sequence the patches will cycle through the sequence.\n\nIf c is 'face', the edge color will always be the same as the face color.  If it is 'none', the patch boundary will not be drawn."}),
+              ("offset_position", "basic:String",
+                {'optional': True, 'docstring': "Set how offsets are applied.  If offset_position is 'screen' (default) the offset is applied after the master transform has been applied, that is, the offsets are in screen coordinates. If offset_position is 'data', the offset is applied before the master transform, i.e., the offsets are in data coordinates."}),
+              ("edgecolors", "basic:Null",
+                {'optional': True}),
+              ("facecolor", "basic:Color",
+                {'optional': True, 'docstring': "Set the facecolor(s) of the collection.  c can be a matplotlib color arg (all patches have same color), or a sequence of rgba tuples; if it is a sequence the patches will cycle through the sequence.\n\nIf c is 'none', the patch will not be filled."}),
+              ("linestyles", "basic:String",
+                {'optional': True, 'defaults': [u'solid']}),
+              ("offsets", "basic:List",
+                {'optional': True, 'docstring': 'Set the offsets for the collection.  offsets can be a scalar or a sequence.'}),
+              ("color", "basic:Color",
+                {'optional': True, 'docstring': 'Set both the edgecolor and the facecolor. .. seealso:\n\n:meth:`set_facecolor`, :meth:`set_edgecolor`    For setting the edge or face color individually.'}),
+              ("zorder", "basic:Integer",
+                {'optional': True, 'defaults': [1]}),
+              ("pickradius", "basic:String",
+                {'optional': True}),
+              ("antialiaseds", "basic:Null",
+                {'optional': True}),
+              ("linewidths", "basic:Null",
+                {'optional': True}),
+              ("cmap", "basic:Null",
+                {'optional': True}),
+              ("antialiased", "basic:List",
+                {'optional': True, 'docstring': 'Set the antialiasing state for rendering.'}),
+              ("urls", "basic:String",
+                {'optional': True}),
+              ("hatch", "basic:String",
+                {'values': [['/', "'\\'", "'", "'", '-', '+', 'x', 'o', 'O', '.', '*']], 'entry_types': ['enum'], 'docstring': 'Set the hatching pattern\n\nhatch can be one of:\n\n/   - diagonal hatching \\   - back diagonal |   - vertical -   - horizontal +   - crossed x   - crossed diagonal o   - small circle O   - large circle .   - dots *   - stars\n\nLetters can be combined, in which case all the specified hatchings are done.  If same letter repeats, it increases the density of hatching of that pattern.\n\nHatching is supported in the PostScript, PDF, SVG and Agg backends only.\n\nUnlike other properties such as linewidth and colors, hatching can only be specified for the collection as a whole, not separately for each member.', 'optional': True}),
+              ("alpha", "basic:Float",
+                {'optional': True, 'docstring': 'Set the alpha tranparencies of the collection.  alpha must be a float or None.'}),
+              ("linewidth", "basic:List",
+                {'optional': True, 'docstring': 'Set the linewidth(s) for the collection.  lw can be a scalar or a sequence; if it is a sequence the patches will cycle through the sequence'}),
+              ("linestyleScalar", "basic:String",
+                {'union': 'linestyle', 'entry_types': ['enum'], 'docstring': 'Set the linestyle(s) for the collection.', 'optional': True, 'values': [['solid', ('dashed', 'dashdot', 'dotted'), '(offset, on-off-dash-seq)']]}),
+              ("linestyleSequence", "basic:List",
+               {'union': 'linestyle', 'docstring': 'Set the linestyle(s) for the collection.', 'optional': True}),
+              ("facecolors", "basic:Null",
+                {'optional': True}),
+              ("norm", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplCollectionProperties)")]
+
+    class Artist(MplArtistProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplArtistProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplArtistProperties.compute(self, artist)
+        if self.has_input('transOffset'):
+            artist.constructor_props['transOffset'] = self.get_input('transOffset')
+        if self.has_input('edgecolor'):
+            artist.props['edgecolor'] = self.get_input('edgecolor')
+            artist.props['edgecolor'] = translate_color(artist.props['edgecolor'])
+        if self.has_input('offset_position'):
+            artist.props['offset_position'] = self.get_input('offset_position')
+        if self.has_input('edgecolors'):
+            artist.constructor_props['edgecolors'] = self.get_input('edgecolors')
+        if self.has_input('facecolor'):
+            artist.props['facecolor'] = self.get_input('facecolor')
+            artist.props['facecolor'] = translate_color(artist.props['facecolor'])
+        if self.has_input('linestyles'):
+            artist.constructor_props['linestyles'] = self.get_input('linestyles')
+        if self.has_input('offsets'):
+            artist.props['offsets'] = self.get_input('offsets')
+        if self.has_input('color'):
+            artist.props['color'] = self.get_input('color')
+            artist.props['color'] = translate_color(artist.props['color'])
+        if self.has_input('zorder'):
+            artist.constructor_props['zorder'] = self.get_input('zorder')
+        if self.has_input('pickradius'):
+            artist.props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('antialiaseds'):
+            artist.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
+        if self.has_input('linewidths'):
+            artist.constructor_props['linewidths'] = self.get_input('linewidths')
+        if self.has_input('cmap'):
+            artist.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('antialiased'):
+            artist.props['antialiased'] = self.get_input('antialiased')
+        if self.has_input('urls'):
+            artist.props['urls'] = self.get_input('urls')
+        if self.has_input('hatch'):
+            artist.props['hatch'] = self.get_input('hatch')
+        if self.has_input('alpha'):
+            artist.props['alpha'] = self.get_input('alpha')
+        if self.has_input('linewidth'):
+            artist.props['linewidth'] = self.get_input('linewidth')
+        if self.has_input('linestyleScalar'):
+            artist.props['linestyle'] = self.get_input('linestyleScalar')
+        elif self.has_input('linestyleSequence'):
+            artist.props['linestyle'] = self.get_input('linestyleSequence')
+        if self.has_input('facecolors'):
+            artist.constructor_props['facecolors'] = self.get_input('facecolors')
+        if self.has_input('norm'):
+            artist.constructor_props['norm'] = self.get_input('norm')
+
+
+class Mpl_CollectionWithSizesProperties(MplCollectionProperties):
+    """
+    Base class for collections that have an array of sizes.
+    
+    """
+    _input_ports = [
+              ("edgecolors", "basic:Null",
+                {'optional': True}),
+              ("antialiaseds", "basic:Null",
+                {'optional': True}),
+              ("pickradius", "basic:Float",
+                {'optional': True, 'defaults': [5.0]}),
+              ("linestyles", "basic:String",
+                {'optional': True, 'defaults': [u'solid']}),
+              ("offsets", "basic:Null",
+                {'optional': True}),
+              ("sizes", "basic:List",
+                {'optional': True, 'docstring': "\n        Set the sizes of each member of the collection.\n\n        Parameters\n        ----------\n        sizes : ndarray or None\n            The size to set for each element of the collection.  The\n            value is the 'area' of the element.\n\n        dpi : float\n            The dpi of the canvas. Defaults to 72.0.\n        "}),
+              ("offset_position", "basic:String",
+                {'optional': True, 'defaults': [u'screen']}),
+              ("linewidths", "basic:Null",
+                {'optional': True}),
+              ("cmap", "basic:Null",
+                {'optional': True}),
+              ("transOffset", "basic:Null",
+                {'optional': True}),
+              ("urls", "basic:Null",
+                {'optional': True}),
+              ("hatch", "basic:Null",
+                {'optional': True}),
+              ("zorder", "basic:Integer",
+                {'optional': True, 'defaults': [1]}),
+              ("facecolors", "basic:Null",
+                {'optional': True}),
+              ("norm", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(Mpl_CollectionWithSizesProperties)")]
+
+    class Artist(MplCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = Mpl_CollectionWithSizesProperties.Artist()
+            self.set_output("value", artist)
+
+        MplCollectionProperties.compute(self, artist)
+        if self.has_input('edgecolors'):
+            artist.constructor_props['edgecolors'] = self.get_input('edgecolors')
+        if self.has_input('antialiaseds'):
+            artist.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
+        if self.has_input('pickradius'):
+            artist.constructor_props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('linestyles'):
+            artist.constructor_props['linestyles'] = self.get_input('linestyles')
+        if self.has_input('offsets'):
+            artist.constructor_props['offsets'] = self.get_input('offsets')
+        if self.has_input('sizes'):
+            artist.props['sizes'] = self.get_input('sizes')
+        if self.has_input('offset_position'):
+            artist.constructor_props['offset_position'] = self.get_input('offset_position')
+        if self.has_input('linewidths'):
+            artist.constructor_props['linewidths'] = self.get_input('linewidths')
+        if self.has_input('cmap'):
+            artist.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('transOffset'):
+            artist.constructor_props['transOffset'] = self.get_input('transOffset')
+        if self.has_input('urls'):
+            artist.constructor_props['urls'] = self.get_input('urls')
+        if self.has_input('hatch'):
+            artist.constructor_props['hatch'] = self.get_input('hatch')
+        if self.has_input('zorder'):
+            artist.constructor_props['zorder'] = self.get_input('zorder')
+        if self.has_input('facecolors'):
+            artist.constructor_props['facecolors'] = self.get_input('facecolors')
+        if self.has_input('norm'):
+            artist.constructor_props['norm'] = self.get_input('norm')
+
+
+class MplPolyCollectionProperties(Mpl_CollectionWithSizesProperties):
+    """
+    """
+    _input_ports = [
+              ("paths", "basic:String",
+                {'optional': True, 'docstring': 'This allows one to delay initialization of the vertices.'}),
+              ("verts", "basic:String",
+                {'optional': True, 'docstring': 'This allows one to delay initialization of the vertices.'}),
+              ("closed", "basic:Boolean",
+                {'optional': True, 'defaults': [True]}),
+              ("sizes", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplPolyCollectionProperties)")]
+
+    class Artist(Mpl_CollectionWithSizesProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplPolyCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        Mpl_CollectionWithSizesProperties.compute(self, artist)
+        if self.has_input('paths'):
+            artist.props['paths'] = self.get_input('paths')
+        if self.has_input('verts'):
+            artist.props['verts'] = self.get_input('verts')
+        if self.has_input('closed'):
+            artist.constructor_props['closed'] = self.get_input('closed')
+        if self.has_input('sizes'):
+            artist.constructor_props['sizes'] = self.get_input('sizes')
+
+
+class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
+    """
+    A collection of horizontal bars spanning *yrange* with a sequence of
+    *xranges*.
+    
+    """
+    _input_ports = [
+              ("xranges", "basic:Null",
+                {'optional': True}),
+              ("yrange", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplBrokenBarHCollectionProperties)")]
+
+    class Artist(MplPolyCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplPolyCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplBrokenBarHCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplPolyCollectionProperties.compute(self, artist)
+        if self.has_input('xranges'):
+            artist.constructor_props['xranges'] = self.get_input('xranges')
+        if self.has_input('yrange'):
+            artist.constructor_props['yrange'] = self.get_input('yrange')
+
+
+class MplRegularPolyCollectionProperties(Mpl_CollectionWithSizesProperties):
+    """Draw a collection of regular polygons with *numsides*.
+    """
+    _input_ports = [
+              ("numsides", "basic:Null",
+                {'optional': True}),
+              ("rotation", "basic:Integer",
+                {'optional': True, 'defaults': [0]}),
+              ("sizes", "basic:List",
+                {'optional': True, 'defaults': [(1,)]}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplRegularPolyCollectionProperties)")]
+
+    class Artist(Mpl_CollectionWithSizesProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplRegularPolyCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        Mpl_CollectionWithSizesProperties.compute(self, artist)
+        if self.has_input('numsides'):
+            artist.constructor_props['numsides'] = self.get_input('numsides')
+        if self.has_input('rotation'):
+            artist.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('sizes'):
+            artist.constructor_props['sizes'] = self.get_input('sizes')
+
+
+class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
+    """
+    Draw a collection of regular stars with *numsides* points.
+    """
+    _input_ports = [
+              ("numsides", "basic:Null",
+                {'optional': True}),
+              ("rotation", "basic:Integer",
+                {'optional': True, 'defaults': [0]}),
+              ("sizes", "basic:List",
+                {'optional': True, 'defaults': [(1,)]}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplStarPolygonCollectionProperties)")]
+
+    class Artist(MplRegularPolyCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplRegularPolyCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplStarPolygonCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplRegularPolyCollectionProperties.compute(self, artist)
+        if self.has_input('numsides'):
+            artist.constructor_props['numsides'] = self.get_input('numsides')
+        if self.has_input('rotation'):
+            artist.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('sizes'):
+            artist.constructor_props['sizes'] = self.get_input('sizes')
+
+
+class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties):
+    """
+    Draw a collection of regular asterisks with *numsides* points.
+    """
+    _input_ports = [
+              ("numsides", "basic:Null",
+                {'optional': True}),
+              ("rotation", "basic:Integer",
+                {'optional': True, 'defaults': [0]}),
+              ("sizes", "basic:List",
+                {'optional': True, 'defaults': [(1,)]}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplAsteriskPolygonCollectionProperties)")]
+
+    class Artist(MplRegularPolyCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplRegularPolyCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplAsteriskPolygonCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplRegularPolyCollectionProperties.compute(self, artist)
+        if self.has_input('numsides'):
+            artist.constructor_props['numsides'] = self.get_input('numsides')
+        if self.has_input('rotation'):
+            artist.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('sizes'):
+            artist.constructor_props['sizes'] = self.get_input('sizes')
+
+
+class MplCircleCollectionProperties(Mpl_CollectionWithSizesProperties):
+    """
+    A collection of circles, drawn using splines.
+    
+    """
+    _input_ports = [
+              ("sizes", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplCircleCollectionProperties)")]
+
+    class Artist(Mpl_CollectionWithSizesProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplCircleCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        Mpl_CollectionWithSizesProperties.compute(self, artist)
+        if self.has_input('sizes'):
+            artist.constructor_props['sizes'] = self.get_input('sizes')
+
+
+class MplPathCollectionProperties(Mpl_CollectionWithSizesProperties):
+    """
+    This is the most basic :class:`Collection` subclass.
+    
+    """
+    _input_ports = [
+              ("paths", "basic:String",
+                {'optional': True}),
+              ("sizes", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplPathCollectionProperties)")]
+
+    class Artist(Mpl_CollectionWithSizesProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            Mpl_CollectionWithSizesProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplPathCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        Mpl_CollectionWithSizesProperties.compute(self, artist)
+        if self.has_input('paths'):
+            artist.props['paths'] = self.get_input('paths')
+        if self.has_input('sizes'):
+            artist.constructor_props['sizes'] = self.get_input('sizes')
+
+
+class MplLineCollectionProperties(MplCollectionProperties):
+    """
+    All parameters must be sequences or scalars; if scalars, they will
+    be converted to sequences.  The property of the ith line
+    segment is::
+
+       prop[i % len(props)]
+
+    i.e., the properties cycle if the ``len`` of props is less than the
+    number of segments.
+    
+    """
+    _input_ports = [
+              ("paths", "basic:String",
+                {'optional': True}),
+              ("antialiaseds", "basic:Null",
+                {'optional': True}),
+              ("linestyles", "basic:String",
+                {'optional': True, 'defaults': [u'solid']}),
+              ("offsets", "basic:Null",
+                {'optional': True}),
+              ("color", "basic:Color",
+                {'optional': True, 'docstring': 'Set the color(s) of the line collection.  c can be a matplotlib color arg (all patches have same color), or a sequence or rgba tuples; if it is a sequence the patches will cycle through the sequence.'}),
+              ("segments", "basic:String",
+                {'optional': True}),
+              ("linewidths", "basic:Null",
+                {'optional': True}),
+              ("colors", "basic:Null",
+                {'optional': True}),
+              ("cmap", "basic:Null",
+                {'optional': True}),
+              ("transOffset", "basic:Null",
+                {'optional': True}),
+              ("verts", "basic:String",
+                {'optional': True}),
+              ("pickradius", "basic:Integer",
+                {'optional': True, 'defaults': [5]}),
+              ("zorder", "basic:Integer",
+                {'optional': True, 'defaults': [2]}),
+              ("norm", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplLineCollectionProperties)")]
+
+    class Artist(MplCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplLineCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplCollectionProperties.compute(self, artist)
+        if self.has_input('paths'):
+            artist.props['paths'] = self.get_input('paths')
+        if self.has_input('antialiaseds'):
+            artist.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
+        if self.has_input('linestyles'):
+            artist.constructor_props['linestyles'] = self.get_input('linestyles')
+        if self.has_input('offsets'):
+            artist.constructor_props['offsets'] = self.get_input('offsets')
+        if self.has_input('color'):
+            artist.props['color'] = self.get_input('color')
+            artist.props['color'] = translate_color(artist.props['color'])
+        if self.has_input('segments'):
+            artist.props['segments'] = self.get_input('segments')
+        if self.has_input('linewidths'):
+            artist.constructor_props['linewidths'] = self.get_input('linewidths')
+        if self.has_input('colors'):
+            artist.constructor_props['colors'] = self.get_input('colors')
+        if self.has_input('cmap'):
+            artist.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('transOffset'):
+            artist.constructor_props['transOffset'] = self.get_input('transOffset')
+        if self.has_input('verts'):
+            artist.props['verts'] = self.get_input('verts')
+        if self.has_input('pickradius'):
+            artist.constructor_props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('zorder'):
+            artist.constructor_props['zorder'] = self.get_input('zorder')
+        if self.has_input('norm'):
+            artist.constructor_props['norm'] = self.get_input('norm')
+
+
+class MplEventCollectionProperties(MplLineCollectionProperties):
+    """
+    A collection of discrete events.
+
+    An event is a 1-dimensional value, usually the position of something along
+    an axis, such as time or length.  Events do not have an amplitude.  They
+    are displayed as v
+    
+    """
+    _input_ports = [
+              ("linelength", "basic:String",
+                {'optional': True, 'docstring': 'set the length of the lines used to mark each event'}),
+              ("orientation", "basic:String",
+                {'optional': True, 'docstring': "set the orientation of the event line [ 'horizontal' | 'vertical' | None ] defaults to 'horizontal' if not specified or None"}),
+              ("color", "basic:Null",
+                {'optional': True}),
+              ("positions", "basic:String",
+                {'optional': True, 'docstring': 'set the positions of the events to the specified value'}),
+              ("antialiased", "basic:Null",
+                {'optional': True}),
+              ("lineoffset", "basic:String",
+                {'optional': True, 'docstring': 'set the offset of the lines used to mark each event'}),
+              ("linewidth", "basic:Null",
+                {'optional': True}),
+              ("linestyle", "basic:String",
+                {'optional': True, 'defaults': [u'solid']}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplEventCollectionProperties)")]
+
+    class Artist(MplLineCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplLineCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplEventCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplLineCollectionProperties.compute(self, artist)
+        if self.has_input('linelength'):
+            artist.props['linelength'] = self.get_input('linelength')
+        if self.has_input('orientation'):
+            artist.props['orientation'] = self.get_input('orientation')
+        if self.has_input('color'):
+            artist.constructor_props['color'] = self.get_input('color')
+        if self.has_input('positions'):
+            artist.props['positions'] = self.get_input('positions')
+        if self.has_input('antialiased'):
+            artist.constructor_props['antialiased'] = self.get_input('antialiased')
+        if self.has_input('lineoffset'):
+            artist.props['lineoffset'] = self.get_input('lineoffset')
+        if self.has_input('linewidth'):
+            artist.constructor_props['linewidth'] = self.get_input('linewidth')
+        if self.has_input('linestyle'):
+            artist.constructor_props['linestyle'] = self.get_input('linestyle')
+
+
+class MplEllipseCollectionProperties(MplCollectionProperties):
+    """
+    A collection of ellipses, drawn using splines.
+    
+    """
+    _input_ports = [
+              ("units", "basic:String",
+                {'optional': True, 'defaults': [u'points']}),
+              ("widths", "basic:Null",
+                {'optional': True}),
+              ("angles", "basic:Null",
+                {'optional': True}),
+              ("heights", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplEllipseCollectionProperties)")]
+
+    class Artist(MplCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplEllipseCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplCollectionProperties.compute(self, artist)
+        if self.has_input('units'):
+            artist.constructor_props['units'] = self.get_input('units')
+        if self.has_input('widths'):
+            artist.constructor_props['widths'] = self.get_input('widths')
+        if self.has_input('angles'):
+            artist.constructor_props['angles'] = self.get_input('angles')
+        if self.has_input('heights'):
+            artist.constructor_props['heights'] = self.get_input('heights')
+
+
+class MplPatchCollectionProperties(MplCollectionProperties):
+    """
+    A generic collection of patches.
+
+    This makes it easier to assign a color map to a heterogeneous
+    collection of patches.
+
+    This also may improve plotting speed, since PatchCollection will
+    draw faster than a large number of patches.
+    
+    """
+    _input_ports = [
+              ("paths", "basic:String",
+                {'optional': True}),
+              ("patches", "basic:Null",
+                {'optional': True}),
+              ("match_original", "basic:Boolean",
+                {'optional': True, 'defaults': [False]}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplPatchCollectionProperties)")]
+
+    class Artist(MplCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplPatchCollectionProperties.Artist()
+            self.set_output("value", artist)
+
+        MplCollectionProperties.compute(self, artist)
+        if self.has_input('paths'):
+            artist.props['paths'] = self.get_input('paths')
+        if self.has_input('patches'):
+            artist.constructor_props['patches'] = self.get_input('patches')
+        if self.has_input('match_original'):
+            artist.constructor_props['match_original'] = self.get_input('match_original')
+
+
+class MplTriMeshProperties(MplCollectionProperties):
+    """
+    Class for the efficient drawing of a triangular mesh using
+    Gouraud shading.
+
+    A triangular mesh is a :class:`~matplotlib.tri.Triangulation`
+    object.
+    
+    """
+    _input_ports = [
+              ("triangulation", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplTriMeshProperties)")]
+
+    class Artist(MplCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplTriMeshProperties.Artist()
+            self.set_output("value", artist)
+
+        MplCollectionProperties.compute(self, artist)
+        if self.has_input('triangulation'):
+            artist.constructor_props['triangulation'] = self.get_input('triangulation')
+
+
+class MplQuadMeshProperties(MplCollectionProperties):
+    """
+    Class for the efficient drawing of a quadrilateral mesh.
+
+    A quadrilateral mesh consists of a grid of vertices. The
+    dimensions of this array are (*meshWidth* + 1, *meshHeight* +
+    1). Each vertex in the mesh has a different set of "mesh
+    coordinates" representing its position in the topology of the
+    mesh. For any values (*m*, *n*) such that 0 <= *m* <= *meshWidth*
+    and 0 <= *n* <= *meshHeight*, the vertices at mesh coordinates
+    (*m*, *n*), (*m*, *n* + 1), (*m* + 1, *n* + 1), and (*m* + 1, *n*)
+    form one of the quadrilaterals in the mesh. There are thus
+    (*meshWidth* * *meshHeight*) quadrilaterals in the mesh.  The mesh
+    need not be regular and the polygons need not be convex.
+
+    A quadrilateral mesh is represented by a (2 x ((*meshWidth* + 1) *
+    (*meshHeight* + 1))) numpy array *coordinates*, where each row is
+    the *x* and *y* coordinates of one of the vertices.  To define the
+    function that maps from a data point to its corresponding color,
+    use the :meth:`set_cmap` method.  Each of these arrays is indexed in
+    row-major order by the mesh coordinates of the vertex (or the mesh
+    coordinates of the lower left vertex, in the case of the
+    colors).
+
+    For example, the first entry in *coordinates* is the
+    coordinates of the vertex at mesh coordinates (0, 0), then the one
+    at (0, 1), then at (0, 2) .. (0, meshWidth), (1, 0), (1, 1), and
+    so on.
+
+    *shading* may be 'flat', or 'gouraud'
+    
+    """
+    _input_ports = [
+              ("meshWidth", "basic:Null",
+                {'optional': True}),
+              ("meshHeight", "basic:Null",
+                {'optional': True}),
+              ("antialiased", "basic:Boolean",
+                {'optional': True, 'defaults': [True]}),
+              ("coordinates", "basic:Null",
+                {'optional': True}),
+              ("shading", "basic:String",
+                {'optional': True, 'defaults': [u'flat']}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplQuadMeshProperties)")]
+
+    class Artist(MplCollectionProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplQuadMeshProperties.Artist()
+            self.set_output("value", artist)
+
+        MplCollectionProperties.compute(self, artist)
+        if self.has_input('meshWidth'):
+            artist.constructor_props['meshWidth'] = self.get_input('meshWidth')
+        if self.has_input('meshHeight'):
+            artist.constructor_props['meshHeight'] = self.get_input('meshHeight')
+        if self.has_input('antialiased'):
+            artist.constructor_props['antialiased'] = self.get_input('antialiased')
+        if self.has_input('coordinates'):
+            artist.constructor_props['coordinates'] = self.get_input('coordinates')
+        if self.has_input('shading'):
+            artist.constructor_props['shading'] = self.get_input('shading')
+
+
+class MplPcolorImageProperties(MplArtistProperties):
+    """
+    Make a pcolor-style plot with an irregular rectangular grid.
+
+    This uses a variation of the original irregular image code,
+    and it is used by pcolorfast for the corresponding grid type.
+    
+    """
+    _input_ports = [
+              ("A", "basic:Null",
+                {'optional': True}),
+              ("ax", "basic:Null",
+                {'optional': True}),
+              ("cmap", "basic:Null",
+                {'optional': True}),
+              ("x", "basic:Null",
+                {'optional': True}),
+              ("y", "basic:Null",
+                {'optional': True}),
+              ("alpha", "basic:Float",
+                {'optional': True, 'docstring': 'Set the alpha value used for blending - not supported on all backends'}),
+              ("data", "basic:String",
+                {'optional': True}),
+              ("norm", "basic:Null",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplPcolorImageProperties)")]
+
+    class Artist(MplArtistProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplArtistProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplPcolorImageProperties.Artist()
+            self.set_output("value", artist)
+
+        MplArtistProperties.compute(self, artist)
+        if self.has_input('A'):
+            artist.constructor_props['A'] = self.get_input('A')
+        if self.has_input('ax'):
+            artist.constructor_props['ax'] = self.get_input('ax')
+        if self.has_input('cmap'):
+            artist.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('x'):
+            artist.constructor_props['x'] = self.get_input('x')
+        if self.has_input('y'):
+            artist.constructor_props['y'] = self.get_input('y')
+        if self.has_input('alpha'):
+            artist.props['alpha'] = self.get_input('alpha')
+        if self.has_input('data'):
+            artist.props['data'] = self.get_input('data')
+        if self.has_input('norm'):
+            artist.constructor_props['norm'] = self.get_input('norm')
 
 
 class MplFigureImageProperties(MplArtistProperties):
@@ -3697,267 +3697,6 @@ class MplLegendProperties(MplArtistProperties):
             artist.constructor_props['bbox_transform'] = self.get_input('bbox_transform')
 
 
-class MplAxisProperties(MplArtistProperties):
-    """
-    Public attributes
-
-    * :attr:`axes.transData` - transform data coords to display coords
-    * :attr:`axes.transAxes` - transform axis coords to display coords
-    * :attr:`labelpad` - number of points between the axis and its label
-    
-    """
-    _input_ports = [
-              ("pickradius", "basic:String",
-                {'optional': True, 'docstring': 'Set the depth of the axis used by the picker'}),
-              ("smart_bounds", "basic:String",
-                {'optional': True, 'docstring': 'set the axis to have smart bounds'}),
-              ("axes", "basic:Null",
-                {'optional': True}),
-              ("view_interval", "basic:String",
-                {'optional': True}),
-              ("major_locator", "basic:String",
-                {'optional': True, 'docstring': 'Set the locator of the major ticker'}),
-              ("minor_formatter", "basic:String",
-                {'optional': True, 'docstring': 'Set the formatter of the minor ticker'}),
-              ("ticklabels", "basic:List",
-                {'optional': True, 'docstring': 'Set the text values of the tick labels. Return a list of Text instances.  Use kwarg minor=True to select minor ticks. All other kwargs are used to update the text object properties. As for get_ticklabels, label1 (left or bottom) is affected for a given tick only if its label1On attribute is True, and similarly for label2.  The list of returned label text objects consists of all such label1 objects followed by all such label2 objects.\n\nThe input ticklabels is assumed to match the set of tick locations, regardless of the state of label1On and label2On.'}),
-              ("clip_path", "basic:String",
-                {'optional': True}),
-              ("minor_locator", "basic:String",
-                {'optional': True, 'docstring': 'Set the locator of the minor ticker'}),
-              ("ticks", "basic:List",
-                {'optional': True, 'docstring': 'Set the locations of the tick marks from sequence ticks'}),
-              ("label_text", "basic:String",
-                {'optional': True, 'docstring': 'Sets the text value of the axis label'}),
-              ("major_formatter", "basic:String",
-                {'optional': True, 'docstring': 'Set the formatter of the major ticker'}),
-              ("units", "basic:String",
-                {'optional': True, 'docstring': 'set the units for axis'}),
-              ("tick_params", "basic:String",
-                {'optional': True, 'docstring': 'Set appearance parameters for ticks and ticklabels.\n\nFor documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.'}),
-              ("label_coords", "basic:String",
-                {'optional': True, 'docstring': 'Set the coordinates of the label.  By default, the x coordinate of the y label is determined by the tick label bounding boxes, but this can lead to poor alignment of multiple ylabels if there are multiple axes.  Ditto for the y coodinate of the x label.\n\nYou can also specify the coordinate system of the label with the transform.  If None, the default coordinate system will be the axes coordinate system (0,0) is (left,bottom), (0.5, 0.5) is middle, etc'}),
-              ("majorTickProperties", "MplTickProperties",
-                {'optional': True}),
-              ("minorTickProperties", "MplTickProperties",
-                {'optional': True}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplAxisProperties)")]
-
-    class Artist(MplArtistProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplArtistProperties.Artist.update_sub_props(self, objs)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                if 'major_ticks' in self.sub_props:
-                    self.sub_props['major_ticks'].update_props(obj.get_major_ticks())
-                if 'minor_ticks' in self.sub_props:
-                    self.sub_props['minor_ticks'].update_props(obj.get_minor_ticks())
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplAxisProperties.Artist()
-            self.set_output("value", artist)
-
-        MplArtistProperties.compute(self, artist)
-        if self.has_input('pickradius'):
-            artist.props['pickradius'] = self.get_input('pickradius')
-        if self.has_input('smart_bounds'):
-            artist.props['smart_bounds'] = self.get_input('smart_bounds')
-        if self.has_input('axes'):
-            artist.constructor_props['axes'] = self.get_input('axes')
-        if self.has_input('view_interval'):
-            artist.props['view_interval'] = self.get_input('view_interval')
-        if self.has_input('major_locator'):
-            artist.props['major_locator'] = self.get_input('major_locator')
-        if self.has_input('minor_formatter'):
-            artist.props['minor_formatter'] = self.get_input('minor_formatter')
-        if self.has_input('ticklabels'):
-            artist.props['ticklabels'] = self.get_input('ticklabels')
-        if self.has_input('clip_path'):
-            artist.props['clip_path'] = self.get_input('clip_path')
-        if self.has_input('minor_locator'):
-            artist.props['minor_locator'] = self.get_input('minor_locator')
-        if self.has_input('ticks'):
-            artist.props['ticks'] = self.get_input('ticks')
-        if self.has_input('label_text'):
-            artist.props['label_text'] = self.get_input('label_text')
-        if self.has_input('major_formatter'):
-            artist.props['major_formatter'] = self.get_input('major_formatter')
-        if self.has_input('units'):
-            artist.props['units'] = self.get_input('units')
-        if self.has_input('tick_params'):
-            artist.props['tick_params'] = self.get_input('tick_params')
-        if self.has_input('label_coords'):
-            artist.props['label_coords'] = self.get_input('label_coords')
-        if self.has_input('majorTickProperties'):
-            artist.sub_props['major_ticks'] = self.get_input('majorTickProperties')
-        if self.has_input('minorTickProperties'):
-            artist.sub_props['minor_ticks'] = self.get_input('minorTickProperties')
-
-
-class MplXAxisProperties(MplAxisProperties):
-    """
-    """
-    _input_ports = [
-              ("view_interval", "basic:String",
-                {'optional': True, 'docstring': 'If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_xlim`.'}),
-              ("ticks_position", "basic:String",
-                {'values': [['top', 'bottom', 'both', 'default', 'none']], 'entry_types': ['enum'], 'docstring': "Set the ticks position (top, bottom, both, default or none) both sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at bottom.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.", 'optional': True}),
-              ("axes", "basic:Null",
-                {'optional': True}),
-              ("label_position", "basic:String",
-                {'values': [['top', 'bottom']], 'entry_types': ['enum'], 'docstring': 'Set the label position (top or bottom)', 'optional': True}),
-              ("data_interval", "basic:String",
-                {'optional': True, 'docstring': 'set the axis data limits'}),
-              ("pickradius", "basic:Integer",
-                {'optional': True, 'defaults': [15]}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplXAxisProperties)")]
-
-    class Artist(MplAxisProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplAxisProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplXAxisProperties.Artist()
-            self.set_output("value", artist)
-
-        MplAxisProperties.compute(self, artist)
-        if self.has_input('view_interval'):
-            artist.props['view_interval'] = self.get_input('view_interval')
-        if self.has_input('ticks_position'):
-            artist.props['ticks_position'] = self.get_input('ticks_position')
-        if self.has_input('axes'):
-            artist.constructor_props['axes'] = self.get_input('axes')
-        if self.has_input('label_position'):
-            artist.props['label_position'] = self.get_input('label_position')
-        if self.has_input('data_interval'):
-            artist.props['data_interval'] = self.get_input('data_interval')
-        if self.has_input('pickradius'):
-            artist.constructor_props['pickradius'] = self.get_input('pickradius')
-
-
-class MplYAxisProperties(MplAxisProperties):
-    """
-    """
-    _input_ports = [
-              ("offset_position", "basic:String",
-                {'optional': True}),
-              ("view_interval", "basic:String",
-                {'optional': True, 'docstring': 'If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_ylim`.'}),
-              ("ticks_position", "basic:String",
-                {'values': [['left', 'right', 'both', 'default', 'none']], 'entry_types': ['enum'], 'docstring': "Set the ticks position (left, right, both, default or none) 'both' sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at left.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.", 'optional': True}),
-              ("axes", "basic:Null",
-                {'optional': True}),
-              ("label_position", "basic:String",
-                {'values': [['left', 'right']], 'entry_types': ['enum'], 'docstring': 'Set the label position (left or right)', 'optional': True}),
-              ("data_interval", "basic:String",
-                {'optional': True, 'docstring': 'set the axis data limits'}),
-              ("pickradius", "basic:Integer",
-                {'optional': True, 'defaults': [15]}),
-        ]
-
-    # only one output port: 'value'
-    _output_ports = [("value", "(MplYAxisProperties)")]
-
-    class Artist(MplAxisProperties.Artist):
-        def __init__(self):
-            self.props = {}
-            self.constructor_props = {}
-            self.not_setp_props = {}
-            self.sub_props = {}
-
-        def update_props(self, objs):
-            matplotlib.artist.setp(objs, **self.props)
-            if not matplotlib.cbook.iterable(objs):
-                objs_iter = [objs]
-            else:
-                objs_iter = matplotlib.cbook.flatten(objs)
-            for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
-                    setattr(obj, attr_name, attr_val)
-            self.update_sub_props(objs)
-
-        def update_sub_props(self, objs):
-            MplAxisProperties.Artist.update_sub_props(self, objs)
-
-        def update_kwargs(self, kwargs):
-            kwargs.update(self.constructor_props)
-            kwargs.update(self.props)
-
-    def compute(self, artist=None):
-        if artist is None:
-            artist = MplYAxisProperties.Artist()
-            self.set_output("value", artist)
-
-        MplAxisProperties.compute(self, artist)
-        if self.has_input('offset_position'):
-            artist.props['offset_position'] = self.get_input('offset_position')
-        if self.has_input('view_interval'):
-            artist.props['view_interval'] = self.get_input('view_interval')
-        if self.has_input('ticks_position'):
-            artist.props['ticks_position'] = self.get_input('ticks_position')
-        if self.has_input('axes'):
-            artist.constructor_props['axes'] = self.get_input('axes')
-        if self.has_input('label_position'):
-            artist.props['label_position'] = self.get_input('label_position')
-        if self.has_input('data_interval'):
-            artist.props['data_interval'] = self.get_input('data_interval')
-        if self.has_input('pickradius'):
-            artist.constructor_props['pickradius'] = self.get_input('pickradius')
-
-
 class Mpl_AxesBaseProperties(MplArtistProperties):
     """
     
@@ -4268,6 +4007,267 @@ class MplAxesProperties(Mpl_AxesBaseProperties):
             artist.constructor_props['label'] = self.get_input('label')
         if self.has_input('rect'):
             artist.constructor_props['rect'] = self.get_input('rect')
+
+
+class MplAxisProperties(MplArtistProperties):
+    """
+    Public attributes
+
+    * :attr:`axes.transData` - transform data coords to display coords
+    * :attr:`axes.transAxes` - transform axis coords to display coords
+    * :attr:`labelpad` - number of points between the axis and its label
+    
+    """
+    _input_ports = [
+              ("pickradius", "basic:String",
+                {'optional': True, 'docstring': 'Set the depth of the axis used by the picker'}),
+              ("smart_bounds", "basic:String",
+                {'optional': True, 'docstring': 'set the axis to have smart bounds'}),
+              ("axes", "basic:Null",
+                {'optional': True}),
+              ("view_interval", "basic:String",
+                {'optional': True}),
+              ("major_locator", "basic:String",
+                {'optional': True, 'docstring': 'Set the locator of the major ticker'}),
+              ("minor_formatter", "basic:String",
+                {'optional': True, 'docstring': 'Set the formatter of the minor ticker'}),
+              ("ticklabels", "basic:List",
+                {'optional': True, 'docstring': 'Set the text values of the tick labels. Return a list of Text instances.  Use kwarg minor=True to select minor ticks. All other kwargs are used to update the text object properties. As for get_ticklabels, label1 (left or bottom) is affected for a given tick only if its label1On attribute is True, and similarly for label2.  The list of returned label text objects consists of all such label1 objects followed by all such label2 objects.\n\nThe input ticklabels is assumed to match the set of tick locations, regardless of the state of label1On and label2On.'}),
+              ("clip_path", "basic:String",
+                {'optional': True}),
+              ("minor_locator", "basic:String",
+                {'optional': True, 'docstring': 'Set the locator of the minor ticker'}),
+              ("ticks", "basic:List",
+                {'optional': True, 'docstring': 'Set the locations of the tick marks from sequence ticks'}),
+              ("label_text", "basic:String",
+                {'optional': True, 'docstring': 'Sets the text value of the axis label'}),
+              ("major_formatter", "basic:String",
+                {'optional': True, 'docstring': 'Set the formatter of the major ticker'}),
+              ("units", "basic:String",
+                {'optional': True, 'docstring': 'set the units for axis'}),
+              ("tick_params", "basic:String",
+                {'optional': True, 'docstring': 'Set appearance parameters for ticks and ticklabels.\n\nFor documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.'}),
+              ("label_coords", "basic:String",
+                {'optional': True, 'docstring': 'Set the coordinates of the label.  By default, the x coordinate of the y label is determined by the tick label bounding boxes, but this can lead to poor alignment of multiple ylabels if there are multiple axes.  Ditto for the y coodinate of the x label.\n\nYou can also specify the coordinate system of the label with the transform.  If None, the default coordinate system will be the axes coordinate system (0,0) is (left,bottom), (0.5, 0.5) is middle, etc'}),
+              ("majorTickProperties", "MplTickProperties",
+                {'optional': True}),
+              ("minorTickProperties", "MplTickProperties",
+                {'optional': True}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplAxisProperties)")]
+
+    class Artist(MplArtistProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplArtistProperties.Artist.update_sub_props(self, objs)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                if 'major_ticks' in self.sub_props:
+                    self.sub_props['major_ticks'].update_props(obj.get_major_ticks())
+                if 'minor_ticks' in self.sub_props:
+                    self.sub_props['minor_ticks'].update_props(obj.get_minor_ticks())
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplAxisProperties.Artist()
+            self.set_output("value", artist)
+
+        MplArtistProperties.compute(self, artist)
+        if self.has_input('pickradius'):
+            artist.props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('smart_bounds'):
+            artist.props['smart_bounds'] = self.get_input('smart_bounds')
+        if self.has_input('axes'):
+            artist.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('view_interval'):
+            artist.props['view_interval'] = self.get_input('view_interval')
+        if self.has_input('major_locator'):
+            artist.props['major_locator'] = self.get_input('major_locator')
+        if self.has_input('minor_formatter'):
+            artist.props['minor_formatter'] = self.get_input('minor_formatter')
+        if self.has_input('ticklabels'):
+            artist.props['ticklabels'] = self.get_input('ticklabels')
+        if self.has_input('clip_path'):
+            artist.props['clip_path'] = self.get_input('clip_path')
+        if self.has_input('minor_locator'):
+            artist.props['minor_locator'] = self.get_input('minor_locator')
+        if self.has_input('ticks'):
+            artist.props['ticks'] = self.get_input('ticks')
+        if self.has_input('label_text'):
+            artist.props['label_text'] = self.get_input('label_text')
+        if self.has_input('major_formatter'):
+            artist.props['major_formatter'] = self.get_input('major_formatter')
+        if self.has_input('units'):
+            artist.props['units'] = self.get_input('units')
+        if self.has_input('tick_params'):
+            artist.props['tick_params'] = self.get_input('tick_params')
+        if self.has_input('label_coords'):
+            artist.props['label_coords'] = self.get_input('label_coords')
+        if self.has_input('majorTickProperties'):
+            artist.sub_props['major_ticks'] = self.get_input('majorTickProperties')
+        if self.has_input('minorTickProperties'):
+            artist.sub_props['minor_ticks'] = self.get_input('minorTickProperties')
+
+
+class MplYAxisProperties(MplAxisProperties):
+    """
+    """
+    _input_ports = [
+              ("offset_position", "basic:String",
+                {'optional': True}),
+              ("view_interval", "basic:String",
+                {'optional': True, 'docstring': 'If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_ylim`.'}),
+              ("ticks_position", "basic:String",
+                {'values': [['left', 'right', 'both', 'default', 'none']], 'entry_types': ['enum'], 'docstring': "Set the ticks position (left, right, both, default or none) 'both' sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at left.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.", 'optional': True}),
+              ("axes", "basic:Null",
+                {'optional': True}),
+              ("label_position", "basic:String",
+                {'values': [['left', 'right']], 'entry_types': ['enum'], 'docstring': 'Set the label position (left or right)', 'optional': True}),
+              ("data_interval", "basic:String",
+                {'optional': True, 'docstring': 'set the axis data limits'}),
+              ("pickradius", "basic:Integer",
+                {'optional': True, 'defaults': [15]}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplYAxisProperties)")]
+
+    class Artist(MplAxisProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplAxisProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplYAxisProperties.Artist()
+            self.set_output("value", artist)
+
+        MplAxisProperties.compute(self, artist)
+        if self.has_input('offset_position'):
+            artist.props['offset_position'] = self.get_input('offset_position')
+        if self.has_input('view_interval'):
+            artist.props['view_interval'] = self.get_input('view_interval')
+        if self.has_input('ticks_position'):
+            artist.props['ticks_position'] = self.get_input('ticks_position')
+        if self.has_input('axes'):
+            artist.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('label_position'):
+            artist.props['label_position'] = self.get_input('label_position')
+        if self.has_input('data_interval'):
+            artist.props['data_interval'] = self.get_input('data_interval')
+        if self.has_input('pickradius'):
+            artist.constructor_props['pickradius'] = self.get_input('pickradius')
+
+
+class MplXAxisProperties(MplAxisProperties):
+    """
+    """
+    _input_ports = [
+              ("view_interval", "basic:String",
+                {'optional': True, 'docstring': 'If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_xlim`.'}),
+              ("ticks_position", "basic:String",
+                {'values': [['top', 'bottom', 'both', 'default', 'none']], 'entry_types': ['enum'], 'docstring': "Set the ticks position (top, bottom, both, default or none) both sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at bottom.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.", 'optional': True}),
+              ("axes", "basic:Null",
+                {'optional': True}),
+              ("label_position", "basic:String",
+                {'values': [['top', 'bottom']], 'entry_types': ['enum'], 'docstring': 'Set the label position (top or bottom)', 'optional': True}),
+              ("data_interval", "basic:String",
+                {'optional': True, 'docstring': 'set the axis data limits'}),
+              ("pickradius", "basic:Integer",
+                {'optional': True, 'defaults': [15]}),
+        ]
+
+    # only one output port: 'value'
+    _output_ports = [("value", "(MplXAxisProperties)")]
+
+    class Artist(MplAxisProperties.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            MplAxisProperties.Artist.update_sub_props(self, objs)
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = MplXAxisProperties.Artist()
+            self.set_output("value", artist)
+
+        MplAxisProperties.compute(self, artist)
+        if self.has_input('view_interval'):
+            artist.props['view_interval'] = self.get_input('view_interval')
+        if self.has_input('ticks_position'):
+            artist.props['ticks_position'] = self.get_input('ticks_position')
+        if self.has_input('axes'):
+            artist.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('label_position'):
+            artist.props['label_position'] = self.get_input('label_position')
+        if self.has_input('data_interval'):
+            artist.props['data_interval'] = self.get_input('data_interval')
+        if self.has_input('pickradius'):
+            artist.constructor_props['pickradius'] = self.get_input('pickradius')
 
 
 class MplTickProperties(MplArtistProperties):
@@ -4770,26 +4770,26 @@ class MplAnnotationProperties(MplTextProperties):
 
 _modules = [
             MplArtistProperties,
-            MplPcolorImageProperties,
-            MplCollectionProperties,
-            MplTriMeshProperties,
-            MplQuadMeshProperties,
-            MplEllipseCollectionProperties,
-            MplPatchCollectionProperties,
-            MplLineCollectionProperties,
-            MplEventCollectionProperties,
-            Mpl_CollectionWithSizesProperties,
-            MplRegularPolyCollectionProperties,
-            MplAsteriskPolygonCollectionProperties,
-            MplStarPolygonCollectionProperties,
-            MplPathCollectionProperties,
-            MplPolyCollectionProperties,
-            MplBrokenBarHCollectionProperties,
-            MplCircleCollectionProperties,
             Mpl_AxesImageBaseProperties,
             MplAxesImageProperties,
             MplNonUniformImageProperties,
             MplBboxImageProperties,
+            MplCollectionProperties,
+            Mpl_CollectionWithSizesProperties,
+            MplPolyCollectionProperties,
+            MplBrokenBarHCollectionProperties,
+            MplRegularPolyCollectionProperties,
+            MplStarPolygonCollectionProperties,
+            MplAsteriskPolygonCollectionProperties,
+            MplCircleCollectionProperties,
+            MplPathCollectionProperties,
+            MplLineCollectionProperties,
+            MplEventCollectionProperties,
+            MplEllipseCollectionProperties,
+            MplPatchCollectionProperties,
+            MplTriMeshProperties,
+            MplQuadMeshProperties,
+            MplPcolorImageProperties,
             MplFigureImageProperties,
             MplPatchProperties,
             MplShadowProperties,
@@ -4813,11 +4813,11 @@ _modules = [
             MplTextWithDashProperties,
             MplFigureProperties,
             MplLegendProperties,
-            MplAxisProperties,
-            MplXAxisProperties,
-            MplYAxisProperties,
             Mpl_AxesBaseProperties,
             MplAxesProperties,
+            MplAxisProperties,
+            MplYAxisProperties,
+            MplXAxisProperties,
             MplTickProperties,
             MplXTickProperties,
             MplYTickProperties,

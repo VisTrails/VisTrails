@@ -330,6 +330,7 @@ def resolve_port_type(port_types, port_spec):
                     InputPortSpec(name=port_spec.name + "Scalar",
                                   port_type="basic:Color",
                                   translations="translate_color")
+                port_spec.union = port_spec.name
                 port_spec.alternate_specs.append(alternate_spec)
             return
 
@@ -357,6 +358,7 @@ def resolve_port_type(port_types, port_spec):
             alternate_spec = \
                 InputPortSpec(name=base_name + "Sequence",
                               port_type='basic:List')
+            port_spec.union = base_name
             port_spec.alternate_specs.append(alternate_spec)
             was_set = True
     if not was_set:

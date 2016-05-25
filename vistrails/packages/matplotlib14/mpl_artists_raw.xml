@@ -128,23 +128,88 @@ Only supported by the Agg and MacOSX backends.</docstring>
       <docstring>Set the :class:`~matplotlib.figure.Figure` instance the artist belongs to.</docstring>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.image.PcolorImage" module_name="MplPcolorImageProperties" superklass="MplArtistProperties">
-    <docstring>
-    Make a pcolor-style plot with an irregular rectangular grid.
-
-    This uses a variation of the original irregular image code,
-    and it is used by pcolorfast for the corresponding grid type.
-    </docstring>
-    <inputPortSpec arg="A" arg_pos="3" constructor_arg="True" name="A" port_type="basic:Null" />
+  <moduleSpec code_ref="matplotlib.image._AxesImageBase" module_name="Mpl_AxesImageBaseProperties" superklass="MplArtistProperties">
+    <inputPortSpec arg="origin" arg_pos="4" constructor_arg="True" name="origin" port_type="basic:Null" />
+    <inputPortSpec arg="resample" name="resample" port_type="basic:Boolean">
+      <docstring>Set whether or not image resampling is used</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="norm" arg_pos="2" constructor_arg="True" name="norm" port_type="basic:Null" />
+    <inputPortSpec arg="cmap" arg_pos="1" constructor_arg="True" name="cmap" port_type="basic:Null" />
+    <inputPortSpec arg="filternorm" name="filternorm">
+      <docstring>Set whether the resize filter norms the weights -- see help for imshow</docstring>
+    </inputPortSpec>
     <inputPortSpec arg="ax" arg_pos="0" constructor_arg="True" name="ax" port_type="basic:Null" />
-    <inputPortSpec arg="cmap" arg_pos="4" constructor_arg="True" name="cmap" port_type="basic:Null" />
-    <inputPortSpec arg="x" arg_pos="1" constructor_arg="True" name="x" port_type="basic:Null" />
-    <inputPortSpec arg="y" arg_pos="2" constructor_arg="True" name="y" port_type="basic:Null" />
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>Set the alpha value used for blending - not supported on all backends</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="data" name="data" />
-    <inputPortSpec arg="norm" arg_pos="5" constructor_arg="True" name="norm" port_type="basic:Null" />
+    <inputPortSpec arg="array" name="array" port_type="basic:List">
+      <docstring>Retained for backwards compatibility - use set_data instead</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="data" name="data">
+      <docstring>Set the image array</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="filterrad" name="filterrad" port_type="basic:Float">
+      <docstring>Set the resize filter radius only applicable to some interpolation schemes -- see help for imshow</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="interpolation" name="interpolation">
+      <docstring>Set the interpolation method the image uses when resizing.
+
+if None, use a value from rc setting. If 'none', the image is shown as is without interpolating. 'none' is only supported in agg, ps and pdf backends and will fall back to 'nearest' mode for other backends.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos', 'none', '']]</values>
+    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.image.AxesImage" module_name="MplAxesImageProperties" superklass="Mpl_AxesImageBaseProperties">
+    <inputPortSpec arg="origin" arg_pos="4" constructor_arg="True" name="origin" port_type="basic:Null" />
+    <inputPortSpec arg="resample" arg_pos="8" constructor_arg="True" name="resample" port_type="basic:Boolean">
+      <defaults>[False]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="norm" arg_pos="2" constructor_arg="True" name="norm" port_type="basic:Null" />
+    <inputPortSpec arg="cmap" arg_pos="1" constructor_arg="True" name="cmap" port_type="basic:Null" />
+    <inputPortSpec arg="filterrad" arg_pos="7" constructor_arg="True" name="filterrad" port_type="basic:Float">
+      <defaults>[4.0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="extent" name="extent">
+      <docstring>extent is data axes (left, right, bottom, top) for making image plots
+
+This updates ax.dataLim, and, if autoscaling, sets viewLim to tightly fit the image, regardless of dataLim.  Autoscaling state is not changed, so following this with ax.autoscale_view will redo the autoscaling in accord with dataLim.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="ax" arg_pos="0" constructor_arg="True" name="ax" port_type="basic:Null" />
+    <inputPortSpec arg="filternorm" arg_pos="6" constructor_arg="True" name="filternorm" port_type="basic:Integer">
+      <defaults>[1]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="interpolation" arg_pos="3" constructor_arg="True" name="interpolation" port_type="basic:Null" />
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.image.NonUniformImage" module_name="MplNonUniformImageProperties" superklass="MplAxesImageProperties">
+    <inputPortSpec arg="cmap" name="cmap" />
+    <inputPortSpec arg="filternorm" name="filternorm" />
+    <inputPortSpec arg="filterrad" name="filterrad" />
+    <inputPortSpec arg="ax" arg_pos="0" constructor_arg="True" name="ax" port_type="basic:Null" />
+    <inputPortSpec arg="data" name="data">
+      <docstring>Set the grid for the pixel centers, and the pixel values.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="norm" name="norm" />
+    <inputPortSpec arg="interpolation" name="interpolation" />
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.image.BboxImage" module_name="MplBboxImageProperties" superklass="Mpl_AxesImageBaseProperties">
+    <docstring>The Image class whose size is determined by the given bbox.</docstring>
+    <inputPortSpec arg="origin" arg_pos="4" constructor_arg="True" name="origin" port_type="basic:Null" />
+    <inputPortSpec arg="interp_at_native" arg_pos="8" constructor_arg="True" name="interp_at_native" port_type="basic:Boolean">
+      <defaults>[True]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="resample" arg_pos="7" constructor_arg="True" name="resample" port_type="basic:Boolean">
+      <defaults>[False]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="cmap" arg_pos="1" constructor_arg="True" name="cmap" port_type="basic:Null" />
+    <inputPortSpec arg="filternorm" arg_pos="5" constructor_arg="True" name="filternorm" port_type="basic:Integer">
+      <defaults>[1]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="norm" arg_pos="2" constructor_arg="True" name="norm" port_type="basic:Null" />
+    <inputPortSpec arg="interpolation" arg_pos="3" constructor_arg="True" name="interpolation" port_type="basic:Null" />
+    <inputPortSpec arg="filterrad" arg_pos="6" constructor_arg="True" name="filterrad" port_type="basic:Float">
+      <defaults>[4.0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="bbox" arg_pos="0" constructor_arg="True" name="bbox" port_type="basic:Null" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.collections.Collection" module_name="MplCollectionProperties" superklass="MplArtistProperties">
     <docstring>
@@ -250,7 +315,7 @@ Unlike other properties such as linewidth and colors, hatching can only be speci
     <inputPortSpec arg="linewidth" name="linewidth" port_type="basic:List">
       <docstring>Set the linewidth(s) for the collection.  lw can be a scalar or a sequence; if it is a sequence the patches will cycle through the sequence</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="linestyle" name="linestyleScalar">
+    <inputPortSpec arg="linestyle" name="linestyleScalar" union="linestyle">
       <docstring>Set the linestyle(s) for the collection.</docstring>
       <entry_types>['enum']</entry_types>
       <values>[['solid', ('dashed', 'dashdot', 'dotted'), '(offset, on-off-dash-seq)']]</values>
@@ -259,83 +324,111 @@ Unlike other properties such as linewidth and colors, hatching can only be speci
     <inputPortSpec arg="facecolors" arg_pos="1" constructor_arg="True" name="facecolors" port_type="basic:Null" />
     <inputPortSpec arg="norm" arg_pos="7" constructor_arg="True" name="norm" port_type="basic:Null" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.TriMesh" module_name="MplTriMeshProperties" superklass="MplCollectionProperties">
+  <moduleSpec code_ref="matplotlib.collections._CollectionWithSizes" module_name="Mpl_CollectionWithSizesProperties" superklass="MplCollectionProperties">
     <docstring>
-    Class for the efficient drawing of a triangular mesh using
-    Gouraud shading.
-
-    A triangular mesh is a :class:`~matplotlib.tri.Triangulation`
-    object.
+    Base class for collections that have an array of sizes.
     </docstring>
-    <inputPortSpec arg="triangulation" arg_pos="0" constructor_arg="True" name="triangulation" port_type="basic:Null" />
+    <inputPortSpec arg="edgecolors" arg_pos="0" constructor_arg="True" name="edgecolors" port_type="basic:Null" />
+    <inputPortSpec arg="antialiaseds" arg_pos="4" constructor_arg="True" name="antialiaseds" port_type="basic:Null" />
+    <inputPortSpec arg="pickradius" arg_pos="9" constructor_arg="True" name="pickradius" port_type="basic:Float">
+      <defaults>[5.0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="linestyles" arg_pos="3" constructor_arg="True" name="linestyles">
+      <defaults>[u'solid']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="offsets" arg_pos="5" constructor_arg="True" name="offsets" port_type="basic:Null" />
+    <inputPortSpec arg="sizes" name="sizes" port_type="basic:List">
+      <docstring>
+        Set the sizes of each member of the collection.
+
+        Parameters
+        ----------
+        sizes : ndarray or None
+            The size to set for each element of the collection.  The
+            value is the 'area' of the element.
+
+        dpi : float
+            The dpi of the canvas. Defaults to 72.0.
+        </docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="offset_position" arg_pos="12" constructor_arg="True" name="offset_position">
+      <defaults>[u'screen']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="linewidths" arg_pos="2" constructor_arg="True" name="linewidths" port_type="basic:Null" />
+    <inputPortSpec arg="cmap" arg_pos="8" constructor_arg="True" name="cmap" port_type="basic:Null" />
+    <inputPortSpec arg="transOffset" arg_pos="6" constructor_arg="True" name="transOffset" port_type="basic:Null" />
+    <inputPortSpec arg="urls" arg_pos="11" constructor_arg="True" name="urls" port_type="basic:Null" />
+    <inputPortSpec arg="hatch" arg_pos="10" constructor_arg="True" name="hatch" port_type="basic:Null" />
+    <inputPortSpec arg="zorder" arg_pos="13" constructor_arg="True" name="zorder" port_type="basic:Integer">
+      <defaults>[1]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="facecolors" arg_pos="1" constructor_arg="True" name="facecolors" port_type="basic:Null" />
+    <inputPortSpec arg="norm" arg_pos="7" constructor_arg="True" name="norm" port_type="basic:Null" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.QuadMesh" module_name="MplQuadMeshProperties" superklass="MplCollectionProperties">
-    <docstring>
-    Class for the efficient drawing of a quadrilateral mesh.
-
-    A quadrilateral mesh consists of a grid of vertices. The
-    dimensions of this array are (*meshWidth* + 1, *meshHeight* +
-    1). Each vertex in the mesh has a different set of "mesh
-    coordinates" representing its position in the topology of the
-    mesh. For any values (*m*, *n*) such that 0 &lt;= *m* &lt;= *meshWidth*
-    and 0 &lt;= *n* &lt;= *meshHeight*, the vertices at mesh coordinates
-    (*m*, *n*), (*m*, *n* + 1), (*m* + 1, *n* + 1), and (*m* + 1, *n*)
-    form one of the quadrilaterals in the mesh. There are thus
-    (*meshWidth* * *meshHeight*) quadrilaterals in the mesh.  The mesh
-    need not be regular and the polygons need not be convex.
-
-    A quadrilateral mesh is represented by a (2 x ((*meshWidth* + 1) *
-    (*meshHeight* + 1))) numpy array *coordinates*, where each row is
-    the *x* and *y* coordinates of one of the vertices.  To define the
-    function that maps from a data point to its corresponding color,
-    use the :meth:`set_cmap` method.  Each of these arrays is indexed in
-    row-major order by the mesh coordinates of the vertex (or the mesh
-    coordinates of the lower left vertex, in the case of the
-    colors).
-
-    For example, the first entry in *coordinates* is the
-    coordinates of the vertex at mesh coordinates (0, 0), then the one
-    at (0, 1), then at (0, 2) .. (0, meshWidth), (1, 0), (1, 1), and
-    so on.
-
-    *shading* may be 'flat', or 'gouraud'
-    </docstring>
-    <inputPortSpec arg="meshWidth" arg_pos="0" constructor_arg="True" name="meshWidth" port_type="basic:Null" />
-    <inputPortSpec arg="meshHeight" arg_pos="1" constructor_arg="True" name="meshHeight" port_type="basic:Null" />
-    <inputPortSpec arg="antialiased" arg_pos="3" constructor_arg="True" name="antialiased" port_type="basic:Boolean">
+  <moduleSpec code_ref="matplotlib.collections.PolyCollection" module_name="MplPolyCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
+    <inputPortSpec arg="paths" name="paths">
+      <docstring>This allows one to delay initialization of the vertices.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="verts" name="verts">
+      <docstring>This allows one to delay initialization of the vertices.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="closed" arg_pos="2" constructor_arg="True" name="closed" port_type="basic:Boolean">
       <defaults>[True]</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="coordinates" arg_pos="2" constructor_arg="True" name="coordinates" port_type="basic:Null" />
-    <inputPortSpec arg="shading" arg_pos="4" constructor_arg="True" name="shading">
-      <defaults>[u'flat']</defaults>
-    </inputPortSpec>
+    <inputPortSpec arg="sizes" arg_pos="1" constructor_arg="True" name="sizes" port_type="basic:Null" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.EllipseCollection" module_name="MplEllipseCollectionProperties" superklass="MplCollectionProperties">
+  <moduleSpec code_ref="matplotlib.collections.BrokenBarHCollection" module_name="MplBrokenBarHCollectionProperties" superklass="MplPolyCollectionProperties">
     <docstring>
-    A collection of ellipses, drawn using splines.
+    A collection of horizontal bars spanning *yrange* with a sequence of
+    *xranges*.
     </docstring>
-    <inputPortSpec arg="units" arg_pos="3" constructor_arg="True" name="units">
-      <defaults>[u'points']</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="widths" arg_pos="0" constructor_arg="True" name="widths" port_type="basic:Null" />
-    <inputPortSpec arg="angles" arg_pos="2" constructor_arg="True" name="angles" port_type="basic:Null" />
-    <inputPortSpec arg="heights" arg_pos="1" constructor_arg="True" name="heights" port_type="basic:Null" />
+    <inputPortSpec arg="xranges" arg_pos="0" constructor_arg="True" name="xranges" port_type="basic:Null" />
+    <inputPortSpec arg="yrange" arg_pos="1" constructor_arg="True" name="yrange" port_type="basic:Null" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.PatchCollection" module_name="MplPatchCollectionProperties" superklass="MplCollectionProperties">
+  <moduleSpec code_ref="matplotlib.collections.RegularPolyCollection" module_name="MplRegularPolyCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
+    <docstring>Draw a collection of regular polygons with *numsides*.</docstring>
+    <inputPortSpec arg="numsides" arg_pos="0" constructor_arg="True" name="numsides" port_type="basic:Null" />
+    <inputPortSpec arg="rotation" arg_pos="1" constructor_arg="True" name="rotation" port_type="basic:Integer">
+      <defaults>[0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="sizes" arg_pos="2" constructor_arg="True" name="sizes" port_type="basic:List">
+      <defaults>[(1,)]</defaults>
+    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.collections.StarPolygonCollection" module_name="MplStarPolygonCollectionProperties" superklass="MplRegularPolyCollectionProperties">
     <docstring>
-    A generic collection of patches.
-
-    This makes it easier to assign a color map to a heterogeneous
-    collection of patches.
-
-    This also may improve plotting speed, since PatchCollection will
-    draw faster than a large number of patches.
+    Draw a collection of regular stars with *numsides* points.</docstring>
+    <inputPortSpec arg="numsides" arg_pos="0" constructor_arg="True" name="numsides" port_type="basic:Null" />
+    <inputPortSpec arg="rotation" arg_pos="1" constructor_arg="True" name="rotation" port_type="basic:Integer">
+      <defaults>[0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="sizes" arg_pos="2" constructor_arg="True" name="sizes" port_type="basic:List">
+      <defaults>[(1,)]</defaults>
+    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.collections.AsteriskPolygonCollection" module_name="MplAsteriskPolygonCollectionProperties" superklass="MplRegularPolyCollectionProperties">
+    <docstring>
+    Draw a collection of regular asterisks with *numsides* points.</docstring>
+    <inputPortSpec arg="numsides" arg_pos="0" constructor_arg="True" name="numsides" port_type="basic:Null" />
+    <inputPortSpec arg="rotation" arg_pos="1" constructor_arg="True" name="rotation" port_type="basic:Integer">
+      <defaults>[0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="sizes" arg_pos="2" constructor_arg="True" name="sizes" port_type="basic:List">
+      <defaults>[(1,)]</defaults>
+    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.collections.CircleCollection" module_name="MplCircleCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
+    <docstring>
+    A collection of circles, drawn using splines.
+    </docstring>
+    <inputPortSpec arg="sizes" arg_pos="0" constructor_arg="True" name="sizes" port_type="basic:Null" />
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.collections.PathCollection" module_name="MplPathCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
+    <docstring>
+    This is the most basic :class:`Collection` subclass.
     </docstring>
     <inputPortSpec arg="paths" name="paths" />
-    <inputPortSpec arg="patches" arg_pos="0" constructor_arg="True" name="patches" port_type="basic:Null" />
-    <inputPortSpec arg="match_original" arg_pos="1" constructor_arg="True" name="match_original" port_type="basic:Boolean">
-      <defaults>[False]</defaults>
-    </inputPortSpec>
+    <inputPortSpec arg="sizes" arg_pos="1" constructor_arg="True" name="sizes" port_type="basic:Null" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.collections.LineCollection" module_name="MplLineCollectionProperties" superklass="MplCollectionProperties">
     <docstring>
@@ -399,194 +492,101 @@ Unlike other properties such as linewidth and colors, hatching can only be speci
       <defaults>[u'solid']</defaults>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections._CollectionWithSizes" module_name="Mpl_CollectionWithSizesProperties" superklass="MplCollectionProperties">
+  <moduleSpec code_ref="matplotlib.collections.EllipseCollection" module_name="MplEllipseCollectionProperties" superklass="MplCollectionProperties">
     <docstring>
-    Base class for collections that have an array of sizes.
+    A collection of ellipses, drawn using splines.
     </docstring>
-    <inputPortSpec arg="edgecolors" arg_pos="0" constructor_arg="True" name="edgecolors" port_type="basic:Null" />
-    <inputPortSpec arg="antialiaseds" arg_pos="4" constructor_arg="True" name="antialiaseds" port_type="basic:Null" />
-    <inputPortSpec arg="pickradius" arg_pos="9" constructor_arg="True" name="pickradius" port_type="basic:Float">
-      <defaults>[5.0]</defaults>
+    <inputPortSpec arg="units" arg_pos="3" constructor_arg="True" name="units">
+      <defaults>[u'points']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="linestyles" arg_pos="3" constructor_arg="True" name="linestyles">
-      <defaults>[u'solid']</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="offsets" arg_pos="5" constructor_arg="True" name="offsets" port_type="basic:Null" />
-    <inputPortSpec arg="sizes" name="sizes" port_type="basic:List">
-      <docstring>
-        Set the sizes of each member of the collection.
+    <inputPortSpec arg="widths" arg_pos="0" constructor_arg="True" name="widths" port_type="basic:Null" />
+    <inputPortSpec arg="angles" arg_pos="2" constructor_arg="True" name="angles" port_type="basic:Null" />
+    <inputPortSpec arg="heights" arg_pos="1" constructor_arg="True" name="heights" port_type="basic:Null" />
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.collections.PatchCollection" module_name="MplPatchCollectionProperties" superklass="MplCollectionProperties">
+    <docstring>
+    A generic collection of patches.
 
-        Parameters
-        ----------
-        sizes : ndarray or None
-            The size to set for each element of the collection.  The
-            value is the 'area' of the element.
+    This makes it easier to assign a color map to a heterogeneous
+    collection of patches.
 
-        dpi : float
-            The dpi of the canvas. Defaults to 72.0.
-        </docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="offset_position" arg_pos="12" constructor_arg="True" name="offset_position">
-      <defaults>[u'screen']</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="linewidths" arg_pos="2" constructor_arg="True" name="linewidths" port_type="basic:Null" />
-    <inputPortSpec arg="cmap" arg_pos="8" constructor_arg="True" name="cmap" port_type="basic:Null" />
-    <inputPortSpec arg="transOffset" arg_pos="6" constructor_arg="True" name="transOffset" port_type="basic:Null" />
-    <inputPortSpec arg="urls" arg_pos="11" constructor_arg="True" name="urls" port_type="basic:Null" />
-    <inputPortSpec arg="hatch" arg_pos="10" constructor_arg="True" name="hatch" port_type="basic:Null" />
-    <inputPortSpec arg="zorder" arg_pos="13" constructor_arg="True" name="zorder" port_type="basic:Integer">
-      <defaults>[1]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="facecolors" arg_pos="1" constructor_arg="True" name="facecolors" port_type="basic:Null" />
-    <inputPortSpec arg="norm" arg_pos="7" constructor_arg="True" name="norm" port_type="basic:Null" />
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.RegularPolyCollection" module_name="MplRegularPolyCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
-    <docstring>Draw a collection of regular polygons with *numsides*.</docstring>
-    <inputPortSpec arg="numsides" arg_pos="0" constructor_arg="True" name="numsides" port_type="basic:Null" />
-    <inputPortSpec arg="rotation" arg_pos="1" constructor_arg="True" name="rotation" port_type="basic:Integer">
-      <defaults>[0]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="sizes" arg_pos="2" constructor_arg="True" name="sizes" port_type="basic:List">
-      <defaults>[(1,)]</defaults>
-    </inputPortSpec>
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.AsteriskPolygonCollection" module_name="MplAsteriskPolygonCollectionProperties" superklass="MplRegularPolyCollectionProperties">
-    <docstring>
-    Draw a collection of regular asterisks with *numsides* points.</docstring>
-    <inputPortSpec arg="numsides" arg_pos="0" constructor_arg="True" name="numsides" port_type="basic:Null" />
-    <inputPortSpec arg="rotation" arg_pos="1" constructor_arg="True" name="rotation" port_type="basic:Integer">
-      <defaults>[0]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="sizes" arg_pos="2" constructor_arg="True" name="sizes" port_type="basic:List">
-      <defaults>[(1,)]</defaults>
-    </inputPortSpec>
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.StarPolygonCollection" module_name="MplStarPolygonCollectionProperties" superklass="MplRegularPolyCollectionProperties">
-    <docstring>
-    Draw a collection of regular stars with *numsides* points.</docstring>
-    <inputPortSpec arg="numsides" arg_pos="0" constructor_arg="True" name="numsides" port_type="basic:Null" />
-    <inputPortSpec arg="rotation" arg_pos="1" constructor_arg="True" name="rotation" port_type="basic:Integer">
-      <defaults>[0]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="sizes" arg_pos="2" constructor_arg="True" name="sizes" port_type="basic:List">
-      <defaults>[(1,)]</defaults>
-    </inputPortSpec>
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.PathCollection" module_name="MplPathCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
-    <docstring>
-    This is the most basic :class:`Collection` subclass.
+    This also may improve plotting speed, since PatchCollection will
+    draw faster than a large number of patches.
     </docstring>
     <inputPortSpec arg="paths" name="paths" />
-    <inputPortSpec arg="sizes" arg_pos="1" constructor_arg="True" name="sizes" port_type="basic:Null" />
+    <inputPortSpec arg="patches" arg_pos="0" constructor_arg="True" name="patches" port_type="basic:Null" />
+    <inputPortSpec arg="match_original" arg_pos="1" constructor_arg="True" name="match_original" port_type="basic:Boolean">
+      <defaults>[False]</defaults>
+    </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.PolyCollection" module_name="MplPolyCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
-    <inputPortSpec arg="paths" name="paths">
-      <docstring>This allows one to delay initialization of the vertices.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="verts" name="verts">
-      <docstring>This allows one to delay initialization of the vertices.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="closed" arg_pos="2" constructor_arg="True" name="closed" port_type="basic:Boolean">
+  <moduleSpec code_ref="matplotlib.collections.TriMesh" module_name="MplTriMeshProperties" superklass="MplCollectionProperties">
+    <docstring>
+    Class for the efficient drawing of a triangular mesh using
+    Gouraud shading.
+
+    A triangular mesh is a :class:`~matplotlib.tri.Triangulation`
+    object.
+    </docstring>
+    <inputPortSpec arg="triangulation" arg_pos="0" constructor_arg="True" name="triangulation" port_type="basic:Null" />
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.collections.QuadMesh" module_name="MplQuadMeshProperties" superklass="MplCollectionProperties">
+    <docstring>
+    Class for the efficient drawing of a quadrilateral mesh.
+
+    A quadrilateral mesh consists of a grid of vertices. The
+    dimensions of this array are (*meshWidth* + 1, *meshHeight* +
+    1). Each vertex in the mesh has a different set of "mesh
+    coordinates" representing its position in the topology of the
+    mesh. For any values (*m*, *n*) such that 0 &lt;= *m* &lt;= *meshWidth*
+    and 0 &lt;= *n* &lt;= *meshHeight*, the vertices at mesh coordinates
+    (*m*, *n*), (*m*, *n* + 1), (*m* + 1, *n* + 1), and (*m* + 1, *n*)
+    form one of the quadrilaterals in the mesh. There are thus
+    (*meshWidth* * *meshHeight*) quadrilaterals in the mesh.  The mesh
+    need not be regular and the polygons need not be convex.
+
+    A quadrilateral mesh is represented by a (2 x ((*meshWidth* + 1) *
+    (*meshHeight* + 1))) numpy array *coordinates*, where each row is
+    the *x* and *y* coordinates of one of the vertices.  To define the
+    function that maps from a data point to its corresponding color,
+    use the :meth:`set_cmap` method.  Each of these arrays is indexed in
+    row-major order by the mesh coordinates of the vertex (or the mesh
+    coordinates of the lower left vertex, in the case of the
+    colors).
+
+    For example, the first entry in *coordinates* is the
+    coordinates of the vertex at mesh coordinates (0, 0), then the one
+    at (0, 1), then at (0, 2) .. (0, meshWidth), (1, 0), (1, 1), and
+    so on.
+
+    *shading* may be 'flat', or 'gouraud'
+    </docstring>
+    <inputPortSpec arg="meshWidth" arg_pos="0" constructor_arg="True" name="meshWidth" port_type="basic:Null" />
+    <inputPortSpec arg="meshHeight" arg_pos="1" constructor_arg="True" name="meshHeight" port_type="basic:Null" />
+    <inputPortSpec arg="antialiased" arg_pos="3" constructor_arg="True" name="antialiased" port_type="basic:Boolean">
       <defaults>[True]</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="sizes" arg_pos="1" constructor_arg="True" name="sizes" port_type="basic:Null" />
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.BrokenBarHCollection" module_name="MplBrokenBarHCollectionProperties" superklass="MplPolyCollectionProperties">
-    <docstring>
-    A collection of horizontal bars spanning *yrange* with a sequence of
-    *xranges*.
-    </docstring>
-    <inputPortSpec arg="xranges" arg_pos="0" constructor_arg="True" name="xranges" port_type="basic:Null" />
-    <inputPortSpec arg="yrange" arg_pos="1" constructor_arg="True" name="yrange" port_type="basic:Null" />
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.collections.CircleCollection" module_name="MplCircleCollectionProperties" superklass="Mpl_CollectionWithSizesProperties">
-    <docstring>
-    A collection of circles, drawn using splines.
-    </docstring>
-    <inputPortSpec arg="sizes" arg_pos="0" constructor_arg="True" name="sizes" port_type="basic:Null" />
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.image._AxesImageBase" module_name="Mpl_AxesImageBaseProperties" superklass="MplArtistProperties">
-    <inputPortSpec arg="origin" arg_pos="4" constructor_arg="True" name="origin" port_type="basic:Null" />
-    <inputPortSpec arg="resample" name="resample" port_type="basic:Boolean">
-      <docstring>Set whether or not image resampling is used</docstring>
+    <inputPortSpec arg="coordinates" arg_pos="2" constructor_arg="True" name="coordinates" port_type="basic:Null" />
+    <inputPortSpec arg="shading" arg_pos="4" constructor_arg="True" name="shading">
+      <defaults>[u'flat']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="norm" arg_pos="2" constructor_arg="True" name="norm" port_type="basic:Null" />
-    <inputPortSpec arg="cmap" arg_pos="1" constructor_arg="True" name="cmap" port_type="basic:Null" />
-    <inputPortSpec arg="filternorm" name="filternorm">
-      <docstring>Set whether the resize filter norms the weights -- see help for imshow</docstring>
-    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.image.PcolorImage" module_name="MplPcolorImageProperties" superklass="MplArtistProperties">
+    <docstring>
+    Make a pcolor-style plot with an irregular rectangular grid.
+
+    This uses a variation of the original irregular image code,
+    and it is used by pcolorfast for the corresponding grid type.
+    </docstring>
+    <inputPortSpec arg="A" arg_pos="3" constructor_arg="True" name="A" port_type="basic:Null" />
     <inputPortSpec arg="ax" arg_pos="0" constructor_arg="True" name="ax" port_type="basic:Null" />
+    <inputPortSpec arg="cmap" arg_pos="4" constructor_arg="True" name="cmap" port_type="basic:Null" />
+    <inputPortSpec arg="x" arg_pos="1" constructor_arg="True" name="x" port_type="basic:Null" />
+    <inputPortSpec arg="y" arg_pos="2" constructor_arg="True" name="y" port_type="basic:Null" />
     <inputPortSpec arg="alpha" name="alpha" port_type="basic:Float">
       <docstring>Set the alpha value used for blending - not supported on all backends</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="array" name="array" port_type="basic:List">
-      <docstring>Retained for backwards compatibility - use set_data instead</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="data" name="data">
-      <docstring>Set the image array</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="filterrad" name="filterrad" port_type="basic:Float">
-      <docstring>Set the resize filter radius only applicable to some interpolation schemes -- see help for imshow</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="interpolation" name="interpolation">
-      <docstring>Set the interpolation method the image uses when resizing.
-
-if None, use a value from rc setting. If 'none', the image is shown as is without interpolating. 'none' is only supported in agg, ps and pdf backends and will fall back to 'nearest' mode for other backends.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos', 'none', '']]</values>
-    </inputPortSpec>
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.image.AxesImage" module_name="MplAxesImageProperties" superklass="Mpl_AxesImageBaseProperties">
-    <inputPortSpec arg="origin" arg_pos="4" constructor_arg="True" name="origin" port_type="basic:Null" />
-    <inputPortSpec arg="resample" arg_pos="8" constructor_arg="True" name="resample" port_type="basic:Boolean">
-      <defaults>[False]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="norm" arg_pos="2" constructor_arg="True" name="norm" port_type="basic:Null" />
-    <inputPortSpec arg="cmap" arg_pos="1" constructor_arg="True" name="cmap" port_type="basic:Null" />
-    <inputPortSpec arg="filterrad" arg_pos="7" constructor_arg="True" name="filterrad" port_type="basic:Float">
-      <defaults>[4.0]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="extent" name="extent">
-      <docstring>extent is data axes (left, right, bottom, top) for making image plots
-
-This updates ax.dataLim, and, if autoscaling, sets viewLim to tightly fit the image, regardless of dataLim.  Autoscaling state is not changed, so following this with ax.autoscale_view will redo the autoscaling in accord with dataLim.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="ax" arg_pos="0" constructor_arg="True" name="ax" port_type="basic:Null" />
-    <inputPortSpec arg="filternorm" arg_pos="6" constructor_arg="True" name="filternorm" port_type="basic:Integer">
-      <defaults>[1]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="interpolation" arg_pos="3" constructor_arg="True" name="interpolation" port_type="basic:Null" />
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.image.NonUniformImage" module_name="MplNonUniformImageProperties" superklass="MplAxesImageProperties">
-    <inputPortSpec arg="cmap" name="cmap" />
-    <inputPortSpec arg="filternorm" name="filternorm" />
-    <inputPortSpec arg="filterrad" name="filterrad" />
-    <inputPortSpec arg="ax" arg_pos="0" constructor_arg="True" name="ax" port_type="basic:Null" />
-    <inputPortSpec arg="data" name="data">
-      <docstring>Set the grid for the pixel centers, and the pixel values.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="norm" name="norm" />
-    <inputPortSpec arg="interpolation" name="interpolation" />
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.image.BboxImage" module_name="MplBboxImageProperties" superklass="Mpl_AxesImageBaseProperties">
-    <docstring>The Image class whose size is determined by the given bbox.</docstring>
-    <inputPortSpec arg="origin" arg_pos="4" constructor_arg="True" name="origin" port_type="basic:Null" />
-    <inputPortSpec arg="interp_at_native" arg_pos="8" constructor_arg="True" name="interp_at_native" port_type="basic:Boolean">
-      <defaults>[True]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="resample" arg_pos="7" constructor_arg="True" name="resample" port_type="basic:Boolean">
-      <defaults>[False]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="cmap" arg_pos="1" constructor_arg="True" name="cmap" port_type="basic:Null" />
-    <inputPortSpec arg="filternorm" arg_pos="5" constructor_arg="True" name="filternorm" port_type="basic:Integer">
-      <defaults>[1]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="norm" arg_pos="2" constructor_arg="True" name="norm" port_type="basic:Null" />
-    <inputPortSpec arg="interpolation" arg_pos="3" constructor_arg="True" name="interpolation" port_type="basic:Null" />
-    <inputPortSpec arg="filterrad" arg_pos="6" constructor_arg="True" name="filterrad" port_type="basic:Float">
-      <defaults>[4.0]</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="bbox" arg_pos="0" constructor_arg="True" name="bbox" port_type="basic:Null" />
+    <inputPortSpec arg="data" name="data" />
+    <inputPortSpec arg="norm" arg_pos="5" constructor_arg="True" name="norm" port_type="basic:Null" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.image.FigureImage" module_name="MplFigureImageProperties" superklass="MplArtistProperties">
     <inputPortSpec arg="origin" arg_pos="5" constructor_arg="True" name="origin" port_type="basic:Null" />
@@ -1575,105 +1575,6 @@ bbox can be a BboxBase instance, a tuple of [left, bottom, width, height] in the
       <docstring>the transform for the bbox. transAxes if None.</docstring>
     </inputPortSpec>
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.axis.Axis" module_name="MplAxisProperties" superklass="MplArtistProperties">
-    <docstring>
-    Public attributes
-
-    * :attr:`axes.transData` - transform data coords to display coords
-    * :attr:`axes.transAxes` - transform axis coords to display coords
-    * :attr:`labelpad` - number of points between the axis and its label
-    </docstring>
-    <inputPortSpec arg="pickradius" name="pickradius">
-      <docstring>Set the depth of the axis used by the picker</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="smart_bounds" name="smart_bounds">
-      <docstring>set the axis to have smart bounds</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
-    <inputPortSpec arg="view_interval" name="view_interval" />
-    <inputPortSpec arg="major_locator" name="major_locator">
-      <docstring>Set the locator of the major ticker</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="minor_formatter" name="minor_formatter">
-      <docstring>Set the formatter of the minor ticker</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="ticklabels" name="ticklabels" port_type="basic:List">
-      <docstring>Set the text values of the tick labels. Return a list of Text instances.  Use kwarg minor=True to select minor ticks. All other kwargs are used to update the text object properties. As for get_ticklabels, label1 (left or bottom) is affected for a given tick only if its label1On attribute is True, and similarly for label2.  The list of returned label text objects consists of all such label1 objects followed by all such label2 objects.
-
-The input ticklabels is assumed to match the set of tick locations, regardless of the state of label1On and label2On.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="clip_path" name="clip_path" />
-    <inputPortSpec arg="minor_locator" name="minor_locator">
-      <docstring>Set the locator of the minor ticker</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="ticks" name="ticks" port_type="basic:List">
-      <docstring>Set the locations of the tick marks from sequence ticks</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="label_text" name="label_text">
-      <docstring>Sets the text value of the axis label</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="major_formatter" name="major_formatter">
-      <docstring>Set the formatter of the major ticker</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="units" name="units">
-      <docstring>set the units for axis</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="tick_params" name="tick_params">
-      <docstring>Set appearance parameters for ticks and ticklabels.
-
-For documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="label_coords" name="label_coords">
-      <docstring>Set the coordinates of the label.  By default, the x coordinate of the y label is determined by the tick label bounding boxes, but this can lead to poor alignment of multiple ylabels if there are multiple axes.  Ditto for the y coodinate of the x label.
-
-You can also specify the coordinate system of the label with the transform.  If None, the default coordinate system will be the axes coordinate system (0,0) is (left,bottom), (0.5, 0.5) is middle, etc</docstring>
-    </inputPortSpec>
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.axis.XAxis" module_name="MplXAxisProperties" superklass="MplAxisProperties">
-    <inputPortSpec arg="view_interval" name="view_interval">
-      <docstring>If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_xlim`.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="ticks_position" name="ticks_position">
-      <docstring>Set the ticks position (top, bottom, both, default or none) both sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at bottom.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['top', 'bottom', 'both', 'default', 'none']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
-    <inputPortSpec arg="label_position" name="label_position">
-      <docstring>Set the label position (top or bottom)</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['top', 'bottom']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="data_interval" name="data_interval">
-      <docstring>set the axis data limits</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="pickradius" arg_pos="1" constructor_arg="True" name="pickradius" port_type="basic:Integer">
-      <defaults>[15]</defaults>
-    </inputPortSpec>
-  </moduleSpec>
-  <moduleSpec code_ref="matplotlib.axis.YAxis" module_name="MplYAxisProperties" superklass="MplAxisProperties">
-    <inputPortSpec arg="offset_position" name="offset_position" />
-    <inputPortSpec arg="view_interval" name="view_interval">
-      <docstring>If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_ylim`.</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="ticks_position" name="ticks_position">
-      <docstring>Set the ticks position (left, right, both, default or none) 'both' sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at left.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['left', 'right', 'both', 'default', 'none']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
-    <inputPortSpec arg="label_position" name="label_position">
-      <docstring>Set the label position (left or right)</docstring>
-      <entry_types>['enum']</entry_types>
-      <values>[['left', 'right']]</values>
-    </inputPortSpec>
-    <inputPortSpec arg="data_interval" name="data_interval">
-      <docstring>set the axis data limits</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="pickradius" arg_pos="1" constructor_arg="True" name="pickradius" port_type="basic:Integer">
-      <defaults>[15]</defaults>
-    </inputPortSpec>
-  </moduleSpec>
   <moduleSpec code_ref="matplotlib.axes._base._AxesBase" module_name="Mpl_AxesBaseProperties" superklass="MplArtistProperties">
     <docstring>
     </docstring>
@@ -1988,6 +1889,105 @@ text : for information on how override and the optional args work</docstring>
       <defaults>[u'']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="rect" arg_pos="1" constructor_arg="True" name="rect" port_type="basic:Null" />
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.axis.Axis" module_name="MplAxisProperties" superklass="MplArtistProperties">
+    <docstring>
+    Public attributes
+
+    * :attr:`axes.transData` - transform data coords to display coords
+    * :attr:`axes.transAxes` - transform axis coords to display coords
+    * :attr:`labelpad` - number of points between the axis and its label
+    </docstring>
+    <inputPortSpec arg="pickradius" name="pickradius">
+      <docstring>Set the depth of the axis used by the picker</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="smart_bounds" name="smart_bounds">
+      <docstring>set the axis to have smart bounds</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
+    <inputPortSpec arg="view_interval" name="view_interval" />
+    <inputPortSpec arg="major_locator" name="major_locator">
+      <docstring>Set the locator of the major ticker</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="minor_formatter" name="minor_formatter">
+      <docstring>Set the formatter of the minor ticker</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="ticklabels" name="ticklabels" port_type="basic:List">
+      <docstring>Set the text values of the tick labels. Return a list of Text instances.  Use kwarg minor=True to select minor ticks. All other kwargs are used to update the text object properties. As for get_ticklabels, label1 (left or bottom) is affected for a given tick only if its label1On attribute is True, and similarly for label2.  The list of returned label text objects consists of all such label1 objects followed by all such label2 objects.
+
+The input ticklabels is assumed to match the set of tick locations, regardless of the state of label1On and label2On.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="clip_path" name="clip_path" />
+    <inputPortSpec arg="minor_locator" name="minor_locator">
+      <docstring>Set the locator of the minor ticker</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="ticks" name="ticks" port_type="basic:List">
+      <docstring>Set the locations of the tick marks from sequence ticks</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="label_text" name="label_text">
+      <docstring>Sets the text value of the axis label</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="major_formatter" name="major_formatter">
+      <docstring>Set the formatter of the major ticker</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="units" name="units">
+      <docstring>set the units for axis</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="tick_params" name="tick_params">
+      <docstring>Set appearance parameters for ticks and ticklabels.
+
+For documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="label_coords" name="label_coords">
+      <docstring>Set the coordinates of the label.  By default, the x coordinate of the y label is determined by the tick label bounding boxes, but this can lead to poor alignment of multiple ylabels if there are multiple axes.  Ditto for the y coodinate of the x label.
+
+You can also specify the coordinate system of the label with the transform.  If None, the default coordinate system will be the axes coordinate system (0,0) is (left,bottom), (0.5, 0.5) is middle, etc</docstring>
+    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.axis.YAxis" module_name="MplYAxisProperties" superklass="MplAxisProperties">
+    <inputPortSpec arg="offset_position" name="offset_position" />
+    <inputPortSpec arg="view_interval" name="view_interval">
+      <docstring>If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_ylim`.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="ticks_position" name="ticks_position">
+      <docstring>Set the ticks position (left, right, both, default or none) 'both' sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at left.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['left', 'right', 'both', 'default', 'none']]</values>
+    </inputPortSpec>
+    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
+    <inputPortSpec arg="label_position" name="label_position">
+      <docstring>Set the label position (left or right)</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['left', 'right']]</values>
+    </inputPortSpec>
+    <inputPortSpec arg="data_interval" name="data_interval">
+      <docstring>set the axis data limits</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="pickradius" arg_pos="1" constructor_arg="True" name="pickradius" port_type="basic:Integer">
+      <defaults>[15]</defaults>
+    </inputPortSpec>
+  </moduleSpec>
+  <moduleSpec code_ref="matplotlib.axis.XAxis" module_name="MplXAxisProperties" superklass="MplAxisProperties">
+    <inputPortSpec arg="view_interval" name="view_interval">
+      <docstring>If ignore is False, the order of vmin, vmax does not matter; the original axis orientation will be preserved. In addition, the view limits can be expanded, but will not be reduced.  This method is for mpl internal use; for normal use, see :meth:`~matplotlib.axes.Axes.set_xlim`.</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="ticks_position" name="ticks_position">
+      <docstring>Set the ticks position (top, bottom, both, default or none) both sets the ticks to appear on both positions, but does not change the tick labels.  'default' resets the tick positions to the default: ticks on both positions, labels at bottom.  'none' can be used if you don't want any ticks. 'none' and 'both' affect only the ticks, not the labels.</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['top', 'bottom', 'both', 'default', 'none']]</values>
+    </inputPortSpec>
+    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
+    <inputPortSpec arg="label_position" name="label_position">
+      <docstring>Set the label position (top or bottom)</docstring>
+      <entry_types>['enum']</entry_types>
+      <values>[['top', 'bottom']]</values>
+    </inputPortSpec>
+    <inputPortSpec arg="data_interval" name="data_interval">
+      <docstring>set the axis data limits</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="pickradius" arg_pos="1" constructor_arg="True" name="pickradius" port_type="basic:Integer">
+      <defaults>[15]</defaults>
+    </inputPortSpec>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.axis.Tick" module_name="MplTickProperties" superklass="MplArtistProperties">
     <docstring>
