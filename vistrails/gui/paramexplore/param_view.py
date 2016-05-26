@@ -245,7 +245,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                          label)
                 continue
                 
-            port_dict = dict((p.name, p) for p in module.destinationPorts())
+            if module.is_valid:
+                port_dict = dict((p.name, p) for p in module.destinationPorts())
             function_names = {}
             # Add existing parameters
             mLabel = [module.name]
@@ -265,7 +266,10 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                                                   self, mLabel)
 
                     try:
-                        port_spec = port_dict[function.name]
+                        if module.is_valid:
+                            port_spec = port_dict[function.name]
+                        else:
+                            port_spec = function.get_spec('input')
                     except Exception:
                         debug.critical("get_spec failed: %s %s %s" % \
                                        (module, function, function.sigstring))

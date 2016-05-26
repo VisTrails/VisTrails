@@ -1489,7 +1489,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.id = module.id
         self.setZValue(float(self.id))
         self.module = module
-        self.union_ports = module.unionPorts()
+        self.union_ports = module.unionPorts() if module.is_valid else {}
+
         # reverse map
         self.to_union = dict((p.name, self.union_ports[union])
                              for union, p_list in self.union_ports.items()
