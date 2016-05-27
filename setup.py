@@ -19,6 +19,7 @@ requirements = [
     'certifi',
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
+    'python-dateutil',
     'requests',
     'IPython',
     'usagestats>=0.3',
