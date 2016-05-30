@@ -250,9 +250,6 @@ class ModuleRegistrySignals(object):
 
 # !!!!!! DEPRECATED !!!!!!
 # Use get_module_registry()
-global registry, add_module, add_input_port, has_input_port, add_output_port, \
-    set_current_package, get_descriptor_by_name, get_module_by_name, \
-    get_descriptor
 registry                 = None
 add_module               = None
 add_input_port           = None
@@ -1682,9 +1679,10 @@ class ModuleRegistry(DBRegistry):
         except Exception, e:
             raise package.InitializationFailed(package, 
                                                [traceback.format_exc()])
+        finally:
+            self.set_current_package(None)
 
         # The package might have decided to rename itself, let's store that
-        self.set_current_package(None)
         debug.splashMessage("Initializing " + package.codepath + '... done.')
         package._initialized = True 
 

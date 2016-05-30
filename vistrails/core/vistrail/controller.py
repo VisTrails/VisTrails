@@ -36,6 +36,7 @@
 from __future__ import division
 
 import copy
+import io
 from itertools import izip
 import os
 import uuid
@@ -95,6 +96,7 @@ from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
+from vistrails.core.scripting.export import write_workflow_to_python
 from vistrails.core.utils import any
 
 
@@ -181,10 +183,6 @@ class VistrailController(object):
         # This will just store the mashups in memory and send them to SaveBundle
         # when writing the vistrail
         self._mashups = []
-
-        # the redo stack stores the undone action ids 
-        # (undo is automatic with us, through the version tree)
-        self.redo_stack = []
 
         # this is a reference to the current parameter exploration
         self.current_parameter_exploration = None
@@ -4022,6 +4020,18 @@ class VistrailController(object):
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
             locator.save_as(save_bundle, version)
 
+    def write_workflow_to_python(self, filename):
+        if not self.current_pipeline:
+            return
+        with io.open(filename, 'w', encoding='utf-8', newline='\n') as f:
+            for l in write_workflow_to_python(self.current_pipeline):
+                f.write(l)
+                f.write('\n')
+
+    def import_python_script(self, filename):
+        from vistrails.core.scripting.import_ import read_workflow_from_python
+        read_workflow_from_python(self, filename)
+
     def write_log(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
@@ -4046,41 +4056,6 @@ class VistrailController(object):
 
     def update_checkout_version(self, app=''):
         self.vistrail.update_checkout_version(app)
-
-    def reset_redo_stack(self):
-        self.redo_stack = []
-
-    def undo(self):
-        """Performs one undo step, moving up the version tree."""
-        action_map = self.vistrail.actionMap
-        old_action = action_map.get(self.current_version, None)
-        self.redo_stack.append(self.current_version)
-        self.show_parent_version()
-        new_action = action_map.get(self.current_version, None)
-        return (old_action, new_action)
-        # self.set_pipeline_selection(old_action, new_action, 'undo')
-        # return self.current_version
-
-    def redo(self):
-        """Performs one redo step if possible, moving down the version tree."""
-        action_map = self.vistrail.actionMap
-        old_action = action_map.get(self.current_version, None)
-        if len(self.redo_stack) < 1:
-            debug.critical("Redo on an empty redo stack. Ignoring.")
-            return
-        next_version = self.redo_stack[-1]
-        self.redo_stack = self.redo_stack[:-1]
-        self.show_child_version(next_version)
-        new_action = action_map[self.current_version]
-        return (old_action, new_action)
-        # self.set_pipeline_selection(old_action, new_action, 'redo')
-        # return next_version
-
-    def can_redo(self):
-        return (len(self.redo_stack) > 0)
-
-    def can_undo(self):
-        return self.current_version > 0
 
     def layout_modules(self, old_modules=[], preserve_order=False, 
                new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):

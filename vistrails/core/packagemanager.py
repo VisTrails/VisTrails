@@ -589,8 +589,11 @@ class PackageManager(object):
                     prefix = self._default_prefix_dict.get(package.codepath)
                 package.load(prefix)
             except Package.LoadFailed, e:
-                debug.critical("Package %s failed to load and will be "
-                               "disabled" % package.name, e)
+                debug.critical(
+                        "Package %s failed to load and will be disabled" % (
+                            package.name or
+                            ("<codepath %s>" % package.codepath)),
+                        e)
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list

@@ -240,7 +240,10 @@ class QVistrailView(QtGui.QWidget):
         view = self.stack.widget(self.tab_to_stack_idx[index])
         #print "view changed: ", view
         self.set_to_current(view)
-         
+
+    def showEvent(self, event):
+        self.stack.currentWidget().viewSelected()
+
     def pipeline_selected(self):
         from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
@@ -254,6 +257,7 @@ class QVistrailView(QtGui.QWidget):
                              self.stack.currentWidget().get_title())
         self.tab_state[self.tabs.currentIndex()] = window.qactions['pipeline']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
+        self.stack.currentWidget().viewSelected()
 
     def pipeline_unselected(self):
         #print "PIPELINE UN"
@@ -276,6 +280,7 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(), "History")
         self.tab_state[self.tabs.currentIndex()] = window.qactions['history']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
+        self.stack.currentWidget().viewSelected()
 
     def history_unselected(self):
         #print "VERSION UN"
@@ -961,6 +966,16 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         self.controller.write_workflow(locator, '1.0.3')
+        return True
+
+    def export_python(self):
+        """ translate workflow to a standalone Python script """
+        self.flush_changes()
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select file name to export workflow to",
+            ".", filter="Python script (*.py)")
+        if filename:
+            self.controller.write_workflow_to_python(filename)
         return True
 
     # FIXME normalize workflow/log/registry!!!

@@ -74,11 +74,11 @@ def shell_escape(arg):
 
 
 def run_install_command(graphical, cmd, args, as_root=True):
-    if isinstance(args, str):
+    if isinstance(args, basestring):
         cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
         for package in args:
-            if not isinstance(package, str):
+            if not isinstance(package, basestring):
                 raise TypeError("Expected string or list of strings")
             cmd += ' %s' % shell_escape(package)
     else:
@@ -113,7 +113,7 @@ def run_install_command(graphical, cmd, args, as_root=True):
             print line,
             lines.append(line)
     except IOError, e:
-        print "Ignoring IOError:", str(e)
+        print "Ignoring IOError: %s" % e
     result = p.wait()
 
     if result != 0:
@@ -179,7 +179,7 @@ def pip_install(package_name):
     return run_install_command(qt_available(), cmd, package_name, use_root)
 
 def show_question(which_files, has_distro_pkg, has_pip):
-    if isinstance(which_files, str):
+    if isinstance(which_files, basestring):
         which_files = [which_files]
     if qt_available():
         from PyQt4 import QtCore, QtGui
