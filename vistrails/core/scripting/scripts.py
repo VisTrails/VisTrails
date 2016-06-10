@@ -203,7 +203,7 @@ class Script(BaseScript):
         port_vars.update(self.outputs.itervalues())
         self.internal_vars = set()
         for node in self.source.find_all('AssignmentNode'):
-            if node.target.NameNode:
+            if node.target:
                 v = node.target.value
                 if v in self.internal_vars:
                     continue

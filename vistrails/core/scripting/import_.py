@@ -447,7 +447,7 @@ class PythonReader(object):
         """
         outputs = set()
         for node in source.find_all('AssignmentNode'):
-            if node.target.NameNode:
+            if node.target:
                 outputs.add(node.target.value)
         inputs = set()
         for node in source.find_all('NameNode'):
