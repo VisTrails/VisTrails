@@ -899,7 +899,7 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
-    _input_ports = [IPort("str%d" % i, "String")
+    _input_ports = [IPort("str%d" % i, "String", default='')
                     for i in xrange(1, 1 + fieldCount)]
     _output_ports = [OPort("value", "String")]
 
@@ -907,6 +907,13 @@ class ConcatenateString(Module):
         result = "".join(self.force_get_input('str%d' % i, '')
                          for i in xrange(1, 1 + self.fieldCount))
         self.set_output('value', result)
+
+    @classmethod
+    def to_python_script(cls, module):
+        code = 'value = ' + ' + '.join(
+                         ["str%d" % i for i in xrange(1, 1 + cls.fieldCount)
+                          if "str%d" % i in module.connected_input_ports])
+        return Script(code, inputs='variables', outputs='variables')
 
 ##############################################################################
 

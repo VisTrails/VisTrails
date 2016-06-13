@@ -96,7 +96,7 @@ class Prelude(BaseScript):
         # Variable assignments
         for assign in self.source.find_all('AssignmentNode'):
             # a = 2 -> 'a' is a defined variable
-            if assign.target.NameNode:
+            if assign.target:
                 self.defined_vars.add(assign.target.value)
         # Imports
         for imp in self.source.find_all('ImportNode'):
@@ -161,10 +161,12 @@ class Script(BaseScript):
     unset_inputs = None
     internal_vars = None
 
-    def __init__(self, source, inputs, outputs):
+    def __init__(self, source, inputs, outputs, skip_functions=False):
         BaseScript.__init__(self, source)
         self.inputs = inputs
         self.outputs = outputs
+        # Set skip_functions=True if the script adds the functions itself
+        self.skip_functions = skip_functions
 
     def normalize(self, input_vars, output_vars, all_vars):
         # At this point, the script has variables that might clash with other
@@ -252,6 +254,10 @@ class Script(BaseScript):
         self.rename({self.inputs[port]: varname})
         self.inputs[port] = varname
         self.unset_inputs.discard(port)
+
+    def set_output(self, port, varname):
+        self.rename({self.outputs[port]: varname})
+        self.outputs[port] = varname
 
     def get_output(self, port):
         return self.outputs[port]
