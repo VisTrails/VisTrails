@@ -35,17 +35,13 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.core.data_structures.bijectivedict import Bidict
-from itertools import imap, chain
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 import vistrails.core.db.io
-from vistrails.core.requirements import MissingRequirement
+from vistrails.core import debug
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
-import copy
-from vistrails.core.vistrail.pipeline import Pipeline
+from vistrails.core.vistrail.port_spec import PortSpec
 
 from eigen import *
 
@@ -54,13 +50,76 @@ from eigen import *
 
 _debug = False
 
-def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c, 
+
+def find_connection_remap(pipeline_a, pipeline_b, input_module_remap,
+                          output_module_remap):
+    connection_remap = {}
+    for a_connect in pipeline_a.connections.itervalues():
+        # FIXME assumes that all connections have both source and dest
+        a_source = a_connect.source.moduleId
+        a_dest = a_connect.destination.moduleId
+        match = None
+        for c_connect in pipeline_b.connections.itervalues():
+            if (output_module_remap[a_source] == c_connect.source.moduleId and
+                input_module_remap[a_dest] == c_connect.destination.moduleId):
+                match = c_connect
+                if (a_connect.source.spec == c_connect.source.spec and
+                    a_connect.destination.spec == c_connect.destination.spec):
+                    break
+        if match is not None:
+            connection_remap[a_connect.id] = match.id
+        elif _debug:
+            print "failed to find connection match", a_connect.id, a_source, \
+                a_dest
+    return connection_remap
+
+
+def compute_location_remap(pipeline_a, pipeline_b):
+    """ Assumes difference is an upgrade with one module per location
+
+    """
+    remap = {}
+    start_map = dict([((m.location.x, m.location.y), m.id)
+                      for m in pipeline_a.modules.itervalues()])
+    end_map = dict([((m.location.x, m.location.y), m.id)
+                    for m in pipeline_b.modules.itervalues()])
+
+    for location, m_id in start_map.items():
+        if location in end_map:
+            remap[m_id] = end_map[location]
+            del start_map[location]
+    # Remap rest to nearest
+    for start_location, start_id in start_map.iteritems():
+        nearest = None
+        shortest = None
+        for end_location, end_id in end_map.iteritems():
+            distance = (abs(start_location[0] - end_location[0])**2 +
+                        abs(start_location[1] - end_location[2])**2)
+            if nearest is None or distance < shortest:
+                nearest = end_location
+                shortest = distance
+            remap[start_id] = end_map[end_location]
+
+    conn_remap = find_connection_remap(pipeline_a, pipeline_b,
+                                       remap, remap)
+    # add to full remap
+    remap_a = {}
+    for a_id, b_id in remap.iteritems():
+        remap_a[('module', a_id)] = b_id
+    for a_id, b_id in conn_remap.iteritems():
+        remap_a[('connection', a_id)] = b_id
+    return remap_a
+
+
+def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                                 pipeline_a=None, pipeline_c=None, alpha=0.15):
     """perform_analogy(vistrail, version_a, version_b, version_c,
+                       base_version_a, base_version_b, base_version_c,
                        pipeline_a=None, pipeline_c=None, alpha=0.15): action
     Creates a new action version_d to the vistrail such that the difference
     between a and b is the same as between c and d, and returns this
     action."""
+
 
     ############################################################################
     # STEP 1: find mapping from a to c
@@ -114,24 +173,9 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
         print module_name_remap
 
     # find connection remap
-    connection_remap = {}
-    for a_connect in pipeline_a.connections.itervalues():
-        # FIXME assumes that all connections have both source and dest
-        a_source = a_connect.source.moduleId
-        a_dest = a_connect.destination.moduleId
-        match = None
-        for c_connect in pipeline_c.connections.itervalues():
-            if (output_module_remap[a_source] == c_connect.source.moduleId and 
-                input_module_remap[a_dest] == c_connect.destination.moduleId):
-                match = c_connect
-                if (a_connect.source.spec == c_connect.source.spec and 
-                    a_connect.destination.spec == c_connect.destination.spec):
-                    break
-        if match is not None:
-            connection_remap[a_connect.id] = match.id
-        elif _debug:
-            print "failed to find connection match", a_connect.id, a_source, \
-                a_dest
+    connection_remap = find_connection_remap(pipeline_a, pipeline_c,
+                                             input_module_remap,
+                                             output_module_remap)
 
     # find function remap
 
@@ -169,15 +213,80 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
     for (a_id, c_id) in connection_remap.iteritems():
         id_remap[('connection', a_id)] = c_id
     ############################################################################
+    # STEP 1.5: Mapping in step 1 is between upgraded_a and upgraded_c
+    # Action chain uses base_a, base_b versions so change upgraded_a to base_a
+
+    versions = vistrail.get_upgrade_chain(version_a, True)
+    remap_a = {}
+    if len(versions) > 1:
+        # We need to remap from the upgraded version to the base version
+        # Remove base action
+        base_a = versions[0]
+
+        # For now, use same location as remap
+        # assumes one module per location
+        base_pipeline_a = vistrail.getPipeline(base_a)
+        remap_a = compute_location_remap(base_pipeline_a, pipeline_a)
+
+        # reverse remap
+        reverse_remap_a = {}
+        for (t, a_id), b_id in remap_a.iteritems():
+            reverse_remap_a[(t, b_id)] = a_id
+        remap_a = reverse_remap_a
+
+        if _debug:
+            print "upgrade remap:", remap_a
+
+        def remap_type(remap, vtType):
+            new_remap = {}
+            for from_id, to_id in remap.iteritems():
+                new_remap[remap_a.get((vtType, from_id), from_id)] = to_id
+            return new_remap
+        def remap_module(remap):
+            return remap_type(remap, 'module')
+        # Update a->c remaps to base_a->c
+        module_remap = remap_module(module_remap)
+        connection_remap = remap_type(connection_remap, 'connection')
+        output_module_remap = remap_module(output_module_remap)
+        input_module_remap = remap_module(input_module_remap)
+        module_name_remap = remap_module(module_name_remap)
+        input_module_name_remap = remap_module(input_module_name_remap)
+        output_module_name_remap = remap_module(output_module_name_remap)
+        new_id_remap = {}
+        for (vtType, from_id), to_id in id_remap.iteritems():
+            new_id_remap[remap_a.get((vtType, from_id), from_id)] = to_id
+        id_remap = new_id_remap
+
+        #TODO: Need to make sure add connection action uses
+
+    else:
+        base_a = version_a
+
+
+    # Compute base_b->b to update connections to point to upgraded port names
+    versions = vistrail.get_upgrade_chain(version_b, True)
+    base_b = versions[0]
+    remap_b = {}
+    if len(versions) > 1:
+        versions = versions[1:]
+        base_pipeline_b = vistrail.getPipeline(base_b)
+        pipeline_b = vistrail.getPipeline(version_b)
+        remap_b = compute_location_remap(base_pipeline_b, pipeline_b)
+
+    # Use base version of b when creating action
+
+    ############################################################################
     # STEP 2: find actions to be remapped (b-a)
 
     # this creates a new action with new operations
-    baAction = vistrails.core.db.io.getPathAsAction(vistrail, version_a, version_b, True)
+    # base versions (non-upgraded) versions are used here and needs remapping
+    # to upgraded versions
+    baAction = vistrails.core.db.io.getPathAsAction(vistrail, base_a, base_b, True)
 
-#     for operation in baAction.operations:
-#         print "ba_op0:", operation.id,  operation.vtType, operation.what, 
-#         print operation.old_obj_id, "to", operation.parentObjType,
-#         print operation.parentObjId
+    # for operation in baAction.operations:
+    #     print "ba_op0:", operation.id,  operation.vtType, operation.what,
+    #     print operation.old_obj_id, "to", operation.parentObjType,
+    #     print operation.parentObjId
 
     ############################################################################
     # STEP 3: remap (b-a) using mapping in STEP 1 so it can be applied to c
@@ -268,6 +377,8 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
             elif op.what == 'connection':
                 c_connections.add(new_id)
 
+
+            old_parent_obj_id = op.parentObjId
             parent_obj_type = op.parentObjType
             if parent_obj_type == 'abstraction' or parent_obj_type == 'group':
                 parent_obj_type = 'module'
@@ -333,9 +444,21 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                                 port_type = \
                                     PortSpec.port_type_map.inverse[port.type]
                                 try:
+                                    port_name = port.name
+                                    # if b has been upgraded we should check if the port name
+                                    # has changed in the new connection
+                                    if remap_b:
+                                        # 1. get old connection
+                                        conn_id = old_parent_obj_id # the old id in base_b
+                                        # 2. translate to new connection
+                                        if ('connection', conn_id) in remap_b:
+                                            new_conn_id = remap_b[('connection', conn_id)]
+                                            conn = pipeline_b.connections[new_conn_id]
+                                            # 3. get name of new port
+                                            port_name = conn.source.name
                                     pspec = reg.get_port_spec(m.package, m.name,
                                                               m.namespace,
-                                                              port.name, 
+                                                              port_name,
                                                               port_type)
                                 except ModuleRegistryException:
                                     return False
@@ -375,9 +498,21 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                                 port_type = \
                                     PortSpec.port_type_map.inverse[port.type]
                                 try:
+                                    port_name = port.name
+                                    # if b has been upgraded we should check if the port name
+                                    # has changed in the new connection
+                                    if remap_b:
+                                        # 1. get old connection
+                                        conn_id = old_parent_obj_id # the old id in base_b
+                                        # 2. translate to new connection
+                                        if ('connection', conn_id) in remap_b:
+                                            new_conn_id = remap_b[('connection', conn_id)]
+                                            conn = pipeline_b.connections[new_conn_id]
+                                            # 3. get name of new port
+                                            port_name = conn.destination.name
                                     pspec = reg.get_port_spec(m.package, m.name,
                                                               m.namespace,
-                                                              port.name, 
+                                                              port_name,
                                                               port_type)
                                     # print "This is the spec", port.spec, \
                                     #     port.db_spec

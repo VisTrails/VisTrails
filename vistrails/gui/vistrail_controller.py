@@ -1201,30 +1201,19 @@ class VistrailController(QtCore.QObject, BaseController):
         self._delayed_actions = []
 
         (a, b) = self.analogy[analogy_name]
-        a = self.create_upgrade(a)
-        b = self.create_upgrade(b)
-        c = self.create_upgrade(analogy_target)
+        a = self.create_upgrade(a, True)
+        b = self.create_upgrade(b, True)
+        c = self.create_upgrade(analogy_target, True)
+        self.check_delayed_update()
         if self.current_version != c:
             self.change_selected_version(c)
 
-        try:
-            pipeline_a = self.vistrail.getPipeline(a)
-            self.validate(pipeline_a)
-        except InvalidPipeline, e:
-            (_, pipeline_a) = \
-                self.handle_invalid_pipeline(e, a, Vistrail())
-            self._delayed_actions = []
-        try:
-            pipeline_c = self.vistrail.getPipeline(c)
-            self.validate(pipeline_c)
-        except InvalidPipeline, e:
-            (_, pipeline_c) = self.handle_invalid_pipeline(e, a, Vistrail())
-            self._delayed_actions = []
-                                                     
+        pipeline_a = self.get_pipeline(a)
+        pipeline_c = self.get_pipeline(c)
         action = vistrails.core.analogy.perform_analogy_on_vistrail(self.vistrail,
-                                                          a, b, c, 
-                                                          pipeline_a,
-                                                          pipeline_c)
+                                                        a, b, c,
+                                                        pipeline_a,
+                                                        pipeline_c)
         self.add_new_action(action)
         self.vistrail.change_description("Analogy", action.id)
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
