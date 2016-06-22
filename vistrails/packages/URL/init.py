@@ -697,7 +697,10 @@ def initialize(*args, **keywords):
         if old_filename in handled:
             continue
         if len(old_name) > MAX_CACHE_FILENAME:
-            new_name = cache_filename(old_name)
+            hasher = sha_hash()
+            hasher.update(old_name)
+            new_name = (old_name[:MAX_CACHE_FILENAME - 41] +
+                        '_' + hasher.hexdigest())
             new_filename = os.path.join(package_directory, new_name)
             if os.path.exists(new_filename):
                 oldtime = os.path.getmtime(old_filename)
