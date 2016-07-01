@@ -119,13 +119,12 @@ def write_workflow_to_python(pipeline):
             first = False
 
         # Annotation, used to rebuild the pipeline
-        text.append("# MODULE %d %s" % (module_id,
-                                        module.module_descriptor.sigstring))
+        text.append("# MODULE %d %s" % (module_id, desc.sigstring))
 
         code = modules[module_id]
 
         # Gets all the module's input and output port names
-        input_ports = set(p[1] for p in reg.module_ports('input', desc))
+        input_ports = set(reg.module_destination_ports_from_descriptor(False, desc))
         input_ports.update(module.input_port_specs)
 
         input_port_names = set(p.name for p in input_ports)
@@ -136,7 +135,7 @@ def write_workflow_to_python(pipeline):
             connected_inputs.add(utf8(conn.destination.name))
         for function in module.functions:
             connected_inputs.add(utf8(function.name))
-        output_ports = set(p[1] for p in reg.module_ports('output', desc))
+        output_ports = set(reg.module_source_ports_from_descriptor(False, desc))
         output_ports.update(module.output_port_specs)
         output_port_names = set(p.name for p in output_ports)
         connected_outputs = set()
@@ -176,8 +175,6 @@ def write_workflow_to_python(pipeline):
                                                          name, value))
                 text.append("# FUNCTION %s %s" % (port, name))
                 text.append('%s = %r' % (name, value))
-                # Tells the code what that variable is
-                # code.set_input(port, name)
                 code.unset_inputs.discard(port)
                 if port not in combined_inputs:
                     combined_inputs[port] = []
@@ -300,7 +297,7 @@ def write_workflow_to_python(pipeline):
                 sub_ports.append(new_name)
 
             # construct the loop code
-            combine_type ='cartesian'
+            combine_type = 'cartesian'
             if max_level == 1:
                 # first level may use a complex port combination
                 cps = {}

@@ -57,6 +57,9 @@ class BaseScript(object):
         for node in self.source.find_all('NameNode'):
             v = node.value
             if v in renames:
+                # Skip if it is an attribute (followed by dot)
+                if isinstance(node.previous, redbaron.DotNode):
+                    continue
                 node.value = renames[v]
                 counts[v] = counts.get(v, 0) + 1
         if not counts:
@@ -251,6 +254,10 @@ class Script(BaseScript):
         self.rename(renames)
 
     def set_input(self, port, varname):
+        if port in self.outputs and self.outputs[port] == self.inputs[port]:
+            # it is used as output as well so update the output name
+            self.rename({self.outputs[port]: varname})
+            self.outputs[port] = varname
         self.rename({self.inputs[port]: varname})
         self.inputs[port] = varname
         self.unset_inputs.discard(port)
