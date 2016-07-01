@@ -124,11 +124,15 @@ class SpecList(object):
     def get_translations(self):
         # create function 'f' from translation code
         # {input/output: {signature: function} }
-        translations = {'input':{}, 'output':{}}
+        translations = {'input':{}, 'output':{},
+                        'input_script':{}, 'output_script':{}}
         for key, code in self.translations.iteritems():
             exec code
             translations['input'][key] = input_t
             translations['output'][key] = output_t
+            # add the actual code for use in scripts
+            translations['input_script'][key] = code
+            translations['output_script'][key] = code
         return translations
 
 ######### BASE MODULE SPEC ###########

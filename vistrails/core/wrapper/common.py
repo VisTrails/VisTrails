@@ -50,6 +50,26 @@ def convert_port(port, value, translations):
             for p, v in zip(port_types, value)]
 
 
+def convert_port_script(code, port, port_name, translations, port_type):
+    """ create port translation code between vistrail and native types
+    code - string
+    port - PortSpec
+    translations - dict(port_type: translator_function)
+    port_type - 'input' or 'output'
+    """
+    if port_type == 'input':
+        translations = translations['input_script']
+        conv_name = 'input_t'
+    else:
+        translations = translations['output_script']
+        conv_name = 'output_t'
+    port_types = port.get_port_type()
+    if port_types in translations:
+        # FIXME: only add once and not both input/output
+        code.append(translations[port_types])
+        code.append('%s = %s(%s)' % (port_name, conv_name, port.name))
+
+
 def get_input_spec(cls, name):
     """ Get named input spec from self or superclass
     """
@@ -60,6 +80,7 @@ def get_input_spec(cls, name):
             return base._input_spec_table[name]
         base = klasses.next()
     return None
+
 
 def get_output_spec(cls, name):
     """ Get named output spec from self or superclass

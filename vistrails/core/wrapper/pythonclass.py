@@ -33,16 +33,23 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+from __future__ import division, absolute_import
 
+import ast
 import importlib
+import re
 
 from itertools import izip
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
+from vistrails.core.scripting import Script, Prelude
 
-from .common import convert_port, get_input_spec, get_output_spec
+from .common import convert_port, convert_port_script, get_input_spec, \
+                    get_output_spec
+
+
+METHOD_TYPES = ['method', 'nullary', 'OnOff', 'SetXToY']
 
 
 class BaseClassModule(Module):
@@ -264,7 +271,6 @@ class BaseClassModule(Module):
                 # it is a class method
                 function = getattr(instance, op)
             try:
-                print op, op_args, op_kwargs
                 result = function(*op_args, **op_kwargs)
             except Exception, e:
                 raise ModuleError(self, e.message)
@@ -285,6 +291,479 @@ class BaseClassModule(Module):
         # optional cleanup method
         if spec.cleanup:
             getattr(instance, spec.cleanup)()
+
+
+    ################ SCRIPT METHODS ############################
+
+    @classmethod
+    def convert_value_or_translate_script(cls, module, code, port, value):
+        """ convert value and return it. If the translated value is not
+            serializable the translation code will be written out instead.
+
+        """
+        # First try to get the translated value directly
+        was_simplified = False
+        value0 = value
+        try:
+            final_value = convert_port(port, value0, cls._translations['input'])
+            # Test: If it can be reversed, it is serializable.
+            reversed_value = ast.literal_eval(repr(final_value))
+            if reversed_value == final_value:
+                value = final_value
+                was_simplified = True
+        except Exception, e:
+            pass
+        if not was_simplified:
+            # Add translation code
+            port_name = port.name
+            # Make sure port.name is not aready used as an input port
+            if port_name in module.connected_input_ports:
+                i = 0
+                new_name = port_name + '_0'
+                while new_name in module.connected_input_ports:
+                    i += 1
+                    new_name = '%s_%s' % (port_name, i)
+                port_name = new_name
+            code.append('%s = %s' % (port_name, repr(value0)))
+            convert_port_script(code, port, port.name, cls._translations, 'input')
+            value = port_name
+        return value
+
+
+    @classmethod
+    def call_set_connection_methods_script(cls, module, code, instance,
+                                           method_results):
+        """ Write code for methods on input connections
+
+            Connections are already joined and available as {port.name}
+
+        """
+        for port_name in module.connected_input_ports:
+            port = cls._get_input_spec(port_name)
+            if port.method_type not in METHOD_TYPES:
+                continue
+            if port.depth == 1:
+                # Need to loop the list of functions on each port
+                # There is no way to know how many functions are on a port
+                # FIXME: "{port.name}Item" may not be unique
+                loop_name = port.name + 'Item'
+                code.append('for %s in %s:' % (loop_name, port.name))
+            else: # depth == 0
+                loop_name = port.name
+            loop_code = []
+            if (len(module.input_specs[port_name].signature) == 1 and
+                port.get_port_type() in cls._translations['input']):
+                # convert all values to vistrail types
+                convert_port_script(loop_code, port, loop_name,
+                                    cls._translations, 'input')
+
+            if port.method_type == 'OnOff':
+                # This converts OnOff ports to XOn(), XOff() calls
+                #method_name = method_name + ('On' if params[0] else 'Off')
+                #params = []
+                loop_code.append('if %s:' % loop_name)
+                loop_code.append('    %s.%sOn()' % (instance, port.arg))
+                loop_code.append('else:')
+                loop_code.append('    %s.%sOff()' % (instance, port.arg))
+
+            elif port.method_type == 'nullary':
+                # Call X() only if boolean is true
+                #if params[0]:
+                #    params = []
+                #else:
+                #    return
+                loop_code.append('if %s:' % port.name)
+                loop_code.append('    %s.%s()' % (instance, port.arg))
+            elif port.method_type == 'SetXToY':
+                # Append enum name to function name and delete params
+                #method_name += params[0]
+                #params = []
+                # We could also check all enums, but that is equally ugly
+                loop_code.append("getattr(%s, '%s' + %s)()" % (instance,
+                                                               port.arg,
+                                                               port.name))
+            else:
+
+                star = '*' if len(module.input_specs[port.name].signature) != 1 else ''
+                prepend_params = [repr(p) for p in port.get_prepend_params()]
+                if prepend_params:
+                    prepend_params = ', '.join(prepend_params) + ', '
+                else:
+                    prepend_params = ''
+                parameters = prepend_params + star + loop_name
+
+                set_output = ''
+                if (port.name in module.connected_output_ports and
+                    cls._get_output_spec(port_name).method_type == 'method'):
+                    set_output = '%s =' % port.name
+                    method_results[port.arg] = port.name
+
+                loop_code.append("%s%s.%s(%s)" % (set_output, instance,
+                                                  port.arg, parameters))
+            if port.depth == 1:
+                # indent loop_code
+                code.extend(['    ' + line for line in loop_code])
+            else:
+                code.extend(loop_code)
+
+    @classmethod
+    def call_set_function_methods_script(cls, module, code, instance, method_results):
+        """ Functions can be directly translated into method calls
+        """
+        for function in module.functions:
+            port_name = function.name
+            port = cls._get_input_spec(port_name)
+            if port.method_type not in METHOD_TYPES:
+                continue
+            value = [p.value() for p in function.params]
+
+            if (len(module.input_specs[port_name].signature) == 1 and
+                port.get_port_type() in cls._translations['input']):
+                # convert values to vistrail types
+                value = [cls.convert_value_or_translate_script(module, code,
+                                                             port, value[0])]
+
+            if port.method_type == 'OnOff':
+                # This converts OnOff ports to XOn(), XOff() calls
+                #method_name = method_name + ('On' if params[0] else 'Off')
+                #params = []
+                if value[0]:
+                    code.append('%s.%sOn()' % (instance, port.arg))
+                else:
+                    code.append('%s.%sOff()' % (instance, port.arg))
+
+            elif port.method_type == 'nullary':
+                # Call X() only if boolean is true
+                #if params[0]:
+                #    params = []
+                #else:
+                #    return
+                if value[0]:
+                    code.append('%s.%s()' % (instance, port.arg))
+            elif port.method_type == 'SetXToY':
+                # Append enum name to function name and delete params
+                #method_name += params[0]
+                #params = []
+                code.append("%s.%s%s()" % (instance, port.arg, value[0]))
+            else:
+                params = ', '.join([repr(v) for v in value])
+                prepend_params = [repr(p) for p in port.get_prepend_params()]
+                if prepend_params:
+                    params =  ', '.join(prepend_params) + ', ' + params
+
+                set_output = ''
+                if (port.name in module.connected_output_ports and
+                    cls._get_output_spec(port_name).method_type == 'method'):
+                    set_output = '%s =' % port.name
+                    method_results[port.arg] = port.name
+
+                code.append("%s%s.%s(%s)" % (set_output, instance, port.arg,
+                                              params))
+
+    @classmethod
+    def call_get_method_script(cls, module, code, instance, port):
+        prepend_params = [repr(p) for p in port.get_prepend_params()]
+        if prepend_params:
+            prepend_params += ', '.join(prepend_params)
+        else:
+            prepend_params = ''
+        code.append("%s = %s.%s(%s)" % (port.name, instance, port.arg,
+                                      prepend_params))
+        convert_port_script(code, port, port.name, cls._translations,
+                            'output')
+
+    @classmethod
+    def call_inputs_script(cls, module, code, instance, method_results):
+        # Compute methods from visible ports last.
+        # In the case of a vtkRenderer, we need to call the
+        # methods after the input ports are set.
+        if cls._module_spec.methods_last:
+            cls.call_set_connection_methods_script(module, code, instance,
+                                                   method_results)
+            cls.call_set_function_methods_script(module, code, instance,
+                                                 method_results)
+        else:
+            cls.call_set_function_methods_script(module, code, instance,
+                                                 method_results)
+            cls.call_set_connection_methods_script(module, code, instance,
+                                                   method_results)
+
+    @classmethod
+    def call_outputs_script(cls, module, code, instance, method_results):
+        outputs_list = set(module.connected_output_ports)
+        if 'self' in outputs_list:
+            outputs_list.remove('self')
+        if 'Instance' in outputs_list:
+            outputs_list.remove('Instance')
+        for port_name in outputs_list:
+            if not port_name in module.connected_output_ports:
+                # not connected
+                continue
+            port = cls._get_output_spec(port_name)
+            if port.method_type == 'method':
+                if port.arg in method_results:
+                    # port variable already set
+                    pass
+                else:
+                    cls.call_get_method_script(module, code, instance, port)
+
+    @classmethod
+    def get_parameters_script(cls, module, code):
+        """
+        Compute constructor/function arguments
+        """
+
+        # Set functions manually (to correct depth)
+        arg_dict = {}
+
+        # translate connections
+        for port in module.connected_input_ports:
+            pspec = cls._get_input_spec(port)
+            if pspec.method_type != 'argument':
+                continue
+            convert_port_script(code, pspec, port, cls._translations, 'input')
+            arg_dict[port] = port
+
+        # Set functions manually (to correct depth)
+        for function in module.functions:
+            port = function.name
+            pspec = cls._get_input_spec(port)
+            if pspec.method_type == 'argument':
+                if len(module.input_specs[port.name].signature) == 1:
+                    value = repr(function.params[0].value())
+                else:
+                    # a tuple
+                    value = repr(tuple([p.value() for p in function.params]))
+
+                if (len(module.input_specs[port].signature) == 1 and
+                    pspec.get_port_type() in cls._translations):
+                    # convert values to vistrail types
+                    value = cls.convert_value_or_translate_script(module,
+                                                                  code,
+                                                                  pspec,
+                                                                  value)
+                depth = - pspec.depth
+                while depth:
+                    depth += 1
+                    value = '[%s]' % value
+                arg_dict[port] = value
+
+        args = []
+        star_args = None
+        kwargs = {}
+        star_kwargs = []
+        ops = []
+        for port_name, arg_value in arg_dict.iteritems():
+            port = cls._get_input_spec(port_name)
+            #params = self.get_input(port_name)
+            if -1 == port.arg_pos:
+                kwargs[port.arg] = arg_value
+            elif -2 == port.arg_pos:
+                star_args = arg_value
+            elif -3 == port.arg_pos:
+                star_kwargs.append(arg_value)
+            elif -5 == port.arg_pos:
+                ops.extend(arg_value)
+            else:
+                # make room for arg
+                while len(args) <= port.arg_pos:
+                    args.append('None')
+                args[port.arg_pos] = arg_value
+
+        args = ', '.join(args)
+        if star_args:
+            if args:
+                args += ', '
+            args += '*' + star_args
+
+        if kwargs:
+            if star_kwargs:
+                # need to explicitly create kwargs variable
+                code.append('_kwargs = %s' % kwargs)
+                for sk in star_kwargs:
+                    code.append('_kwargs.update(%s)' % sk)
+                kwargs = '_kwargs'
+            else:
+                kwargs = '%s' % kwargs
+            args += ', **' + kwargs
+
+        return args, ops
+
+    @classmethod
+    def set_attributes_script(cls, module, code, instance):
+        """
+        set class attributes
+        """
+
+        # Handle functions
+        # Set functions manually (to correct depth)
+        for function in module.functions:
+            port = function.name
+            pspec = cls._get_input_spec(port)
+            if pspec.method_type == 'argument':
+                if len(module.input_specs[port.name].signature) == 1:
+                    value = repr(function.params[0].value())
+                else:
+                    # a tuple
+                    value = repr(tuple([p.value() for p in function.params]))
+
+                if (len(module.input_specs[port].signature) == 1 and
+                    pspec.get_port_type() in cls._translations):
+                    # convert values to vistrail types
+                    value = cls.convert_value_or_translate_script(module,
+                                                                  code,
+                                                                  pspec,
+                                                                  value)
+                # FIXME: If depth > 1 we should merge all functions on each port
+                depth = - pspec.depth
+                while depth:
+                    depth += 1
+                    value = '[%s]' % value
+                code.append('%s.%s = %s' % (instance, port.arg, value))
+
+        # Handle connections
+        for port_name in module.connected_input_ports:
+            port = cls._get_input_spec(port_name)
+            if port and port.method_type == 'attribute':
+                convert_port_script(code, port, port.name,
+                                    cls._translations, 'input')
+                code.append('%s.%s = %s' % (instance, port.arg, port.name))
+
+    @classmethod
+    def get_attributes_script(cls, module, code, instance):
+        """
+        set class attributes
+        """
+        for port_name in module.connected_output_ports:
+            port = cls._get_output_spec(port_name)
+            if port and port.method_type == 'attribute':
+                code.append('%s = %s.' % (port.name, instance, port.arg))
+                convert_port_script(code, port, port.name, cls._translations,
+                                    'output')
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ Create a script from the module specification
+        """
+
+        # functions are treated separately from connections because:
+        # * functions are ordered by age
+        #   - irrespective of port
+        #   - Required by VTK
+        #   - Used by iterating all function (lists) and using them in order
+        # * connections are ordered by age on each port
+        #   - Lists are joined into a single port item
+        #   - Used by iterating the connected value (list) on each port
+        #     and using them in order.
+        #     * Functions have been removed from input
+
+
+        #used_input_functions = [f.name for f in module.functions]
+        code = []
+        preludes = []
+        spec = cls._module_spec
+        module.input_specs = dict((p.name, p) for p in module.destinationPorts())
+
+        # Set up the class instance
+        if ('Instance' in module.connected_input_ports and
+            cls._get_input_spec('Instance').method_type == 'Instance'):
+            instance = 'Instance'
+        else:
+            # Handle parameters to instance
+            # args will be used as {portname}
+            # kwargs will be used as {arg}={portname}
+            # ops are (methodname, args, kwargs)
+            # And needs to be codified as getattr({nstance}, ops[0])(ops[1], ops[2])
+            # FIXME: ops are ugly by default
+            # It is tricky to write them as methods in the code
+            args, ops = cls.get_parameters_script(module, code)
+            # create the instance
+            # Use code_ref:
+            #   "vistrails.packages.vtk.vtk_wrapper.vtk.vtkActor"
+            # Import as package name: (can easily change to "import vtk")
+            #   "from vistrails.packages.vtk.vtk_wrapper import vtk"
+            # Then create instance:
+            #   "instance = vtk.vtkActor(my_param)"
+            # What to do if code_ref is just module name?
+
+            # We want the code_ref to be
+
+            # for now just require full-path code_ref for exporting
+
+
+            m, c = spec.code_ref.rsplit('.', 1)
+            if '.' in m:
+                path, m = m.rsplit('.', 1)
+                preludes.append(Prelude("from %s import %s" % (path, m)))
+            else:
+                preludes.append(Prelude("import %s" % m))
+            class_name = '%s.%s' % (m, c)
+
+            # create a nice instance name
+            instance = re.sub('([A-Z]+)', r'_\1',c).lower()
+            code.append("%s = %s(%s)" % (instance, class_name, args))
+            #instance = module._class[0](*args, **kwargs)
+
+        # Optional callback used for progress reporting
+        if spec.callback:
+            # no callback for scripts right now
+            pass
+        # Optional function for creating temporary files
+        if spec.tempfile:
+            # TODO: need to call mktmp directly from scripts
+            #getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
+            pass
+        # set input attributes on instance
+        cls.set_attributes_script(module, code, instance)
+
+        # input methods can transfer results to outputs
+        method_results = {}
+        # call input methods on instance
+        cls.call_inputs_script(module, code, instance, method_results)
+
+        # optional compute method
+        if spec.compute:
+            code.append("%s.%s()" % (instance, spec.compute))
+            #getattr(instance, spec.compute)()
+
+        # apply operations
+        # need to add the whole calling code
+        for op in ops:
+            code.append('for op, op_args, op_kwargs in %s:' % op)
+            code.append("    if '.' in op:")
+            # Run as a function with obj as first argument
+            # TODO: Support obj on other position and as kwarg
+            code.append("        m, c, n = op.rsplit('.', 2)")
+            code.append("        function = getattr(getattr(importlib.import_module(m), c), n)")
+            code.append("        op_args[0] = %s" % instance)
+            code.append("    else:")
+            # it is a class method
+            code.append("        function = getattr(%s, op)" % instance)
+            code.append("    function(*op_args, **op_kwargs)")
+
+        # get output attributes from instance
+        cls.get_attributes_script(module, code, instance)
+
+        # Get outputs
+        cls.call_outputs_script(module, code, instance, method_results)
+
+        # optional cleanup method
+        if spec.cleanup:
+            code.append("%s.%s()" % (instance, spec.cleanup))
+            #getattr(instance, spec.cleanup)()
+
+        inputs = dict((n, n) for n in module.connected_input_ports)
+        outputs = dict((n, n) for n in module.connected_output_ports)
+        if 'Instance' in inputs:
+            inputs['Instance'] = instance
+        if 'Instance' in outputs:
+            outputs['Instance'] = instance
+
+        # Set skip_functions, as we have used them directly
+        # We cannot use "inputs" for this, since there may exist connections
+        # for the same ports.
+        code = '\n'.join(code)
+        return (Script(code, inputs, outputs, skip_functions=True), preludes)
 
 
 def gen_class_module(spec, lib=None, modules=None, translations={},
