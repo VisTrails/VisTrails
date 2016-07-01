@@ -35,6 +35,7 @@
 ###############################################################################
 from __future__ import division
 
+import cgi
 from datetime import datetime, date
 import hashlib
 import locale
