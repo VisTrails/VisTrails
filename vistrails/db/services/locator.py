@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-import cgi
 from datetime import datetime, date
 import hashlib
 import locale
@@ -137,7 +136,7 @@ class BaseLocator(object):
     @classmethod
     def parse_args(cls, arg_str):
         kwargs = {}
-        parsed_dict = cgi.parse_qs(arg_str)
+        parsed_dict = urlparse.parse_qs(arg_str)
         special_tags = cls.get_special_tags()
         for (prop, url_tag) in cls.get_kwarg_props().iteritems():
             if url_tag in parsed_dict:
@@ -160,7 +159,7 @@ class BaseLocator(object):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
-    def load(self):
+    def load(self, type):
         raise NotImplementedError("load is not implemented")
 
     def save(self, obj, do_copy=True, version=None):
@@ -240,8 +239,8 @@ class BaseLocator(object):
         return 'file://%s%s' % (pathname2url(cls.real_filename(filename)),
                                 urllib.quote(args_str, safe='/?=&'))
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         """Assumes a valid URL if the scheme is specified.  For example,
         'file:///C:/My%20Documents/test.vt'.  If only a filename is
         specified, it converts the filename to a URL.
@@ -414,11 +413,11 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
     def __init__(self, my_uuid=None, **kwargs):
+        BaseLocator.__init__(self, **kwargs)
         if my_uuid is not None:
             self._uuid = my_uuid
         else:
             self._uuid = uuid.uuid4()
-        self.kwargs = kwargs
 
     def load(self, type):
         fname = self.get_temporary()
@@ -505,8 +504,8 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
 
 class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, dirname, **kwargs):
+        BaseLocator.__init__(self, **kwargs)
         self._name = dirname
-        self.kwargs = kwargs
 
     def load(self, type=None):
         # don't require type for locators since Manifest should take care of
@@ -562,8 +561,8 @@ class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
 
 class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, filename, **kwargs):
+        BaseLocator.__init__(self, **kwargs)
         self._name = filename
-        self.kwargs = kwargs
 
     def load(self, type):
         fname = self.get_temporary()
@@ -779,6 +778,7 @@ class DBLocator(BaseLocator, SaveTemporariesMixin):
         
     def __init__(self, host, port, database, user, passwd, name=None,
                  **kwargs):
+        BaseLocator.__init__(self, **kwargs)
         self._host = host
         self._port = int(port)
         self._db = database
@@ -786,7 +786,6 @@ class DBLocator(BaseLocator, SaveTemporariesMixin):
         self._passwd = passwd
         self._name = name
         self._hash = ''
-        self.kwargs = kwargs
         self._obj_id = self.kwargs.get('obj_id', None)
         if self._obj_id is not None:
             self._obj_id = long(self._obj_id)
