@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -175,7 +175,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
             for connection in input_connections:
                 self.connection_ids.remove(connection.id)
                 self.controller.delete_connection(connection.id)
-            group_inport_module = self.controller.add_module(input_module.location.x-offset[input_module], input_module.location.y, bm_identifier, 'InputPort')
+            group_inport_module = self.controller.add_module(bm_identifier, 'InputPort',
+                                                             x=input_module.location.x-offset[input_module],
+                                                             y=input_module.location.y)
             io_modules.append(group_inport_module)
             offset[input_module] += 130
             for p in group_inport_module.sourcePorts():
@@ -190,7 +192,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         for connection in output_connections:
             self.connection_ids.remove(connection.id)
             self.controller.delete_connection(connection.id)
-        group_outport_module = self.controller.add_module(output_module.location.x+halfwidth+75, output_module.location.y, bm_identifier, 'OutputPort')
+        group_outport_module = self.controller.add_module(bm_identifier, 'OutputPort',
+                                                          x=output_module.location.x+halfwidth+75,
+                                                          y=output_module.location.y)
         io_modules.append(group_outport_module)
         for p in group_outport_module.destinationPorts():
             if p.name == 'InternalPipe':
@@ -207,7 +211,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         io_connections.extend(self.controller.get_connections_to_and_from(self.controller.current_pipeline, [inner_group.id]))
         
         # Add Map module
-        map_module = self.controller.add_module(inner_group.location.x-120, inner_group.location.y, cf_identifier, 'Map')
+        map_module = self.controller.add_module(cf_identifier, 'Map',
+                                                x=inner_group.location.x-120,
+                                                y=inner_group.location.y)
         io_modules.append(map_module)
         
         # Get group 'self' port object
@@ -217,7 +223,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
                 break
         
         # Add PythonSource
-        py_source_module = self.controller.add_module(inner_group.location.x, inner_group.location.y+75, bm_identifier, 'PythonSource')
+        py_source_module = self.controller.add_module(bm_identifier, 'PythonSource',
+                                                      x=inner_group.location.x,
+                                                      y=inner_group.location.y+75)
         io_modules.append(py_source_module)
         group_type = '('+bm_identifier+':Group)'
         bool_type = '('+bm_identifier+':Boolean)'
@@ -274,7 +282,6 @@ else:
     # Compact list format used when only one input port present
     if len(input_ports) == 1:
         InputList = [x[0] for x in InputList]
-print 'InputList: %%s' %% InputList
 ''' % output_portspec.name
         functions = [('source', [source_code])]
         self.controller.update_ports_and_functions(py_source_module.id, [], base_input_ports + add_input_ports + base_output_ports, functions)
@@ -301,7 +308,9 @@ print 'InputList: %%s' %% InputList
         # Create and connect InputPort for each of the PythonSource inputs to force it to exist on group
         offset = 165
         for port_type, port_name, list_type, sortkey in add_input_ports:
-            group_inport_module = self.controller.add_module(py_source_module.location.x-offset, py_source_module.location.y+75, bm_identifier, 'InputPort')
+            group_inport_module = self.controller.add_module(bm_identifier, 'InputPort',
+                                                             x=py_source_module.location.x-offset,
+                                                             y=py_source_module.location.y+75)
             if (port_type, port_name) in [('input', 'UseCartesianProduct'), ('input', 'UserDefinedInputList')]:
                 self.controller.update_ports_and_functions(group_inport_module.id, [], [], [('optional', [True])])
             io_modules.append(group_inport_module)
@@ -314,7 +323,9 @@ print 'InputList: %%s' %% InputList
                     break
         
         # Create and connect OutputPort from Map to force it to exist on group
-        group_outport_module = self.controller.add_module(map_module.location.x, map_module.location.y-75, bm_identifier, 'OutputPort')
+        group_outport_module = self.controller.add_module(bm_identifier, 'OutputPort',
+                                                          x=map_module.location.x,
+                                                          y=map_module.location.y-75)
         io_modules.append(group_outport_module)
         output_portspec = map_module.get_port_spec('Result', 'output')
         for p in group_outport_module.destinationPorts():

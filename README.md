@@ -4,6 +4,6 @@ VisTrails is an open-source data analysis and visualization tool. It provides a 
 
 For more information, take a look at the [documentation](http://www.vistrails.org/index.php/Documentation), the [users guide](http://www.vistrails.org/usersguide/v2.1/html/), or our [publications](http://www.vistrails.org/index.php/Publications,_Tutorials_and_Presentations).
 
-Binary releases are available on our [download](http://www.vistrails.org/index.php/Downloads) page. To report bugs, please use the github [issue](https://github.com/VisTrails/VisTrails/issues) tracker, after checking our [FAQ](http://www.vistrails.org/index.php/FAQ) for known issues.
+Binary releases are available on our [download](http://www.vistrails.org/index.php/Downloads) page. Anaconda packages are available in the [vida-nyu channel](https://anaconda.org/vida-nyu) (use `-c vida-nyu`). To report bugs, please use the github [issue](https://github.com/VisTrails/VisTrails/issues) tracker, after checking our [FAQ](http://www.vistrails.org/index.php/FAQ) for known issues.
 
 Who we are: <http://www.vistrails.org/index.php/People>

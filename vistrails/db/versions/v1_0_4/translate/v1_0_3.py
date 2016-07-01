@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -272,8 +272,8 @@ def translateStartup(_startup):
          'useCache': 'cache',
          'verbosenessLevel': 'debugLevel',
          'webRepositoryLogin': 'webRespositoryUser',
-         'evolutionGraph': 'withVersionTree',
-         'workflowGraph': 'withWorkflow',
+         'evolutionGraph': 'outputVersionTree',
+         'workflowGraph': 'outputPipelineGraph',
          # 'workflowInfo': 'outputWorkflowInfo',
          'workflowInfo': 'outputDirectory',
          'executeWorkflows': 'execute',

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -36,8 +36,6 @@
 
 from __future__ import division
 
-import copy
-import math
 import os
 import uuid
 
@@ -48,6 +46,7 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
+import vistrails.core.db.io
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
@@ -94,6 +93,29 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.reset()
         self.show()
         super(ExecutionProgressDialog, self).setValue(self._last_set_value)
+
+class PEProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, parent=None, total_progress=100):
+        QtGui.QProgressDialog.__init__(self,
+                                       'Performing Parameter Exploration...',
+                                       '&Cancel',
+                                       0, total_progress,
+                                       parent, QtCore.Qt.Dialog)
+        self.setWindowTitle('Parameter Exploration')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self._last_set_value = 0
+        self._progress_canceled = False
+        # if suspended is true we should not wait for a job to complete
+        self.suspended = False
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(PEProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(PEProgressDialog, self).setValue(self._last_set_value)
 
 
 class VistrailController(QtCore.QObject, BaseController):
@@ -153,7 +175,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.quiet = False
         self.progress = None
         self.create_job = False
-        
+
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
         # file every 2 minutes
@@ -266,7 +288,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = False
         try:
             self.emit(QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                                    old_version, new_version)
+                      old_version, new_version)
         finally:
             self.reset_version_view = True
 
@@ -305,7 +327,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def get_locator(self):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
-            get_vistrails_application().configuration.check('autoSave')):
+                get_vistrails_application().configuration.check('autoSave')):
             if self.locator is None:
                 raise ValueError("locator is None")
             return self.locator
@@ -324,11 +346,11 @@ class VistrailController(QtCore.QObject, BaseController):
             if app and app.view == self.vistrail_view:
                 app.close()
 
-
     ##########################################################################
     # Actions, etc
     
-    def perform_action(self, action, quiet=None):
+    def perform_action(self, action, do_validate=True, raise_exception=False,
+                       quiet=None):
         """ performAction(action: Action, quiet=None) -> timestep
 
         performs given action on current pipeline.
@@ -342,7 +364,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         if action is not None:
-            BaseController.perform_action(self,action)
+            BaseController.perform_action(self, action,
+                                          do_validate=do_validate,
+                                          raise_exception=raise_exception)
 
             if quiet is None:
                 if not self.quiet:
@@ -369,11 +393,6 @@ class VistrailController(QtCore.QObject, BaseController):
             self.recompute_terse_graph()
 
     ##########################################################################
-
-    def add_module(self, x, y, identifier, name, namespace='', 
-                   internal_version=-1):
-        return BaseController.add_module(self, identifier, name, namespace, x, y,
-                                         internal_version)
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
                                        name=""):
@@ -422,6 +441,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.flush_delayed_actions()
 
         if self.create_job:
+            self.create_job = False
             version_id = self.current_version
             # check if a job exist for this workflow
             current_workflow = None
@@ -429,14 +449,17 @@ class VistrailController(QtCore.QObject, BaseController):
                 try:
                     wf_version = int(wf.version)
                 except ValueError:
-                    wf_version = self.vistrail.get_version_number(wf.version)
+                    try:
+                        wf_version = self.vistrail.get_version_number(wf.version)
+                    except KeyError:
+                        # this is a PE or mashup
+                        continue
                 if version_id == wf_version:
                     current_workflow = wf
                     self.jobMonitor.startWorkflow(wf)
             if not current_workflow:
                 current_workflow = JobWorkflow(version_id)
                 self.jobMonitor.startWorkflow(current_workflow)
-            self.create_job = False
 
         if self.current_pipeline:
             locator = self.get_locator()
@@ -445,19 +468,18 @@ class VistrailController(QtCore.QObject, BaseController):
                 locator.save_temporary(self.vistrail)
             try:
                 return self.execute_workflow_list([(self.locator,
-                                             self.current_version,
-                                             self.current_pipeline,
-                                             self.current_pipeline_scene,
-                                             custom_aliases,
-                                             custom_params,
-                                             reason,
-                                             sinks,
-                                             extra_info)])
+                                                    self.current_version,
+                                                    self.current_pipeline,
+                                                    self.current_pipeline_scene,
+                                                    custom_aliases,
+                                                    custom_params,
+                                                    reason,
+                                                    sinks,
+                                                    extra_info)])
             except Exception, e:
                 debug.unexpected_exception(e)
                 raise
         return ([], False)
-
 
     def execute_user_workflow(self, reason='Pipeline Execution', sinks=None):
         """ execute_user_workflow() -> None
@@ -481,17 +503,16 @@ class VistrailController(QtCore.QObject, BaseController):
             if not self.jobMonitor.currentWorkflow():
                 self.create_job = True
 
-            result =  self.execute_current_workflow(reason=reason, sinks=sinks)
+            result = self.execute_current_workflow(reason=reason, sinks=sinks)
 
             self.progress.setValue(100)
         finally:
+            jobView.updating_now = False
+            self.jobMonitor.finishWorkflow()
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
             self.create_job = False
-            self.jobMonitor.finishWorkflow()
-            jobView.updating_now = False
-
         return result
 
     def enable_missing_package(self, identifier, deps):
@@ -651,7 +672,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Set the refine state to True or False
         
         """
-        if self.refine!=refine:
+        if self.refine != refine:
             self.refine = refine
             # need to recompute the graph because the refined items might
             # have changed since last time
@@ -728,7 +749,6 @@ class VistrailController(QtCore.QObject, BaseController):
                 # bail, for now
                 self.recompute_terse_graph()
                 self.invalidate_version_tree(False)
-        
 
     def show_parent_version(self):
         """ show_parent_version() -> None
@@ -975,7 +995,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 '')
-        if ok and not text:
+        if ok and text:
             return str(text).strip().rstrip()
         return ''
             
@@ -983,7 +1003,7 @@ class VistrailController(QtCore.QObject, BaseController):
         dialog = QtGui.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
                           vistrails.core.system.vistrails_file_directory())
-        if dir_name:
+        if not dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
         setattr(get_vistrails_configuration(), 'fileDir', dir_name)
@@ -1135,7 +1155,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         old_name = self.file_name
         BaseController.set_file_name(self, file_name)
-        if old_name!=file_name:
+        if old_name != file_name:
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def write_vistrail(self, locator, version=None, export=False):
@@ -1148,26 +1168,28 @@ class VistrailController(QtCore.QObject, BaseController):
     def write_opm(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = vistrails.core.db.io.merge_logs(self.log, 
-                                            self.vistrail.db_log_filename)
+                log = vistrails.core.db.io.merge_logs(
+                        self.log,
+                        self.vistrail.db_log_filename)
             else:
                 log = self.log
             opm_graph = OpmGraph(log=log, 
                                  version=self.current_version,
-                                 workflow=self.current_pipeline,
+                                 workflow=self.vistrail.getPipeline(self.current_version),
                                  registry=get_module_registry())
             locator.save_as(opm_graph)
             
     def write_prov(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = vistrails.core.db.io.merge_logs(self.log, 
-                                            self.vistrail.db_log_filename)
+                log = vistrails.core.db.io.merge_logs(
+                        self.log,
+                        self.vistrail.db_log_filename)
             else:
                 log = self.log
             prov_document = ProvDocument(log=log, 
                                          version=self.current_version,
-                                         workflow=self.current_pipeline,
+                                         workflow=self.vistrail.getPipeline(self.current_version),
                                          registry=get_module_registry())
             locator.save_as(prov_document)
 
@@ -1176,7 +1198,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Perform visual query on the current vistrail
         
         """
-        if len(pipeline.modules)==0:
+        if len(pipeline.modules) == 0:
             search = TrueSearch()
         else:
             if not self._current_terse_graph:
@@ -1287,70 +1309,100 @@ class VistrailController(QtCore.QObject, BaseController):
 
             mCount = []
             for p in modifiedPipelines:
-                if len(mCount)==0:
+                if len(mCount) == 0:
                     mCount.append(0)
                 else:
                     mCount.append(len(p.modules)+mCount[len(mCount)-1])
-                
-            # Now execute the pipelines
-            if showProgress:
-                totalProgress = sum([len(p.modules) for p in modifiedPipelines])
-                progress = QtGui.QProgressDialog('Performing Parameter '
-                                                 'Exploration...',
-                                                 '&Cancel',
-                                                 0, totalProgress)
-                progress.setWindowTitle('Parameter Exploration')
-                progress.setWindowModality(QtCore.Qt.WindowModal)
-                progress.show()
 
-            interpreter = get_default_interpreter()
-            
-            images = {}
-            errors = []
-            for pi in xrange(len(modifiedPipelines)):
+            from vistrails.gui.job_monitor import QJobView
+            jobView = QJobView.instance()
+            if jobView.updating_now:
+                debug.critical("Execution Aborted: Job Monitor is updating. "
+                               "Please wait a few seconds and try again.")
+                return
+            jobView.updating_now = True
+
+            try:
+                # Now execute the pipelines
+
                 if showProgress:
-                    progress.setValue(mCount[pi])
-                    QtCore.QCoreApplication.processEvents()
-                    if progress.wasCanceled():
-                        break
-                    def moduleExecuted(objId):
-                        if not progress.wasCanceled():
-                            progress.setValue(progress.value()+1)
-                            QtCore.QCoreApplication.processEvents()
-                if use_spreadsheet:
-                    name = os.path.splitext(self.name)[0] + \
-                                         ("_%s_%s_%s" % pipelinePositions[pi])
-                    extra_info['nameDumpCells'] = name
-                    if 'pathDumpCells' in extra_info:
-                        images[pipelinePositions[pi]] = \
-                                   os.path.join(extra_info['pathDumpCells'], name)
-                pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
-                kwargs = {'locator': self.locator,
-                          'current_version': self.current_version,
-                          'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
-                          'logger': self.get_logger(),
-                          'actions': performedActions[pi],
-                          'extra_info': extra_info
-                          }
-                if view:
-                    kwargs['view'] = view
-                if showProgress:
-                    kwargs['module_executed_hook'] = [moduleExecuted]
-                if self.get_vistrail_variables():
-                    # remove vars used in pe
-                    vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
-                            if v.uuid not in vistrail_vars])
-                    kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
-                result = interpreter.execute(modifiedPipelines[pi], **kwargs)
-                for error in result.errors.itervalues():
+                    totalProgress = sum([len(p.modules) for p in modifiedPipelines])
+                    self.progress = PEProgressDialog(self.vistrail_view, totalProgress)
+                    self.progress.show()
+
+                interpreter = get_default_interpreter()
+
+                images = {}
+                errors = []
+                for pi in xrange(len(modifiedPipelines)):
+                    if showProgress:
+                        self.progress.setValue(mCount[pi])
+                        QtCore.QCoreApplication.processEvents()
+                        if self.progress.wasCanceled():
+                            break
+                        def moduleExecuted(objId):
+                            if not self.progress.wasCanceled():
+                                self.progress.setValue(self.progress.value()+1)
+                                QtCore.QCoreApplication.processEvents()
                     if use_spreadsheet:
-                        pp = pipelinePositions[pi]
-                        errors.append(((pp[1], pp[0], pp[2]), error))
-                    else:
-                        errors.append(((0,0,0), error))
+                        name = os.path.splitext(self.name)[0] + \
+                                             ("_%s_%s_%s" % pipelinePositions[pi])
+                        extra_info['nameDumpCells'] = name
+                        if 'pathDumpCells' in extra_info:
+                            images[pipelinePositions[pi]] = \
+                                       os.path.join(extra_info['pathDumpCells'], name)
+                    pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
+                    kwargs = {'locator': self.locator,
+                              'job_monitor': self.jobMonitor,
+                              'current_version': self.current_version,
+                              'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
+                              'logger': self.get_logger(),
+                              'actions': performedActions[pi],
+                              'extra_info': extra_info
+                              }
+                    if view:
+                        kwargs['view'] = view
+                    if showProgress:
+                        kwargs['module_executed_hook'] = [moduleExecuted]
+                    if self.get_vistrail_variables():
+                        # remove vars used in pe
+                        vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
+                                if v.uuid not in vistrail_vars])
+                        kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
 
-            if showProgress:
-                progress.setValue(totalProgress)
+                    # Create job
+                    # check if a job exist for this workflow
+                    job_id = 'Parameter Exploration %s %s %s_%s_%s' % ((self.current_version, pe.id) + pipelinePositions[pi])
+
+                    current_workflow = None
+                    for wf in self.jobMonitor.workflows.itervalues():
+                        if job_id == wf.version:
+                            current_workflow = wf
+                            self.jobMonitor.startWorkflow(wf)
+                            break
+                    if not current_workflow:
+                        current_workflow = JobWorkflow(job_id)
+                        self.jobMonitor.startWorkflow(current_workflow)
+                    try:
+                        result = interpreter.execute(modifiedPipelines[pi], **kwargs)
+                    finally:
+                        self.jobMonitor.finishWorkflow()
+
+                    for error in result.errors.itervalues():
+                        if use_spreadsheet:
+                            pp = pipelinePositions[pi]
+                            errors.append(((pp[1], pp[0], pp[2]), error))
+                        else:
+                            errors.append(((0,0,0), error))
+
+            finally:
+                jobView.updating_now = False
+                if showProgress:
+                    self.progress.setValue(totalProgress)
+                    self.progress.hide()
+                    self.progress.deleteLater()
+                    self.progress = None
+
             if 'pathDumpCells' in extra_info:
                 filename = os.path.join(extra_info['pathDumpCells'],
                                         os.path.splitext(self.name)[0])
@@ -1359,9 +1411,9 @@ class VistrailController(QtCore.QObject, BaseController):
             _app.notify('execution_updated')
             return errors
 
+
 ################################################################################
 # Testing
-
 
 class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
@@ -1381,9 +1433,10 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
                                         pipeline_view=DummyView(),
                                         auto_save=False)
         controller.change_selected_version(0L)
-        module = controller.add_module(0.0,0.0, 
-                        vistrails.core.system.get_vistrails_basic_pkg_id(), 
-                        'ConcatenateString')
+        module = controller.add_module(
+                vistrails.core.system.get_vistrails_basic_pkg_id(),
+                'ConcatenateString',
+                0.0, 0.0)
         functions = [('str1', ['foo'], -1, True),
                      ('str2', ['bar'], -1, True)]
         controller.update_functions(module, functions)
@@ -1449,3 +1502,46 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
         api.close_current_vistrail(True)
         c.unload_abstractions()
+
+    def test_chained_upgrade(self):
+        # We should try to upgrade from the latest upgrade in
+        # the upgrade chain first
+        from vistrails import api
+        view = api.open_vistrail_from_file(
+                vistrails.core.system.vistrails_root_directory() +
+                '/tests/resources/chained_upgrade.xml')
+        # Trigger upgrade
+        api.select_version('myTuple')
+        view.execute()
+        # Assert new upgrade was created from the latest action
+        # 1 = original
+        # 2 = old upgrade
+        # 3 = new upgrade (should be the upgrade of 2)
+        vistrail = api.get_current_vistrail()
+        for a in vistrail.action_annotations:
+            if a.key == Vistrail.UPGRADE_ANNOTATION:
+                self.assertIn(a.action_id, [1,2])
+                if a.action_id == 1:
+                    self.assertEqual(int(a.value), 2)
+                if a.action_id == 2:
+                    self.assertEqual(int(a.value), 3)
+
+    def test_broken_upgrade(self):
+        # When upgrade is broken the controller should try to upgrade
+        # the previous action in the upgrade chain
+        from vistrails import api
+        view = api.open_vistrail_from_file(
+                vistrails.core.system.vistrails_root_directory() +
+                '/tests/resources/broken_upgrade.xml')
+        # Trigger upgrade
+        api.select_version('myTuple')
+        view.execute()
+        # Assert new upgrade was created from the first action
+        # 1 = original
+        # 2 = broken
+        # 3 = new (should be the upgrade of 1)
+        vistrail = api.get_current_vistrail()
+        for a in vistrail.action_annotations:
+            if a.key == Vistrail.UPGRADE_ANNOTATION:
+                self.assertEqual(a.action_id, 1)
+                self.assertEqual(int(a.value), 3)

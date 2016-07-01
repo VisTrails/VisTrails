@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -144,22 +144,26 @@ def create_opm(workflow, version, log, reg):
         print 'adding process', process.db_id,
         if hasattr(item_exec, 'db_module_name'):
             print item_exec.db_module_name
-        elif hasattr(item_exec, 'db_group_nane'):
-            print item_exec.db_module_name
+        elif hasattr(item_exec, 'db_group_name'):
+            print item_exec.db_group_name
         processes.append(process)
         module = workflow.db_modules_id_index[item_exec.db_module_id]
         module_processes[module.db_id] = (module, process)
 
     def get_package(reg, pkg_identifier, pkg_version=''):
-        if not pkg_version:
-            # spin and get current package
-            for pkg in reg.db_packages:
-                if pkg.db_identifier == pkg_identifier:
-                    break
-                pkg = None
-        else:
-            pkg = reg.db_packages_identifier_index[(pkg_identifier,
-                                                    pkg_version)]
+        if pkg_version:
+            try:
+                return reg.db_packages_identifier_index[(pkg_identifier,
+                                                         pkg_version)]
+            except:
+                print (("Warning: Version '%s' package '%s' "
+                        "is not in the registry") %
+                       (pkg_version, pkg_identifier))
+        # spin and get current package
+        for pkg in reg.db_packages:
+            if pkg.db_identifier == pkg_identifier:
+                break
+            pkg = None
         return pkg
 
     def process_exec(item_exec, workflow, account, upstream_lookup,
@@ -267,6 +271,10 @@ def create_opm(workflow, version, log, reg):
             # need to have process that extracts artifacts for each iteration
             input_list_artifact = found_input_ports['InputList']
             result_artifact = found_output_ports.get('Result', None)
+            # if InputPort or OutputPort is a Connection we cannot do anything
+            if (found_input_ports['InputPort'].vtType == DBConnection.vtType or
+                found_input_ports['OutputPort'].vtType == DBConnection.vtType):
+                return
             input_port_list = \
                 literal_eval(found_input_ports['InputPort'].db_parameters[0].db_val)
             output_port = \
@@ -283,53 +291,135 @@ def create_opm(workflow, version, log, reg):
                 j_process = create_process_manual('Join', account, id_scope)
                 processes.append(j_process)
             for loop_exec in item_exec.db_loop_execs:
-                loop_up_artifacts = {}
-                loop_down_artifacts = {}
-                for input_name in input_port_list:
-                    port_spec = DBPortSpec(id=-1,
-                                           name=input_name,
-                                           type='output')
-                    s_artifact = \
-                        create_artifact_from_port_spec(port_spec, account, 
-                                                       id_scope)
-                    artifacts.append(s_artifact)
-                    dependencies.append(create_was_generated_by(s_artifact,
-                                                                s_process,
-                                                                account,
-                                                                id_scope))
-                    if input_name not in loop_up_artifacts:
-                        loop_up_artifacts[input_name] = []
-                    loop_up_artifacts[input_name].append(s_artifact)
-
-                # process output_port
-                if loop_exec.db_completed == 1:
-                    port_spec = DBPortSpec(id=-1,
-                                           name=output_port,
-                                           type='output')
-                    o_artifact = \
-                            create_artifact_from_port_spec(port_spec, account, 
+                for loop_iteration in loop_exec.db_loop_iterations:
+                    loop_up_artifacts = {}
+                    loop_down_artifacts = {}
+                    for input_name in input_port_list:
+                        port_spec = DBPortSpec(id=-1,
+                                               name=input_name,
+                                               type='output')
+                        s_artifact = \
+                            create_artifact_from_port_spec(port_spec, account,
                                                            id_scope)
-                    artifacts.append(o_artifact)
-                    if output_port not in loop_down_artifacts:
-                        loop_down_artifacts[output_port] = []
-                    loop_down_artifacts[output_port].append(o_artifact)
+                        artifacts.append(s_artifact)
+                        dependencies.append(create_was_generated_by(s_artifact,
+                                                                    s_process,
+                                                                    account,
+                                                                    id_scope))
+                        if input_name not in loop_up_artifacts:
+                            loop_up_artifacts[input_name] = []
+                        loop_up_artifacts[input_name].append(s_artifact)
 
-                if result_artifact is not None:
-                    dependencies.append(create_used(j_process, o_artifact, 
-                                                    account, id_scope))
-                                                
-                # now process a loop_exec
-                for child_exec in loop_exec.db_item_execs:
-                    do_create_process(workflow, child_exec, account, 
-                                      module_processes)
-                for child_exec in loop_exec.db_item_execs:
-                    process_exec(child_exec, workflow, account, upstream_lookup,
-                                 downstream_lookup, depth+1, conn_artifacts,
-                                 function_artifacts, module_processes,
-                                 loop_up_artifacts, loop_down_artifacts, True)
+                    # process output_port
+                    if loop_iteration.db_completed == 1:
+                        port_spec = DBPortSpec(id=-1,
+                                               name=output_port,
+                                               type='output')
+                        o_artifact = \
+                                create_artifact_from_port_spec(port_spec, account,
+                                                               id_scope)
+                        artifacts.append(o_artifact)
+                        if output_port not in loop_down_artifacts:
+                            loop_down_artifacts[output_port] = []
+                        loop_down_artifacts[output_port].append(o_artifact)
+
+                    if result_artifact is not None:
+                        dependencies.append(create_used(j_process, o_artifact,
+                                                        account, id_scope))
+
+                    # now process a loop_exec
+                    for child_exec in loop_iteration.db_item_execs:
+                        do_create_process(workflow, child_exec, account,
+                                          module_processes)
+                    for child_exec in loop_iteration.db_item_execs:
+                        process_exec(child_exec, workflow, account, upstream_lookup,
+                                     downstream_lookup, depth+1, conn_artifacts,
+                                     function_artifacts, module_processes,
+                                     loop_up_artifacts, loop_down_artifacts, True)
 
             # need to set Return artifact and connect j_process to it
             if result_artifact is not None:
+                dependencies.append(create_was_generated_by(result_artifact,
+                                                            j_process,
+                                                            account,
+                                                            id_scope))
+
+        def process_module_loop(module, found_input_ports, found_output_ports):
+            print "*** Processing Module with loops"
+            if depth+1 in depth_accounts:
+                account = depth_accounts[depth+1]
+            else:
+                account = create_account(depth+1, id_scope)
+                accounts.append(account)
+                depth_accounts[depth+1] = account
+
+            # need to have process that extracts artifacts for each iteration
+            result_artifacts = [a for r in found_output_ports
+                                if found_output_ports[r] is not None
+                                for a in found_output_ports[r]]
+            s_process = create_process_manual('Split', account, id_scope)
+            processes.append(s_process)
+            for input_port in found_input_ports:
+                for input_name in input_port:
+                    dependencies.append(create_used(s_process,
+                                                    found_input_ports[input_name],
+                                                    account,
+                                                    id_scope))
+            # need to have process that condenses artifacts from each iteration
+            if result_artifacts:
+                j_process = create_process_manual('Join', account, id_scope)
+                processes.append(j_process)
+            for loop_exec in item_exec.db_loop_execs:
+                for loop_iteration in loop_exec.db_loop_iterations:
+                    loop_up_artifacts = {}
+                    loop_down_artifacts = {}
+                    for input_port in found_input_ports:
+                        for input_name in input_port:
+                            port_spec = DBPortSpec(id=-1,
+                                                   name=input_name,
+                                                   type='output')
+                            s_artifact = \
+                                create_artifact_from_port_spec(port_spec, account,
+                                                               id_scope)
+                            artifacts.append(s_artifact)
+                            dependencies.append(create_was_generated_by(s_artifact,
+                                                                        s_process,
+                                                                        account,
+                                                                        id_scope))
+                            if input_name not in loop_up_artifacts:
+                                loop_up_artifacts[input_name] = []
+                            loop_up_artifacts[input_name].append(s_artifact)
+
+                    # process output_port
+                    if loop_iteration.db_completed == 1:
+                        for output_name in found_output_ports:
+                            port_spec = DBPortSpec(id=-1,
+                                                   name=output_name,
+                                                   type='output')
+                            o_artifact = \
+                                    create_artifact_from_port_spec(port_spec, account,
+                                                                   id_scope)
+                            artifacts.append(o_artifact)
+                            if output_name not in loop_down_artifacts:
+                                loop_down_artifacts[output_name] = []
+                            loop_down_artifacts[output_name].append(o_artifact)
+
+                            if result_artifacts:
+                                dependencies.append(create_used(j_process, o_artifact,
+                                                                account, id_scope))
+
+                    # now process a loop_exec
+                    for child_exec in loop_iteration.db_item_execs:
+                        do_create_process(workflow, child_exec, account,
+                                          module_processes)
+                    for child_exec in loop_iteration.db_item_execs:
+                        process_exec(child_exec, workflow, account, upstream_lookup,
+                                     downstream_lookup, depth+1, conn_artifacts,
+                                     function_artifacts, module_processes,
+                                     loop_up_artifacts, loop_down_artifacts, True)
+
+            # need to set Return artifacts and connect j_process to it
+            for result_artifact in result_artifacts:
                 dependencies.append(create_was_generated_by(result_artifact,
                                                             j_process,
                                                             account,
@@ -585,6 +675,10 @@ def create_opm(workflow, version, log, reg):
 
         if special_ports[2] is not None:
             special_ports[2](module, found_input_ports, found_output_ports)
+        elif item_exec.db_loop_execs:
+            # A normal module that is looping internally
+            # Probably an automatic list loop
+            process_module_loop(module, in_upstream_artifacts, out_upstream_artifacts)
 
     def process_workflow(workflow, parent_exec, account, upstream_artifacts={},
                          downstream_artifacts={}, depth=0, top_version=False):

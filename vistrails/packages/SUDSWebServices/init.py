@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -728,13 +728,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                                     namespace)
         if not new_descriptor:
             return []
-        try:
-            return UpgradeWorkflowHandler.replace_module(controller, pipeline,
-                                                    module_id, new_descriptor)
-        except Exception, e:
-            import traceback
-            traceback.print_exc()
-            raise
+        return UpgradeWorkflowHandler.replace_module(controller, pipeline,
+                                                module_id, new_descriptor)
 
     return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
                                                             pipeline,
@@ -812,9 +807,21 @@ def contextMenuName(signature):
 
 def saveVistrailFileHook(controller, bundle):
     """ This is called when a vistrail is saved
-        We should copy all used Web Services in temp_dir to .vistrails
-        """
-    for package in controller.vistrail.get_used_packages():
+        We should copy all cached Web Services in controller.vistrail to
+        bundle if they do not exist
+
+    """
+
+    # Skip if this is a DBVistrail
+    if not hasattr(controller.vistrail, 'get_used_packages'):
+        return
+    packages = controller.vistrail.get_used_packages()
+    # clear old files
+    for bundle_obj in list(bundle.values("data")):
+        if bundle_obj.id.endswith("-wsdl.px"):
+            bundle.remove_entry(bundle_obj)
+
+    for package in packages:
         if package.startswith("SUDS#"):
             address = toAddress(package)
             name = "suds-%s-wsdl.px" % hashlib.md5(address).hexdigest()
@@ -825,8 +832,8 @@ def saveVistrailFileHook(controller, bundle):
                     bundle.add_object(BundleObj(cached, 'data', name))
 
 def loadVistrailFileHook(controller, bundle):
-    """ This is called when a vistrail is loaded
-        We should add all cached Web Services in vistrail
+    """ This is called when a vistrail is saved
+        We should copy all used Web Services in bundle to .vistrails
         if they do not exist
     """
     for obj in bundle.datas:
@@ -834,7 +841,7 @@ def loadVistrailFileHook(controller, bundle):
             dest = os.path.join(package_cache.location, obj.id)
             if not os.path.exists(dest):
                 shutil.copyfile(obj.obj, dest)
-    
+
 def callContextMenu(signature):
     global webServicesDict
     if signature == name:

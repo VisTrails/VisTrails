@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-import cgi
 from datetime import datetime, date
 import hashlib
 import locale
@@ -105,7 +104,7 @@ class BaseLocator(object):
     define it here.
 
     """
-    
+
     KWARG_PROPS = dict([("obj_type", "type"),
                         ("obj_id", "id"),
                         ("version_node", "workflow"),
@@ -133,7 +132,7 @@ class BaseLocator(object):
     @classmethod
     def get_special_tags(cls):
         return cls.SPECIAL_TAGS
-    
+
     @classmethod
     def parse_args(cls, arg_str):
         kwargs = {}
@@ -151,7 +150,7 @@ class BaseLocator(object):
 
     @classmethod
     def generate_args(cls, kwargs):
-        generate_dict = {}        
+        generate_dict = {}
         for (prop, url_tag) in cls.get_kwarg_props().iteritems():
             if prop in kwargs and kwargs[prop]:
                 generate_dict[url_tag] = kwargs[prop]
@@ -195,7 +194,7 @@ class BaseLocator(object):
 
         """
         raise NotImplementedError("to_xml is not implemented")
-    
+
     @staticmethod
     def from_xml(node):
         """Unserialize locator given ElementTree node.
@@ -204,7 +203,16 @@ class BaseLocator(object):
         raise NotImplementedError("from_xml is not implemented")
 
     @staticmethod
-    def convert_filename_to_url(filename):
+    def real_filename(filename):
+        """ Expand relative path and dereference symbolic links
+
+        To avoid dereference symbolic links:
+        Remove realpath and add DontResolveSymlinks to QFileDialog calls
+        """
+        return os.path.realpath(os.path.abspath(filename))
+
+    @classmethod
+    def convert_filename_to_url(cls, filename):
         """ Converts a local filename to a file:// URL.
 
         All file:// URLs are absolute, so abspath() will be used on the
@@ -228,7 +236,7 @@ class BaseLocator(object):
         else:
             args_str = ""
 
-        return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
+        return 'file://%s%s' % (pathname2url(cls.real_filename(filename)),
                                 urllib.quote(args_str, safe='/?=&'))
 
     @staticmethod
@@ -255,9 +263,9 @@ class BaseLocator(object):
             scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
-            if path.endswith(".vt"):
+            if path.lower().endswith(".vt"):
                 return ZIPFileLocator.from_url(url)
-            elif path.endswith(".xml"):
+            elif path.lower().endswith(".xml"):
                 return XMLFileLocator.from_url(url)
             else:
                 return DirectoryLocator.from_url(url)
@@ -278,13 +286,13 @@ class BaseLocator(object):
         """
         return None
     short_name = property(_get_short_name)
-      
+
     def _get_version(self):
         if self.version_tag is not None:
             return self.version_tag
         return self.version_node
     version = property(_get_version)
-  
+
     ###########################################################################
     # Operators
 
@@ -305,7 +313,6 @@ class SaveTemporariesMixin(object):
     self.name to exist for proper functioning.
 
     """
-
     @staticmethod
     def get_autosave_dir():
         dot_vistrails = vistrails.core.system.current_dot_vistrails()
@@ -321,10 +328,22 @@ class SaveTemporariesMixin(object):
     def get_temp_basename(self):
         return self.name
 
+    def get_temporary(self):
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            return temp_fname
+        return None
+
     def save_temporary(self, obj):
-        fname = self._find_latest_temporary()
-        new_temp_fname = self._next_temporary(fname)
+        """ Writes a backup file to disk
+        """
+        temp_fname = self.encode_name(self.get_temp_basename())
+        new_temp_fname = temp_fname + '.tmp'
+        # Write a temporary backup before deleting the old one
         io.save_to_xml(obj, new_temp_fname)
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        os.rename(new_temp_fname, temp_fname)
 
     def clean_temporaries(self):
         """_remove_temporaries() -> None
@@ -332,16 +351,18 @@ class SaveTemporariesMixin(object):
         Erases all temporary files.
 
         """
-        def remove_it(fname):
-            os.unlink(fname)
-        self._iter_temporaries(remove_it)
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        if os.path.isfile(temp_fname + '.tmp'):
+            os.unlink(temp_fname + '.tmp')
 
     def encode_name(self, filename):
         """encode_name(filename) -> str
         Encodes a file path using urllib.quoteplus
 
         """
-        name = urllib.quote_plus(filename) + '_tmp_'
+        name = urllib.quote_plus(filename) + '_tmp'
         return os.path.join(self.get_autosave_dir(), name)
 
     def _iter_temporaries(self, f):
@@ -413,9 +434,6 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
     def get_temp_basename(self):
         return UntitledLocator.UNTITLED_PREFIX + self._uuid.hex
 
-    def get_temporary(self):
-        return self._find_latest_temporary()
-
     def _get_name(self):
         return UntitledLocator.UNTITLED_NAME
     name = property(_get_name)
@@ -441,7 +459,6 @@ class UntitledLocator(BaseLocator, SaveTemporariesMixin):
                 rest = rest[32:]
             except ValueError:
                 pass
-
         if not rest:
             kwargs = dict()
         elif rest[0] == '?':
@@ -489,7 +506,7 @@ class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
     def __init__(self, dirname, **kwargs):
         self._name = dirname
         self.kwargs = kwargs
-    
+
     def load(self, type=None):
         # don't require type for locators since Manifest should take care of
         raise Exception("Need to implement!")
@@ -575,9 +592,6 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
 
     def is_valid(self):
         return os.path.isfile(self._name)
-
-    def get_temporary(self):
-        return self._find_latest_temporary()
 
     def _get_name(self):
         return str(self._name)
@@ -1073,9 +1087,9 @@ import unittest
 class TestLocators(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
         def assertIsInstance(self, obj, cls, msg=None):
-            assert(isinstance(obj, cls))
-        def assertIsNone(self, obj):
-            self.assertEqual(obj, None)
+            self.assertTrue(isinstance(obj, cls), msg)
+        def assertIsNone(self, obj, msg=None):
+            self.assertTrue(obj is None, msg)
 
     @staticmethod
     def path2url(fname):
@@ -1089,10 +1103,12 @@ class TestLocators(unittest.TestCase):
         # Test both systemTypes
         global systemType
         old_systemType = systemType
-        # Don't use abspath, it would cause Linux tests to fail on Windows
-        # we are using abspaths anyway
+        # Don't use abspath/realpath, it would cause Linux tests to fail on Windows
+        # we are using abspaths/realpaths anyway
         old_abspath = os.path.abspath
         os.path.abspath = lambda x: x
+        old_realpath = os.path.realpath
+        os.path.realpath = lambda x: x
         try:
             systemType = 'Linux'
             self.assertEqual(
@@ -1107,6 +1123,7 @@ class TestLocators(unittest.TestCase):
         finally:
             systemType = old_systemType
             os.path.abspath = old_abspath
+            os.path.realpath = old_realpath
 
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"

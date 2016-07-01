@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -48,26 +48,51 @@ from vistrails.core.modules.config import IPort, ModuleSettings
 import vistrails.core.system
 
 class OutputMode(object):
+    """A way of outputting a type of data, associated with a specific module.
+
+    OutputModule subclasses define different types that can be outputted. Each
+    is associated with multiple OutputModes, which are ways of outputting from
+    this module.
+    """
     mode_type = None
     priority = -1  # -1 prevents the mode from being selected automatically
 
     @staticmethod
     def can_compute():
+        """Whether this mode can be used right now.
+
+        This might check for requirements, configuration options, or other
+        things (are we running the GUI, ...)
+        """
         return False
 
     @classmethod
     def get_config(cls):
+        """The configuration class for that mode.
+        """
         return cls.config_cls
 
     def compute_output(self, output_module, configuration):
+        """Actually output using this mode.
+
+        This is called by the output module to handle the output when this mode
+        is selected, using the given configuration.
+        """
         raise NotImplementedError("Subclass of OutputMode should implement "
                                   "this")
 
 # Ideally, these are globally and locally configurable so that we use
 # global settings if nothing is set locally (e.g. output directory)
 class OutputModeConfig(dict):
+    """Set of configuration variables for a given OutputMode.
+
+    These are settings that are showed to the users so he can configure the
+    output. These variables will be passed to
+    :meth:`OutputMode.compute_output`.
+    """
     mode_type = None
     _fields = []
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         for k, v in self.iteritems():
@@ -200,6 +225,12 @@ class OutputModeConfig(dict):
                 self.has_override(k) or self.has_global_setting(k))
 
 class OutputModule(NotCacheable, Module):
+    """A configurable, pluggable sink module.
+
+    OutputModule subclasses define different types that can be outputted. Each
+    is associated with multiple OutputModes, which are ways of outputting from
+    this module.
+    """
     _input_ports = [IPort('value', "Variant"),
                     IPort('mode_type', "String"),
                     IPort('configuration', "Dictionary")]
@@ -486,10 +517,13 @@ class FileMode(OutputMode):
             if suffix is None:
                 suffix = ''
             if dirname is None:
-                # FIXME should unify with VisTrails output
-                # directory global!  should check for abspath (if
-                # not, use relative to global output directory)
                 dirname = ''
+            if not os.path.isabs(dirname):
+                vt_output_dir = getattr(get_vistrails_temp_configuration(),
+                                        'outputDirectory',
+                                        None)
+                if vt_output_dir:
+                    dirname = os.path.join(vt_output_dir, dirname)
 
             # seriesPadding and series have defaults so no
             # need to default them
@@ -608,15 +642,16 @@ class IPythonMode(OutputMode):
             return False
         else:
             ip = get_ipython()
-            if ip is None or not isinstance(ip, ZMQInteractiveShell):
-                return False
-            warnings.warn("Looks like we're running from the notebook; "
-                          "automatically enabling IPythonMode.\n"
-                          "If this is right, please call "
-                          "vistrails.ipython_mode(True) so that this keeps "
-                          "working in the future (and this warning doesn't "
-                          "show).")
-            return True
+            if ip is not None and isinstance(ip, ZMQInteractiveShell):
+                warnings.warn(
+                        "Looks like you might be running from IPython; you "
+                        "might want to call\nvistrails.ipython_mode(True) to "
+                        "enable IPythonMode, allowing output modules to\n"
+                        "render to the notebook.\n"
+                        "If this is wrong, please call "
+                        "vistrails.ipython_mode(False) to get rid of this\n"
+                        "warning.")
+            return False
 
     def compute_output(self, output_module, configuration):
         from IPython.core.display import display

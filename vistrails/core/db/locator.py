@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -42,7 +42,8 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file, vistrails_examples_directory
+                        default_connections_file, vistrails_examples_directory, \
+                        vistrails_root_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -542,12 +543,13 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 class FileLocator(CoreLocator):
     def __new__(self, filename=None, **kwargs):
         if filename:
-            if filename.endswith('.vt'):
-                return ZIPFileLocator(filename, **kwargs)
-            elif filename.endswith('.vtl'):
+            lname = filename.lower()
+            if lname.endswith('.xml'):
+                return XMLFileLocator(filename, **kwargs)
+            elif lname.endswith('.vtl'):
                 return FileLocator.from_link_file(filename)
             else:
-                return XMLFileLocator(filename, **kwargs)
+                return ZIPFileLocator(filename, **kwargs)
         else:
             #return class based on default file type
             if vistrails_default_file_type() == '.vt':
@@ -756,3 +758,40 @@ class FileLocator(CoreLocator):
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
+
+
+import unittest
+
+# Test vtl files in usersguide
+class TestUsersGuideVTL(unittest.TestCase):
+    vtl_path = os.path.join(vistrails_root_directory(), '..', 'doc',
+                            'usersguide', 'vtl')
+    @unittest.skipIf(not os.path.isdir(vtl_path), 'Could not find vtl dir')
+    def test_vtl_files(self):
+        from vistrails.tests.utils import run_file
+        for root, dirs, file_names in os.walk(self.vtl_path):
+            for file_name in sorted(file_names):
+                if file_name.endswith('.vtl'):
+                    # update available packages
+                    from vistrails.core.packagemanager import get_package_manager
+                    get_package_manager().build_available_package_names_list()
+                    f = os.path.join(root, file_name)
+                    locator = FileLocator(f)
+                    version = locator._vnode
+                    # if there is a version specified try to execute it,
+                    # else just load the pipeline
+                    if version:
+                        errors = run_file(f, lambda x: x == version)
+                        self.assertEqual(errors, [], 'Errors processing %s: %s' % (f, str(errors)))
+                    else:
+                        import vistrails.core.db.io
+                        from vistrails.core.vistrail.controller import \
+                            VistrailController
+                        loaded_objs = vistrails.core.db.io.load_vistrail(locator)
+                        controller = VistrailController(loaded_objs[0],
+                                                        locator,
+                                                        *loaded_objs[1:])
+                        controller.change_selected_version(
+                            controller.vistrail.get_latest_version())
+                        self.assertTrue(controller.current_pipeline.is_valid,
+                                        "Latest pipeline is invalid: %s" % f)
