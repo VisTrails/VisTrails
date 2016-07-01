@@ -63,17 +63,16 @@ def get_shell_dialog():
         return _shell_dialog
 
     try:
-        deps = {'pip': 'ipython>=1.0',
+        deps = {'pip': 'qtconsole',
                 'linux-ubuntu': 'ipython-qtconsole',
                 'linux-debian': 'ipython-qtconsole'}
 
-        IPython = py_import('IPython.qt.console.rich_ipython_widget', deps,
-                            True)
+        qtconsole = py_import('qtconsole.rich_ipython_widget', deps, True)
         RichIPythonWidget = \
-                IPython.qt.console.rich_ipython_widget.RichIPythonWidget
-        py_import('IPython.qt.inprocess', deps, True)
+                qtconsole.rich_ipython_widget.RichIPythonWidget
+        py_import('qtconsole.inprocess', deps, True)
         QtInProcessKernelManager = \
-                IPython.qt.inprocess.QtInProcessKernelManager
+                qtconsole.inprocess.QtInProcessKernelManager
     except ImportError:
         return None
 
