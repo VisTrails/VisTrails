@@ -85,7 +85,6 @@ def write_workflow_to_python(pipeline):
     # Processes the preludes and writes the beginning of the file
     #
     print("Writing preludes")
-    # TODO : remove duplicated import statements
     # Adds all imported modules to the list of symbols
     for prelude in preludes:
         all_vars.update(prelude.imported_pkgs)
@@ -94,12 +93,14 @@ def write_workflow_to_python(pipeline):
     for prelude in preludes:
         prelude_renames.update(prelude.avoid_collisions(all_vars))
     # Writes the preludes
-    for prelude in preludes:
-        text.append('# Prelude')
-        text.append(unicode(prelude))
-        text.append('')
-    if preludes:
-        text.append('# PRELUDE ENDS -- pipeline code follows\n\n')
+    for prelude in set([unicode(p) for p in preludes]): # set removes duplicates
+        #text.append('# Prelude')
+        text.append(prelude)
+        #text.append('')
+    #if preludes:
+    #    text.append('# PRELUDE ENDS -- pipeline code follows\n\n')
+    text.append('')
+    text.append('')
 
     # ########################################
     # Walk through the pipeline a second time to generate the full script
