@@ -61,6 +61,7 @@ import vistrails.core.modules.basic_modules
 from vistrails.core.modules.basic_modules import PathObject
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.scripting import Script, Prelude
 from vistrails.core.system import current_dot_vistrails, strptime
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 import vistrails.gui.repository
@@ -72,7 +73,6 @@ from vistrails.core.repository.poster.streaminghttp import register_openers
 from .identifiers import identifier
 from .http_directory import download_directory
 from .https_if_available import build_opener
-
 
 package_directory = None
 
@@ -390,6 +390,26 @@ class DownloadFile(Module):
         DL = downloaders.get(scheme, Downloader)
         return DL(url, self, insecure).execute()
 
+    @classmethod
+    def to_python_script(cls, module):
+        """ create script for downloading a file
+        """
+        # FIXME: Only HTTP supported right now
+        code = ''
+        preludes = []
+
+        preludes.append(Prelude('from vistrails.core.modules.basic_modules import PathObject'))
+        preludes.append(Prelude('import requests'))
+        preludes.append(Prelude('import tempfile'))
+
+        code += '_, path = tempfile.mkstemp()\n'
+        code += 'r = requests.get(url, stream=True)\n'
+        code += "with open(path, 'wb') as f:\n"
+        code += '    for chunk in r:\n'
+        code += '        f.write(chunk)\n'
+        code += 'file = PathObject(path)'
+
+        return (Script(code, 'variables', 'variables'), preludes)
 
 class HTTPDirectory(Module):
     """Downloads a whole directory recursively from a URL
