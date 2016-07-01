@@ -53,6 +53,7 @@ def qt_available():
     try:
         require_python_module('sip')
         setNewPyQtAPI()
+        #FIXME PyQt4.QtGui can fail because of libpng version
         require_python_module('PyQt4.QtGui')
         require_python_module('PyQt4.QtOpenGL')
     except MissingRequirement:
