@@ -37,11 +37,14 @@
 from __future__ import division
 
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
+from vistrails.core.scripting import Script, Prelude
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib
 
 ################################################################################
+
+
 class HandlerConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         """ HandlerConfigurationWidget(module: Module,
@@ -57,7 +60,6 @@ class HandlerConfigurationWidget(SourceConfigurationWidget):
                                            portName='Handler')
 
 
-
 class vtkInteractionHandler(NotCacheable, Module):
     """
     vtkInteractionHandler allow users to insert callback code for interacting
@@ -69,7 +71,7 @@ class vtkInteractionHandler(NotCacheable, Module):
 
     _input_ports = [('Observer', 'vtkInteractorObserver'),
                     ('Handler', 'basic:String', True),
-                    ('SharedData', 'basic:Variant')]
+                    ('SharedData', 'basic:Variant', {'depth': 1})]
 
     _output_ports =[('Instance', 'vtkInteractionHandler')]
 
@@ -160,8 +162,8 @@ class vtkInteractionHandler(NotCacheable, Module):
         """        
         self.observer = self.force_get_input('Observer')
         self.handler = self.force_get_input('Handler', '')
-        self.shareddata = self.force_get_input_list('SharedData')
-        if len(self.shareddata)==1:
+        self.shareddata = self.force_get_input('SharedData')
+        if len(self.shareddata) == 1:
             self.shareddata = self.shareddata[0]
         if self.observer:
             source = urllib.unquote(self.handler)
@@ -212,6 +214,40 @@ class vtkInteractionHandler(NotCacheable, Module):
         from vistrails.packages.spreadsheet.spreadsheet_event \
              import RepaintCurrentSheetEvent
         spreadsheetController.postEventToSpreadsheet(RepaintCurrentSheetEvent())
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ create script for IHandler
+        """
+        code = ''
+        preludes = []
+        if 'Observer' in module.connected_input_ports:
+            # Add event code
+            for f in module.functions:
+                if f.name == 'Handler':
+                    source = urllib.unquote(str(f.parameters[0].strValue))
+            code += source + '\n'
+
+            code += 'if len(SharedData)==1:\n'
+            code += '    SharedData = SharedData[0]\n'
+
+            # Add eventHandler
+            code += "def eventHandler(obj, event):\n"
+            code += "     f = event[0].lower() + event[1:]\n"
+            code += "     f = f.replace('Event', 'Handler')\n"
+            code += "     if f in locals():\n"
+            code += "         locals(f)(obj, SharedData)\n"
+
+            for e in vtkInteractionHandler.vtkEvents:
+                f = e[0].lower() + e[1:]
+                f = f.replace('Event', 'Handler')
+                if f in source:
+                    code += "Observer.AddObserver('%s', eventHandler)\n" % e
+
+            code += "if hasattr(Observer.vtkInstance, 'PlaceWidget'):\n"
+            code += "    Observer.vtkInstance.PlaceWidget()\n"
+            code += "Instance = Observer\n"
+        return Script(code, 'variables', 'variables'), preludes
 
 
 _modules = [vtkInteractionHandler]

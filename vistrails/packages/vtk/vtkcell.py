@@ -45,6 +45,7 @@ import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
+from vistrails.core.scripting import Script, Prelude
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -106,6 +107,38 @@ class VTKCell(SpreadsheetCell):
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ Show first value (vtkRenderer) in new window
+        """
+        code = ''
+        preludes = []
+        preludes.append(Prelude('import vtk'))
+
+        # Create the graphics structure. The renderer renders into the render
+        # window. The render window interactor captures mouse events and will
+        # perform appropriate camera or actor manipulation depending on the
+        # nature of the events.
+        code += 'renWin = vtk.vtkRenderWindow()\n'
+        code += 'renWin.AddRenderer(AddRenderer[0].vtkInstance)\n'
+        code += 'iren = vtk.vtkRenderWindowInteractor()\n'
+        code += 'iren.SetRenderWindow(renWin)\n'
+        code += 'renWin.SetSize(1024, 768)\n'
+        # This allows the interactor to initalize itself. It has to be
+        # called before an event loop.
+        code += 'iren.Initialize()\n'
+        # observer is passed as iHandler!
+        if "InteractionHandler" in module.connected_input_ports:
+            code += 'for iHandler in InteractionHandler:\n'
+            code += '    iHandler.SetInteractor(iren)\n'
+        # We'll zoom in a little by accessing the camera and invoking a "Zoom"
+        # method on it.
+        code += 'renWin.Render()\n'
+        # Start the event loop.
+        code += 'iren.Start()'
+        return Script(code, 'variables', 'variables'), preludes
+
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,

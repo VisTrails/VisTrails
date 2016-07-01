@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+from __future__ import division, absolute_import
 
 import copy
 import re
@@ -50,6 +50,7 @@ from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
+from vistrails.core.scripting import Script, Prelude
 from vistrails.core.system import systemType, current_dot_vistrails
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
@@ -61,9 +62,9 @@ from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
-from identifiers import identifier, version as package_version
+from .identifiers import identifier, version as package_version
 
-from .vtk_wrapper import vtk_classes
+from .vtk_wrapper import vvtk as vtk_classes
 from . import hasher
 
 
@@ -170,6 +171,33 @@ class vtkRendererOutput(OutputModule):
                            'SpreadsheetCell'):
         from .vtkcell import vtkRendererToSpreadsheet
         _output_modes.append(vtkRendererToSpreadsheet)
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ Show first value (vtkRenderer) in new window
+        """
+        code = ''
+        preludes = []
+        preludes.append(Prelude('import vtk'))
+
+        # Create the graphics structure. The renderer renders into the render
+        # window. The render window interactor captures mouse events and will
+        # perform appropriate camera or actor manipulation depending on the
+        # nature of the events.
+        code += 'renWin = vtk.vtkRenderWindow()\n'
+        code += 'renWin.AddRenderer(value[0].vtkInstance)\n'
+        code += 'iren = vtk.vtkRenderWindowInteractor()\n'
+        code += 'iren.SetRenderWindow(renWin)\n'
+        code += 'renWin.SetSize(1024, 768)\n'
+        # This allows the interactor to initalize itself. It has to be
+        # called before an event loop.
+        code += 'iren.Initialize()\n'
+        # We'll zoom in a little by accessing the camera and invoking a "Zoom"
+        # method on it.
+        code += 'renWin.Render()\n'
+        # Start the event loop.
+        code += 'iren.Start()'
+        return Script(code, 'variables', 'variables'), preludes
 
 _modules.append(vtkRendererOutput)
 

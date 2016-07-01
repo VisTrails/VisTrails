@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+from __future__ import division, absolute_import
 
 from itertools import izip, chain
 import re
@@ -189,16 +189,19 @@ def create_module(base_cls_name, node):
     callback = '_set_callback' if is_algorithm else None
     methods_last = hasattr(node.klass, 'SetRenderWindow')
 
+    compute = 'Update' if hasattr(node.klass, 'Update') else None
+
     module_spec = ClassSpec(module_name=node.name,
                             superklass=base_cls_name,
-                            code_ref=node.name,
+                            code_ref="vistrails.packages.vtk.vtk_wrapper."
+                                     "vvtk." + node.name,
                             docstring=node.klass.__doc__.decode('latin-1'),
                             callback=callback,
                             tempfile=tempfile,
                             cacheable=cacheable,
                             input_port_specs=input_ports,
                             output_port_specs=output_ports,
-                            compute='Update',
+                            compute=compute,
                             cleanup='_cleanup',
                             methods_last=methods_last,
                             abstract=is_abstract())
