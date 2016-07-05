@@ -1067,9 +1067,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
                     vistrails_root_directory(),
                     'tests', 'resources', 'looping_upgrades',
                     'workflow.xml'))
-            loaded_objs = load_vistrail(locator)
+            bundle = load_vistrail(locator)
             controller = VistrailController(
-                    loaded_objs[0], locator, *loaded_objs[1:])
+                    locator=locator, bundle=bundle)
 
             # Select version (triggers all the validation/upgrade/loading)
             self.assertEqual(controller.get_latest_version_in_graph(), 1)
@@ -1133,10 +1133,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
                     vistrails_root_directory(),
                     'tests', 'resources', 'looping_upgrades',
                     'workflow2.xml'))
-            loaded_objs = load_vistrail(locator)
-            controller = VistrailController(
-                    loaded_objs[0], locator, *loaded_objs[1:])
-
+            bundle = load_vistrail(locator)
+            controller = VistrailController(locator=locator,
+                                            bundle=bundle)
             # Select version (triggers all the validation/upgrade/loading)
             self.assertEqual(controller.get_latest_version_in_graph(), 1)
             try:

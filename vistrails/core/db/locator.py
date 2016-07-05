@@ -777,7 +777,7 @@ class TestUsersGuideVTL(unittest.TestCase):
                     get_package_manager().build_available_package_names_list()
                     f = os.path.join(root, file_name)
                     locator = FileLocator(f)
-                    version = locator._vnode
+                    version = locator.version_node
                     # if there is a version specified try to execute it,
                     # else just load the pipeline
                     if version:
