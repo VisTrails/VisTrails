@@ -149,8 +149,7 @@ def add_file_serializers(s):
     s.add_serializer("data", FileRefSerializer('data', 'data'))
 
 def add_bundle_types(s):
-    s.register_bundle_type(VistrailBundle, None)
-    s.register_bundle_type(VistrailBundle)
+    s.register_bundle_type(VistrailBundle, True)
     s.register_bundle_type(WorkflowBundle)
 
 def get_dir_bundle_serializer(dir_path, bundle=None):

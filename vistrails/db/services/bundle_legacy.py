@@ -149,7 +149,7 @@ def add_legacy_serializers(s):
     s.add_serializer("job", FileRefSerializer('job'))
 
 def add_legacy_bundle_types(s):
-    s.register_bundle_type(None, LegacyVistrailBundle)
+    s.register_bundle_type(LegacyVistrailBundle, True)
 
 class LegacyDirSerializer(DirectorySerializer):
     def __init__(self, dir_path, version=None, bundle=None, overwrite=False,

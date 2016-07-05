@@ -51,6 +51,17 @@ ElementTree = get_elementtree_library()
 
 """Want {"vistrail": VistrailBundleObj, "log": LogBundleObj}, then serialize using a persistence class."""
 
+# Idea is that we want the structure of the data to be distinct from the
+# possible serialization modes.
+# Bundle: representation of the objects tracked in a bundle
+# BundleObjMapping: how to translate from object type to a bundle obj
+#   (e.g. things like ids and naming)
+# BundleSerializer: how to serialize the entire bundle (e.g. to dir, zip, db)
+# Serializer: how to serialize a single type of bundle object
+# If we require an obj_type on the serializer, then we can tie obj_types across
+# BundleObjMapping and BundleObjSerializer (should retitle?)
+# would we ever serialize anything that wasn't a bundle obj?
+
 class BundleObj(object):
     """ A serializable object of type obj_type
 
@@ -390,10 +401,15 @@ class BundleSerializer(object):
     def is_lazy(self, obj_key, serializer_type):
         return (obj_key, serializer_type) in self._lazy_serializers
 
-    def register_bundle_type(self, bundle_cls):
+    def register_bundle_type(self, bundle_cls, default=False):
+        #FIXME should the type be a class variable?
+        bundle_type = bundle_cls().bundle_type
         if bundle_type in self._bundle_type_dict:
             raise VistrailsDBException('Bundle type "%s" already registered.' %
                                        bundle_type)
+        #FIXME default the first registered to be the default
+        if default:
+            self._bundle_type_dict[None] = bundle_cls
         self._bundle_type_dict[bundle_type] = bundle_cls
 
     def unregister_bundle_type(self, bundle_type):
@@ -1153,7 +1169,11 @@ class DirectorySerializer(BundleSerializer):
     def create_manifest(self, dir_path=None):
         if dir_path is None:
             dir_path = self._dir_path
-        self._manifest = self._manifest_cls(self.version, dir_path)
+
+        bundle_type = self._bundle.bundle_type if self._bundle is not None \
+            else None
+        self._manifest = self._manifest_cls(self.version, dir_path,
+                                            bundle_type)
 
     def load_manifest(self, dir_path=None):
         self.create_manifest(dir_path)
@@ -1643,7 +1663,7 @@ class TestBundles(unittest.TestCase):
             shutil.rmtree(d)
 
     def create_bundle(self):
-        b = Bundle()
+        b = Bundle(bundle_type="image")
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         s1 = FileSerializer()
         s1.load(fname1)
@@ -1798,11 +1818,15 @@ class TestBundles(unittest.TestCase):
     def test_bundle_sqlite3(self):
         self.run_bundle_db(SQLite3DatabaseTest)
 
+    class TestVTBundle(Bundle):
+        def __init__(self):
+            Bundle.__init__(self)
+
     def create_vt_bundle(self):
         from vistrails.db.domain import DBVistrail
         from vistrails.db.domain import DBLog
 
-        b = Bundle()
+        b = Bundle(bundle_type="vistrail")
         b.add_object(BundleObj(DBVistrail(), None, None))
         b.add_object(BundleObj(DBLog(), None, None))
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
@@ -1820,6 +1844,7 @@ class TestBundles(unittest.TestCase):
         try:
             b1 = self.create_vt_bundle()
             s1 = TestBundles.VistrailsDirSerializer(inner_d, bundle=b1)
+            s1.register_bundle_type(
             s1.save()
 
             s2 = TestBundles.VistrailsDirSerializer(inner_d)
