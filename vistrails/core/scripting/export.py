@@ -7,11 +7,12 @@ a standalone Python script.
 from __future__ import division, unicode_literals
 
 import ast
+import re
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import List
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.scripting.scripts import make_unique, Script
+from vistrails.core.scripting.scripts import make_unique, Script, Prelude
 from vistrails.core.scripting.utils import utf8
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 
@@ -42,7 +43,7 @@ def write_workflow_to_python(pipeline):
     # A "prelude" is a piece of code that is supposed to go at the top of the
     # file, and that shouldn't be repeated; things like import statements,
     # function/class definition, and constants
-    preludes = set()
+    preludes = []
 
     reg = get_module_registry()
 
@@ -61,12 +62,14 @@ def write_workflow_to_python(pipeline):
 
         # Gets the code
         code_preludes = []
-        if (not hasattr(module_class, 'to_python_script') or
-                module_class.to_python_script is None):
+        if not hasattr(module_class, 'to_python_script'):
+            # Use vistrails API to execute module
+            code, code_preludes = generate_api_code(module)
+        elif module_class.to_python_script is None:
             debug.critical("Module %s cannot be converted to Python" %
                            module.name)
             code = Script("# <Missing code>\n"
-                          "# %s doesn't define a function to_python_script()\n"
+                          "# %s has empty function to_python_script()\n"
                           "# VisTrails cannot currently export such modules" %
                           module.name,
                           'variables', 'variables')
@@ -79,7 +82,7 @@ def write_workflow_to_python(pipeline):
             assert isinstance(code, Script)
 
         modules[module_id] = code
-        preludes.update(code_preludes)
+        preludes.extend(code_preludes)
 
     # ########################################
     # Processes the preludes and writes the beginning of the file
@@ -92,14 +95,19 @@ def write_workflow_to_python(pipeline):
     prelude_renames = {}
     for prelude in preludes:
         prelude_renames.update(prelude.avoid_collisions(all_vars))
+    # remove duplicates
+    final_preludes = []
+    final_prelude_set = set()
+    for prelude in [unicode(p) for p in preludes]:
+        if prelude not in final_prelude_set:
+            final_prelude_set.add(prelude)
+            final_preludes.append(prelude)
+
     # Writes the preludes
-    for prelude in set([unicode(p) for p in preludes]): # set removes duplicates
-        #text.append('# Prelude')
+    for prelude in final_preludes:
         text.append(prelude)
-        #text.append('')
     #if preludes:
     #    text.append('# PRELUDE ENDS -- pipeline code follows\n\n')
-    text.append('')
     text.append('')
 
     # ########################################
@@ -157,29 +165,30 @@ def write_workflow_to_python(pipeline):
         # {dest_name: {source_name, depth_diff}}
         combined_inputs = {}
         # Adds functions
-        if not code.skip_functions:
-            for function in module.functions:
-                port = utf8(function.name)
-                if port not in code.used_inputs:
-                    print("NOT adding function %s (not used in script)" % port)
-                    continue
+        for function in module.functions:
+            port = utf8(function.name)
+            code.unset_inputs.discard(port)
+            if code.skip_functions:
+                continue
+            if port not in code.used_inputs:
+                print("NOT adding function %s (not used in script)" % port)
+                continue
 
-                ## Creates a variable with the value
-                name = make_unique(port, all_vars)
-                if len(function.params) == 1:
-                    value = function.params[0].value()
-                else:
-                    value = [repr(p.value()) for p in function.params]
+            ## Creates a variable with the value
+            name = make_unique(port, all_vars)
+            if len(function.params) == 1:
+                value = function.params[0].value()
+            else:
+                value = [p.value() for p in function.params]
 
-                depth = - iports[port].depth
-                print("Function %s: var %s, value %r" % (port,
-                                                         name, value))
-                text.append("# FUNCTION %s %s" % (port, name))
-                text.append('%s = %r' % (name, value))
-                code.unset_inputs.discard(port)
-                if port not in combined_inputs:
-                    combined_inputs[port] = []
-                combined_inputs[port].append((name, depth))
+            depth = - iports[port].depth
+            print("Function %s: var %s, value %r" % (port,
+                                                     name, value))
+            text.append("# FUNCTION %s %s" % (port, name))
+            text.append('%s = %r' % (name, value))
+            if port not in combined_inputs:
+                combined_inputs[port] = []
+            combined_inputs[port].append((name, depth))
 
         # Sets input connections
         conn_ids = sorted([conn_id for _, conn_id in
@@ -392,6 +401,46 @@ def write_workflow_to_python(pipeline):
         else:
             text.insert(0, 'from itertools import izip, product\n')
     return text
+
+
+def generate_api_code(module):
+    """ Start vistrails API, create module, assign inputs, compute, get outputs
+
+        This executes a module directly, without going through the interpreter.
+    """
+    preludes = []
+    desc = module.module_descriptor
+    pkg_name = desc.identifier.replace('.', '_')
+    preludes.append(Prelude('import vistrails.core.api as API'))
+    preludes.append(Prelude('from vistrails.core.modules.basic_modules import create_constant'))
+    preludes.append(Prelude('from vistrails.core.modules.vistrails_module import ModuleConnector'))
+    preludes.append(Prelude("%s = API.load_package(%r)" % (
+                            pkg_name, desc.identifier)))
+    code = ''
+    instance = re.sub('(?!^)([A-Z]+)', r'_\1', desc.name).lower()
+    code += "%s = %s.%s.descriptor.module()\n" % (instance, pkg_name, desc.name)
+    function_ports = [p.name for p in module.functions]
+    used_ports = set(function_ports)
+    used_ports.update(module.connected_input_ports)
+    # add default ports
+    reg = get_module_registry()
+    input_ports = set(reg.module_destination_ports_from_descriptor(False, desc))
+    input_ports.update(module.input_port_specs)
+    for iport in input_ports:
+        if iport.defaults:
+            used_ports.add(iport.name)
+    # This does not work with VTK because ports have already been merged into connections
+    for port_name in used_ports:
+#         code += "spec = %s.get_port_spec(%s, 'input')\n" % (instance, port_name)
+        code += "mc = ModuleConnector(create_constant(%s), 'value')\n" % port_name
+        code += "%s.set_input_port(%r, mc)\n" % (instance, port_name)
+    for port_name in module.connected_output_ports:
+        code += "%s.enable_output_port(%r)\n" % (instance, port_name)
+    code += "%s.compute()\n" % instance
+    for port_name in module.connected_output_ports:
+        code += "%s = %s.get_output(%r)\n" % (port_name, instance, port_name)
+    return Script(code, 'variables', 'variables'), preludes
+
 
 def combine(ops, name_map):
     """ Build lor loop arguments from a port combination description
