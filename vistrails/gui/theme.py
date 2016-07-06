@@ -515,6 +515,9 @@ class DefaultTheme(DefaultCoreTheme):
         self.PROVENANCE_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/search_database.png')
+        self.MASHUP_ICON = QtGui.QIcon(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/mashup.png')
 
         # Toolbar icon for visual query on a vistrail
         self.VISUAL_QUERY_ICON = QtGui.QIcon(
@@ -605,9 +608,6 @@ class DefaultTheme(DefaultCoreTheme):
         self.EXECUTE_MASHUP_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/mashup_execute.png')
-        self.MASHUP_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/mashup_create.png')
         self.MASHUP_ALIAS_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/alias.png')
