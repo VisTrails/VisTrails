@@ -391,7 +391,7 @@ class DownloadFile(Module):
         return DL(url, self, insecure).execute()
 
     @classmethod
-    def to_python_script(cls, module):
+    def to_python_script_disabled(cls, module):
         """ create script for downloading a file
         """
         # FIXME: Only HTTP supported right now
