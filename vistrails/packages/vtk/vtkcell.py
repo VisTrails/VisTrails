@@ -59,7 +59,18 @@ from identifiers import identifier as vtk_pkg_identifier
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration):
-        d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
+        print output_module.inputPorts['value'][0]()
+        # FIXME: This assumes a single renderer on each connection
+        # This is necessary while we need moduleId
+        # Handle the case where it is still a list (e.g. when used in script)
+        d0 = [(c(), c.obj) for c in output_module.inputPorts['value']]
+        d = dict()
+        for k, v in d0:
+            if isinstance(k, list):
+                for c in k:
+                    d[c] = v
+            else:
+                d[k] = v
         for ren, m in d.iteritems():
             ren.module_id = m.moduleInfo['moduleId']
         renderers = output_module.force_get_input('value') or []
