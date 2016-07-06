@@ -86,19 +86,6 @@ class DefaultTheme(DefaultCoreTheme):
                                                        self.CONFIGURE_HEIGHT)
 
         #### BRUSH & PEN ####
-        # Background brush of the pipeline view
-        # self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
-        #                  '/gui/resources/images/pipeline_bg.png'))
-        #     #QtGui.QColor("white"))
-        # # Background brush of the version tree
-        # self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
-        #                  '/gui/resources/images/version_bg.png'))
-        # Background brush of the query pipeline view
-        # self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
-        #     QtGui.QImage(vistrails.core.system.vistrails_root_directory() +
-        #                  '/gui/resources/images/query_bg.png'))
         self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QColor(128, 128, 128))
         self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
@@ -371,36 +358,6 @@ class DefaultTheme(DefaultCoreTheme):
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/execute_explore.png')
 
-        # The undo icons for the vistrail view toolbar
-        self.UNDO_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/undo.png')
-
-        # The redo icons for the vistrail view toolbar
-        self.REDO_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/redo.png')
-
-        # Icon to select the tabbed view
-        self.TABBED_VIEW_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/tabbed_view.png')
-    
-        # Icon to select the horizontal split view
-        self.HORIZONTAL_VIEW_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/hor_view.png')
-    
-        # Icon to select the vertical split view
-        self.VERTICAL_VIEW_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/ver_view.png')
-    
-        # Icon to select the docking-style view
-        self.DOCK_VIEW_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/dock_view.png')
-    
         # Toolbar icon for creating a new Vistrail
         self.NEW_VISTRAIL_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
@@ -430,17 +387,7 @@ class DefaultTheme(DefaultCoreTheme):
         self.SAVE_VISTRAIL_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/save_vistrail.png')
-    
-        # Toolbar icon for toggling console mode window
-        self.CONSOLE_MODE_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/console.png')
 
-        # Background image of the Visual Diff pipeline view
-        self.VISUAL_DIFF_BACKGROUND_IMAGE = QtGui.QImage(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/pipeline_bg.png')
-        
         # Toolbar icon for showing the Parameter Inspector window
         self.VISUAL_DIFF_SHOW_PARAM_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
@@ -461,25 +408,10 @@ class DefaultTheme(DefaultCoreTheme):
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/closeview.png')
 
-        # Toolbar icon for the dock toolbutton on the splitted window
-        self.DOCK_BACK_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/dockback.png')
-
         # Icon for adding string in the parameter exploration widget
         self.ADD_STRING_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/edit_add.png')
-
-        # Icon for moving string up in the parameter exploration widget
-        self.UP_STRING_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/up.png')
-
-        # Icon for moving string up in the parameter exploration widget
-        self.DOWN_STRING_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/down.png')
 
         # Icon for expand all/collapse all buttons in the Module Palette
         self.EXPAND_ALL_ICON = QtGui.QIcon(
@@ -523,30 +455,11 @@ class DefaultTheme(DefaultCoreTheme):
         self.VISUAL_QUERY_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/visual_query.png')
-        
-        # Toolbar icon for viewing the whole version tree
-        self.VIEW_FULL_TREE_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/full_tree.png')
-
-        # Toolbar icon for viewing the whole version tree
-        self.PERFORM_PARAMETER_EXPLORATION_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/perform_pe.png')
 
         # Toolbar icon for dragging pixmap of VisDiff
         self.VERSION_DRAG_PIXMAP = QtGui.QPixmap(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/dragging.png')
-
-        #Tabbar icon for detach a tab        
-        self.DETACH_TAB_ICON = QtGui.QIcon()
-        self.DETACH_TAB_ICON.addFile(vistrails.core.system.vistrails_root_directory() +
-                                     '/gui/resources/images/detach.png',
-                                     mode=QtGui.QIcon.Normal)
-        self.DETACH_TAB_ICON.addFile(vistrails.core.system.vistrails_root_directory() +
-                                     '/gui/resources/images/detach_on.png',
-                                     mode=QtGui.QIcon.Active)
 
         #toolbutton icon for pin/unpin palette
         self.PINNED_PALETTE_ICON = QtGui.QIcon(
@@ -570,10 +483,7 @@ class DefaultTheme(DefaultCoreTheme):
             '/gui/resources/images/time.png')        
         self.EXPLORE_SKIP_PIXMAP = QtGui.QPixmap(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/skip.png')        
-        self.REMOVE_PARAM_PIXMAP = QtGui.QPixmap(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/remove_param.png')        
+            '/gui/resources/images/skip.png')
         self.RIGHT_ARROW_PIXMAP = QtGui.QPixmap(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/right.png')        
@@ -592,22 +502,8 @@ class DefaultTheme(DefaultCoreTheme):
         self.ZOOM_CURSOR = QtGui.QCursor(QtGui.QPixmap(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/zoom.png'))
-                
-        # Cursor icon for zoom in/out graphics views
-        self.SELECT_ICON = QtGui.QIcon(QtGui.QPixmap(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/select_icon.png'))
-        self.PAN_ICON = QtGui.QIcon(QtGui.QPixmap(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/pan_icon.png'))
-        self.ZOOM_ICON = QtGui.QIcon(QtGui.QPixmap(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/zoom_icon.png'))
-        
+
         # Mashup Icons
-        self.EXECUTE_MASHUP_ICON = QtGui.QIcon(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/mashup_execute.png')
         self.MASHUP_ALIAS_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/alias.png')
@@ -624,13 +520,12 @@ class DefaultTheme(DefaultCoreTheme):
             '/gui/resources/images/view-refresh.png')
         
         # Saved Queries icons
-        self.QUERY_VIEW_ICON = self.ZOOM_ICON
+        self.QUERY_VIEW_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/zoom_icon.png'))
         self.QUERY_ARROW_ICON = QtGui.QIcon(QtGui.QPixmap(
                 vistrails.core.system.vistrails_root_directory() +
                 '/gui/resources/images/zoom_arrow_icon.png'))
-        self.QUERY_EDIT_ICON = QtGui.QIcon(QtGui.QPixmap(
-            vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/edit.png'))
 
         # Icon on the button to switch to single/multi line string edition
         self.MULTILINE_STRING_ICON = QtGui.QIcon(QtGui.QPixmap(
