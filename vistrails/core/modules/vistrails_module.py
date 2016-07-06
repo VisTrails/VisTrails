@@ -276,6 +276,7 @@ class Module(object):
         self.was_suspended = False
         self.is_while = False
         self.list_depth = 0
+        self.registry = None
         self.logging = _dummy_logging
 
         # isMethod stores whether a certain input port is a method.
