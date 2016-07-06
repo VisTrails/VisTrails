@@ -66,7 +66,7 @@ class BaseClassModule(Module):
         # convert params
         # convert values to vistrail types
         params = convert_port(port, params, self._translations['input'])
-        if len(self.input_specs[port.name].signature) > 1:
+        if ',' in port.port_type:
             params = list(params)
         else:
             params = [params]
@@ -281,7 +281,8 @@ class BaseClassModule(Module):
 
         # convert outputs to dict
         outputs_list = self.output_specs_order
-        outputs_list.remove('self') # self is automatically set by base Module
+        if 'self' in outputs_list:
+            outputs_list.remove('self') # self is automatically set by base Module
 
         # Get outputs
         self.call_outputs(instance, method_results)
@@ -700,7 +701,7 @@ class BaseClassModule(Module):
             class_name = '%s.%s' % (m, c)
 
             # create a nice instance name
-            instance = re.sub('([A-Z]+)', r'_\1',c).lower()
+            instance = re.sub('(?!^)([A-Z]+)', r'_\1',c).lower()
             code.append("%s = %s(%s)" % (instance, class_name, args))
             #instance = module._class[0](*args, **kwargs)
 
