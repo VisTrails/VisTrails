@@ -265,7 +265,7 @@ def get_server_news():
                 '304 File is up to date, no data returned',
                 response=resp)
     except requests.RequestException, e:
-        if not e.response or e.response.code != 304:
+        if not e.response or e.response.status_code != 304:
             debug.warning("Can't download server news", e)
     else:
         try:
