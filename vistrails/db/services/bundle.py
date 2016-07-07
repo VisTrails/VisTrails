@@ -49,18 +49,15 @@ from vistrails.db.services.db_utils import MySQLDBConnection, SQLite3Connection
 
 ElementTree = get_elementtree_library()
 
-"""Want {"vistrail": VistrailBundleObj, "log": LogBundleObj}, then serialize using a persistence class."""
-
-# Idea is that we want the structure of the data to be distinct from the
+# We want the structure of the data to be distinct from the
 # possible serialization modes.
+#
 # Bundle: representation of the objects tracked in a bundle
 # BundleObjMapping: how to translate from object type to a bundle obj
 #   (e.g. things like ids and naming)
 # BundleSerializer: how to serialize the entire bundle (e.g. to dir, zip, db)
 # BundleObjSerializer: how to serialize a single type of bundle object
-# If we require an obj_type on the serializer, then we can tie obj_types across
-# BundleObjMapping and BundleObjSerializer (should retitle?)
-# would we ever serialize anything that wasn't a bundle obj?
+# BaseSerializer: determine versions/bundle_type and pass to BundleSerializer
 
 class BundleObj(object):
     """ A serializable object of type obj_type
@@ -236,6 +233,13 @@ class BundleMapping(object):
         if mapping.attr_plural_name is not None:
             self._mappings_by_name[mapping.attr_plural_name] = mapping
 
+    def remove_mapping(self, obj_type):
+        m = self._mappings_by_type[obj_type]
+        del self._mappings_by_type[obj_type]
+        del self._mappings_by_name[m.attr_name]
+        if m.attr_plural_name in self._mappings_by_name:
+            del self._mappings_by_name[m.attr_plural_name]
+
     def has_mapping(self, obj_type):
         return obj_type in self._mappings_by_type
 
@@ -280,7 +284,7 @@ class BundleMapping(object):
             bundle_type = bundle_type
         if primary_obj_type is None:
             primary_obj_type = self.primary_obj_type
-        return BundleMapping(version, bundle_type, self._mappings_by_type,
+        return BundleMapping(version, bundle_type, self.mappings(),
                              primary_obj_type)
 
 class Bundle(BundleObjDictionary):
@@ -436,6 +440,14 @@ class BundleSerializer(object):
     def mapping(self):
         return self._mapping
 
+    # FIXME won't work because the BundleObjMappings require cloned mapping subobjs
+    # def clone(self, version=None, mapping=None):
+    #     if version is None:
+    #         version = self.version
+    #     if mapping is None:
+    #         mapping = self.mapping.clone()
+    #     return self.__class__(version, mapping, self._serializers.itervalues())
+
     def load(self, *args, **kwargs):
         raise NotImplementedError("Subclass must implement load.")
 
@@ -452,7 +464,7 @@ class BundleSerializer(object):
         # no need to separate serializer types (e.g. xml/json)
         # too much complication, just create a new mapping for that
         s_key = serializer.mapping.obj_type
-        print "REGISTERING:", s_key
+        # print "REGISTERING:", s_key
         if s_key in self._serializers:
             raise VistrailsDBException('Serializer already has object serializer '
                                        'for "%s" registered.' % s_key)
@@ -486,30 +498,8 @@ class BundleSerializer(object):
     def is_lazy(self, obj_type):
         return obj_type in self._lazy_serializers
 
-    # def register_bundle_type(self, bundle_cls, default=False):
-    #     #FIXME should the type be a class variable?
-    #     bundle_type = bundle_cls().bundle_type
-    #     if bundle_type in self._bundle_type_dict:
-    #         raise VistrailsDBException('Bundle type "%s" already registered.' %
-    #                                    bundle_type)
-    #     #FIXME default the first registered to be the default
-    #     if default:
-    #         self._bundle_type_dict[None] = bundle_cls
-    #     self._bundle_type_dict[bundle_type] = bundle_cls
-    #
-    # def unregister_bundle_type(self, bundle_type):
-    #     if bundle_type not in self._bundle_type_dict:
-    #         raise VistrailsDBException('Bundle type "%s" not registered.' %
-    #                                    bundle_type)
-    #     del self._bundle_type_dict[bundle_type]
-
     def new_bundle(self):
         return self._mapping.new_bundle()
-
-        # if bundle_type not in self._bundle_type_dict:
-        #     raise VistrailsDBException('Bundle type "%s" not registered.' %
-        #                                bundle_type)
-        # return self._bundle_type_dict[bundle_type]()
 
 class FileSerializer(BundleObjSerializer):
     """ Base serializer for DirectorySerializer
@@ -591,6 +581,7 @@ class FileRefSerializer(FileSerializer):
         # FIXME check for changed content (e.g. overwrite?)
         if obj.obj != path:
             shutil.copyfile(obj.obj, path)
+
 
 class XMLFileSerializer(FileSerializer):
     """ Serializes vistrails objects as xml files.
@@ -1205,7 +1196,7 @@ class FileManifest(Manifest):
             if header_arr[0].strip() != "VTBUNDLE":
                 raise VistrailsDBException("Not a VisTrails bundle")
             if len(header_arr) > 1 and header_arr[1].strip() != "":
-                self.version = header_arr[1].strip()
+                self.bundle_version = header_arr[1].strip()
             if len(header_arr) > 2 and header_arr[2].strip() != "":
                 self.bundle_type = header_arr[2].strip()
             for line in f:
@@ -1226,7 +1217,7 @@ class BaseSerializer(object):
         self._serializers = {}
 
     def register_serializer(self, s, bundle_type, version):
-        print "REGISTERING", s, bundle_type, version
+        # print "REGISTERING", s, bundle_type, version
         self._serializers[(bundle_type, version)] = s
 
     def unregister_serializer(self, bundle_type, version):
@@ -1253,34 +1244,17 @@ class DirectoryBaseSerializer(BaseSerializer):
     """ Serializes manifest and bundle objects to a directory
 
     """
-
-    MANIFEST_FNAME = "MANIFEST"
+    def __init__(self, manifest_cls=FileManifest):
+        BaseSerializer.__init__(self)
+        self.manifest_cls = manifest_cls
 
     def load_manifest(self, dir_path):
-        manifest = None
-        fname = os.path.join(dir_path, self.MANIFEST_FNAME)
-        with open(fname, 'rU') as f:
-            header = f.next()
-            header_arr = header.split('\t')
-            if header_arr[0].strip() != "VTBUNDLE":
-                raise VistrailsDBException("Not a VisTrails bundle")
-            if len(header_arr) > 1 and header_arr[1].strip() != "":
-                bundle_version = header_arr[1].strip()
-            if len(header_arr) > 2 and header_arr[2].strip() != "":
-                bundle_type = header_arr[2].strip()
-            manifest = Manifest(bundle_type, bundle_version)
-            for line in f:
-                args = line.strip().split('\t')
-                manifest.add_entry(*args)
+        manifest = self.manifest_cls(dir_path=dir_path)
+        manifest.load()
         return manifest
 
     def save_manifest(self, manifest, dir_path, all_files):
-        fname = os.path.join(dir_path, self.MANIFEST_FNAME)
-        with open(fname, 'w') as f:
-            print >>f, "VTBUNDLE\t" + manifest.bundle_version + "\t" + \
-                       manifest.bundle_type
-            for obj_type, obj_id, fname in sorted(manifest.get_items()):
-                print >>f, obj_type + "\t" + obj_id + "\t" + fname
+        manifest.save()
 
         # remove files not in MANIFEST
         # FIXME looks like this would not remove abstraction/vistrail if
@@ -1328,7 +1302,8 @@ class DirectoryBaseSerializer(BaseSerializer):
 
         s = self.get_serializer(bundle.bundle_type,
                                 bundle.version)
-        manifest = Manifest(bundle.bundle_type, bundle.version)
+        manifest = self.manifest_cls(bundle.bundle_type, bundle.version,
+                                     dir_path)
         s.save(bundle, dir_path, manifest)
         self.save_manifest(manifest, dir_path, all_files)
         bundle.serializer = self
@@ -1961,10 +1936,8 @@ class TestBundles(unittest.TestCase):
         try:
             b1 = self.create_vt_bundle()
             s.save(b1, inner_d)
-            print "B1:", b1.get_items()
 
             b2 = s.load(inner_d)
-            print "B2:", b2.get_items()
 
             self.compare_bundles(b1, b2)
         finally:

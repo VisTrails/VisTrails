@@ -48,9 +48,9 @@ from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.bundle import Bundle, BundleObj, \
+from vistrails.db.services.bundle import Bundle, BundleObj, BundleMapping, \
     XMLFileSerializer, XMLAppendSerializer,FileRefSerializer, \
-    DirectorySerializer, ZIPSerializer, \
+    DirectorySerializer, DirectoryBaseSerializer, ZIPBaseSerializer, \
     SingleRootBundleObjMapping, MultipleObjMapping, MultipleFileRefMapping
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
@@ -61,12 +61,34 @@ root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
 
 ElementTree = get_elementtree_library()
 
+vistrail_bmap = BundleMapping(my_version, 'vistrail',
+                              [SingleRootBundleObjMapping(
+                                  DBVistrail.vtType, 'vistrail'),
+                                  SingleRootBundleObjMapping(DBLog.vtType,
+                                                             'log'),
+                                  SingleRootBundleObjMapping(
+                                      DBRegistry.vtType, 'registry'),
+                                  MultipleObjMapping(DBMashuptrail.vtType,
+                                                     lambda obj: obj.db_name,
+                                                     'mashup'),
+                                  MultipleFileRefMapping('thumbnail'),
+                                  MultipleFileRefMapping('abstraction'),
+                                  SingleRootBundleObjMapping('job'),
+                                  MultipleFileRefMapping('data'),
+                              ],
+                              primary_obj_type='vistrail')
+workflow_bmap = vistrail_bmap.clone(primary_obj_type='workflow')
+workflow_bmap.remove_mapping('vistrail')
+workflow_bmap.add_mapping(
+    SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow'))
+
 class LogXMLSerializer(XMLAppendSerializer):
-    def __init__(self):
-        XMLAppendSerializer.__init__(self, DBLog.vtType,
+    def __init__(self, mapping):
+        XMLAppendSerializer.__init__(self, mapping,
                                      "http://www.vistrails.org/log.xsd",
                                      "translateLog",
                                      DBWorkflowExec.vtType,
+                                     'log',
                                      True, True)
 
     def create_obj(self, inner_obj_list=None):
@@ -81,9 +103,10 @@ class LogXMLSerializer(XMLAppendSerializer):
     def add_inner_obj(self, vt_obj, inner_obj):
         vt_obj.db_add_workflow_exec(inner_obj)
 
+
 class MashupXMLSerializer(XMLFileSerializer):
-    def __init__(self):
-        XMLFileSerializer.__init__(self, DBMashuptrail.vtType,
+    def __init__(self, mapping):
+        XMLFileSerializer.__init__(self, mapping,
                                    "http://www.vistrails.org/mashup.xsd",
                                    "translateMashup",
                                    inner_dir_name="mashups")
@@ -91,78 +114,47 @@ class MashupXMLSerializer(XMLFileSerializer):
     def finish_load(self, b_obj):
         b_obj.obj_type = "mashup"
 
-    def get_obj_id(self, vt_obj):
-        return vt_obj.db_name
+    def get_obj_id(self, b_obj):
+        return b_obj.obj.db_name
 
-#FIXME have some way to specify bundleobj mappings and serializers at once?
 
-bundle_obj_maps = \
-    {'log':
-         SingleRootBundleObjMapping(DBLog.vtType, 'log'),
-     'registry':
-         SingleRootBundleObjMapping(DBRegistry.vtType, 'registry'),
-     'mashup':
-         MultipleObjMapping(DBMashuptrail.vtType,
-                            lambda obj: obj.db_name,
-                            'mashup'),
-     'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
-     'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
-     'job': SingleRootBundleObjMapping('job', 'job'),
-     'data': MultipleFileRefMapping('data', 'data'),
-     }
-
-class VistrailBundle(Bundle):
-    def __init__(self):
-        maps = bundle_obj_maps.copy()
-        maps['vistrail'] = \
-            SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail')
-        Bundle.__init__(self, maps, "vistrail", "vistrail")
-
-class WorkflowBundle(Bundle):
-    def __init__(self):
-        maps = bundle_obj_maps.copy()
-        maps['workflow'] = \
-            SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow')
-        Bundle.__init__(self, maps, "workflow", "workflow")
-
-def new_bundle(bundle_type=None):
-    if bundle_type == "vistrail" or bundle_type is None:
-        return VistrailBundle()
-    elif bundle_type == "workflow":
-        return WorkflowBundle()
-    raise VistrailsDBException("Unknown bundle type:", bundle_type)
-
-#FIXME probably need to add bundle registration stuff
-
-def add_file_serializers(s):
-    s.add_serializer("vistrail",
-                     XMLFileSerializer(DBVistrail.vtType,
-                                       "http://www.vistrails.org/vistrail.xsd",
-                                       "translateVistrail",
-                                       True, True)),
-    s.add_serializer("log", LogXMLSerializer(), is_lazy=True)
-    s.add_serializer("mashup", MashupXMLSerializer())
-    s.add_serializer("thumbnail", FileRefSerializer("thumbnail",
-                                                    "thumbnails"))
-    s.add_serializer("abstraction", FileRefSerializer('abstraction', 'subworkflows'))
-    s.add_serializer("job", FileRefSerializer('job'))
-    s.add_serializer("data", FileRefSerializer('data', 'data'))
-
-def add_bundle_types(s):
-    s.register_bundle_type(VistrailBundle, True)
-    s.register_bundle_type(WorkflowBundle)
-
-def get_dir_bundle_serializer(dir_path, bundle=None):
-    s = DirectorySerializer(dir_path, version=my_version, bundle=bundle)
-    add_file_serializers(s)
-    add_bundle_types(s)
-    return s
-
-def get_zip_bundle_serializer(fname, bundle=None):
-    s = ZIPSerializer(fname, version=my_version, bundle=bundle)
-    add_file_serializers(s)
-    add_bundle_types(s)
-    return s
+base_dir_serializer = DirectoryBaseSerializer()
+vt_dir_serializer = DirectorySerializer(my_version, vistrail_bmap,
+                                        [XMLFileSerializer(
+                                            vistrail_bmap.get_mapping("vistrail"),
+                                            "http://www.vistrails.org/vistrail.xsd",
+                                            "translateVistrail",
+                                            True, True),
+                                        (LogXMLSerializer(
+                                                vistrail_bmap.get_mapping("log")), True),
+                                        MashupXMLSerializer(
+                                                vistrail_bmap.get_mapping(
+                                                    "mashuptrail")),
+                                        FileRefSerializer(
+                                            vistrail_bmap.get_mapping(
+                                                'abstraction'), 'subworkflows')])
+wf_dir_serializer = DirectorySerializer(my_version, workflow_bmap,
+                                        [XMLFileSerializer(
+                                            workflow_bmap.get_mapping("workflow"),
+                                            "http://www.vistrails.org/workflow.xsd",
+                                            "translateWorkflow",
+                                            True, True),
+                                            (LogXMLSerializer(
+                                                workflow_bmap.get_mapping("log")), True),
+                                            MashupXMLSerializer(
+                                                workflow_bmap.get_mapping(
+                                                    "mashuptrail")),
+                                            FileRefSerializer(
+                                                workflow_bmap.get_mapping(
+                                                    'abstraction'),
+                                                'subworkflows')])
+# add_file_serializers(bmap, vt_dir_serializer)
+base_dir_serializer.register_serializer(vt_dir_serializer,
+                                        'vistrail', my_version)
+base_dir_serializer.register_serializer(wf_dir_serializer,
+                                        'workflow', my_version)
+base_zip_serializer = ZIPBaseSerializer()
+base_zip_serializer.copy_serializers(base_dir_serializer)
 
 class DAOList(dict):
     def __init__(self):
@@ -550,7 +542,7 @@ class TestPersistence(unittest.TestCase):
 
     def create_vt_bundle(self):
         from vistrails.core.system import resource_directory
-        b = VistrailBundle()
+        b = Bundle(vistrail_bmap)
         b.add_object(DBVistrail())
         b.add_object(DBLog())
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
@@ -563,24 +555,22 @@ class TestPersistence(unittest.TestCase):
         d = tempfile.mkdtemp(prefix='vtbundle_test')
         inner_d = os.path.join(d, 'mybundle')
 
-        s1 = None
-        s2 = None
+        s = base_dir_serializer
+        b1 = None
+        b2 = None
         try:
             b1 = self.create_vt_bundle()
-            s1 = get_dir_bundle_serializer(inner_d, bundle=b1)
-            s1.save()
+            s.save(b1, inner_d)
 
-            s2 = get_dir_bundle_serializer(inner_d)
-            s2.set_lazy_loading(False)
-            b2 = s2.load()
+            b2 = s.load(inner_d)
 
             self.compare_bundles(b1, b2)
         finally:
-            if s1 is not None:
-                s1.cleanup()
-            if s2 is not None:
-                s2.cleanup()
-            # shutil.rmtree(d)
+            if b1:
+                b1.cleanup()
+            if b2:
+                b2.cleanup()
+            shutil.rmtree(d)
 
 if __name__ == '__main__':
     unittest.main()
