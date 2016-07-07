@@ -1251,12 +1251,18 @@ class BaseSerializer(object):
         del self._serializers[(bundle_type, version)]
 
     def get_serializer(self, bundle_type, version):
+        if (bundle_type, version) not in self._serializers:
+            raise ValueError('Version "%s" of bundle type "%s" not found.' %
+                             version, bundle_type)
         return self._serializers[(bundle_type, version)]
 
     def copy_serializers(self, other):
         """Copy serializers from other to self"""
         for s in other._serializers.itervalues():
             self.register_serializer(s)
+
+    def new_bundle(self, bundle_type, version):
+        return self.get_serializer(bundle_type, version).new_bundle()
 
     # def load_manifest(self, *args, **kwargs):
     #     raise NotImplementedError("Subclass must implement load_manifest.")
@@ -1420,13 +1426,26 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
         finally:
             z.close()
 
-        return super(ZIPBaseSerializer,self).load(dir_path)
+        bundle = super(ZIPBaseSerializer,self).load(dir_path)
+        bundle.set_metadata("zip_fname", file_path)
+        return bundle
 
     def save(self, bundle, file_path):
         # first save everything to a temporary directory as a
         # directory bundle and then zip it
 
         dir_path = bundle.get_metadata("dir_path")
+        zip_fname = bundle.get_metadata("zip_fname")
+        old_dir_path = None
+        if (zip_fname is not None and
+                    dir_path is not None and
+                    os.path.abspath(file_path) != os.path.abspath(zip_fname)):
+            # make sure we generate a new dir_path
+            # we will clean up the old dir_path
+            # !!! save as needs to be aware of this !!!
+            # cannot do this here due to lazy loads
+            old_dir_path = dir_path
+            dir_path = None
         if dir_path is None:
             dir_path = tempfile.mkdtemp(prefix='vt_save')
             bundle.set_metadata("dir_path", dir_path)
@@ -1450,6 +1469,9 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
         finally:
             os.unlink(tmp_zip_file)
             os.rmdir(tmp_zip_dir)
+            if old_dir_path is not None:
+                shutil.rmtree(old_dir_path)
+            bundle.set_metadata("zip_fname", file_path)
 
     def cleanup(self, bundle):
         dir_path = bundle.get_metadata("dir_path")
@@ -1618,6 +1640,70 @@ class DBSerializer(BundleSerializer):
         connection_obj.get_connection().commit()
         self._bundle.serializer = self
 
+# GLOBALS
+
+bundle_mappings = {}
+dir_serializer = DirectoryBaseSerializer()
+zip_serializer = ZIPBaseSerializer()
+
+def register_bundle_mapping(bmap):
+    #FIXME handle case where already exists, for now, clobber
+    if (bmap.bundle_type, bmap.version) not in bundle_mappings:
+        pass
+    bundle_mappings[(bmap.bundle_type, bmap.version)] = bmap
+
+def unregister_bundle_mapping(bmap=None, bundle_type=None, version=None):
+    if bmap is not None:
+        bundle_type = bmap.bundle_type
+        version = bmap.version
+    if bundle_type is None or version is None:
+        raise TypeError("Either bmap or the (bundle_type and version) arguments"
+                        " must be passed.")
+    del bundle_mappings[(bundle_type, version)]
+    #TODO add checks on the serializers
+
+def new_bundle(bundle_type, version):
+    if (bundle_type, version) not in bundle_mappings:
+        raise ValueError('Mapping for bersion "%s" of bundle type "%s" '
+                         'not found.' % version, bundle_type)
+    return bundle_mappings[(bundle_type, version)].new_bundle()
+
+def register_dir_serializer(s, also_zip=True):
+    dir_serializer.register_serializer(s)
+    if also_zip:
+        zip_serializer.register_serializer(s)
+    register_bundle_mapping(s.mapping)
+
+def register_zip_serializer(s, also_dir=False):
+    zip_serializer.register_serializer(s)
+    if also_dir:
+        dir_serializer.register_serializer(s)
+    register_bundle_mapping(s.mapping)
+
+def unregister_dir_serializer(s=None, bundle_type=None, version=None,
+                              also_zip=True):
+    if s is not None:
+        bundle_type = s.bundle_type
+        version = s.version
+    if bundle_type is None or version is None:
+        raise TypeError("Either s or the (bundle_type and version) arguments"
+                        " must be passed.")
+    dir_serializer.unregister_serializer(bundle_type, version)
+    if also_zip:
+        zip_serializer.unregister_serializer(bundle_type, version)
+
+def unregister_zip_serializer(s=None, bundle_type=None, version=None,
+                              also_dir=False):
+    if s is not None:
+        bundle_type = s.bundle_type
+        version = s.version
+    if bundle_type is None or version is None:
+        raise TypeError("Either s or the (bundle_type and version) arguments"
+                        " must be passed.")
+    zip_serializer.unregister_serializer(bundle_type, version)
+    if also_dir:
+        dir_serializer.unregister_serializer(bundle_type, version)
+
 import unittest
 import os
 import shutil
@@ -1672,60 +1758,60 @@ from vistrails.core.system import resource_directory, vistrails_root_directory
 
 class TestBundles(unittest.TestCase):
 
-    #FIXME want to specify serializer at same time--no bobj mapping later
-    bmap = BundleMapping('0.0.0', 'vistrail',
-                         [SingleRootBundleObjMapping(
-                             DBVistrail.vtType, 'vistrail'),
-                             SingleRootBundleObjMapping(DBLog.vtType,
-                                                        'log'),
-                             SingleRootBundleObjMapping(
-                                 DBRegistry.vtType, 'registry'),
-                             MultipleObjMapping(DBMashuptrail.vtType,
-                                                lambda obj: obj.db_name,
-                                                'mashup'),
-                             MultipleFileRefMapping('thumbnail'),
-                             MultipleFileRefMapping('abstraction'),
-                             SingleRootBundleObjMapping('job'),
-                             MultipleFileRefMapping('data'),
-                         ])
+    def register_vt_serializer(self):
+        #FIXME want to specify serializer at same time--no bobj mapping later
+        bmap = BundleMapping('0.0.0', 'vistrail',
+                             [SingleRootBundleObjMapping(
+                                 DBVistrail.vtType, 'vistrail'),
+                                 SingleRootBundleObjMapping(DBLog.vtType,
+                                                            'log'),
+                                 SingleRootBundleObjMapping(
+                                     DBRegistry.vtType, 'registry'),
+                                 MultipleObjMapping(DBMashuptrail.vtType,
+                                                    lambda obj: obj.db_name,
+                                                    'mashup'),
+                                 MultipleFileRefMapping('thumbnail'),
+                                 MultipleFileRefMapping('abstraction'),
+                                 SingleRootBundleObjMapping('job'),
+                                 MultipleFileRefMapping('data'),
+                             ])
 
-    class LogXMLSerializer(XMLAppendSerializer):
-        def __init__(self, mapping):
-            XMLAppendSerializer.__init__(self, mapping,
-                                         "http://www.vistrails.org/log.xsd",
-                                         "translateLog",
-                                         DBWorkflowExec.vtType,
-                                         'log',
-                                         True, True)
+        class LogXMLSerializer(XMLAppendSerializer):
+            def __init__(self, mapping):
+                XMLAppendSerializer.__init__(self, mapping,
+                                             "http://www.vistrails.org/log.xsd",
+                                             "translateLog",
+                                             DBWorkflowExec.vtType,
+                                             'log',
+                                             True, True)
 
-        def create_obj(self, inner_obj_list=None):
-            if inner_obj_list is not None:
-                return DBLog(workflow_execs=inner_obj_list)
-            else:
-                return DBLog()
+            def create_obj(self, inner_obj_list=None):
+                if inner_obj_list is not None:
+                    return DBLog(workflow_execs=inner_obj_list)
+                else:
+                    return DBLog()
 
-        def get_inner_objs(self, vt_obj):
-            return vt_obj.db_workflow_execs
+            def get_inner_objs(self, vt_obj):
+                return vt_obj.db_workflow_execs
 
-        def add_inner_obj(self, vt_obj, inner_obj):
-            vt_obj.db_add_workflow_exec(inner_obj)
+            def add_inner_obj(self, vt_obj, inner_obj):
+                vt_obj.db_add_workflow_exec(inner_obj)
 
-    class MashupXMLSerializer(XMLFileSerializer):
-        def __init__(self, mapping):
-            XMLFileSerializer.__init__(self, mapping,
-                                       "http://www.vistrails.org/mashup.xsd",
-                                       "translateMashup",
-                                       inner_dir_name="mashups")
+        class MashupXMLSerializer(XMLFileSerializer):
+            def __init__(self, mapping):
+                XMLFileSerializer.__init__(self, mapping,
+                                           "http://www.vistrails.org/mashup.xsd",
+                                           "translateMashup",
+                                           inner_dir_name="mashups")
 
-        def finish_load(self, b_obj):
-            b_obj.obj_type = "mashup"
+            def finish_load(self, b_obj):
+                b_obj.obj_type = "mashup"
 
-        def get_obj_id(self, b_obj):
-            return b_obj.obj.db_name
+            def get_obj_id(self, b_obj):
+                return b_obj.obj.db_name
 
 
-    base_dir_serializer = DirectoryBaseSerializer()
-    vt_dir_serializer = DirectorySerializer(bmap,
+        vt_dir_serializer = DirectorySerializer(bmap,
                                             [XMLFileSerializer(
                                                  bmap.get_mapping("vistrail"),
                                                  "http://www.vistrails.org/vistrail.xsd",
@@ -1735,10 +1821,16 @@ class TestBundles(unittest.TestCase):
                                                  bmap.get_mapping("log")), True),
                                              MashupXMLSerializer(
                                                  bmap.get_mapping("mashuptrail"))])
-    # add_file_serializers(bmap, vt_dir_serializer)
-    base_dir_serializer.register_serializer(vt_dir_serializer)
-    base_zip_serializer = ZIPBaseSerializer()
-    base_zip_serializer.copy_serializers(base_dir_serializer)
+
+        register_dir_serializer(vt_dir_serializer)
+
+    def unregister_vt_serializer(self):
+        unregister_dir_serializer(bundle_type='vistrail', version='0.0.0')
+
+    # # add_file_serializers(bmap, vt_dir_serializer)
+    # base_dir_serializer.register_serializer(vt_dir_serializer)
+    # base_zip_serializer = ZIPBaseSerializer()
+    # base_zip_serializer.copy_serializers(base_dir_serializer)
 
     class VistrailsDBSerializer(DBSerializer):
         def __init__(self, connection_obj, version=None, bundle_id=None, name="",
@@ -1950,7 +2042,7 @@ class TestBundles(unittest.TestCase):
         from vistrails.db.domain import DBVistrail
         from vistrails.db.domain import DBLog
 
-        b = Bundle(TestBundles.bmap)
+        b = new_bundle('vistrail', '0.0.0')
         b.add_object(BundleObj(DBVistrail(), None, None))
         b.add_object(BundleObj(DBLog(), None, None))
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
@@ -1963,14 +2055,14 @@ class TestBundles(unittest.TestCase):
         d = tempfile.mkdtemp(prefix='vtbundle_test')
         inner_d = os.path.join(d, 'mybundle')
 
-        s = TestBundles.base_dir_serializer
+        self.register_vt_serializer()
         b1 = None
         b2 = None
         try:
             b1 = self.create_vt_bundle()
-            s.save(b1, inner_d)
+            dir_serializer.save(b1, inner_d)
 
-            b2 = s.load(inner_d)
+            b2 = dir_serializer.load(inner_d)
 
             self.compare_bundles(b1, b2)
         finally:
@@ -1979,19 +2071,20 @@ class TestBundles(unittest.TestCase):
             if b2:
                 b2.cleanup()
             shutil.rmtree(d)
+            self.unregister_vt_serializer()
 
     def test_vt_zip_bundle(self):
         (h, fname) = tempfile.mkstemp(prefix='vtbundle_test', suffix='.zip')
         os.close(h)
 
-        s = TestBundles.base_zip_serializer
+        self.register_vt_serializer()
         b1 = None
         b2 = None
         try:
             b1 = self.create_vt_bundle()
-            s.save(b1, fname)
+            zip_serializer.save(b1, fname)
 
-            b2 = s.load(fname)
+            b2 = zip_serializer.load(fname)
 
             self.compare_bundles(b1, b2)
         finally:
@@ -2000,6 +2093,7 @@ class TestBundles(unittest.TestCase):
             if b2:
                 b2.cleanup()
             os.unlink(fname)
+            self.unregister_vt_serializer()
 
     # def test_old_vt_dir_load(self):
     #     d = tempfile.mkdtemp(prefix='vtbundle_test')

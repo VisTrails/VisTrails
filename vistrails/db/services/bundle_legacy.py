@@ -41,15 +41,12 @@ from vistrails.core import debug
 from vistrails.core.system import resource_directory, vistrails_root_directory
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBLog, DBWorkflowExec, DBMashuptrail
-from vistrails.db.services.bundle import Bundle, BundleObj, XMLFileSerializer, \
-    XMLAppendSerializer,FileRefSerializer, DirectoryBaseSerializer, ZIPBaseSerializer,\
-    DirectorySerializer, Manifest, SingleRootBundleObjMapping, MultipleObjMapping, \
-    MultipleFileRefMapping, BundleMapping
+import vistrails.db.services.bundle as bundle
 import vistrails.db.versions
 
-class DummyManifest(Manifest):
+class DummyManifest(bundle.Manifest):
     def __init__(self, bundle_type='vistrail', bundle_version='1.0.4', dir_path=None):
-        Manifest.__init__(self, bundle_type, bundle_version)
+        bundle.Manifest.__init__(self, bundle_type, bundle_version)
         self._dir_path = dir_path
 
     def load(self):
@@ -74,32 +71,32 @@ class DummyManifest(Manifest):
         pass
 
 # FIXME want to specify serializer at same time--no bobj mapping later
-legacy_bmap = BundleMapping('1.0.4', 'vistrail',
-                            [SingleRootBundleObjMapping(
+legacy_bmap = bundle.BundleMapping('1.0.4', 'vistrail',
+                            [bundle.SingleRootBundleObjMapping(
                                 DBVistrail.vtType, 'vistrail'),
-                                SingleRootBundleObjMapping(DBLog.vtType,
+                             bundle.SingleRootBundleObjMapping(DBLog.vtType,
                                                            'log'),
-                                MultipleObjMapping(DBMashuptrail.vtType,
+                             bundle.MultipleObjMapping(DBMashuptrail.vtType,
                                                    lambda obj: obj.db_name,
                                                    'mashup'),
-                                MultipleFileRefMapping('thumbnail'),
-                                MultipleFileRefMapping('abstraction'),
-                                SingleRootBundleObjMapping('job'),
+                             bundle.MultipleFileRefMapping('thumbnail'),
+                             bundle.MultipleFileRefMapping('abstraction'),
+                             bundle.SingleRootBundleObjMapping('job'),
                             ])
 
-class LegacyAbstractionFileSerializer(FileRefSerializer):
+class LegacyAbstractionFileSerializer(bundle.FileRefSerializer):
     def __init__(self, mapping):
-        FileRefSerializer.__init__(self, mapping, 'abstraction')
+        bundle.FileRefSerializer.__init__(self, mapping, 'abstraction')
 
     def get_obj_id(self, filename):
-        return FileRefSerializer.get_obj_id(self, filename)[len('abstraction_'):]
+        return bundle.FileRefSerializer.get_obj_id(self, filename)[len('abstraction_'):]
 
     def get_basename(self, obj):
         return 'abstraction_%s' % obj.id
 
-class LegacyLogXMLSerializer(XMLAppendSerializer):
+class LegacyLogXMLSerializer(bundle.XMLAppendSerializer):
     def __init__(self, mapping):
-        XMLAppendSerializer.__init__(self, mapping,
+        bundle.XMLAppendSerializer.__init__(self, mapping,
                                      "http://www.vistrails.org/log.xsd",
                                      "translateLog",
                                      DBWorkflowExec.vtType,
@@ -117,9 +114,9 @@ class LegacyLogXMLSerializer(XMLAppendSerializer):
     def add_inner_obj(self, vt_obj, inner_obj):
         vt_obj.db_add_workflow_exec(inner_obj)
 
-class LegacyMashupXMLSerializer(XMLFileSerializer):
+class LegacyMashupXMLSerializer(bundle.XMLFileSerializer):
     def __init__(self, mapping):
-        XMLFileSerializer.__init__(self, mapping,
+        bundle.XMLFileSerializer.__init__(self, mapping,
                                    "http://www.vistrails.org/mashup.xsd",
                                    "translateMashup",
                                    inner_dir_name="mashups")
@@ -130,9 +127,8 @@ class LegacyMashupXMLSerializer(XMLFileSerializer):
     def get_obj_id(self, b_obj):
         return b_obj.obj.db_name
 
-base_dir_serializer = DirectoryBaseSerializer()
-vt_dir_serializer = DirectorySerializer(legacy_bmap,
-                                        [XMLFileSerializer(
+vt_dir_serializer = bundle.DirectorySerializer(legacy_bmap,
+                                        [bundle.XMLFileSerializer(
                                             legacy_bmap.get_mapping("vistrail"),
                                             "http://www.vistrails.org/vistrail.xsd",
                                             "translateVistrail",
@@ -142,13 +138,11 @@ vt_dir_serializer = DirectorySerializer(legacy_bmap,
                                             LegacyMashupXMLSerializer(
                                                 legacy_bmap.get_mapping(
                                                     "mashuptrail")),
-                                            FileRefSerializer(legacy_bmap.get_mapping("thumbnail"),
+                                            bundle.FileRefSerializer(legacy_bmap.get_mapping("thumbnail"),
                                                                  'thumbs'),
                                             LegacyAbstractionFileSerializer(legacy_bmap.get_mapping("abstraction"))
                                         ], manifest_cls=DummyManifest)
-base_dir_serializer.register_serializer(vt_dir_serializer)
-base_zip_serializer = ZIPBaseSerializer()
-base_zip_serializer.copy_serializers(base_dir_serializer)
+bundle.register_dir_serializer(vt_dir_serializer)
 
 class TestLegacyBundles(unittest.TestCase):
     def compare_bundles(self, b1, b2):
@@ -172,17 +166,12 @@ class TestLegacyBundles(unittest.TestCase):
         b2 = None
         b3 = None
         try:
-            s1 = base_zip_serializer
-            b1 = s1.load(in_fname)
-            # have to reset the dir_path on bundle, otherwise we assume we are
-            # updating in place
-            b1.set_metadata('dir_path', None)
-            s2 = base_zip_serializer
-            s2.save(b1, out_fname)
-            b1.set_metadata('dir_path', None)
+            s = bundle.zip_serializer
+            b1 = s.load(in_fname)
+            s.save(b1, out_fname)
+
             # FIXME check if file structure matches what we expect
-            s3 = base_zip_serializer
-            b2 = s3.load(out_fname)
+            b2 = s.load(out_fname)
             self.compare_bundles(b1, b2)
         finally:
             if b1:
