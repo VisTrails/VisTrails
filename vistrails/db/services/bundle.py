@@ -414,18 +414,14 @@ class BundleObjSerializer(object):
         raise NotImplementedError("Subclass must implement save.")
 
 class BundleSerializer(object):
-    def __init__(self, version=None, mapping=None, serializers=[]):
-        if mapping is None:
-            self._mapping = BundleMapping(version)
-        else:
-            self._mapping = mapping
+    def __init__(self, mapping, serializers=[]):
+        self._mapping = mapping
         # self._bundle = bundle
         # self._bundle_type_dict = {}
         # _serializers[obj_key][serializer_type] = cls
         self._serializers = {}
         self._lazy_serializers = set()
         self.lazy = True
-        self.version = version
         for s in serializers:
             lazy = False
             if type(s) == tuple:
@@ -435,6 +431,10 @@ class BundleSerializer(object):
     @property
     def bundle_type(self):
         return self._mapping.bundle_type
+
+    @property
+    def version(self):
+        return self._mapping.version
 
     @property
     def mapping(self):
@@ -1209,6 +1209,33 @@ class FileManifest(Manifest):
             for obj_type, obj_id, fname in sorted(self.get_items()):
                 print >>f, obj_type + "\t" + obj_id + "\t" + fname
 
+class DummyManifest(Manifest):
+    """Used when we don't have a manifest. Assume a legacy structure."""
+    def __init__(self, bundle_type='vistrail', bundle_version='1.0.4', dir_path=None):
+        Manifest.__init__(self, bundle_type, bundle_version)
+        self._dir_path = dir_path
+
+    def load(self):
+        for root, dirs, files in os.walk(self._dir_path):
+            for fname in files:
+                if fname == 'vistrail' and root == self._dir_path:
+                    self.add_entry('vistrail', None, 'vistrail')
+                elif fname == 'log' and root == self._dir_path:
+                    self.add_entry('log', None, 'log')
+                elif fname.startswith('abstraction_'):
+                    abs_id = fname[len('abstraction_'):]
+                    self.add_entry('abstraction', abs_id, fname)
+                elif root == os.path.join(self._dir_path, 'thumbs'):
+                    self.add_entry('thumbnail', fname, fname)
+                elif root == os.path.join(self._dir_path, 'mashups'):
+                    self.add_entry('mashup', fname, fname)
+                else:
+                    debug.warning("Unkown file, ignoring:", os.path.join(root, fname))
+
+    def save(self):
+        # don't actually do anything here since legacy vts have no manifest file
+        pass
+
 class BundleMetadata(dict):
     pass
 
@@ -1216,9 +1243,9 @@ class BaseSerializer(object):
     def __init__(self):
         self._serializers = {}
 
-    def register_serializer(self, s, bundle_type, version):
+    def register_serializer(self, s):
         # print "REGISTERING", s, bundle_type, version
-        self._serializers[(bundle_type, version)] = s
+        self._serializers[(s.bundle_type, s.version)] = s
 
     def unregister_serializer(self, bundle_type, version):
         del self._serializers[(bundle_type, version)]
@@ -1228,8 +1255,8 @@ class BaseSerializer(object):
 
     def copy_serializers(self, other):
         """Copy serializers from other to self"""
-        for k, s in other._serializers.items():
-            self.register_serializer(s, *k)
+        for s in other._serializers.itervalues():
+            self.register_serializer(s)
 
     # def load_manifest(self, *args, **kwargs):
     #     raise NotImplementedError("Subclass must implement load_manifest.")
@@ -1244,12 +1271,11 @@ class DirectoryBaseSerializer(BaseSerializer):
     """ Serializes manifest and bundle objects to a directory
 
     """
-    def __init__(self, manifest_cls=FileManifest):
+    def __init__(self):
         BaseSerializer.__init__(self)
-        self.manifest_cls = manifest_cls
 
-    def load_manifest(self, dir_path):
-        manifest = self.manifest_cls(dir_path=dir_path)
+    def load_manifest(self, manifest_cls, dir_path):
+        manifest = manifest_cls(dir_path=dir_path)
         manifest.load()
         return manifest
 
@@ -1270,8 +1296,15 @@ class DirectoryBaseSerializer(BaseSerializer):
                 os.unlink(f)
 
     def load(self, dir_path):
-        manifest = self.load_manifest(dir_path)
+        # allow manifests to be parsed diff. after serializer is identified
+        manifest_fname = os.path.join(dir_path, "MANIFEST")
+        if os.path.exists(manifest_fname):
+            manifest = FileManifest(dir_path=dir_path)
+        else:
+            manifest = DummyManifest(dir_path=dir_path)
+        manifest.load()
         s = self.get_serializer(manifest.bundle_type, manifest.bundle_version)
+        manifest = self.load_manifest(s.manifest_cls, dir_path)
         bundle = s.load(dir_path, manifest)
         bundle.serializer = self
         return bundle
@@ -1302,8 +1335,7 @@ class DirectoryBaseSerializer(BaseSerializer):
 
         s = self.get_serializer(bundle.bundle_type,
                                 bundle.version)
-        manifest = self.manifest_cls(bundle.bundle_type, bundle.version,
-                                     dir_path)
+        manifest = s.manifest_cls(bundle.bundle_type, bundle.version, dir_path)
         s.save(bundle, dir_path, manifest)
         self.save_manifest(manifest, dir_path, all_files)
         bundle.serializer = self
@@ -1312,8 +1344,10 @@ class DirectoryBaseSerializer(BaseSerializer):
         pass
 
 class DirectorySerializer(BundleSerializer):
-    def __init__(self, version=None, mapping=None, serializers=[]):
-        BundleSerializer.__init__(self, version, mapping, serializers)
+    def __init__(self, mapping=None, serializers=[],
+                 manifest_cls=FileManifest):
+        BundleSerializer.__init__(self, mapping, serializers)
+        self.manifest_cls = manifest_cls
         self.add_default_serializers()
 
     def add_default_serializers(self):
@@ -1691,7 +1725,7 @@ class TestBundles(unittest.TestCase):
 
 
     base_dir_serializer = DirectoryBaseSerializer()
-    vt_dir_serializer = DirectorySerializer('0.0.0', bmap,
+    vt_dir_serializer = DirectorySerializer(bmap,
                                             [XMLFileSerializer(
                                                  bmap.get_mapping("vistrail"),
                                                  "http://www.vistrails.org/vistrail.xsd",
@@ -1702,8 +1736,7 @@ class TestBundles(unittest.TestCase):
                                              MashupXMLSerializer(
                                                  bmap.get_mapping("mashuptrail"))])
     # add_file_serializers(bmap, vt_dir_serializer)
-    base_dir_serializer.register_serializer(vt_dir_serializer,
-        'vistrail', '0.0.0')
+    base_dir_serializer.register_serializer(vt_dir_serializer)
     base_zip_serializer = ZIPBaseSerializer()
     base_zip_serializer.copy_serializers(base_dir_serializer)
 
@@ -1783,8 +1816,8 @@ class TestBundles(unittest.TestCase):
         try:
             b1 = self.create_bundle()
             s = DirectoryBaseSerializer()
-            ds = DirectorySerializer('0.0.0', b1.mapping)
-            s.register_serializer(ds, 'image', '0.0.0')
+            ds = DirectorySerializer(b1.mapping)
+            s.register_serializer(ds)
 
             s.save(b1, inner_d)
 
@@ -1803,14 +1836,14 @@ class TestBundles(unittest.TestCase):
         try:
             b1 = self.create_bundle()
             s1 = ZIPBaseSerializer()
-            ds1 = DirectorySerializer('0.0.0', b1.mapping)
-            s1.register_serializer(ds1, 'image', '0.0.0')
+            ds1 = DirectorySerializer(b1.mapping)
+            s1.register_serializer(ds1)
 
             s1.save(b1, fname)
 
             s2 = ZIPBaseSerializer()
-            ds2 = DirectorySerializer('0.0.0', b1.mapping)
-            s2.register_serializer(ds2, 'image', '0.0.0')
+            ds2 = DirectorySerializer(b1.mapping)
+            s2.register_serializer(ds2)
 
 
             b2 = s2.load(fname)

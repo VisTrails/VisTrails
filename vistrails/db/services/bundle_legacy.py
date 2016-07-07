@@ -130,8 +130,8 @@ class LegacyMashupXMLSerializer(XMLFileSerializer):
     def get_obj_id(self, b_obj):
         return b_obj.obj.db_name
 
-base_dir_serializer = DirectoryBaseSerializer(manifest_cls=DummyManifest)
-vt_dir_serializer = DirectorySerializer('1.0.4', legacy_bmap,
+base_dir_serializer = DirectoryBaseSerializer()
+vt_dir_serializer = DirectorySerializer(legacy_bmap,
                                         [XMLFileSerializer(
                                             legacy_bmap.get_mapping("vistrail"),
                                             "http://www.vistrails.org/vistrail.xsd",
@@ -145,10 +145,9 @@ vt_dir_serializer = DirectorySerializer('1.0.4', legacy_bmap,
                                             FileRefSerializer(legacy_bmap.get_mapping("thumbnail"),
                                                                  'thumbs'),
                                             LegacyAbstractionFileSerializer(legacy_bmap.get_mapping("abstraction"))
-                                        ])
-base_dir_serializer.register_serializer(vt_dir_serializer,
-                                        'vistrail', '1.0.4')
-base_zip_serializer = ZIPBaseSerializer(manifest_cls=DummyManifest)
+                                        ], manifest_cls=DummyManifest)
+base_dir_serializer.register_serializer(vt_dir_serializer)
+base_zip_serializer = ZIPBaseSerializer()
 base_zip_serializer.copy_serializers(base_dir_serializer)
 
 class TestLegacyBundles(unittest.TestCase):

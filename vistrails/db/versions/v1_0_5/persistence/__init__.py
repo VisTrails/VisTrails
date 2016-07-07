@@ -119,7 +119,7 @@ class MashupXMLSerializer(XMLFileSerializer):
 
 
 base_dir_serializer = DirectoryBaseSerializer()
-vt_dir_serializer = DirectorySerializer(my_version, vistrail_bmap,
+vt_dir_serializer = DirectorySerializer(vistrail_bmap,
                                         [XMLFileSerializer(
                                             vistrail_bmap.get_mapping("vistrail"),
                                             "http://www.vistrails.org/vistrail.xsd",
@@ -133,7 +133,7 @@ vt_dir_serializer = DirectorySerializer(my_version, vistrail_bmap,
                                         FileRefSerializer(
                                             vistrail_bmap.get_mapping(
                                                 'abstraction'), 'subworkflows')])
-wf_dir_serializer = DirectorySerializer(my_version, workflow_bmap,
+wf_dir_serializer = DirectorySerializer(workflow_bmap,
                                         [XMLFileSerializer(
                                             workflow_bmap.get_mapping("workflow"),
                                             "http://www.vistrails.org/workflow.xsd",
@@ -149,10 +149,8 @@ wf_dir_serializer = DirectorySerializer(my_version, workflow_bmap,
                                                     'abstraction'),
                                                 'subworkflows')])
 # add_file_serializers(bmap, vt_dir_serializer)
-base_dir_serializer.register_serializer(vt_dir_serializer,
-                                        'vistrail', my_version)
-base_dir_serializer.register_serializer(wf_dir_serializer,
-                                        'workflow', my_version)
+base_dir_serializer.register_serializer(vt_dir_serializer)
+base_dir_serializer.register_serializer(wf_dir_serializer)
 base_zip_serializer = ZIPBaseSerializer()
 base_zip_serializer.copy_serializers(base_dir_serializer)
 

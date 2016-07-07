@@ -379,7 +379,7 @@ def insert_thumbnails_into_db(db_connection, abs_fnames):
 custom_file_serializers = {}
 def register_custom_file_serializer(obj_type, s):
     if obj_type in custom_file_serializers:
-        raise VistrailsDBException('Serializer for type "%s" already exists' %
+        raise VistrailsDBException('BundleObjSerializer for type "%s" already exists' %
                                    obj_type)
     custom_file_serializers[obj_type] = s
 
@@ -398,7 +398,7 @@ def get_dir_bundle_serializer(dir_path=None, bundle=None, version=None):
     else:
         manifest_fname = os.path.join(dir_path, "MANIFEST")
         if os.path.exists(manifest_fname):
-            manifest = FileManifest(dir_path)
+            manifest = FileManifest(dir_path=dir_path)
             manifest.load()
             if manifest.version:
                 s = vistrails.db.versions.get_dir_bundle_serializer(
