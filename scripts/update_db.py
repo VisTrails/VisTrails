@@ -38,8 +38,8 @@
 import os
 import sys
 import tempfile
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(
-                os.path.abspath(__file__))), 'vistrails'))
+sys.path.append(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))))
 from vistrails.db.services import io
 from vistrails.db.versions import currentVersion
 from db_utils import parse_db_cmd_line
@@ -67,7 +67,8 @@ def update_db(config, new_version=None, tmp_dir=None, restore=False):
                     filenames.append(os.path.join(restore, fname))
     else:
         for obj_type in obj_types:
-            obj_id_lists[obj_type] = io.get_db_object_list(config, obj_type)
+            obj_id_lists[obj_type] = io.get_db_object_list(db_connection, 
+                                                           obj_type)
 
         # read data out of database
         thumbnail_dir = os.path.join(tmp_dir, 'thumbs')
@@ -92,12 +93,17 @@ def update_db(config, new_version=None, tmp_dir=None, restore=False):
                 io.save_vistrail_bundle_to_zip_xml(res, vt_name, local_tmp_dir)
 
         # drop the old database
+        io.drop_db_tables(db_connection)
+        io.close_db_connection(db_connection)
+
         # recreate with the new version of the specs
-        io.setup_db_tables(db_connection, None, old_version)
+        # we close and re-open the connection because the schema may change
+        db_connection = io.open_db_connection(config)
+        io.create_db_tables(db_connection)
 
     # add the new data back
     for filename in filenames:
-        (res, _) = io.open_vistrail_bundle_from_zip_xml(filename)
+        res = io.open_vistrail_bundle_from_zip_xml(filename)
         try:
             io.save_vistrail_bundle_to_db(res, db_connection, 'with_ids')
         except Exception, e:
@@ -116,7 +122,11 @@ if __name__ == '__main__':
     new_version = None
     if options['v']:
         new_version = options['v']
+    if options['d']:
+        tmp_dir = options['d']
+    else:
+        tmp_dir = None
 
     vistrails.core.application.init()
 
-    update_db(config, new_version, options['d'], options['e']) 
+    update_db(config, new_version, tmp_dir, options['e'])

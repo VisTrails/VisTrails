@@ -40,12 +40,14 @@ import getpass
 import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file, vistrails_examples_directory, \
                         vistrails_root_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
+from vistrails.db.services.bundle import Bundle
 from vistrails.db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator, \
     BaseLocator as _BaseLocator, UntitledLocator as _UntitledLocator
@@ -108,6 +110,7 @@ class CoreLocator(object):
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
                      ModuleRegistry.vtType: ModuleRegistry,
+                     Mashuptrail.vtType: Mashuptrail,
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
 
@@ -137,30 +140,34 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
     def save(self, obj):
         is_bundle = False
-        if type(obj) == type(SaveBundle(None)):
+        if isinstance(obj, Bundle):
             is_bundle = True
-            save_bundle = obj
-            obj = save_bundle.get_primary_obj()
+            bundle = obj
+            bundleobj = bundle.get_primary_obj()
+            obj = bundleobj.obj
         klass = obj.__class__
         obj = _XMLFileLocator.save(self, obj, False)
         klass.convert(obj)
         obj.locator = self
         if is_bundle:
-            return SaveBundle(save_bundle.bundle_type, obj)
+            bundleobj.obj = obj
+            return bundle
         return obj
 
     def save_as(self, obj, version=None):
         is_bundle = False
-        if type(obj) == type(SaveBundle(None)):
+        if isinstance(obj, Bundle):
             is_bundle = True
-            save_bundle = obj
-            obj = save_bundle.get_primary_obj()
+            bundle = obj
+            bundleobj = bundle.get_primary_obj()
+            obj = bundleobj.obj
         klass = obj.__class__
         obj = _XMLFileLocator.save(self, obj, True, version)
         klass.convert(obj)
         obj.locator = self
         if is_bundle:
-            return SaveBundle(save_bundle.bundle_type, obj)
+            bundleobj.obj = obj
+            return bundle
         return obj
 
     ##########################################################################
@@ -224,25 +231,25 @@ class DBLocator(_DBLocator, CoreLocator):
             wf.locator = self
             return wf
         for obj in save_bundle.get_db_objs():
-            klass = self.get_convert_klass(obj.vtType)
-            klass.convert(obj)
-            obj.locator = self
+            klass = self.get_convert_klass(obj.obj.vtType)
+            klass.convert(obj.obj)
+            obj.obj.locator = self
         return save_bundle
 
     def save(self, save_bundle):
         save_bundle = _DBLocator.save(self, save_bundle, False)
         for obj in save_bundle.get_db_objs():
-            klass = self.get_convert_klass(obj.vtType)
-            klass.convert(obj)
-            obj.locator = self
+            klass = self.get_convert_klass(obj.obj.vtType)
+            klass.convert(obj.obj)
+            obj.obj.locator = self
         return save_bundle
 
     def save_as(self, save_bundle, version=None):
         save_bundle = _DBLocator.save(self, save_bundle, True, version)
         for obj in save_bundle.get_db_objs():
-            klass = self.get_convert_klass(obj.vtType)
-            klass.convert(obj)
-            obj.locator = self
+            klass = self.get_convert_klass(obj.obj.vtType)
+            klass.convert(obj.obj)
+            obj.obj.locator = self
         # Need to copy images into thumbnail cache directory so references
         # won't become invalid if they are in a temp dir that gets destroyed
         # when the previous locator is closed
@@ -483,30 +490,30 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         from vistrails.core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
-        save_bundle = _ZIPFileLocator.load(self, klass.vtType)
-        for obj in save_bundle.get_db_objs():
-            klass = self.get_convert_klass(obj.vtType)
-            klass.convert(obj)
-            obj.locator = self
-        return save_bundle
+        bundle = _ZIPFileLocator.load(self, klass.vtType)
+        for obj in bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.obj.vtType)
+            klass.convert(obj.obj)
+            obj.obj.locator = self
+        return bundle
 
-    def save(self, save_bundle):
-        save_bundle = _ZIPFileLocator.save(self, save_bundle, False)
-        for obj in save_bundle.get_db_objs():
-            klass = self.get_convert_klass(obj.vtType)
-            klass.convert(obj)
-            obj.locator = self
-        return save_bundle
+    def save(self, bundle):
+        bundle = _ZIPFileLocator.save(self, bundle, False)
+        for obj in bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.obj.vtType)
+            klass.convert(obj.obj)
+            obj.obj.locator = self
+        return bundle
 
-    def save_as(self, save_bundle, version=None):
-        save_bundle = _ZIPFileLocator.save(self, save_bundle, True, version)
-        for obj in save_bundle.get_db_objs():
-            klass = self.get_convert_klass(obj.vtType)
-            klass.convert(obj)
-            obj.locator = self
+    def save_as(self, bundle, version=None):
+        bundle = _ZIPFileLocator.save(self, bundle, True, version)
+        for obj in bundle.get_db_objs():
+            klass = self.get_convert_klass(obj.obj.vtType)
+            klass.convert(obj.obj)
+            obj.obj.locator = self
         # Need to update thumbnail cache since files have moved
-        ThumbnailCache.getInstance().add_entries_from_files(save_bundle.thumbnails)
-        return save_bundle
+        ThumbnailCache.getInstance().add_entries_from_files(bundle.thumbnails)
+        return bundle
 
     ##########################################################################
 
@@ -770,7 +777,7 @@ class TestUsersGuideVTL(unittest.TestCase):
                     get_package_manager().build_available_package_names_list()
                     f = os.path.join(root, file_name)
                     locator = FileLocator(f)
-                    version = locator._vnode
+                    version = locator.version_node
                     # if there is a version specified try to execute it,
                     # else just load the pipeline
                     if version:
@@ -780,10 +787,9 @@ class TestUsersGuideVTL(unittest.TestCase):
                         import vistrails.core.db.io
                         from vistrails.core.vistrail.controller import \
                             VistrailController
-                        loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-                        controller = VistrailController(loaded_objs[0],
-                                                        locator,
-                                                        *loaded_objs[1:])
+                        bundle = vistrails.core.db.io.load_vistrail(locator)
+                        controller = VistrailController(locator=locator,
+                                                        bundle=bundle)
                         controller.change_selected_version(
                             controller.vistrail.get_latest_version())
                         self.assertTrue(controller.current_pipeline.is_valid,

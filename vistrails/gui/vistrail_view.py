@@ -76,8 +76,7 @@ class QVistrailView(QtGui.QWidget):
     Version Tree View, Query View and Parameter Exploration view
     for manipulating vistrails.
     """
-    def __init__(self, vistrail, locator=None, abstraction_files=None,
-                 thumbnail_files=None, mashups=None, parent=None):
+    def __init__(self, bundle, locator=None, parent=None):
         """ QVistrailView(parent: QWidget) -> QVistrailView
         
         """
@@ -119,11 +118,8 @@ class QVistrailView(QtGui.QWidget):
 
         # Initialize the vistrail controller
         self.locator = locator
-        self.controller = VistrailController(vistrail, 
-                                             self.locator, 
-                                             abstractions=abstraction_files, 
-                                             thumbnails=thumbnail_files,
-                                             mashups=mashups,
+        self.controller = VistrailController(bundle=bundle,
+                                             locator=self.locator,
                                              pipeline_view=pipeline_view)
         
         self.set_controller(self.controller)

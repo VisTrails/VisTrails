@@ -291,6 +291,29 @@ class Collection(object):
         self.add_entity(entity)
         return entity
 
+    def update_from_database(self, db_locator):
+        # db_conn = db_locator.get_connection()
+        config = {'host': db_locator._host,
+                  'port': int(db_locator._port),
+                  'db': db_locator._db,
+                  'user': db_locator._user,
+                  'passwd': db_locator._passwd}
+        db_connection = vistrails.db.services.io.open_db_connection(config)
+        rows = vistrails.db.services.io.get_db_object_list(db_connection, 
+                                                           'vistrail')
+        vistrails.db.services.io.close_db_connection(db_connection)
+        for row in rows:
+            if row[0] in [1,]:
+                continue
+            locator = DBLocator(config['host'], config['port'], config['db'],
+                                config['user'], config['passwd'],
+                                obj_type='vistrail', obj_id=row[0])
+            (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
+            vistrail.abstractions = abstractions
+            vistrail.thumbnails = thumbnails
+            vistrail.mashups = mashups
+            self.create_vistrail_entity(vistrail)
+
     def update_from_directory(self, directory):
         filenames = glob.glob(os.path.join(directory, '*.vt'))
         for filename in filenames:
@@ -331,10 +354,10 @@ class Collection(object):
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
             if not vistrail:
-                (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
-                vistrail.abstractions = abstractions
-                vistrail.thumbnails = thumbnails
-                vistrail.mashups = mashups
+                bundle = load_vistrail(locator)
+                vistrail.abstractions = [a.obj for a in bundle.abstractions]
+                vistrail.thumbnails = [t.obj for t in bundle.thumbnails]
+                vistrail.mashups = [m.obj for m in bundle.mashups]
             entity = self.create_vistrail_entity(vistrail)
             for p in workspaces:
                 self.add_to_workspace(entity, p)

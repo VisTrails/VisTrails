@@ -41,7 +41,6 @@ from datetime import date, datetime
 from vistrails.core import debug
 from vistrails.core.system import strftime, time_strptime
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.io import get_db_lib
 
 class SQLDAO:
     def __init__(self):
@@ -222,6 +221,8 @@ class SQLDAO:
         """ Executes a command consisting of multiple SELECT statements
             It returns a list of results from the SELECT statements
         """
+        import MySQLdb
+
         data = []
         # break up into bundles
         BUNDLE_SIZE = 10000
@@ -232,7 +233,7 @@ class SQLDAO:
             commandString = ''
             for prepared, values in dbCommands:
                 command = prepared % \
-                          tuple(db.escape(v, get_db_lib().converters.conversions)
+                          tuple(db.escape(v, MySQLdb.converters.conversions)
                            for v in values)
                 commandString += command
             cur = db.cursor()
@@ -256,7 +257,7 @@ class SQLDAO:
     def start_transaction(self, db):
         db.begin()
 
-    def commit_transaction(self, db):
+    def commit_transaction(self, db, trans=None):
         db.commit()
 
     def rollback_transaction(self, db):

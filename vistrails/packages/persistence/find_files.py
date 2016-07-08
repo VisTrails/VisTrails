@@ -54,7 +54,7 @@ persistence_pkg_ids = set(persistence_old_ids)
 persistence_pkg_ids.add(persistence_pkg)
     
 def find_files(filename, version=None):
-    save_bundle, save_dir = \
+    save_bundle = \
         vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(filename)
     vistrail = save_bundle.vistrail
     # FIXME hack for now, should change in the future
@@ -94,7 +94,7 @@ def find_files(filename, version=None):
                         val = annotation.db_value.upper()
                         filenames[cur_version].add(os.path.join(val[:2], 
                                                                 val[2:]))
-    shutil.rmtree(save_dir)
+    save_bundle.cleanup()
     return filenames, tags
                         
 if __name__ == '__main__':

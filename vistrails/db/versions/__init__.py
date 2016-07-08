@@ -42,7 +42,86 @@ from vistrails.core import debug
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.4'
+currentVersion = '1.0.5'
+
+version_map = {
+    '0.3.0': '0.3.1',
+    '0.3.1': '0.6.0',
+    '0.5.0': '0.6.0',
+    '0.6.0': '0.7.0',
+    '0.7.0': '0.8.0',
+    '0.8.0': '0.8.1',
+    '0.8.1': '0.9.0',
+    '0.9.0': '0.9.1',
+    '0.9.1': '0.9.3',
+    '0.9.2': '0.9.3',
+    '0.9.3': '0.9.4',
+    '0.9.4': '0.9.5',
+    '0.9.5': '1.0.0',
+    '1.0.0': '1.0.1',
+    '1.0.1': '1.0.2',
+    '1.0.2': '1.0.3',
+    '0.1.0': '1.0.3', # for startup and mashups
+    '1.0.3': '1.0.4',
+    '1.0.4': '1.0.5',
+    }
+
+rev_version_map = {
+    '1.0.5': '1.0.4',
+    '1.0.4': '1.0.3',
+    '1.0.3': '1.0.2',
+    '1.0.2': '1.0.1',
+    '1.0.1': '1.0.0',
+    '1.0.0': '0.9.5',
+    '0.9.5': '0.9.4',
+    '0.9.4': '0.9.3',
+    }
+
+def get_sql_schema(version=None):
+    if version is None:
+        version = currentVersion
+    try:
+        pkg_name = 'vistrails.db.versions.' + get_version_name(version) + \
+                   '.persistence.sql.alchemy'
+        schema = __import__(pkg_name, {}, {}, [''])
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            msg = "Cannot find schema for version '%s'" % version
+            raise VistrailsDBException(msg)
+    return schema
+
+def get_sql_utils(version=None):
+    if version is None:
+        version = currentVersion
+    try:
+        pkg_name = 'vistrails.db.versions.' + get_version_name(version) + \
+                   '.persistence.sql.utils'
+        utils = __import__(pkg_name, {}, {}, [''])
+    except ImportError as e:
+        import traceback
+        traceback.print_exc()
+        if str(e).startswith('No module named v'):
+            msg = "Cannot find utils for version '%s'" % version
+            raise VistrailsDBException(msg)
+    return utils
+
+def get_persistence_version(version=None):
+    if version is None:
+        version = currentVersion
+    try:
+        pkg_name = 'vistrails.db.versions.' + get_version_name(version) + \
+                   '.persistence'
+        return __import__(pkg_name, {}, {}, [''])
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            msg = "Cannot find utils for version '%s'" % version
+            raise VistrailsDBException(msg)
+        raise
+
+def register_bundle_serializers(version=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'register_bundle_serializers'):
+        pkg.register_bundle_serializers()
 
 def getVersionDAO(version=None):
     if version is None:
@@ -61,41 +140,33 @@ def getVersionDAO(version=None):
         raise VistrailsDBException(debug.format_exc())
     return persistence.DAOList()
 
+def get_version_path(version, target_version):
+    old_tuple = get_version_tuple(version)
+    new_tuple = get_version_tuple(target_version)
+    used_map = version_map
+    for i, j in izip(old_tuple, new_tuple):
+        if i < j:
+            # forward
+            break
+        elif i > j:
+            # reverse
+            used_map = rev_version_map
+            break
+    
+    path = []
+    while version != target_version:
+        next_version = used_map[version]
+        path.append((version, next_version))
+        version = next_version
+    return path
+
 def translate_object(obj, method_name, version=None, target_version=None):
     if version is None:
         version = obj.version
     if target_version is None:
         target_version = currentVersion
-
-    version_map = {
-        '0.3.0': '0.3.1',
-        '0.3.1': '0.6.0',
-        '0.5.0': '0.6.0',
-        '0.6.0': '0.7.0',
-        '0.7.0': '0.8.0',
-        '0.8.0': '0.8.1',
-        '0.8.1': '0.9.0',
-        '0.9.0': '0.9.1',
-        '0.9.1': '0.9.3',
-        '0.9.2': '0.9.3',
-        '0.9.3': '0.9.4',
-        '0.9.4': '0.9.5',
-        '0.9.5': '1.0.0',
-        '1.0.0': '1.0.1',
-        '1.0.1': '1.0.2',
-        '1.0.2': '1.0.3',
-        '1.0.3': '1.0.4',
-        }
-
-    rev_version_map = {
-        '1.0.4': '1.0.3',
-        '1.0.3': '1.0.2',
-        '1.0.2': '1.0.1',
-        '1.0.1': '1.0.0',
-        '1.0.0': '0.9.5',
-        '0.9.5': '0.9.4',
-        '0.9.4': '0.9.3',
-        }
+    version = get_full_version_str(version)
+    target_version = get_full_version_str(target_version)
 
     def get_translate_module(map, start_version, end_version):
         translate_dir = 'vistrails.db.versions.' + \
@@ -103,9 +174,8 @@ def translate_object(obj, method_name, version=None, target_version=None):
             get_version_name(start_version)
         return __import__(translate_dir, {}, {}, [''])
 
-    path = []
-    old_tuple = version.split('.')
-    new_tuple = target_version.split('.')
+    old_tuple = get_version_tuple(version)
+    new_tuple = get_version_tuple(target_version)
     map = version_map
     for i, j in izip(old_tuple, new_tuple):
         if i < j:
@@ -146,7 +216,7 @@ def translate_object(obj, method_name, version=None, target_version=None):
 
 def translate_vistrail(vistrail, version=None, target_version=None):
     return translate_object(vistrail, 'translateVistrail', version, 
-                            target_version)
+                           target_version)
 
 def translate_workflow(workflow, version=None, target_version=None):
     return translate_object(workflow, 'translateWorkflow', version, 
@@ -159,12 +229,24 @@ def translate_registry(registry, version=None, target_version=None):
     return translate_object(registry, 'translateRegistry', version, 
                             target_version)
 
+def translate_mashup(mashup, version=None, target_version=None):
+    return translate_object(mashup, 'translateMashup', version,
+                            target_version)
+
 def translate_startup(startup, version=None, target_version=None):
     return translate_object(startup, 'translateStartup', version,
                             target_version)
 
+def get_full_version_str(version_str):
+    while len(version_str.split('.')) < 3:
+        version_str = version_str + '.0'
+    return version_str
+
 def get_version_name(version_no):
-    return 'v' + version_no.replace('.', '_')
+    return 'v' + get_full_version_str(version_no).replace('.', '_')
+
+def get_version_tuple(version_no):
+    return get_full_version_str(version_no).split('.')
 
 def getVersionSchemaDir(version=None):
     if version is None:
