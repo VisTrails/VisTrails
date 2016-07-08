@@ -3915,6 +3915,7 @@ class VistrailController(object):
                 namespace = get_cur_abs_namespace(abstraction.vistrail)
                 abs_unique_name = make_abstraction_path_unique(abs_fname,
                                                                namespace)
+                # FIXME is this the way the abstraction bundle mapping does it?
                 bundle.add_object(BundleObj(abs_fname, 'abstraction', abs_unique_name))
 
     def write_vistrail(self, locator, version=None, export=False):
@@ -3944,15 +3945,15 @@ class VistrailController(object):
 
         # Save jobs
         if self.jobMonitor.workflows:
-            bundle.add_object(BundleObj(self.jobMonitor.serialize(), 'job'))
+            bundle.add_object(self.jobMonitor.serialize(), 'job')
 
         # add vistrail
         if export:
-            bundle.add_object(BundleObj(self.vistrail.do_copy()))
+            bundle.add_object(self.vistrail.do_copy())
             if isinstance(locator, vistrails.core.db.locator.DBLocator):
                 bundle.vistrail.db_log_filename = None
         else:
-            bundle.add_object(BundleObj(self.vistrail))
+            bundle.add_object(self.vistrail)
 
         # add abstractions
         abstractions = self.find_abstractions(self.vistrail, True)
@@ -3963,11 +3964,11 @@ class VistrailController(object):
         if thumb_cache.conf.autoSave:
             for thumb in self.find_thumbnails(
                                          tags_only=thumb_cache.conf.tagsOnly):
-                bundle.add_object(BundleObj(thumb, 'thumbnail', os.path.basename(thumb)))
+                bundle.add_object(thumb, 'thumbnail')
 
         #mashups
         for mashup in self._mashups:
-            bundle.add_object(BundleObj(mashup, 'mashup'))
+            bundle.add_object(mashup)
 
         # FIXME hack to use db_currentVersion for convenience
         # it's not an actual field
@@ -3976,7 +3977,7 @@ class VistrailController(object):
         # save data
         if self.bundle and self.bundle.datas is not None:
             for d in self.bundle.datas:
-                bundle.add_object(d)
+                bundle.add_object(d, 'data')
 
         # add log
         log = self.log
@@ -4009,7 +4010,7 @@ class VistrailController(object):
                         log.id_scope.getNewId(DBWorkflowExec.vtType)
                     log.db_add_workflow_exec(workflow_exec)
         # Always add log because it may already exist in the save folder
-        bundle.add_object(BundleObj(log, 'log'))
+        bundle.add_object(log)
 
         # Call package hooks
         try:
@@ -4109,7 +4110,7 @@ class VistrailController(object):
             for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)
             bundle = WorkflowBundle()
-            bundle.add_object(BundleObj(pipeline))
+            bundle.add_object(pipeline)
             locator.save_as(bundle, version)
 
     def write_log(self, locator):
@@ -4121,7 +4122,7 @@ class VistrailController(object):
                 log = self.log
             #print log
             bundle = LogBundle()
-            bundle.add_object(BundleObj(log))
+            bundle.add_object(log)
             locator.save_as(bundle)
 
     def read_log(self):
@@ -4133,7 +4134,7 @@ class VistrailController(object):
     def write_registry(self, locator):
         registry = vistrails.core.modules.module_registry.get_module_registry()
         bundle = RegistryBundle()
-        bundle.add_object(BundleObj(registry))
+        bundle.add_object(registry)
         locator.save_as(bundle)
 
     def update_checkout_version(self, app=''):
