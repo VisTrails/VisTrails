@@ -1480,7 +1480,7 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
         output = []
         rel_vt_save_dir = os.path.split(dir_path)[1]
 
-        z = zipfile.ZipFile(tmp_zip_file, 'w')
+        z = zipfile.ZipFile(tmp_zip_file, 'w', zipfile.ZIP_DEFLATED)
         try:
             with Chdir(dir_path):
                 # zip current directory
