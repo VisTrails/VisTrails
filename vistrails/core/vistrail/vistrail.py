@@ -1351,7 +1351,7 @@ class TestVistrail(unittest.TestCase):
             v = locator_class(vistrails.core.system.vistrails_root_directory() +
                               filename).load()
             if not isinstance(v, Vistrail):
-                v = v.vistrail.obj
+                v = v.vistrail
             version_ids = v.actionMap.keys()
             if old_v is None:
                 old_v = random.choice(version_ids)

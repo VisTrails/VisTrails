@@ -1276,7 +1276,7 @@ class BaseSerializer(object):
     def get_serializer(self, bundle_type, version):
         if (bundle_type, version) not in self._serializers:
             raise ValueError('Version "%s" of bundle type "%s" not found.' %
-                             version, bundle_type)
+                             (version, bundle_type))
         return self._serializers[(bundle_type, version)]
 
     def copy_serializers(self, other):
@@ -1690,7 +1690,7 @@ def get_bundle_mapping(bundle_type='vistrail', version=None):
         version = vistrails.db.versions.currentVersion
     if (bundle_type, version) not in bundle_mappings:
         raise ValueError('Mapping for bersion "%s" of bundle type "%s" '
-                         'not found.' % version, bundle_type)
+                         'not found.' % (version, bundle_type))
     return bundle_mappings[(bundle_type, version)]
 
 def new_bundle(bundle_type='vistrail', version=None):

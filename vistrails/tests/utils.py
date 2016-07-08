@@ -236,8 +236,8 @@ def run_file(filename, tag_filter=lambda x: True):
 
     filename = os.path.join(vistrails_root_directory(), '..', filename)
     locator = FileLocator(filename)
-    loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-    controller = VistrailController(loaded_objs[0], locator, *loaded_objs[1:])
+    bundle = vistrails.core.db.io.load_vistrail(locator)
+    controller = VistrailController(locator=locator, bundle=bundle)
     errors = []
     for version, name in controller.vistrail.get_tagMap().iteritems():
         if tag_filter(name):

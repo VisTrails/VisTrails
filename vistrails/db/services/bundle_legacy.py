@@ -62,7 +62,7 @@ class DummyManifest(bundle.Manifest):
                 elif root == os.path.join(self._dir_path, 'thumbs'):
                     self.add_entry('thumbnail', fname, fname)
                 elif root == os.path.join(self._dir_path, 'mashups'):
-                    self.add_entry('mashup', fname, fname)
+                    self.add_entry('mashuptrail', fname, fname)
                 else:
                     debug.warning("Unkown file, ignoring:", os.path.join(root, fname))
 
@@ -165,6 +165,10 @@ def register_bundle_serializers(version):
     bundle.register_dir_serializer(vt_dir_serializer)
 
 class TestLegacyBundles(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        register_bundle_serializers('1.0.4')
+
     def compare_bundles(self, b1, b2):
         print "B1:", b1.get_items()
         print "B2:", b2.get_items()
@@ -176,7 +180,6 @@ class TestLegacyBundles(unittest.TestCase):
             # self.assertEqual(str(obj.obj), str(obj2.obj))
 
     def test_old_vt_zip(self):
-        register_bundle_serialziers()
         #FIXME need to test abstractions and mashups with this
         in_fname = os.path.join(vistrails_root_directory(),'tests',
                                 'resources', 'terminator.vt')
@@ -203,6 +206,20 @@ class TestLegacyBundles(unittest.TestCase):
                 b3.cleanup()
             # print "OUT FNAME:", out_fname
             os.unlink(out_fname)
+
+    def test_old_vt_with_mashup(self):
+        in_fname = os.path.join(vistrails_root_directory(), 'tests',
+                                'resources','jobs.vt')
+        b = None
+        try:
+            b = bundle.zip_serializer.load(in_fname)
+            bobjs = b.get_bundle_objs('mashuptrail')
+            self.assertEquals(len(bobjs), 1)
+            self.assertEquals(len(b.mashups), 1)
+            self.assertEquals(bobjs[0].id, '80f58f50-57b1-11e5-a1da-000c2960b7d8')
+        finally:
+            if b:
+                b.cleanup()
 
 if __name__ == '__main__':
     unittest.main()

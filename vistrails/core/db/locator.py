@@ -787,10 +787,9 @@ class TestUsersGuideVTL(unittest.TestCase):
                         import vistrails.core.db.io
                         from vistrails.core.vistrail.controller import \
                             VistrailController
-                        loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-                        controller = VistrailController(loaded_objs[0],
-                                                        locator,
-                                                        *loaded_objs[1:])
+                        bundle = vistrails.core.db.io.load_vistrail(locator)
+                        controller = VistrailController(locator=locator,
+                                                        bundle=bundle)
                         controller.change_selected_version(
                             controller.vistrail.get_latest_version())
                         self.assertTrue(controller.current_pipeline.is_valid,
