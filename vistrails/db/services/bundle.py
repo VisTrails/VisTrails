@@ -266,13 +266,13 @@ class BundleMapping(object):
         if name in self._mappings_by_name:
             mapping = self._mappings_by_name[name]
             if mapping.attr_plural_name == name:
-                if bundle.has_entries(mapping.attr_name):
+                if bundle.has_entries(mapping.obj_type):
                     # return all of them
-                    return [bo.obj for bo in bundle.get_values(mapping.attr_name)]
+                    return [bo.obj for bo in bundle.get_values(mapping.obj_type)]
                 return []
             else: # have single attr name
-                if bundle.has_entry(mapping.attr_name, None):
-                    return bundle.get_value((mapping.attr_name, None)).obj
+                if bundle.has_entry(mapping.obj_type, None):
+                    return bundle.get_value((mapping.obj_type, None)).obj
         return None
 
     def new_bundle(self):
