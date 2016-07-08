@@ -683,7 +683,7 @@ class ZIPFileLocator(XMLFileLocator):
     still in xml"""
     def __init__(self, filename, **kwargs):
         XMLFileLocator.__init__(self, filename, **kwargs)
-        self.tmp_dir = None
+        self.bundle = None
 
     def load(self, type):
         fname = self.get_temporary()
@@ -691,34 +691,31 @@ class ZIPFileLocator(XMLFileLocator):
             obj = io.open_from_xml(fname, type)
             bundle = io.new_bundle()
             bundle.add_object(obj)
+            self.bundle = bundle
             return bundle
         else:
-            (bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)
-            self.tmp_dir = tmp_dir
+            bundle = io.open_bundle_from_zip_xml(self._name)
             for obj in bundle.get_db_objs():
                 obj.obj.locator = self
+            self.bundle = bundle
             return bundle
 
     def save(self, bundle, do_copy=True, version=None):
         if do_copy:
             # make sure we create a fresh temporary directory if we're
             # duplicating the vistrail
-            tmp_dir = None
-        else:
-            # otherwise, use the existing temp directory if one is set
-            tmp_dir = self.tmp_dir
-        (bundle, tmp_dir) = io.save_bundle_to_zip_xml(bundle, self._name, tmp_dir, version)
-        self.tmp_dir = tmp_dir
+            bundle.set_metadata("dir_name", None)
+        bundle = io.save_bundle_to_zip_xml(bundle, self._name, version)
         for obj in bundle.get_db_objs():
             obj.obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
+        self.bundle = bundle
         return bundle
 
     def close(self):
-        if self.tmp_dir is not None:
-            io.close_zip_xml(self.tmp_dir)
-            self.tmp_dir = None
+        if self.bundle is not None:
+            self.bundle.cleanup()
 
     ###########################################################################
     # Operators

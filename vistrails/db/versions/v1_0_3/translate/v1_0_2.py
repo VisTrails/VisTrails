@@ -313,7 +313,7 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        bundle = open_bundle_from_zip_xml(DBVistrail.vtType, \
+        bundle = open_bundle_from_zip_xml(
                         os.path.join(vistrails_root_directory(),
                         'tests/resources/paramexp-1.0.2.vt'))
         try:
@@ -333,7 +333,7 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        bundle = open_bundle_from_zip_xml(DBVistrail.vtType, \
+        bundle = open_bundle_from_zip_xml(
                         os.path.join(vistrails_root_directory(),
                         'tests/resources/visvar-1.0.2.vt'))
         try:

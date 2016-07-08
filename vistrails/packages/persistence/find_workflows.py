@@ -69,7 +69,7 @@ def find_workflows(path_name, vistrail_dir):
 
     vt_finds = {}
     for filename in vt_files:
-        save_bundle, save_dir = \
+        save_bundle = \
             vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(filename)
         vistrail = save_bundle.vistrail
         log_fname = vistrail.db_log_filename
@@ -113,7 +113,7 @@ def find_workflows(path_name, vistrail_dir):
         if len(execs) > 0:
             vt_finds[filename] = (execs, tags)
 
-        shutil.rmtree(save_dir)
+        save_bundle.cleanup()
 
     return vt_finds
 

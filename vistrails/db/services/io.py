@@ -64,11 +64,6 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
 import vistrails.db.services.abstraction
 from vistrails.db.services.bundle import dir_serializer, zip_serializer, \
     get_bundle_mapping, new_bundle
-# from vistrails.db.services.bundle import FileManifest
-# from vistrails.db.services.bundle_legacy import LegacyZIPSerializer, \
-#     LegacyDirSerializer, LegacyVistrailBundle
-# from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, \
-#     BundleObj, VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
 import vistrails.db.services.log
 import vistrails.db.services.opm
 import vistrails.db.services.prov
@@ -383,87 +378,6 @@ register_bundle_serializers(currentVersion)
 register_bundle_serializers('1.0.4') # legacy
 register_bundle_serializers('1.0.3') # legacy
 
-# custom_file_serializers = {}
-# def register_custom_file_serializer(obj_type, s):
-#     if obj_type in custom_file_serializers:
-#         raise VistrailsDBException('BundleObjSerializer for type "%s" already exists' %
-#                                    obj_type)
-#     custom_file_serializers[obj_type] = s
-#
-# def add_custom_file_serializers(s):
-#     for k, v in custom_file_serializers.iteritems():
-#         s.add_serializer(k,v)
-
-# def get_dir_bundle_serializer(dir_path=None, bundle=None, version=None):
-#     #FIXME hardcoding manifest filename
-#     s = None
-#     if dir_path is None or not os.path.exists(dir_path):
-#         if version is None:
-#             version = currentVersion
-#         s = vistrails.db.versions.get_dir_bundle_serializer(version, dir_path,
-#                                                             bundle)
-#     else:
-#         manifest_fname = os.path.join(dir_path, "MANIFEST")
-#         if os.path.exists(manifest_fname):
-#             manifest = FileManifest(dir_path=dir_path)
-#             manifest.load()
-#             if manifest.version:
-#                 s = vistrails.db.versions.get_dir_bundle_serializer(
-#                     manifest.version, dir_path, bundle)
-#     if not s:
-#         # use legacy serializer
-#         s = LegacyDirSerializer(dir_path, bundle=bundle)
-#     add_custom_file_serializers(s)
-#     return s
-#
-# def get_zip_bundle_serializer(fname=None, bundle=None, version=None):
-#     s = None
-#     manifest_fname = None
-#     not_zip = True
-#     if fname is not None and os.path.exists(fname):
-#         tempd = tempfile.mkdtemp(prefix="vt_manifest_test")
-#         try:
-#             zf = zipfile.ZipFile(fname)
-#             not_zip = False
-#             manifest_fname = zf.extract("MANIFEST", tempd)
-#             if manifest_fname:
-#                 manifest = FileManifest(dir_path=tempd)
-#                 manifest.load()
-#                 if manifest.version:
-#                     s = vistrails.db.versions.get_zip_bundle_serializer(
-#                         manifest.version, fname, bundle)
-#         except KeyError:
-#             pass
-#         finally:
-#             shutil.rmtree(tempd)
-#     # catch cases where the file exists but is not a zip file,
-#     # e.g. for mkstemp files
-#     if not_zip:
-#         if version is None:
-#             version = currentVersion
-#         print "GETTING VERSION", version
-#         s = vistrails.db.versions.get_zip_bundle_serializer(version, fname,
-#                                                             bundle)
-#         print "S:", s
-#     if not s:
-#         # use legacy serializer
-#         s = LegacyZIPSerializer(fname, bundle=bundle)
-#     add_custom_file_serializers(s)
-#     return s
-#
-# def get_db_bundle_serializer(conn, bundle=None, version=None):
-#     pass
-#
-# def new_bundle(version=None, bundle_type=None):
-#     b = None
-#     if version is None:
-#         version = currentVersion
-#     b = vistrails.db.versions.new_bundle(version, bundle_type)
-#     if b is None:
-#         # this should not happen much...
-#         b = LegacyVistrailBundle()
-#     return b
-
 def open_from_xml(filename, type):
     if type == DBVistrail.vtType:
         return open_vistrail_from_xml(filename)
@@ -494,25 +408,17 @@ def save_to_xml(obj, filename, version=None):
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
 
-def open_bundle_from_zip_xml(bundle_type, filename):
-    if bundle_type == DBVistrail.vtType:
-        return open_vistrail_bundle_from_zip_xml(filename)
-    else:
-        raise VistrailsDBException("cannot open bundle of type '%s' from zip" %\
-                                       bundle_type)
+def open_bundle_from_zip_xml(filename):
+    return zip_serializer.load(filename)
 
-def save_bundle_to_zip_xml(bundle, filename, tmp_dir=None, version=None):
-    if isinstance(bundle, VistrailBundle):
-        return save_vistrail_bundle_to_zip_xml(bundle, filename, tmp_dir, version)
-    elif isinstance(bundle, LogBundle):
-        return save_log_bundle_to_xml(bundle, filename, version)
-    elif isinstance(bundle, WorkflowBundle):
-        return save_workflow_bundle_to_xml(bundle, filename, version)
-    elif isinstance(bundle, RegistryBundle):
-        return save_registry_bundle_to_xml(bundle, filename, version)
-    else:
-        raise VistrailsDBException("cannot save bundle of type '%s' to zip" % \
-                                       type(bundle).__name__)
+def save_bundle_to_zip_xml(bundle, filename, version=None):
+    if version is not None:
+        mapping = get_bundle_mapping(bundle.bundle_type, version)
+        #FIXME translations need to be stored somewhere accessible
+        bundle = bundle.translate(mapping)
+    #FIXME does save return anything different?
+    zip_serializer.save(bundle, filename)
+    return bundle
 
 def open_bundle_from_db(bundle_type, connection, primary_obj_id, tmp_dir=None):
     if bundle_type == DBVistrail.vtType:
@@ -631,12 +537,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     """
 
-    # vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    # serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir)
-    # bundle = serializer.load(filename)
-    # return (bundle, vt_save_dir)
-    s = get_zip_bundle_serializer(filename)
-    return s.load()
+    return zip_serializer.load(filename)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
     """open_vistrail_bundle_from_db(db_connection, id: long, tmp_dir: str) -> SaveBundle
@@ -738,6 +639,7 @@ def save_vistrail_bundle_to_zip_xml(bundle, filename, vt_save_dir=None, version=
     if not vt_save_dir:
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
 
+    zip_serializer.save(bundle, filename)
     serializer = get_zip_bundle_serializer(filename, dir_path=vt_save_dir,
                                            bundle=bundle)
     serializer.save(filename)
@@ -1855,6 +1757,7 @@ class TestTranslations(unittest.TestCase):
         os.close(h1)
         (h2, fname2) = tempfile.mkstemp(prefix='vt_test_', suffix='.zip')
         os.close(h2)
+
         s = zip_serializer
         b1 = None
         b2 = None
@@ -1864,10 +1767,6 @@ class TestTranslations(unittest.TestCase):
             b1 = s.load(self.get_filename())
             b2 = b1.translate(get_bundle_mapping('vistrail', currentVersion))
             s.save(b2, fname1)
-
-            # s.save(bundle, fname1)
-            # s2 = get_zip_bundle_serializer(bundle=bundle)
-            # s2.save(fname1)
 
             saved_zip1 = zipfile.ZipFile(fname1)
             paths = saved_zip1.namelist()
@@ -1880,11 +1779,6 @@ class TestTranslations(unittest.TestCase):
             b3 = s.load(fname1)
             b4 = b3.translate(get_bundle_mapping('vistrail', '1.0.3'))
             s.save(b4, fname2)
-
-            # s3 = get_zip_bundle_serializer(fname=fname1)
-            # bundle2 = s3.load()
-            # s4 = get_zip_bundle_serializer(bundle=bundle2, version='1.0.3')
-            # s4.save(fname2)
 
             saved_zip2 = zipfile.ZipFile(fname2)
             paths2 = saved_zip2.namelist()

@@ -103,7 +103,7 @@ def update_db(config, new_version=None, tmp_dir=None, restore=False):
 
     # add the new data back
     for filename in filenames:
-        (res, _) = io.open_vistrail_bundle_from_zip_xml(filename)
+        res = io.open_vistrail_bundle_from_zip_xml(filename)
         try:
             io.save_vistrail_bundle_to_db(res, db_connection, 'with_ids')
         except Exception, e:
