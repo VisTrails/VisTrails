@@ -43,12 +43,15 @@ from vistrails.db import VistrailsDBException
 from vistrails.db.versions.v1_0_4 import version as my_version
 from vistrails.db.versions.v1_0_4.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail
+import vistrails.db.services.bundle_legacy
 
 root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
                 DBLog.vtType, DBRegistry.vtType, DBMashuptrail.vtType])
 
 ElementTree = get_elementtree_library()
 
+def register_bundle_serializers():
+    vistrails.db.services.bundle_legacy.register_bundle_serializers(my_version)
 
 class DAOList(dict):
     def __init__(self):

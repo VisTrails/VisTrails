@@ -70,23 +70,9 @@ class DummyManifest(bundle.Manifest):
         # don't actually do anything here since legacy vts have no manifest file
         pass
 
-# FIXME want to specify serializer at same time--no bobj mapping later
-legacy_bmap = bundle.BundleMapping('1.0.4', 'vistrail',
-                            [bundle.SingleRootBundleObjMapping(
-                                DBVistrail.vtType, 'vistrail'),
-                             bundle.SingleRootBundleObjMapping(DBLog.vtType,
-                                                           'log'),
-                             bundle.MultipleObjMapping(DBMashuptrail.vtType,
-                                                   lambda obj: obj.db_name,
-                                                   'mashup'),
-                             bundle.MultipleFileRefMapping('thumbnail'),
-                             bundle.MultipleFileRefMapping('abstraction'),
-                             bundle.SingleRootBundleObjMapping('job'),
-                            ])
-
 class LegacyAbstractionFileSerializer(bundle.FileRefSerializer):
     def __init__(self, mapping):
-        bundle.FileRefSerializer.__init__(self, mapping, 'abstraction')
+        bundle.FileRefSerializer.__init__(self, mapping)
 
     def get_obj_id(self, filename):
         return bundle.FileRefSerializer.get_obj_id(self, filename)[len('abstraction_'):]
@@ -127,22 +113,56 @@ class LegacyMashupXMLSerializer(bundle.XMLFileSerializer):
     def get_obj_id(self, b_obj):
         return b_obj.obj.db_name
 
-vt_dir_serializer = bundle.DirectorySerializer(legacy_bmap,
-                                        [bundle.XMLFileSerializer(
-                                            legacy_bmap.get_mapping("vistrail"),
-                                            "http://www.vistrails.org/vistrail.xsd",
-                                            "translateVistrail",
-                                            True, True),
-                                            (LegacyLogXMLSerializer(
-                                                legacy_bmap.get_mapping("log")), True),
-                                            LegacyMashupXMLSerializer(
-                                                legacy_bmap.get_mapping(
-                                                    "mashuptrail")),
-                                            bundle.FileRefSerializer(legacy_bmap.get_mapping("thumbnail"),
-                                                                 'thumbs'),
-                                            LegacyAbstractionFileSerializer(legacy_bmap.get_mapping("abstraction"))
-                                        ], manifest_cls=DummyManifest)
-bundle.register_dir_serializer(vt_dir_serializer)
+class AbstractionFileRefMapping(bundle.MultipleObjMapping):
+    def __init__(self, obj_type, attr_name=None, attr_plural_name=None):
+        def obj_id_extract_f(obj):
+            return os.path.basename(obj)[len('abstraction_'):]
+        bundle.MultipleObjMapping.__init__(self, obj_type, obj_id_extract_f,
+                                           attr_name, attr_plural_name)
+
+def register_bundle_serializers(version):
+    # FIXME want to specify serializer at same time--no bobj mapping later
+    legacy_bmap = bundle.BundleMapping(version, 'vistrail',
+                                       [bundle.SingleRootBundleObjMapping(
+                                           DBVistrail.vtType, 'vistrail'),
+                                           bundle.SingleRootBundleObjMapping(
+                                               DBLog.vtType,
+                                               'log'),
+                                           bundle.MultipleObjMapping(
+                                               DBMashuptrail.vtType,
+                                               lambda obj: obj.db_name,
+                                               'mashup'),
+                                           bundle.MultipleFileRefMapping(
+                                               'thumbnail'),
+                                           AbstractionFileRefMapping(
+                                               'abstraction'),
+                                           bundle.SingleRootBundleObjMapping(
+                                               'job'),
+                                       ])
+    vt_dir_serializer = bundle.DirectorySerializer(legacy_bmap,
+                                                   [bundle.XMLFileSerializer(
+                                                       legacy_bmap.get_mapping(
+                                                           "vistrail"),
+                                                       "http://www.vistrails.org/vistrail.xsd",
+                                                       "translateVistrail",
+                                                       True, True),
+                                                       (LegacyLogXMLSerializer(
+                                                           legacy_bmap.get_mapping(
+                                                               "log")), True),
+                                                       LegacyMashupXMLSerializer(
+                                                           legacy_bmap.get_mapping(
+                                                               "mashuptrail")),
+                                                       bundle.FileRefSerializer(
+                                                           legacy_bmap.get_mapping(
+                                                               "thumbnail"),
+                                                           'thumbs'),
+                                                       LegacyAbstractionFileSerializer(
+                                                           legacy_bmap.get_mapping(
+                                                               "abstraction"))
+                                                   ],
+                                                   manifest_cls=DummyManifest)
+
+    bundle.register_dir_serializer(vt_dir_serializer)
 
 class TestLegacyBundles(unittest.TestCase):
     def compare_bundles(self, b1, b2):
@@ -156,6 +176,7 @@ class TestLegacyBundles(unittest.TestCase):
             # self.assertEqual(str(obj.obj), str(obj2.obj))
 
     def test_old_vt_zip(self):
+        register_bundle_serialziers()
         #FIXME need to test abstractions and mashups with this
         in_fname = os.path.join(vistrails_root_directory(),'tests',
                                 'resources', 'terminator.vt')

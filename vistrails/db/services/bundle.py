@@ -216,6 +216,7 @@ class MultipleFileRefMapping(MultipleObjMapping):
         MultipleObjMapping.__init__(self, obj_type, obj_id_extract_f,
                                         attr_name, attr_plural_name)
 
+
 class BundleMapping(object):
     def __init__(self, version, bundle_type, mappings=[],
                  primary_obj_type=None):
@@ -286,6 +287,7 @@ class BundleMapping(object):
             primary_obj_type = self.primary_obj_type
         return BundleMapping(version, bundle_type, self.mappings(),
                              primary_obj_type)
+
 
 class Bundle(BundleObjDictionary):
     """ Assume a bundle contains a set of objects.  If an object is a list
@@ -376,6 +378,27 @@ class Bundle(BundleObjDictionary):
     def cleanup(self):
         if self.serializer is not None:
             self.serializer.cleanup(self)
+
+    def translate(self, new_mapping, translate_map={}):
+        new_bundle = Bundle(new_mapping)
+        for obj_type, mapping in self.mapping._mappings_by_type.iteritems():
+            new_obj_type = obj_type
+            create_new_ids = False
+            if obj_type in translate_map:
+                new_obj_type = translate_map[obj_type]
+                if type(new_obj_type) == tuple:
+                    new_obj_type, create_new_ids = new_obj_type
+            if self.has_entries(obj_type):
+                for bobj in self.get_bundle_objs(obj_type):
+                    #FIXME need to maintain id here!
+                    # need to have some way to preserve ids...
+                    # how do we know when to preserve ids?
+                    if create_new_ids:
+                        new_bundle.add_object(bobj.obj, new_obj_type)
+                    else:
+                        new_bobj = BundleObj(bobj.obj, new_obj_type, bobj.id)
+                        new_bundle.add_object(new_bobj)
+        return new_bundle
 
     def __getattr__(self, item):
         """ Returns the default bundleobj(s) of the specified type or None
@@ -1662,11 +1685,16 @@ def unregister_bundle_mapping(bmap=None, bundle_type=None, version=None):
     del bundle_mappings[(bundle_type, version)]
     #TODO add checks on the serializers
 
-def new_bundle(bundle_type, version):
+def get_bundle_mapping(bundle_type='vistrail', version=None):
+    if version is None:
+        version = vistrails.db.versions.currentVersion
     if (bundle_type, version) not in bundle_mappings:
         raise ValueError('Mapping for bersion "%s" of bundle type "%s" '
                          'not found.' % version, bundle_type)
-    return bundle_mappings[(bundle_type, version)].new_bundle()
+    return bundle_mappings[(bundle_type, version)]
+
+def new_bundle(bundle_type='vistrail', version=None):
+    return get_bundle_mapping(bundle_type, version).new_bundle()
 
 def register_dir_serializer(s, also_zip=True):
     dir_serializer.register_serializer(s)

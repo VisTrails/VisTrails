@@ -49,10 +49,6 @@ from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.bundle as bundle
-# from vistrails.db.services.bundle import Bundle, BundleObj, BundleMapping, \
-#     XMLFileSerializer, XMLAppendSerializer,FileRefSerializer, \
-#     DirectorySerializer, DirectoryBaseSerializer, ZIPBaseSerializer, \
-#     SingleRootBundleObjMapping, MultipleObjMapping, MultipleFileRefMapping
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail, DBWorkflowExec
@@ -148,8 +144,10 @@ wf_dir_serializer = bundle.DirectorySerializer(workflow_bmap,
                                                 workflow_bmap.get_mapping(
                                                     'abstraction'),
                                                 'subworkflows')])
-bundle.register_dir_serializer(vt_dir_serializer)
-bundle.register_dir_serializer(wf_dir_serializer)
+
+def register_bundle_serializers():
+    bundle.register_dir_serializer(vt_dir_serializer)
+    bundle.register_dir_serializer(wf_dir_serializer)
 
 class DAOList(dict):
     def __init__(self):
@@ -547,6 +545,7 @@ class TestPersistence(unittest.TestCase):
         return b
 
     def test_vt_dir_bundle(self):
+        register_bundle_serializers()
         d = tempfile.mkdtemp(prefix='vtbundle_test')
         inner_d = os.path.join(d, 'mybundle')
 
