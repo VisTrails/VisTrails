@@ -512,7 +512,7 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
             klass.convert(obj.obj)
             obj.obj.locator = self
         # Need to update thumbnail cache since files have moved
-        ThumbnailCache.getInstance().add_entries_from_files([obj.obj for obj in bundle.thumbnails])
+        ThumbnailCache.getInstance().add_entries_from_files(bundle.thumbnails)
         return bundle
 
     ##########################################################################

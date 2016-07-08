@@ -3974,7 +3974,7 @@ class VistrailController(object):
         self.vistrail.db_currentVersion = self.current_version
 
         # save data
-        if self.bundle:
+        if self.bundle and self.bundle.datas is not None:
             for d in self.bundle.datas:
                 bundle.add_object(d)
 
