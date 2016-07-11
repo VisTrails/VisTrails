@@ -232,7 +232,7 @@ def write_workflow_to_python(pipeline):
                 print("Default: %s: var %s, value %r" % (
                       port, name, default))
                 text.append("# DEFAULT %s %s" % (port, name))
-                text.append('%s = %r' % (name, default))
+                text.append('%s = %s' % (name, default))
                 code.set_input(port, name)
 
         # merge connections
@@ -412,13 +412,11 @@ def generate_api_code(module):
     desc = module.module_descriptor
     pkg_name = desc.identifier.replace('.', '_')
     preludes.append(Prelude('import vistrails.core.api as API'))
-    preludes.append(Prelude('from vistrails.core.modules.basic_modules import create_constant'))
-    preludes.append(Prelude('from vistrails.core.modules.vistrails_module import ModuleConnector'))
     preludes.append(Prelude("%s = API.load_package(%r)" % (
                             pkg_name, desc.identifier)))
     code = ''
     instance = re.sub('(?!^)([A-Z]+)', r'_\1', desc.name).lower()
-    code += "%s = %s.%s.descriptor.module()\n" % (instance, pkg_name, desc.name)
+    code += "%s = %s.%s()\n" % (instance, pkg_name, desc.name)
     function_ports = [p.name for p in module.functions]
     used_ports = set(function_ports)
     used_ports.update(module.connected_input_ports)
@@ -430,15 +428,21 @@ def generate_api_code(module):
         if iport.defaults:
             used_ports.add(iport.name)
     # This does not work with VTK because ports have already been merged into connections
+    kwargs = {}
     for port_name in used_ports:
-#         code += "spec = %s.get_port_spec(%s, 'input')\n" % (instance, port_name)
-        code += "mc = ModuleConnector(create_constant(%s), 'value')\n" % port_name
-        code += "%s.set_input_port(%r, mc)\n" % (instance, port_name)
-    for port_name in module.connected_output_ports:
-        code += "%s.enable_output_port(%r)\n" % (instance, port_name)
-    code += "%s.compute()\n" % instance
-    for port_name in module.connected_output_ports:
-        code += "%s = %s.get_output(%r)\n" % (port_name, instance, port_name)
+        kwargs[port_name] = port_name
+    kwargs = ', '.join('%s=%s' % (key, value) for key, value in kwargs.iteritems())
+    outputs = tuple(module.connected_output_ports)
+    if len(outputs) == 0:
+        result_str = ''
+    elif len(outputs) == 1:
+        result_str = outputs[0] + ' = '
+    else:
+        result_str = ', '.join(outputs) + ' = '
+    code += "%s%s.compute(%r, %s)" % (result_str,
+                                      instance,
+                                      outputs[0] if len(outputs)==1 else outputs,
+                                      kwargs)
     return Script(code, 'variables', 'variables'), preludes
 
 
