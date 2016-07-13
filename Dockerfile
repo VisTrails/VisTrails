@@ -16,7 +16,7 @@ RUN \
     python-xlrd python-xlwt
 RUN \
   apt-get install -y python-qt4 python-qt4-gl python-qt4-sql python-vtk \
-    imagemagick xvfb
+    imagemagick graphviz xvfb
 # Install IPython deps. python-tornado is too old, so we'll get it from pip
 RUN \
   apt-get install -y python-zmq
