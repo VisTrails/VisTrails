@@ -33,6 +33,61 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 from __future__ import division
 
-from vistrails.db.versions.v1_0_5.persistence import *
+from datetime import date, datetime
+
+from vistrails.core.system import strftime, time_strptime
+
+class XMLDAO:
+    def __init__(self):
+        pass
+
+    def hasAttribute(self, node, attr):
+        return node.hasAttribute(attr)
+
+    def getAttribute(self, node, attr):
+        try:
+            attribute = node.attributes.get(attr)
+            if attribute is not None:
+                return attribute.value
+        except KeyError:
+            pass
+        return None
+
+    def convertFromStr(self, value, type):
+        if value is not None:
+            if type == 'str':
+                return str(value)
+            elif value.strip() != '':
+                if type == 'long':
+                    try:
+                        return long(value)
+                    except ValueError:
+                        return -1
+                elif type == 'float':
+                    return float(value)
+                elif type == 'int':
+                    try:
+                        return int(value)
+                    except ValueError:
+                        if 'False' == value:
+                            return -1
+                        else:
+                            return 0
+                elif type == 'date':
+                    return date(*time_strptime(value, '%Y-%m-%d')[0:3])
+                elif type == 'datetime':
+                    return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+        return None
+
+    def convertToStr(self, value, type):
+        if value is not None:
+            if type == 'date':
+                return value.isoformat()
+            elif type == 'datetime':
+                return strftime(value, '%Y-%m-%d %H:%M:%S')
+            else:
+                return str(value)
+        return ''
