@@ -654,7 +654,8 @@ class ModuleClass(type):
         self.descriptor = descriptor
 
     def __call__(self, *args, **kwargs):
-        return Module(self.descriptor, *args, **kwargs)
+        raise TypeError("Don't use module_class(....), call "
+                        "vistrail.add_module(module_class, ...) instead")
 
     def __repr__(self):
         return "<Module class %r from %s>" % (self.descriptor.name,
@@ -689,28 +690,16 @@ class ModuleValuePair(object):
 class Module(object):
     """Wrapper for a module, which can be in a Pipeline or not yet.
     """
-    module_id = None
-    pipeline = None
-
-    def __init__(self, descriptor, **kwargs):
+    def __init__(self, descriptor, pipeline, module_id):
+        if not (isinstance(module_id, (int, long)) and
+                isinstance(pipeline, Pipeline)):
+            raise TypeError
         self.descriptor = descriptor
-        if 'module_id' and 'pipeline' in kwargs:
-            self.module_id = kwargs.pop('module_id')
-            self.pipeline = kwargs.pop('pipeline')
-            if not (isinstance(self.module_id, (int, long)) and
-                    isinstance(self.pipeline, Pipeline)):
-                raise TypeError
-        elif 'module_id' in kwargs or 'pipeline' in kwargs:
-            raise TypeError("Module was given an id but no pipeline")
-
-        if kwargs:
-            raise TypeError("Module was given unexpected argument: %r" %
-                            next(iter(kwargs)))
+        self.pipeline = pipeline
+        self.module_id = module_id
 
     @property
     def module(self):
-        if self.module_id is None:
-            raise ValueError("This module is not part of a pipeline")
         return self.pipeline.pipeline.modules[self.module_id]
 
     @property
@@ -719,8 +708,6 @@ class Module(object):
 
     @property
     def name(self):
-        if self.module_id is None:
-            raise ValueError("This module is not part of a pipeline")
         mod = self.pipeline.pipeline.modules[self.module_id]
         if '__desc__' in mod.db_annotations_key_index:
             return mod.get_annotation_by_key('__desc__').value
@@ -730,24 +717,17 @@ class Module(object):
     def __repr__(self):
         desc = "<Module %r from %s" % (self.descriptor.name,
                                        self.descriptor.identifier)
-        if self.module_id is not None:
-            desc += ", id %d" % self.module_id
-            if self.pipeline is not None:
-                mod = self.pipeline.pipeline.modules[self.module_id]
-                if '__desc__' in mod.db_annotations_key_index:
-                    desc += (", name \"%s\"" %
-                             mod.get_annotation_by_key('__desc__').value)
+        desc += ", id %d" % self.module_id
+        mod = self.pipeline.pipeline.modules[self.module_id]
+        if '__desc__' in mod.db_annotations_key_index:
+            desc += (", name \"%s\"" %
+                     mod.get_annotation_by_key('__desc__').value)
         return desc + ">"
 
     def __eq__(self, other):
         if isinstance(other, Module):
-            if self.module_id is None:
-                return other.module_id is None
-            else:
-                if other.module_id is None:
-                    return False
-                return (self.module_id == other.module_id and
-                        self.pipeline == other.pipeline)
+            return (self.module_id == other.module_id and
+                    self.pipeline == other.pipeline)
         else:
             return ModuleValuePair(self.module, other)
 

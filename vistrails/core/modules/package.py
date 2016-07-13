@@ -146,7 +146,7 @@ class Package(DBPackage):
             self.py_dependencies = set()
             self.old_identifiers = []
             self._default_configuration = None
-            self._persistent_configuration = None
+            self.persistent_configuration = None
         else:
             self._module = other._module
             self._init_module = other._init_module
@@ -159,8 +159,8 @@ class Package(DBPackage):
             self.old_identifiers = [i for i in self.old_identifiers]
             self._default_configuration = \
                                         copy.copy(other._default_configuration)
-            self._persistent_configuration = \
-                                    copy.copy(other._persistent_configuration)
+            self.persistent_configuration = \
+                                    copy.copy(other.persistent_configuration)
 
         # FIXME decide whether we want None or ''
         if self.version is None:
@@ -688,13 +688,6 @@ class Package(DBPackage):
 
     ##########################################################################
     # Configuration
-
-    def _get_persistent_configuration(self):
-        return self._persistent_configuration
-    def _set_persistent_configuration(self, config):
-        self._persistent_configuration = config
-    persistent_configuration = property(_get_persistent_configuration,
-                                        _set_persistent_configuration)
 
     def do_load_configuration(self):
         # Sometimes we don't want to change startup.xml, for example

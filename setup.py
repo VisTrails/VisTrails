@@ -20,6 +20,7 @@ requirements = [
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
     'requests',
+    'IPython',
     'usagestats>=0.3',
     'xlrd',
     'xlwt',
@@ -41,7 +42,7 @@ Homepage: http://www.vistrails.org
 Who we are: http://www.vistrails.org/index.php/People
 """
 setup(name='vistrails',
-      version='2.2.4',
+      version='2.x',
       packages=packages,
       include_package_data=True,
       entry_points={

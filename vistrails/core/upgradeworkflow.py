@@ -377,7 +377,7 @@ class UpgradeWorkflowHandler(object):
                                   function_remap=None, src_port_remap=None, 
                                   dst_port_remap=None, annotation_remap=None,
                                   control_param_remap=None):
-        """attempt_automatic_upgrade(module_id, pipeline): [Action]
+        """Automatically upgrade by simply replacing a module with the new version.
 
         Attempts to automatically upgrade module by simply adding a
         new module with the current package version, and recreating
@@ -708,7 +708,6 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def remap_module(controller, module_id, pipeline, pkg_remap):
-
         """remap_module offers a method to shortcut the
         specification of upgrades.  It is useful when just changing
         the names of ports or modules, but can also be used to add
@@ -717,13 +716,17 @@ class UpgradeWorkflowHandler(object):
         first three arguments are passed from the arguments to that
         method.
 
-        pkg_remap specifies all of the changes and is of the format
-        {<old_module_name>: [(<start_version>, <end_version>, 
-                             <new_module_klass> | <new_module_id> | None, 
-                             <remap_dictionary>)]}
+        pkg_remap specifies all of the changes and is of the format::
+
+            {<old_module_name>: [(<start_version>, <end_version>,
+                                  <new_module_klass> | <new_module_id> | None,
+                                  <remap_dictionary>)]}
+
         where new_module_klass is the class and new_module_id
-        is a string of the format 
+        is a string of the format::
+
             <package_name>:[<namespace> | ]<module_name>
+
         passing None keeps the original name,
         and remap_dictionary is {<remap_type>:
         <name_changes>} and <name_changes> is a map from <old_name> to
@@ -732,20 +735,22 @@ class UpgradeWorkflowHandler(object):
         module and should return a list of operations with elements of
         the form ('add', <obj>).
 
-        For example:
+        For example::
 
-        def outputName_remap(old_conn, new_module):
-            ops = []
-            ...
-            return ops
-        pkg_remap = {'FileSink': [(None, '1.5.1', FileSink,
-                                     {'dst_port_remap':
-                                          {'overrideFile': 'overwrite',
-                                           'outputName': outputName_remap},
-                                      'function_remap':
-                                          {'overrideFile': 'overwrite',
-                                           'outputName': 'outputPath'}}),
-                        }
+            def outputName_remap(old_conn, new_module):
+                ops = []
+                ...
+                return ops
+
+            pkg_remap = {'FileSink': [
+                             (None, '1.5.1', FileSink, {
+                                  'dst_port_remap': {
+                                      'overrideFile': 'overwrite',
+                                      'outputName': outputName_remap},
+                                  'function_remap': {
+                                      'overrideFile': 'overwrite',
+                                      'outputName': 'outputPath'}}),
+            }
         """
 
         reg = get_module_registry()
