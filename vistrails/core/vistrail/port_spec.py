@@ -416,11 +416,11 @@ class PortSpec(DBPortSpec):
             port_string = self.type.capitalize()
         else:
             port_string = 'Invalid'
-        _depth = " (depth %s)" % self.depth if self.depth else ''
+        depth = " (depth %s)" % self.depth if self.depth else ''
         self._tooltip = "%s port %s\n%s%s" % (port_string,
                                             self.union if self.union else self.name,
                                             self._short_sigstring,
-                                            _depth)
+                                            depth)
 
     def create_union_tooltip(self, union):
         """Creates a tooltip for a union port

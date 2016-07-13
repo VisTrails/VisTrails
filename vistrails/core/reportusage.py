@@ -40,6 +40,7 @@
 from __future__ import division
 
 import atexit
+import email.utils
 import json
 import os
 import requests
@@ -246,10 +247,16 @@ def get_server_news():
     file_name = os.path.join(dot_vistrails, 'server_news.json')
     file_exists = os.path.exists(file_name)
 
+    headers = {}
+    if file_exists:
+        mtime = email.utils.formatdate(os.path.getmtime(file_name),
+                                       usegmt=True)
+        headers['If-Modified-Since'] = mtime
+
     try:
         resp = requests.get(
             'https://reprozip-stats.poly.edu/vistrails_news/%s' %
-            vistrails_version(),
+            vistrails_version(), headers=headers,
             timeout=2 if file_exists else 10,
             stream=True, verify=get_ca_certificate())
         resp.raise_for_status()

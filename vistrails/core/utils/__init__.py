@@ -486,23 +486,6 @@ class DummyView(object):
     def flushMoveActions(self, *args, **kwargs): pass
     def scene(self): 
         return self._scene
-##############################################################################    
-# FIXME: Add tests
-def no_interrupt(callable_, *args, **kwargs):
-    """no_interrupt(callable_, *args, **kwargs) -> return arguments
-    from callable.
-
-    Calls callable_ with *args and **kwargs and keeps retrying as long as call
-is interrupted by the OS. This makes calling read more convenient when
-using output from the subprocess module."""
-    while True:
-        try:
-            return callable_(*args, **kwargs)
-        except IOError, e:
-            if e.errno == errno.EINTR:
-                continue
-            else:
-                raise
 
 ################################################################################
 # class for creating weak references to bound methods

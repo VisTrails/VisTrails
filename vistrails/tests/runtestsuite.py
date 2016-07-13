@@ -401,7 +401,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         if suite.countTestCases() == 0 and verbose >= 1:
             print >>sys.stderr, "WARNING: module has no tests: %s" % module
         elif verbose >= 2:
-            print >>sys.stderr, "OK: module as %d test cases: %s" % (
+            print >>sys.stderr, "OK: module has %d test cases: %s" % (
                     suite.countTestCases(),
                     module)
 

@@ -48,7 +48,6 @@ from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
-import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
                                                  Generator
@@ -330,7 +329,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             if param.strValue != '':
                 constant.setValue(param.strValue)
             else:
-                constant.setValue( \
+                constant.setValue(
                     constant.translate_to_string(constant.default_value))
             return constant
 
@@ -585,8 +584,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     logging_obj.signalError(mb.module, mb)
                     abort = True
                 except Exception, e:
-                    import traceback
-                    traceback.print_exc()
+                    debug.unexpected_exception(e)
+                    debug.critical("Exception running generators: %s" % e,
+                                   debug.format_exc())
                     abort = True
                 if stop_on_error or abort:
                     break
