@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -36,8 +36,6 @@
 
 from __future__ import division
 
-import copy
-import math
 import os
 import uuid
 
@@ -48,6 +46,7 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
+import vistrails.core.db.io
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
@@ -184,6 +183,10 @@ class VistrailController(QtCore.QObject, BaseController):
         if self._auto_save:
             self.setup_timer()
 
+        # the redo stack stores the undone action ids
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
+
         def width_f(text):
             return CurrentTheme.VERSION_FONT_METRIC.width(text)
         self._current_graph_layout = \
@@ -239,6 +242,41 @@ class VistrailController(QtCore.QObject, BaseController):
         if self.timer:
             self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
             self.timer.stop()
+
+    def reset_redo_stack(self):
+        self.redo_stack = []
+
+    def undo(self):
+        """Performs one undo step, moving up the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        self.redo_stack.append(self.current_version)
+        self.show_parent_version()  # missing in core controller
+        new_action = action_map.get(self.current_version, None)
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'undo')
+        # return self.current_version
+
+    def redo(self):
+        """Performs one redo step if possible, moving down the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        if len(self.redo_stack) < 1:
+            debug.critical("Redo on an empty redo stack. Ignoring.")
+            return
+        next_version = self.redo_stack[-1]
+        self.redo_stack = self.redo_stack[:-1]
+        self.show_child_version(next_version)  # missing in core controller
+        new_action = action_map[self.current_version]
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'redo')
+        # return next_version
+
+    def can_redo(self):
+        return (len(self.redo_stack) > 0)
+
+    def can_undo(self):
+        return self.current_version > 0
             
     ##########################################################################
     # Signal vistrail relayout / redraw
@@ -249,7 +287,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = False
         try:
             self.emit(QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                                    old_version, new_version)
+                      old_version, new_version)
         finally:
             self.reset_version_view = True
 
@@ -288,7 +326,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def get_locator(self):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
-            get_vistrails_application().configuration.check('autoSave')):
+                get_vistrails_application().configuration.check('autoSave')):
             if self.locator is None:
                 raise ValueError("locator is None")
             return self.locator
@@ -307,11 +345,11 @@ class VistrailController(QtCore.QObject, BaseController):
             if app and app.view == self.vistrail_view:
                 app.close()
 
-
     ##########################################################################
     # Actions, etc
     
-    def perform_action(self, action, quiet=None):
+    def perform_action(self, action, do_validate=True, raise_exception=False,
+                       quiet=None):
         """ performAction(action: Action, quiet=None) -> timestep
 
         performs given action on current pipeline.
@@ -325,7 +363,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         if action is not None:
-            BaseController.perform_action(self,action)
+            BaseController.perform_action(self, action,
+                                          do_validate=do_validate,
+                                          raise_exception=raise_exception)
 
             if quiet is None:
                 if not self.quiet:
@@ -352,11 +392,6 @@ class VistrailController(QtCore.QObject, BaseController):
             self.recompute_terse_graph()
 
     ##########################################################################
-
-    def add_module(self, x, y, identifier, name, namespace='', 
-                   internal_version=-1):
-        return BaseController.add_module(self, identifier, name, namespace, x, y,
-                                         internal_version)
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
                                        name=""):
@@ -432,19 +467,18 @@ class VistrailController(QtCore.QObject, BaseController):
                 locator.save_temporary(self.vistrail)
             try:
                 return self.execute_workflow_list([(self.locator,
-                                             self.current_version,
-                                             self.current_pipeline,
-                                             self.current_pipeline_scene,
-                                             custom_aliases,
-                                             custom_params,
-                                             reason,
-                                             sinks,
-                                             extra_info)])
+                                                    self.current_version,
+                                                    self.current_pipeline,
+                                                    self.current_pipeline_scene,
+                                                    custom_aliases,
+                                                    custom_params,
+                                                    reason,
+                                                    sinks,
+                                                    extra_info)])
             except Exception, e:
                 debug.unexpected_exception(e)
                 raise
         return ([], False)
-
 
     def execute_user_workflow(self, reason='Pipeline Execution', sinks=None):
         """ execute_user_workflow() -> None
@@ -468,7 +502,7 @@ class VistrailController(QtCore.QObject, BaseController):
             if not self.jobMonitor.currentWorkflow():
                 self.create_job = True
 
-            result =  self.execute_current_workflow(reason=reason, sinks=sinks)
+            result = self.execute_current_workflow(reason=reason, sinks=sinks)
 
             self.progress.setValue(100)
         finally:
@@ -637,7 +671,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Set the refine state to True or False
         
         """
-        if self.refine!=refine:
+        if self.refine != refine:
             self.refine = refine
             # need to recompute the graph because the refined items might
             # have changed since last time
@@ -714,7 +748,6 @@ class VistrailController(QtCore.QObject, BaseController):
                 # bail, for now
                 self.recompute_terse_graph()
                 self.invalidate_version_tree(False)
-        
 
     def show_parent_version(self):
         """ show_parent_version() -> None
@@ -1121,7 +1154,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         old_name = self.file_name
         BaseController.set_file_name(self, file_name)
-        if old_name!=file_name:
+        if old_name != file_name:
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def write_vistrail(self, locator, version=None, export=False):
@@ -1134,8 +1167,9 @@ class VistrailController(QtCore.QObject, BaseController):
     def write_opm(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = vistrails.core.db.io.merge_logs(self.log, 
-                                            self.vistrail.db_log_filename)
+                log = vistrails.core.db.io.merge_logs(
+                        self.log,
+                        self.vistrail.db_log_filename)
             else:
                 log = self.log
             opm_graph = OpmGraph(log=log, 
@@ -1147,8 +1181,9 @@ class VistrailController(QtCore.QObject, BaseController):
     def write_prov(self, locator):
         if self.log:
             if self.vistrail.db_log_filename is not None:
-                log = vistrails.core.db.io.merge_logs(self.log, 
-                                            self.vistrail.db_log_filename)
+                log = vistrails.core.db.io.merge_logs(
+                        self.log,
+                        self.vistrail.db_log_filename)
             else:
                 log = self.log
             prov_document = ProvDocument(log=log, 
@@ -1162,7 +1197,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Perform visual query on the current vistrail
         
         """
-        if len(pipeline.modules)==0:
+        if len(pipeline.modules) == 0:
             search = TrueSearch()
         else:
             if not self._current_terse_graph:
@@ -1273,7 +1308,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
             mCount = []
             for p in modifiedPipelines:
-                if len(mCount)==0:
+                if len(mCount) == 0:
                     mCount.append(0)
                 else:
                     mCount.append(len(p.modules)+mCount[len(mCount)-1])
@@ -1375,9 +1410,9 @@ class VistrailController(QtCore.QObject, BaseController):
             _app.notify('execution_updated')
             return errors
 
+
 ################################################################################
 # Testing
-
 
 class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
@@ -1397,9 +1432,10 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
                                         pipeline_view=DummyView(),
                                         auto_save=False)
         controller.change_selected_version(0L)
-        module = controller.add_module(0.0,0.0, 
-                        vistrails.core.system.get_vistrails_basic_pkg_id(), 
-                        'ConcatenateString')
+        module = controller.add_module(
+                vistrails.core.system.get_vistrails_basic_pkg_id(),
+                'ConcatenateString',
+                0.0, 0.0)
         functions = [('str1', ['foo'], -1, True),
                      ('str2', ['bar'], -1, True)]
         controller.update_functions(module, functions)
@@ -1465,3 +1501,46 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
         api.close_current_vistrail(True)
         c.unload_abstractions()
+
+    def test_chained_upgrade(self):
+        # We should try to upgrade from the latest upgrade in
+        # the upgrade chain first
+        from vistrails import api
+        view = api.open_vistrail_from_file(
+                vistrails.core.system.vistrails_root_directory() +
+                '/tests/resources/chained_upgrade.xml')
+        # Trigger upgrade
+        api.select_version('myTuple')
+        view.execute()
+        # Assert new upgrade was created from the latest action
+        # 1 = original
+        # 2 = old upgrade
+        # 3 = new upgrade (should be the upgrade of 2)
+        vistrail = api.get_current_vistrail()
+        for a in vistrail.action_annotations:
+            if a.key == Vistrail.UPGRADE_ANNOTATION:
+                self.assertIn(a.action_id, [1,2])
+                if a.action_id == 1:
+                    self.assertEqual(int(a.value), 2)
+                if a.action_id == 2:
+                    self.assertEqual(int(a.value), 3)
+
+    def test_broken_upgrade(self):
+        # When upgrade is broken the controller should try to upgrade
+        # the previous action in the upgrade chain
+        from vistrails import api
+        view = api.open_vistrail_from_file(
+                vistrails.core.system.vistrails_root_directory() +
+                '/tests/resources/broken_upgrade.xml')
+        # Trigger upgrade
+        api.select_version('myTuple')
+        view.execute()
+        # Assert new upgrade was created from the first action
+        # 1 = original
+        # 2 = broken
+        # 3 = new (should be the upgrade of 1)
+        vistrail = api.get_current_vistrail()
+        for a in vistrail.action_annotations:
+            if a.key == Vistrail.UPGRADE_ANNOTATION:
+                self.assertEqual(a.action_id, 1)
+                self.assertEqual(int(a.value), 3)

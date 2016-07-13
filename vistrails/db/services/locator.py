@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -143,7 +143,16 @@ class BaseLocator(object):
         raise NotImplementedError("parse is not implemented")
     
     @staticmethod
-    def convert_filename_to_url(filename):
+    def real_filename(filename):
+        """ Expand relative path and dereference symbolic links
+
+        To avoid dereference symbolic links:
+        Remove realpath and add DontResolveSymlinks to QFileDialog calls
+        """
+        return os.path.realpath(os.path.abspath(filename))
+
+    @classmethod
+    def convert_filename_to_url(cls, filename):
         """ Converts a local filename to a file:// URL.
 
         All file:// URLs are absolute, so abspath() will be used on the
@@ -167,7 +176,7 @@ class BaseLocator(object):
         else:
             args_str = ""
 
-        return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
+        return 'file://%s%s' % (pathname2url(cls.real_filename(filename)),
                                 urllib.quote(args_str, safe='/?=&'))
 
     @staticmethod
@@ -194,10 +203,10 @@ class BaseLocator(object):
             scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
-            if path.endswith(".vt"):
-                return ZIPFileLocator.from_url(url)
-            elif path.endswith(".xml"):
+            if path.lower().endswith(".xml"):
                 return XMLFileLocator.from_url(url)
+            else:
+                return ZIPFileLocator.from_url(url)
         return None
 
     @staticmethod
@@ -448,7 +457,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
 
 class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def __init__(self, filename, **kwargs):
-        self._name = filename
+        self._name = self.real_filename(filename)
         self._vnode = kwargs.get('version_node', None)
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
@@ -707,6 +716,8 @@ class DBLocator(BaseLocator):
         self._hash = ''
         self.kwargs = kwargs
         self._obj_id = self.kwargs.get('obj_id', None)
+        if self._obj_id is not None:
+            self._obj_id = long(self._obj_id)
         self._obj_type = self.kwargs.get('obj_type', None)
         self._conn_id = self.kwargs.get('connection_id', None)
         self._vnode = self.kwargs.get('version_node', None)
@@ -846,6 +857,8 @@ class DBLocator(BaseLocator):
         save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy, version)
         primary_obj = save_bundle.get_primary_obj()
         self._obj_id = primary_obj.db_id
+        if self._obj_id is not None:
+            self._obj_id = long(self._obj_id)
         self._obj_type = primary_obj.vtType
         for obj in save_bundle.get_db_objs():
             obj.locator = self
@@ -1040,7 +1053,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                long(self._obj_id) == long(other._obj_id) and
+                self._obj_id == other._obj_id and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):
@@ -1068,10 +1081,12 @@ class TestLocators(unittest.TestCase):
         # Test both systemTypes
         global systemType
         old_systemType = systemType
-        # Don't use abspath, it would cause Linux tests to fail on Windows
-        # we are using abspaths anyway
+        # Don't use abspath/realpath, it would cause Linux tests to fail on Windows
+        # we are using abspaths/realpaths anyway
         old_abspath = os.path.abspath
         os.path.abspath = lambda x: x
+        old_realpath = os.path.realpath
+        os.path.realpath = lambda x: x
         try:
             systemType = 'Linux'
             self.assertEqual(
@@ -1086,6 +1101,7 @@ class TestLocators(unittest.TestCase):
         finally:
             systemType = old_systemType
             os.path.abspath = old_abspath
+            os.path.realpath = old_realpath
 
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"

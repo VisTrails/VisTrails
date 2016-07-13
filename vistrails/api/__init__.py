@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -146,7 +146,7 @@ def add_module(x, y, identifier, name, namespace, controller=None):
         controller = get_current_controller()
     if controller.current_version==-1:
         controller.change_selected_version(0)
-    result = controller.add_module(x, y, identifier, name, namespace)
+    result = controller.add_module(identifier, name, namespace, x, y)
     controller.updatePipelineScene()
     result = controller.current_pipeline.modules[result.id]
     return result

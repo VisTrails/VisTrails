@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -35,9 +35,10 @@
 ###############################################################################
 from __future__ import division
 
+import copy
+
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError
-import copy
 
 #################################################################################
 ## If Operator

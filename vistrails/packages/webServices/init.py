@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -1484,35 +1484,30 @@ def handle_missing_module(*args, **kwargs):
             except:
                 print "Error loading configuration file"
                 return False
-        try:
-            (res,not_loaded) = load_wsdl_no_config(updated_list)
-            #print "done loading_no_config"
-            if not res:
-                outdated_list.extend([wsdl])
-        
-            (res, not_loaded) = load_wsdl_with_config(outdated_list)
-            #print "done loading_with_config"
-            if res:
-                #add new url to package config file
-                wsdlList = []
-                if configuration.check('wsdlList'):
-                    wsdlList = configuration.wsdlList.split(";")
-                if wsdl not in wsdlList:
-                    wsdlList.append(wsdl)    
-                swsdlList = ";".join(wsdlList)
-                configuration.wsdlList = swsdlList
-                print "done."
-                return True
-            else:
-                msg = """ There were problems loading the webservice.
+        (res,not_loaded) = load_wsdl_no_config(updated_list)
+        #print "done loading_no_config"
+        if not res:
+            outdated_list.extend([wsdl])
+
+        (res, not_loaded) = load_wsdl_with_config(outdated_list)
+        #print "done loading_with_config"
+        if res:
+            #add new url to package config file
+            wsdlList = []
+            if configuration.check('wsdlList'):
+                wsdlList = configuration.wsdlList.split(";")
+            if wsdl not in wsdlList:
+                wsdlList.append(wsdl)
+            swsdlList = ";".join(wsdlList)
+            configuration.wsdlList = swsdlList
+            print "done."
+            return True
+        else:
+            msg = """ There were problems loading the webservice.
 The following could not be loaded:\n"""
-                error_list.extend(not_loaded)
-                for (w,e) in error_list:
-                    msg += "Url: '%s', error: '%s'\n"%(w,e)
-                    pm.show_error_message(pm.get_package(identifier),msg)
-        except Exception, e:
-            print e
-            import traceback
-            traceback.print_stack()
+            error_list.extend(not_loaded)
+            for (w,e) in error_list:
+                msg += "Url: '%s', error: '%s'\n"%(w,e)
+                pm.show_error_message(pm.get_package(identifier),msg)
     print "An error occurred. Could not add missing wsdl."
     return False

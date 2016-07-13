@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -37,13 +37,14 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 
+import re
+
+from vistrails.core import debug
 from vistrails.core.collection import Collection
 from vistrails.core.collection.vistrail import VistrailEntity
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.query.combined import CombinedSearch
 from vistrails.core.query.multiple import MultipleSearch
-from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from vistrails.core.query.visual import VisualQuery
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 
@@ -112,6 +113,7 @@ class QueryController(object):
         if self.search is None or \
                 self.search.search_str != search_str or \
                 self.search.queryPipeline != search_pipeline or \
+                self.search.use_regex != self.use_regex or \
                 self.query_view.p_controller.changed or \
                 self.search_level > self.level:
             self.search_str = search_str
@@ -120,12 +122,13 @@ class QueryController(object):
             # reset changed here
             self.query_view.p_controller.set_changed(False)
             vt_controller = self.query_view.vt_controller
+            controllers = []
 
             def do_search(only_current_vistrail=False, 
                           only_current_workflow=False):
                 entities_to_check = {}
                 open_col = Collection.getInstance()
-                
+
                 for entity in open_col.get_current_entities():
                     if entity.type_id == VistrailEntity.type_id and \
                             entity.is_open:
@@ -133,8 +136,9 @@ class QueryController(object):
                         if only_current_vistrail and \
                                 controller.vistrail != vt_controller.vistrail:
                             continue
+                        controllers.append(controller)
                         if only_current_workflow:
-                            versions_to_check = controller.current_version
+                            versions_to_check = set([controller.current_version])
                         else:
                             graph = controller._current_terse_graph
                             versions_to_check = set(graph.vertices.iterkeys())
@@ -149,8 +153,8 @@ class QueryController(object):
                 result_entities = do_search(True)                
                 self.show_vistrail_matches()
             elif self.level == QueryController.LEVEL_WORKFLOW:
-                self.search_level = QueryController.LEVEL_VISTRAIL
-                result_entities = do_search(True)
+                #self.search_level = QueryController.LEVEL_VISTRAIL
+                result_entities = do_search(False, True)
                 self.update_version_tree()
                 self.show_workflow_matches()
             else:  # self.level == QueryController.LEVEL_ALL
@@ -159,9 +163,13 @@ class QueryController(object):
 
             from vistrails.gui.vistrails_window import _app
             _app.notify("search_changed", self.search, result_entities)
+            # May need to update version trees
+            # resultEntities make sure no update is created later
+            for controller in controllers:
+                controller.check_delayed_update()
         else:
             self.query_view.set_to_result_mode()
-            
+
     def set_refine(self, refine):
         """ set_refine(refine: bool) -> None
         Set the refine state to True or False
@@ -187,14 +195,14 @@ class QueryController(object):
 
     def goto_edit(self):
         # get the version info and send it to open_vistrail call
+        from vistrails.gui.vistrails_window import _app
+        version = self.query_view.version_result_view.controller.current_version
+        view = self.query_view.controller.vistrail_view
         if self.level == QueryController.LEVEL_VISTRAIL:
-            from vistrails.gui.vistrails_window import _app
+            view.version_selected(version, True)
             _app.qactions['history'].trigger()
         elif self.level == QueryController.LEVEL_WORKFLOW:
-            from vistrails.gui.vistrails_window import _app
-            version = self.query_view.vt_controller.current_version
-            self.query_view.controller.change_selected_version(version, True)
-            _app.qactions['pipeline'].trigger()
+          view.version_selected(version, True, double_click=True)
 
     def update_results(self):
         if self.workflow_version != \
@@ -282,7 +290,8 @@ class QQueryResultWorkflowView(QPipelineView):
         QPipelineView.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.QUERY_RESULT_BACKGROUND_BRUSH)
         self.scene().set_read_only_mode(True)
-    
+
+
 class QQueryBox(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -381,7 +390,10 @@ class QQueryBox(QtGui.QWidget):
         """
         s = str(text)
         if self.controller:
-            self.controller.run_search(s)
+            try:
+                self.controller.run_search(s)
+            except re.error as e:
+                debug.critical('Error in regular expression: %s' % str(e))
             # try:
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
@@ -439,7 +451,10 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(controller.vistrail, None,
                                         set_log_on_vt=False)
-        self.vt_controller.change_selected_version(controller.current_version)
+        hide_upgrades = not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
+        self.vt_controller.change_selected_version(controller.current_version,
+                                                   hide_upgrades, hide_upgrades)
         self.version_result_view.set_controller(self.vt_controller)
         self.workflow_result_view.set_controller(self.vt_controller)
         self.query_controller.set_vistrail_controller(controller)
@@ -448,8 +463,10 @@ class QQueryView(QtGui.QWidget, BaseView):
         # FIXME Need to figure out how to deal with this !!!
         self.vt_controller.set_vistrail(self.controller.vistrail, None,
                                         set_log_on_vt=False)
-        self.vt_controller.change_selected_version(
-            self.controller.current_version)
+        hide_upgrades = getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
+        self.vt_controller.change_selected_version(self.controller.current_version,
+                                                   hide_upgrades, hide_upgrades)
 
     def build_widget(self):
         layout = QtGui.QVBoxLayout()
@@ -593,13 +610,21 @@ class QQueryView(QtGui.QWidget, BaseView):
     def result_version_selected(self, version_id, by_click, do_validate=True,
                                 from_root=False, double_click=False):
         if by_click:
-            self.query_controller.search.setCurrentVistrail(
-                self.vt_controller.vistrail)
-            self.vt_controller.change_selected_version(version_id, by_click, 
-                                                       do_validate, from_root)
+            hide_upgrades = getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
+            self.query_controller.search.setCurrentController(
+                self.vt_controller)
+            self.vt_controller.change_selected_version(version_id, hide_upgrades,
+                                                       hide_upgrades, from_root)
             if double_click:
                 self.query_controller.set_level(QueryController.LEVEL_WORKFLOW)
                 self.query_controller.show_workflow_matches()
+        # set version prop directly
+        from vistrails.gui.version_prop import QVersionProp
+        prop = QVersionProp.instance()
+        prop.set_visible(True)
+        prop.updateController(self.vt_controller)
+        prop.updateVersion(version_id)
 
 class QueryEntry(ParameterEntry):
     def __init__(self, port_spec, function=None, parent=None):

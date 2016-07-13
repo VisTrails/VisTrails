@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -148,6 +148,14 @@ class Constant(Module):
     _output_ports = [OPort("value_as_string", "String")]
 
     __metaclass__ = meta_add_value_ports
+
+    @staticmethod
+    def validate(x):
+        raise NotImplementedError
+
+    @staticmethod
+    def translate_to_python(x):
+        raise NotImplementedError
 
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
@@ -361,7 +369,7 @@ class PathObject(object):
         raise AttributeError
 
 class Path(Constant):
-    _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
+    _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "Path"),
                     IPort("name", "String", optional=True)]
@@ -424,7 +432,7 @@ class File(Path):
     file system local to the machine where VisTrails is running."""
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
-                               constant_widget=("%s:FileChooserWidget" % \
+                               constant_widget=("%s:FileChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "File"),
                     IPort("create_file", "Boolean", optional=True)]
@@ -443,7 +451,7 @@ class File(Path):
 class Directory(Path):
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
-                               constant_widget=("%s:DirectoryChooserWidget" % \
+                               constant_widget=("%s:DirectoryChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "Directory"),
                     IPort("create_directory", "Boolean", optional=True)]
@@ -472,7 +480,7 @@ class Directory(Path):
 ##############################################################################
 
 class OutputPath(Path):
-    _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
+    _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "OutputPath")]
     _output_ports = [OPort("value", "OutputPath")]
@@ -784,7 +792,6 @@ class StandardOutput(NotCacheable, Module):
 
 # Tuple will be reasonably magic right now. We'll integrate it better
 # with vistrails later.
-# TODO: Check Tuple class, test, integrate.
 class Tuple(Module):
     """Tuple represents a tuple of values. Tuple might not be well
     integrated with the rest of VisTrails, so don't use it unless
