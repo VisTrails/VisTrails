@@ -439,6 +439,9 @@ def remove_all_scripts():
 def reload_scripts(initial=False, name=None):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if not initial:
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.clear_package(identifiers.identifier)
+
         if name is None:
             remove_all_scripts()
         else:
@@ -476,9 +479,6 @@ def reload_scripts(initial=False, name=None):
             add_tool(path)
 
     if not initial:
-        from vistrails.core.interpreter.cached import CachedInterpreter
-        CachedInterpreter.clear_package(identifiers.identifier)
-
         from vistrails.gui.vistrails_window import _app
         _app.invalidate_pipelines()
 

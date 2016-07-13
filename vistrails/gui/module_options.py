@@ -102,7 +102,7 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         self.layout().addLayout(layout)
         self.layout().setStretch(0, 0)
 
-        self.portCombiner = QPortCombineTreeWidget()
+        self.portCombiner = QPortCombineTreeWidget(self.stateChanged)
         self.layout().addWidget(self.portCombiner)
         self.portCombiner.setVisible(False)
         
@@ -217,7 +217,7 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
         """
         return QtCore.QSize(512, 256)
 
-    def saveTriggered(self, checked = False):
+    def saveTriggered(self, checked=False):
         """ saveTriggered(checked: bool) -> None
         Update vistrail controller and module when the user click Ok
         
@@ -232,7 +232,7 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
     def resetTriggered(self, checked = False):
         self.update_module(self.module)
 
-    def stateChanged(self, state=False, other=None):
+    def stateChanged(self, *args):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         self.state_changed = True
@@ -288,7 +288,7 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
 
     def update_module(self, module=None):
         self.module = module
-        if not module:
+        if module is None:
             self.pairwiseButton.setEnabled(False)
             self.cartesianButton.setEnabled(False)
             self.customButton.setEnabled(False)
@@ -339,8 +339,8 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
             self.portCombiner.setVisible(type not in ['pairwise', 'cartesian'])
             if type not in ['pairwise', 'cartesian']:
                 self.portCombiner.setValue(type)
-        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_COND_KEY) or \
-           module.has_control_parameter_with_name(ModuleControlParam.WHILE_MAX_KEY):
+        if (module.has_control_parameter_with_name(ModuleControlParam.WHILE_COND_KEY) or
+                module.has_control_parameter_with_name(ModuleControlParam.WHILE_MAX_KEY)):
             self.whileButton.setChecked(True)
         if module.has_control_parameter_with_name(ModuleControlParam.WHILE_COND_KEY):
             cond = module.get_control_parameter_by_name(ModuleControlParam.WHILE_COND_KEY).value
@@ -429,8 +429,9 @@ class CrossItem(QtGui.QTreeWidgetItem):
         self.setText(0, 'Cross')
 
 class QPortCombineTreeWidget(QtGui.QTreeWidget):
-    def __init__(self, parent=None):
-        QtGui.QTreeWidget.__init__(self, parent)
+    def __init__(self, callback):
+        QtGui.QTreeWidget.__init__(self)
+        self._callback = callback
         self.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         self.header().hide()
         self.setExpandsOnDoubleClick(False)
@@ -444,14 +445,15 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
     def dropEvent(self, event):
         QtGui.QTreeWidget.dropEvent(self, event)
         self.expandAll()
+        self._callback()
 
     def loadNode(self, parent, node):
         # populate widget from json struct
         if isinstance(node, basestring):
             PortItem(node, parent)
         else:
-            item = DotItem(parent) if node[0] == 'pairwise' \
-                                   else CrossItem(parent)
+            item = (DotItem(parent) if node[0] == 'pairwise'
+                                    else CrossItem(parent))
             for i in node[1:]:
                 self.loadNode(item, i)
         
@@ -505,9 +507,11 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
 
     def addDot(self):
         DotItem(self)
+        self._callback()
 
     def addCross(self):
         CrossItem(self)
+        self._callback()
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
@@ -516,21 +520,22 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
         
         """
         items = self.selectedItems()
-        if (len(items)==1 and \
-            event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]) and \
-            type(items[0]) in [DotItem, CrossItem] and\
-            not items[0].childCount():
+        if (len(items)==1 and
+                event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete] and
+                type(items[0]) in [DotItem, CrossItem] and
+                not items[0].childCount()):
             item = items[0]
             if item.parent():
                 item.parent().takeChild(item.parent().indexOfChild(item))
             else:
                 self.takeTopLevelItem(self.indexOfTopLevelItem(item))
+            self._callback()
         else:
             QtGui.QTreeWidget.keyPressEvent(self, event)
 
 class TestIterationGui(unittest.TestCase):
     def testGetSet(self):
-        p = QPortCombineTreeWidget()
+        p = QPortCombineTreeWidget(lambda: None)
         v = '["cartesian", ["pairwise", "a", "b"], "c"]'
         p.setValue(v)
         self.assertEqual(v, p.getValue())

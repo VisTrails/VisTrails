@@ -808,13 +808,12 @@ class RequestHandler(object):
                                             result += str(errors[i])
                                 if ok:
                                     self.server_logger.info("renaming files")
-                                    for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
-                                        break
-                                    for f in file_names:
-                                        if f.lower().endswith(".png"):
+                                    dump_path = extra_info['pathDumpCells']
+                                    for f in os.listdir(dump_path):
+                                        if os.path.isfile(f) and f.lower().endswith(".png"):
                                             fmask = "%s_"+mask+"%s"
-                                            os.renames(os.path.join(root,f),
-                                                       os.path.join(root,"%s" % f[:-4],
+                                            os.renames(os.path.join(dump_path,f),
+                                                       os.path.join(dump_path,"%s" % f[:-4],
                                                                     fmask% (f[:-4],val,f[-4:])))
                                 if val < maxval:
                                     val += XMLObject.convert_from_str(v._component._stepSize,

@@ -185,10 +185,6 @@ class VistrailController(object):
         # when writing the vistrail
         self._mashups = []
 
-        # the redo stack stores the undone action ids 
-        # (undo is automatic with us, through the version tree)
-        self.redo_stack = []
-
         # this is a reference to the current parameter exploration
         self.current_parameter_exploration = None
         
@@ -202,13 +198,6 @@ class VistrailController(object):
                           id_scope=id_scope, 
                           set_log_on_vt=set_log_on_vt)
 
-    # allow gui.vistrail_controller to reference individual views
-    def _get_current_version(self):
-        return self._current_version
-    def _set_current_version(self, version):
-        self._current_version = version
-    current_version = property(_get_current_version, _set_current_version)
-
     def _get_current_base_version(self):
         version = self.current_version
         if self._upgrade_rev_map:
@@ -216,12 +205,6 @@ class VistrailController(object):
         else:
             return version
     current_base_version = property(_get_current_base_version)
-
-    def _get_current_pipeline(self):
-        return self._current_pipeline
-    def _set_current_pipeline(self, pipeline):
-        self._current_pipeline = pipeline
-    current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
     def flush_pipeline_cache(self):
         self._pipelines = {0: Pipeline()}
@@ -1063,7 +1046,6 @@ class VistrailController(object):
         action = self.add_module_action(module)
         return module
 
-
     def add_module(self, identifier, name, namespace='', x=0.0, y=0.0, 
                    internal_version=-1):
         """ addModule(x: int, y: int, identifier, name: str, namespace='') 
@@ -1474,8 +1456,6 @@ class VistrailController(object):
         self.validate(self.current_pipeline, False)
         return res
 
-
-
     ##########################################################################
     # Methods to access/find pipeline information
     
@@ -1765,7 +1745,6 @@ class VistrailController(object):
                     raise VistrailsInternalError("port_type incorrect")
                 pipeline.add_connection(new_conn)
             return (old_module, old_port_name, new_name)
-            
 
         outside_connections = []
         existing_ports = {}
@@ -4045,7 +4024,6 @@ class VistrailController(object):
                                                debug.format_exception(e)))
             return result
 
-
     def write_workflow(self, locator, version=None):
         if self.current_pipeline:
             pipeline = Pipeline()
@@ -4085,41 +4063,6 @@ class VistrailController(object):
 
     def update_checkout_version(self, app=''):
         self.vistrail.update_checkout_version(app)
-
-    def reset_redo_stack(self):
-        self.redo_stack = []
-
-    def undo(self):
-        """Performs one undo step, moving up the version tree."""
-        action_map = self.vistrail.actionMap
-        old_action = action_map.get(self.current_version, None)
-        self.redo_stack.append(self.current_version)
-        self.show_parent_version()
-        new_action = action_map.get(self.current_version, None)
-        return (old_action, new_action)
-        # self.set_pipeline_selection(old_action, new_action, 'undo')
-        # return self.current_version
-
-    def redo(self):
-        """Performs one redo step if possible, moving down the version tree."""
-        action_map = self.vistrail.actionMap
-        old_action = action_map.get(self.current_version, None)
-        if len(self.redo_stack) < 1:
-            debug.critical("Redo on an empty redo stack. Ignoring.")
-            return
-        next_version = self.redo_stack[-1]
-        self.redo_stack = self.redo_stack[:-1]
-        self.show_child_version(next_version)
-        new_action = action_map[self.current_version]
-        return (old_action, new_action)
-        # self.set_pipeline_selection(old_action, new_action, 'redo')
-        # return next_version
-
-    def can_redo(self):
-        return (len(self.redo_stack) > 0)
-
-    def can_undo(self):
-        return self.current_version > 0
 
     def layout_modules(self, old_modules=[], preserve_order=False, 
                new_modules=[], new_connections=[], module_size_func=None, no_gaps=False):
