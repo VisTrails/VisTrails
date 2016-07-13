@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -164,7 +164,7 @@ class VistrailsStartup(DBStartup):
             command_line_config.dotVistrails = tmpdir
             shutil.copyfile(os.path.join(system.vistrails_root_directory(),
                                          'core', 'resources',
-                                         'spawned_startup_xml'),
+                                         'spawned_startup.xml'),
                             os.path.join(tmpdir, 'startup.xml'))
             command_line_config.enablePackagesSilently = True
             command_line_config.errorLog = False
@@ -463,7 +463,7 @@ class VistrailsStartup(DBStartup):
         if needs_create:
             root_dir = system.vistrails_root_directory()
             origin = os.path.join(root_dir, 'core','resources',
-                                  'default_vistrails_startup_xml')
+                                  'default_vistrails_startup.xml')
             try:
                 shutil.copyfile(origin, fname)
                 debug.log('Succeeded!')

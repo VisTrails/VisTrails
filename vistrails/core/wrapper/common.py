@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -36,33 +36,18 @@
 
 from __future__ import division
 
-from vistrails.core.modules.basic_modules import Color, Path, PathObject
-from vistrails.core.utils import InstanceObject
 
-#### Automatic conversion between some vistrail and python types ####
-def convert_input_param(value, _type):
-    if issubclass(_type, Path):
-        return value.name
-    if issubclass(_type, Color):
-        return value.tuple
-    return value
-
-def convert_output_param(value, _type):
-    if issubclass(_type, Path):
-        return PathObject(value)
-    if issubclass(_type, Color):
-        return InstanceObject(tuple=value)
-    return value
-
-def convert_input(value, signature):
-    if len(signature) == 1:
-        return convert_input_param(value, signature[0][0])
-    return tuple([convert_input_param(v, t[0]) for v, t in zip(value, signature)])
-
-def convert_output(value, signature):
-    if len(signature) == 1:
-        return convert_output_param(value, signature[0][0])
-    return tuple([convert_output_param(v, t[0]) for v, t in zip(value, signature)])
+def convert_port(port, value, translations):
+    """ translate port values between vistrail and native types
+    port - PortSpec
+    value - port value
+    translations - dict(port_type: translator_function)
+    """
+    port_types = port.get_port_type()
+    if not isinstance(port_types, list):
+        return translations[port_types](value) if port_types in translations else value
+    return [(translations[p](value) if p in translations else value)
+            for p, v in zip(port_types, value)]
 
 
 def get_input_spec(cls, name):

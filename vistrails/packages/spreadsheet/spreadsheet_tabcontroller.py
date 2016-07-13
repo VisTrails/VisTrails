@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -117,10 +117,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
 
         """
         key = ((spec[0]['locator'], spec[0]['version']), spec[1], spec[2])
-        if key in self.monitoredPipelines:
-            return self.monitoredPipelines[key]
-        else:
-            return []
+        return self.monitoredPipelines.get(key, [])
 
     def appendMonitoredLocations(self, spec, value):
         """ getMonitoredLocations(spec: tuple, value: location) -> None

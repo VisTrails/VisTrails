@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -169,6 +169,7 @@ class Vistrail(DBVistrail):
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
     vistrail_variables = DBVistrail.db_vistrailVariables
+    vistrail_vars = vistrail_variables
     parameter_explorations = DBVistrail.db_parameter_explorations
     
     def _get_actionMap(self):
@@ -215,13 +216,6 @@ class Vistrail(DBVistrail):
     def _set_database_info(self, value):
         return self.set_annotation("__database_info__", value)
     database_info = property(_get_database_info, _set_database_info)
-    
-    def _get_vistrail_vars(self):
-        return self.vistrail_variables
-    
-    def _set_vistrail_vars(self, vars):
-        self.vistrail_variables = vars
-    vistrail_vars = property(_get_vistrail_vars, _set_vistrail_vars)
     
     def has_vistrail_var(self, name):
         return self.db_has_vistrailVariable_with_name(name)
@@ -1108,6 +1102,34 @@ class Vistrail(DBVistrail):
                     version = upgrade_rev_map[version]
         return None
 
+    def get_upgrade_chain(self, base_version, start_at_base=False):
+        """Returns upgrade chain for version.
+
+        :param base_version: a version in the upgrade chain
+        :param start_at_base: if False (default), return chain starting with
+        given version. If True, start from the original action (the one that's
+        not an upgrade). If False, go down from given version only.
+        :returns: The list version ids in the upgrade chain
+        """
+        # TODO: cache these maps somewhere
+        upgrade_map = {}
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_map[ann.action_id] = int(ann.value)
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+        if start_at_base is True:
+            while base_version in upgrade_rev_map:
+                base_version = upgrade_rev_map[base_version]
+
+        chain = []
+        version = base_version
+        walked_versions = set()
+        while version is not None and version not in walked_versions:
+            chain.append(version)
+            walked_versions.add(version)
+            version = upgrade_map.get(version)
+        return chain
 
 ##############################################################################
 

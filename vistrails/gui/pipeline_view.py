@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -112,7 +112,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                                       parent: QGraphicsItem)
                                       -> QAbstractGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
-        
+
         """
         # local lookups are faster than global lookups..
         self._rect = CurrentTheme.PORT_RECT.translated(x,y)
@@ -638,52 +638,52 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Create actions related to context menu 
 
         """
-        self.configureAct = QtGui.QAction("Edit Configuration\tCtrl+E", self.scene())
+        self.configureAct = QtGui.QAction("Edit &Configuration\tCtrl+E", self.scene())
         self.configureAct.setStatusTip("Edit the Configure of the module")
         QtCore.QObject.connect(self.configureAct, 
                                QtCore.SIGNAL("triggered()"),
                                self.configure)
-        self.annotateAct = QtGui.QAction("Annotate", self.scene())
+        self.annotateAct = QtGui.QAction("&Annotate", self.scene())
         self.annotateAct.setStatusTip("Annotate the module")
         QtCore.QObject.connect(self.annotateAct,
                                QtCore.SIGNAL("triggered()"),
                                self.annotate)
-        self.viewDocumentationAct = QtGui.QAction("View Documentation", self.scene())
+        self.viewDocumentationAct = QtGui.QAction("View &Documentation", self.scene())
         self.viewDocumentationAct.setStatusTip("View module documentation")
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
-        self.editLoopingAct = QtGui.QAction("Execution Options", self.scene())
+        self.editLoopingAct = QtGui.QAction("Execution &Options", self.scene())
         self.editLoopingAct.setStatusTip("Edit module execution options")
         QtCore.QObject.connect(self.editLoopingAct,
                                QtCore.SIGNAL("triggered()"),
                                self.editLooping)
-        self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
+        self.changeModuleLabelAct = QtGui.QAction("Set Module &Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
         QtCore.QObject.connect(self.changeModuleLabelAct,
                                QtCore.SIGNAL("triggered()"),
                                self.changeModuleLabel)
-        self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
+        self.setBreakpointAct = QtGui.QAction("Set &Breakpoint", self.scene())
         self.setBreakpointAct.setStatusTip("Set Breakpoint")
         QtCore.QObject.connect(self.setBreakpointAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_breakpoint)
-        self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
+        self.setWatchedAct = QtGui.QAction("&Watch Module", self.scene())
         self.setWatchedAct.setStatusTip("Watch Module")
         QtCore.QObject.connect(self.setWatchedAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_watched)
-        self.runModuleAct = QtGui.QAction("Run this module", self.scene())
+        self.runModuleAct = QtGui.QAction("&Run this module", self.scene())
         self.runModuleAct.setStatusTip("Run this module")
         QtCore.QObject.connect(self.runModuleAct,
                                QtCore.SIGNAL("triggered()"),
                                self.run_module)
-        self.setErrorAct = QtGui.QAction("Show Error", self.scene())
+        self.setErrorAct = QtGui.QAction("Show &Error", self.scene())
         self.setErrorAct.setStatusTip("Show Error")
         QtCore.QObject.connect(self.setErrorAct,
                                QtCore.SIGNAL("triggered()"),
                                self.set_error)
-        self.upgradeAbstractionAct = QtGui.QAction("Upgrade Module", self.scene())
+        self.upgradeAbstractionAct = QtGui.QAction("&Upgrade Module", self.scene())
         self.upgradeAbstractionAct.setStatusTip("Upgrade the subworkflow module")
         QtCore.QObject.connect(self.upgradeAbstractionAct,
                    QtCore.SIGNAL("triggered()"),
@@ -964,14 +964,14 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         # draw multiple connections depending on list depth
         def diff(i, depth):
             return QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
-        
+
         srcParent = self.srcPortItem.parentItem()
         startDepth = srcParent.module.list_depth + 1 if srcParent else 1
         dstParent = self.dstPortItem.parentItem()
         endDepth = dstParent.module.list_depth + 1 if dstParent else 1
         starts = [diff(i, startDepth) for i in xrange(startDepth)]
         ends = [diff(i, endDepth) for i in xrange(endDepth)]
-    
+
         first = True
         for start in starts:
             for end in ends:
@@ -1105,7 +1105,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     f2_names = set(f.name for f in m2.functions)
         #     return (len(f1_names ^ f2_names) > 0)
 
-        if self.show_widgets != get_vistrails_configuration(
+        if not self.invalid and self.show_widgets != get_vistrails_configuration(
                                    ).check('showInlineParameterWidgets') and \
            core_module.editable_input_ports:
             return True
@@ -1118,7 +1118,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     return True
         else:
             # check for changed edit widgets
-            if core_module.editable_input_ports != \
+            if not self.invalid and core_module.editable_input_ports != \
                self.module.editable_input_ports:
                 # shape has changed so we need to recreate the module
                 return True
@@ -1132,16 +1132,17 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             cop = sorted([x.key_no_id() for x in self.outputPorts])
             d = PortEndPoint.Destination
             s = PortEndPoint.Source
-            pv = core_module.portVisible
+            ipv = core_module.visible_input_ports
+            opv = core_module.visible_output_ports
             new_ip = []
             new_op = []
             try:
                 new_ip = sorted([x.key_no_id() 
                                  for x in core_module.destinationPorts()
-                                 if (not x.optional or (d, x._db_name) in pv)])
+                                 if (not x.optional or x._db_name in ipv)])
                 new_op = sorted([x.key_no_id() 
                                  for x in core_module.sourcePorts()
-                                 if (not x.optional or (s, x._db_name) in pv)])
+                                 if (not x.optional or x._db_name in opv)])
             except ModuleRegistryException, e:
                 debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
             if cip <> new_ip or cop <> new_op:
@@ -1150,9 +1151,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     def functions_have_been_deleted(self, core_module):
         # check if a visible function has been deleted
+        if self.invalid:
+            return set()
         before = self._cur_function_names
         after = set(f.name for f in core_module.functions)
-        return (before - after) & core_module.editable_input_ports
+        if self.invalid:
+            return before - after
+        else:
+            return (before - after) & core_module.editable_input_ports
 
     def moduleFunctionsHaveChanged(self, core_module):
         m2 = core_module
@@ -1292,7 +1298,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         elif self.ghosted:
             self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-        elif self.invalid:
+        # do not show as invalid in search mode
+        elif self.invalid and not (self.controller and self.controller.search):
             self.modulePen = CurrentTheme.INVALID_MODULE_PEN
             self.labelPen = CurrentTheme.INVALID_MODULE_LABEL_PEN
         else:
@@ -1312,7 +1319,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
         elif self.ghosted:
             self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-        elif self.invalid:
+        # do not show as invalid in search mode
+        elif self.invalid and not (self.controller and self.controller.search):
             self.moduleBrush = CurrentTheme.INVALID_MODULE_BRUSH
         else:
             self.moduleBrush = CurrentTheme.MODULE_BRUSH
@@ -1502,22 +1510,18 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         error = None
         if module.is_valid:
             try:
-                d = PortEndPoint.Destination
                 for p in module.destinationPorts():
                     if not p.optional:
                         inputPorts.append(p)
-                    # elif (d, p.name) in module.portVisible:
                     elif p.name in module.visible_input_ports:
                         visibleOptionalInputPorts.append(p)
                     else:
                         self.optionalInputPorts.append(p)
                 inputPorts += visibleOptionalInputPorts
 
-                s = PortEndPoint.Source
                 for p in module.sourcePorts():
                     if not p.optional:
                         outputPorts.append(p)
-                    # elif (s, p.name) in module.portVisible:
                     elif p.name in module.visible_output_ports:
                         visibleOptionalOutputPorts.append(p)
                     else:
@@ -1691,7 +1695,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         portShape.controller = self.controller
         portShape.port = port
-        if not port.is_valid:
+        # do not show as invalid in search mode
+        if not port.is_valid and not (self.controller and self.controller.search):
             portShape.setInvalid(True)
         return portShape
 
@@ -1789,7 +1794,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                             optional=True)
 
         item = self.createPortItem(new_spec, *next_pos)
-        item.setInvalid(True)
+        # do not show as invalid in search mode
+        if not (self.controller and self.controller.search):
+            item.setInvalid(True)
         port_dict[new_spec] = item
         next_pos[0] = next_op(next_pos[0], 
                               (CurrentTheme.PORT_WIDTH +
@@ -2033,6 +2040,24 @@ def choose_converter(converters, parent=None):
     else:
         return None
 
+class StacktracePopup(QtGui.QDialog):
+    def __init__(self, errorTrace='', parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.resize(700, 400)
+        self.setWindowTitle('Module Error')
+        layout = QtGui.QVBoxLayout()
+        self.setLayout(layout)
+        text = QtGui.QTextEdit('')
+        text.insertPlainText(errorTrace)
+        text.setReadOnly(True)
+        text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        layout.addWidget(text)
+        close = QtGui.QPushButton('Close', self)
+        close.setFixedWidth(100)
+        layout.addWidget(close)
+        self.connect(close, QtCore.SIGNAL('clicked()'),
+                     self, QtCore.SLOT('close()'))
+
 ##############################################################################
 # QPipelineScene
 
@@ -2087,7 +2112,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
             moduleQuery = (self.controller.current_version, module)
-            matched = self.controller.search.matchModule(*moduleQuery)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
@@ -2261,20 +2285,22 @@ class QPipelineScene(QInteractiveGraphicsScene):
             common_connections = new_connections.intersection(self._old_connection_ids)
 
 
-            # Check if connections to be added require 
+            # Check if connections to be added require
             # optional ports in modules to be visible
-            for c_id in connections_to_be_added:
+            # check all connections because the visible flag
+            # may have been cleared
+            for c_id in new_connections:
                 connection = pipeline.connections[c_id]
                 smid = connection.source.moduleId
                 s = connection.source.spec
                 if s and s.optional:
                     smm = pipeline.modules[smid]
-                    smm.portVisible.add((PortEndPoint.Source,s.name))
+                    smm.visible_output_ports.add(s.name)
                 dmid = connection.destination.moduleId   
                 d = connection.destination.spec
                 if d and d.optional:
                     dmm = pipeline.modules[dmid]
-                    dmm.portVisible.add((PortEndPoint.Destination,d.name))
+                    dmm.visible_input_ports.add(d.name)
 
             # remove old connection shapes
             for c_id in connections_to_be_deleted:
@@ -2865,11 +2891,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                         m.dependingConnectionItems().iterkeys())
                 # remove_connection updates the dependency list on the
                 # other side of connections, cannot use removeItem
-                for c_id in dep_connection_ids:
-                    self.remove_connection(c_id)
-                for m_id in module_ids:
-                    self.remove_module(m_id)
-                self.controller.delete_module_list(module_ids)
+                try:
+                    skip_update = True
+                    for c_id in dep_connection_ids:
+                        self.remove_connection(c_id)
+                    for m_id in module_ids:
+                        self.remove_module(m_id)
+                    self.controller.delete_module_list(module_ids)
+                finally:
+                    self.skip_update = False
+                    self.update_connections()
                 self.updateSceneBoundingRect()
                 self.reset_module_colors()
                 self.update()
@@ -2882,12 +2913,17 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 # module ids, and the for loop above takes care of
                 # connection ids. So we don't need to call anything.
             else:
-                for c_id in connection_ids:
-                    self.remove_connection(c_id)
-                self.controller.reset_pipeline_view = False
-                self.controller.delete_connection_list(connection_ids)
-                self.reset_module_colors()
-                self.controller.reset_pipeline_view = True
+                try:
+                    self.skip_update = False
+                    for c_id in connection_ids:
+                        self.remove_connection(c_id)
+                    self.controller.reset_pipeline_view = False
+                    self.controller.delete_connection_list(connection_ids)
+                    self.reset_module_colors()
+                    self.controller.reset_pipeline_view = True
+                finally:
+                    self.skip_update = False
+                    self.update_connections()
                 # Current pipeline changed, so we need to change the
                 # _old_connection_ids. However, remove_connection
                 # above takes care of connection ids, so we don't need
@@ -3123,24 +3159,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         text = toolTip
         if errorTrace and errorTrace.strip() != 'None':
             text += '\n\n' + errorTrace
-        class StackPopup(QtGui.QDialog):
-            def __init__(self, errorTrace='', parent=None):
-                QtGui.QDialog.__init__(self, parent)
-                self.resize(700, 400)
-                self.setWindowTitle('Module Error')
-                layout = QtGui.QVBoxLayout()
-                self.setLayout(layout)
-                text = QtGui.QTextEdit('')
-                text.insertPlainText(errorTrace)
-                text.setReadOnly(True)
-                text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
-                layout.addWidget(text)
-                close = QtGui.QPushButton('Close', self)
-                close.setFixedWidth(100)
-                layout.addWidget(close)
-                self.connect(close, QtCore.SIGNAL('clicked()'),
-                             self, QtCore.SLOT('close()'))
-        sp = StackPopup(text)
+        sp = StacktracePopup(text)
         sp.exec_()
 
     def open_annotations_window(self, id):
@@ -3213,7 +3232,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error.msg,
+                                     QModuleStatusEvent(moduleId, 1, error,
                                                         errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
@@ -3561,6 +3580,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.set_title('Pipeline')
         self.controller = None
         self.detachable = True
+        self._view_fitted = False
 
     def set_default_layout(self):
         from vistrails.gui.module_palette import QModulePalette
@@ -3739,6 +3759,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return self.controller
 
     def version_changed(self):
+        self._view_fitted = False
         self.scene().setupScene(self.controller.current_pipeline)
 
     def run_control_flow_assist(self):
@@ -3772,6 +3793,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def paintModuleToPixmap(self, module_item):
         m = self.matrix()
         return module_item.paintToPixmap(m.m11(), m.m22())
+
+    def viewSelected(self):
+        if not self._view_fitted and self.isVisible():
+            # We only do this once after a version_changed() call
+            self.zoomToFit()
+            self._view_fitted = True
 
 ################################################################################
 # Testing

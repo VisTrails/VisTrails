@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -39,10 +39,10 @@ import importlib
 
 from itertools import izip
 
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 
-from .common import convert_input, convert_output, get_input_spec, get_output_spec
+from .common import convert_port, get_input_spec, get_output_spec
 
 
 class BaseClassModule(Module):
@@ -57,7 +57,8 @@ class BaseClassModule(Module):
 
     def call_set_method(self, instance, port, params, method_results):
         # convert params
-        params = convert_input(params, self.input_specs[port.name].signature)
+        # convert values to vistrail types
+        params = convert_port(port, params, self._translations['input'])
         if len(self.input_specs[port.name].signature) > 1:
             params = list(params)
         else:
@@ -91,7 +92,7 @@ class BaseClassModule(Module):
         try:
             value = method(*(port.get_prepend_params()))
             # convert params
-            return convert_output(value, self.output_specs[port.name].signature)
+            return convert_port(port, value, self._translations['output'])
         except Exception, e:
             raise
 
@@ -166,22 +167,29 @@ class BaseClassModule(Module):
         """
         args = []
         kwargs = {}
+        ops = []
         for port_name in self.inputPorts:
             port = self._get_input_spec(port_name)
             if port and port.method_type == 'argument':
                 params = self.get_input(port_name)
+                params = convert_port(port, params,
+                                      self._translations['input'])
+
                 if -1 == port.arg_pos:
                     kwargs[port.arg] = params
                 elif -2 == port.arg_pos:
                     args = params
                 elif -3 == port.arg_pos:
                     kwargs.update(params)
+                elif -5 == port.arg_pos:
+                    if params:
+                        ops.extend(params)
                 else:
                     # make room for arg
                     while len(args) <= port.arg_pos:
                         args.append(None)
                     args[port.arg_pos] = params
-        return args, kwargs
+        return args, kwargs, ops
 
     def set_attributes(self, instance):
         """
@@ -191,6 +199,8 @@ class BaseClassModule(Module):
             port = self._get_input_spec(port_name)
             if port and port.method_type == 'attribute':
                 params = self.get_input(port_name)
+                params = convert_port(port, params,
+                                      self._translations['input'])
                 setattr(instance, port.arg, params)
 
     def get_attributes(self, instance):
@@ -200,7 +210,9 @@ class BaseClassModule(Module):
         for port_name in self.outputPorts:
             port = self._get_output_spec(port_name)
             if port and port.method_type == 'attribute':
-                self.set_output(port_name, getattr(instance, port.arg))
+                value = getattr(instance, port.arg)
+                value = convert_port(port, value, self._translations['output'])
+                self.set_output(port_name, value)
 
     def compute(self):
         spec = self._module_spec
@@ -208,7 +220,7 @@ class BaseClassModule(Module):
             instance = self.get_input('Instance')
         else:
             # Handle parameters to instance
-            args, kwargs = self.get_parameters()
+            args, kwargs, ops = self.get_parameters()
             # create the instance
             if not kwargs:
                 # some constructors fail if passed empty kwarg
@@ -240,6 +252,24 @@ class BaseClassModule(Module):
         if spec.compute:
             getattr(instance, spec.compute)()
 
+        # apply operations
+        for op, op_args, op_kwargs in ops:
+            if '.' in op:
+                # Run as a function with obj as first argument
+                # TODO: Support obj on other position and as kwarg
+                m, c, n = op.rsplit('.', 2)
+                function = getattr(getattr(importlib.import_module(m), c), n)
+                op_args[0] = instance
+            else:
+                # it is a class method
+                function = getattr(instance, op)
+            try:
+                print op, op_args, op_kwargs
+                result = function(*op_args, **op_kwargs)
+            except Exception, e:
+                raise ModuleError(self, e.message)
+
+
         # get output attributes from instance
         self.get_attributes(instance)
 
@@ -257,7 +287,8 @@ class BaseClassModule(Module):
             getattr(instance, spec.cleanup)()
 
 
-def gen_class_module(spec, lib=None, modules=None, **module_settings):
+def gen_class_module(spec, lib=None, modules=None, translations={},
+                     operations={}, **module_settings):
     """Create a module from a python class specification
 
     Parameters
@@ -267,6 +298,7 @@ def gen_class_module(spec, lib=None, modules=None, **module_settings):
     module : pythonmodule
         The module to load classes from
     modules : dict of name:module
+    operations : supported operation dict of {name: type}
     """
     if modules is None:
         modules = {}
@@ -311,9 +343,12 @@ def gen_class_module(spec, lib=None, modules=None, **module_settings):
          '_output_spec_table': _output_spec_table,
          '_module_spec': spec,
          'is_cacheable': lambda self:spec.cacheable,
+         '_translations': translations,
          '_class': [_class]} # Avoid attaching it to the class
 
     superklass = modules.get(spec.superklass, BaseClassModule)
     new_klass = type(str(spec.module_name), (superklass,), d)
     modules[spec.module_name] = new_klass
     return new_klass
+
+_modules = [BaseClassModule]

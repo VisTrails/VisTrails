@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -384,6 +384,50 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             item.vistrail().controller.set_changed(True)
             item.vistrail().jobMonitor.deleteJob(item.job.id)
 
+class QJobProgressDialog(QtGui.QDialog):
+    def __init__(self, job_name, job_start, parent=None, value=0, max_value=100):
+        super(QJobProgressDialog, self).__init__(parent)
+        f = self.windowFlags()
+        f |= QtCore.Qt.CustomizeWindowHint
+        f &= ~QtCore.Qt.WindowCloseButtonHint
+        self.job_name = job_name
+        self.job_start = job_start
+        self.was_cancelled = False
+        self.was_checked = False
+        self.progressbar = QtGui.QProgressBar()
+        self.progressbar.setMinimum(0)
+        self.progressbar.setMaximum(max_value)
+        self.progressbar.setValue(value)
+        self.cancel_button = QtGui.QPushButton('&Cancel')
+        self.check_now_button = QtGui.QPushButton('Check &Now')
+        self.cancel_button.clicked.connect(lambda :setattr(self,
+                                                           'was_cancelled',
+                                                           True))
+        self.check_now_button.clicked.connect(lambda :setattr(self,
+                                                              'was_checked',
+                                                              True))
+        self.label = QtGui.QLabel()
+        self.updateLabel()
+        main_layout = QtGui.QGridLayout()
+        main_layout.addWidget(self.label, 0, 0, 2, 2)
+        main_layout.addWidget(self.progressbar, 2, 0, 1, 2)
+        main_layout.addWidget(self.check_now_button, 3, 0)
+        main_layout.addWidget(self.cancel_button, 3, 1)
+        self.setLayout(main_layout)
+        self.setWindowTitle('Running Job')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+
+    def updateLabel(self):
+        labelText = (("Running external job %s\n"
+                               "Started %s\n"
+                               "Last checked %s\n"
+                               "Press Check Now to check or Cancel to suspend")
+                               % (self.job_name,
+                                  self.job_start,
+                                  QtCore.QDateTime.currentDateTime().toString(
+                                      QtCore.Qt.ISODate)))
+        self.label.setText(labelText)
+
 
 class QVistrailItem(QtGui.QTreeWidgetItem):
     """A vistrail with running workflows.
@@ -525,42 +569,66 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         workflow = self.jobMonitor.currentWorkflow()
         workflow_item = self.workflowItems.get(workflow.id, None)
         workflow_item.updateJobs()
-        progress = self.controller.progress
-
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
-        if interval and not conf.jobAutorun and not progress.suspended:
+        is_done = self.jobMonitor.isDone(handle)
+        old_progress = self.controller.progress
+        if (interval and not conf.jobAutorun and
+               not old_progress.suspended and not is_done):
             # wait for module to complete
-            labelText = (("Running external job %s\n"
-                                   "Started %s\n"
-                                   "Press Cancel to suspend")
-                                   % (item.job.name,
-                                      item.job.start))
-            progress.setLabelText(labelText)
-            while not self.jobMonitor.isDone(handle):
+            old_progress.hide()
+            progress = QJobProgressDialog(item.job.name,
+                                          item.job.start,
+                                          old_progress.parent(),
+                                          old_progress.value(),
+                                          old_progress.maximum())
+            progress.show()
+            while not is_done:
                 dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
-                while QtCore.QDateTime.currentDateTime() < dieTime:
+                while QtCore.QDateTime.currentDateTime() < dieTime and not is_done:
                     QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
-                    if progress.wasCanceled():
+                    if progress.was_checked:
+                        progress.check_now_button.setText('Checking')
+                        progress.check_now_button.setEnabled(False)
+                        progress.cancel_button.setEnabled(False)
+                        is_done = self.jobMonitor.isDone(handle)
+                        progress.check_now_button.setText('Check &Now')
+                        progress.check_now_button.setEnabled(True)
+                        progress.cancel_button.setEnabled(True)
+                        progress.was_checked = False
+                        progress.updateLabel()
+                    elif progress.was_cancelled:
                         # this does not work, need to create a new progress dialog
-                        #progress.goOn()
-                        new_progress = progress.__class__(progress.parent())
-                        new_progress.setMaximum(progress.maximum())
-                        new_progress.setValue(progress.value())
-                        new_progress.setLabelText(labelText)
+                        #old_progress.goOn()
+                        new_progress = old_progress.__class__(old_progress.parent())
+                        new_progress.setMaximum(old_progress.maximum())
+                        new_progress.setValue(old_progress.value())
+                        new_progress.setLabelText(old_progress.labelText())
                         new_progress.setMinimumDuration(0)
                         new_progress.suspended = True
                         self.controller.progress = new_progress
+                        old_progress.deleteLater()
                         progress.hide()
-                        progress.deleteLater()
-                        progress = new_progress
-                        progress.show()
+                        new_progress.show()
                         QtCore.QCoreApplication.processEvents()
                         raise ModuleSuspended(module,
                                    'Interrupted by user, job'
                                    ' is still running', handle=handle)
+                is_done = is_done or self.jobMonitor.isDone(handle)
+            # is_done!
+            new_progress = old_progress.__class__(old_progress.parent())
+            new_progress.setMaximum(old_progress.maximum())
+            new_progress.setValue(old_progress.value())
+            new_progress.setLabelText(old_progress.labelText())
+            new_progress.setMinimumDuration(0)
+            new_progress.suspended = True
+            self.controller.progress = new_progress
+            old_progress.deleteLater()
+            progress.hide()
+            new_progress.show()
+            QtCore.QCoreApplication.processEvents()
             return
-        if not self.jobMonitor.isDone(handle):
+        if not is_done:
             raise ModuleSuspended(module, 'Job is running', handle=handle)
 
 

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -146,7 +146,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         editLayout.addWidget(self.tagReset)
 
         configuration = get_vistrails_configuration()
-        self.use_custom_colors = configuration.check('enableCustomVersionColors')
+        self.use_custom_colors = configuration.check('customVersionColors')
 
         if self.use_custom_colors:
             self.customColor = ColorChooserButton(self)
@@ -238,10 +238,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
 
             if vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find tag
-                tag = vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
-
+                tag = self.controller.get_tag(versionNumber)
                 if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
                     base_ver = vistrail.get_base_upgrade_version(versionNumber)
                 else:
@@ -251,7 +248,12 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.tagEdit.setText(tag)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
-                self.idEdit.setText(unicode(action.id))
+                if base_ver != versionNumber:
+                    version_text = '%s (%s)' % (versionNumber, base_ver)
+                else:
+                    version_text = '%s' % base_ver
+
+                self.idEdit.setText(version_text)
                 self.tagEdit.setEnabled(True)
                 return
             else:
@@ -314,6 +316,7 @@ class QVersionNotes(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.controller = None
         self.versionNumber = -1
+        self.last_update = self.controller, self.versionNumber
         self.update_on_focus_out = True
         self.setAcceptRichText(False)
         # Reset text to black, for some reason it is grey by default on the mac
@@ -325,15 +328,15 @@ class QVersionNotes(QtGui.QTextEdit):
         Update the text to be the notes of the vistrail versionNumber
         
         """
-        if self.versionNumber == versionNumber:
+        if self.last_update == (self.controller, versionNumber):
             return
+        self.last_update = self.controller, versionNumber
+
         self.versionNumber = versionNumber
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find notes
-                notes = self.controller.vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.get_notes(v) or None)
+                notes = self.controller.get_notes(versionNumber)
                 if notes:
                     self.setHtml(notes)
                     # work around a strange bug where an empty new paragraph gets added every time
@@ -519,10 +522,7 @@ class QVersionPropOverlay(QtGui.QFrame):
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 vistrail = self.controller.vistrail
                 # Follow upgrades forward to find tag
-                tag = vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
-
+                tag = self.controller.get_tag(versionNumber)
                 if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
                     base_ver = vistrail.get_base_upgrade_version(versionNumber)
                 else:
@@ -534,7 +534,7 @@ class QVersionPropOverlay(QtGui.QFrame):
                 self.description.setText(self.truncate(description))
                 self.user.setText(self.truncate(action.user))
                 self.date.setText(self.truncate(action.date))
-                notes = vistrail.get_notes(action.id)
+                notes = self.controller.get_notes(action.id)
                 if notes:
                     s = self.convertHtmlToText(notes)
                     self.notes.setText(self.truncate(s))
@@ -733,10 +733,7 @@ class QNotesDialog(QtGui.QDialog):
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find tag
-                tag = self.controller.vistrail.search_upgrade_versions(
-                        versionNumber,
-                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
-
+                tag = self.controller.get_tag(versionNumber)
                 title = "Notes: " + tag
                 self.setWindowTitle(title)
             else:
@@ -907,7 +904,7 @@ class QVersionMashups(QtGui.QWidget):
                 
     def mashupSelected(self):
         action = self.sender()
-        version, ok = action.data()
+        version = action.data()
         self.openMashup(version)
 
     def openMashup(self, version):

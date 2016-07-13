@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -43,9 +43,11 @@ from ast import literal_eval
 import copy
 import os.path
 import getpass
+import platform
 import re
 import sys
 import StringIO
+import usagestats
 
 from PyQt4 import QtGui, QtCore, QtNetwork
 
@@ -56,6 +58,7 @@ from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core import reportusage
 import vistrails.core.requirements
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
@@ -64,7 +67,25 @@ from vistrails.gui import qt
 import vistrails.gui.theme
 
 
-################################################################################
+def global_ui_fixes():
+    # Prevent Mac OS 10.7 from restoring windows state since it would make Qt
+    # 4.7.3 unstable due to its lack of handling Cocoa's Main Window.
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2 and (int(release[0]), int(release[1])) >= (10, 7):
+            ss_path = os.path.expanduser('~/Library/Saved Application State/'
+                                         'org.vistrails.savedState')
+            if os.path.exists(ss_path):
+                os.system('rm -rf "%s"' % ss_path)
+            os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows '
+                      '-bool false')
+
+    # font bugfix for Qt 4.8 and OS X 10.9
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2 and (int(release[0]), int(release[1])) >= (1, 9):
+            QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+
 
 class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                     QtGui.QApplication):
@@ -75,6 +96,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     """
 
     use_event_filter = system.systemType in ['Darwin']
+    timeout = 15000
+    execution_timeout = 600000
 
     def __call__(self):
         """ __call__() -> VistrailsApplicationSingleton
@@ -86,12 +109,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return self
 
     def __init__(self):
-        # font bugfix for Qt 4.8 and OS X 10.9
-        import platform
-        if platform.system()=='Darwin':
-            release = platform.mac_ver()[0].split('.')
-            if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
-                QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+        global_ui_fixes()
+
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
@@ -115,7 +134,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
-            self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
                        "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
@@ -138,8 +156,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 else:
                     if self.found_another_instance_running(local_socket, args):
                         return APP_DONE # success, we should shut down
-                    else:
-                        return APP_FAIL  # error, we should shut down
+                    else:  # This is bad, but not fatal. Let's keep going...
+                        debug.critical("Failed to communicate with existing "
+                                       "instance")
+                        return
 
             if not self.shared_memory.create(1):
                 debug.critical("Unable to create single instance "
@@ -198,6 +218,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         Create the application with a dict of settings
         
         """
+        reportusage.record_usage(gui=True)
+
         vistrails.gui.theme.initializeCurrentTheme()
         VistrailsApplicationInterface.init(self, optionsDict, args)
         
@@ -227,12 +249,20 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # The window does not get maximized. If we do it too early,
         # there are no created windows during spreadsheet initialization.
         if interactive:
+            reportusage.record_usage(gui_interactive=True)
             if  self.temp_configuration.check('maximizeWindows'):
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
 
         self._initialized = True
+
+        # usage statistics
+        if reportusage.usage_report.status is usagestats.Stats.UNSET:
+            self.ask_enable_usage_report()
+        # news
+        elif self.temp_configuration.check('showVistrailsNews'):
+            self.show_news()
 
         # default handler installation
         if system.systemType == 'Linux':
@@ -247,6 +277,67 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             r = self.noninteractiveMode()
             return APP_SUCCESS if r is True else APP_FAIL
         return APP_SUCCESS
+
+    def ask_enable_usage_report(self):
+        news = reportusage.get_server_news()
+        if hasattr(self, 'splashScreen') and self.splashScreen:
+            self.splashScreen.hide()
+        dialog = QtGui.QDialog()
+        dialog.setWindowTitle(u"Anonymous usage statistics")
+        layout = QtGui.QVBoxLayout()
+        dialog.setLayout(layout)
+        descr = QtGui.QTextBrowser()
+        descr.setOpenExternalLinks(True)
+        descr.setHtml(news['usage_report_prompt_html'])
+        layout.addWidget(descr)
+        layout.addWidget(QtGui.QLabel(
+            u"Send anonymous reports to the developers?"))
+        dont_ask = QtGui.QCheckBox(u"Don't ask again")
+        layout.addWidget(dont_ask)
+        buttons = QtGui.QDialogButtonBox(
+                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        layout.addWidget(buttons)
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
+                     dialog, QtCore.SLOT('accept()'))
+        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
+                     dialog, QtCore.SLOT('reject()'))
+
+        res = dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            reportusage.usage_report.enable_reporting()
+        else:
+            if dont_ask.isChecked():
+                reportusage.usage_report.disable_reporting()
+        self.configuration.lastShownNews = news['version']
+
+    def show_news(self):
+        news = reportusage.get_server_news()
+        if (getattr(self.temp_configuration, 'lastShownNews', None) ==
+                news['version']):
+            return
+
+        if news['news_html']:
+            if hasattr(self, 'splashScreen') and self.splashScreen:
+                self.splashScreen.hide()
+            dialog = QtGui.QDialog()
+            dialog.setWindowTitle(u"VisTrails News")
+            layout = QtGui.QVBoxLayout()
+            dialog.setLayout(layout)
+            descr = QtGui.QTextBrowser()
+            descr.setOpenExternalLinks(True)
+            descr.setHtml(news['news_html'])
+            layout.addWidget(descr)
+
+            hlayout = QtGui.QHBoxLayout()
+            button = QtGui.QPushButton('&Close')
+            hlayout.addStretch(1)
+            hlayout.addWidget(button)
+            hlayout.addStretch(1)
+            layout.addLayout(hlayout)
+            button.clicked.connect(dialog.close)
+
+            dialog.exec_()
+        self.configuration.lastShownNews = news['version']
 
     def ask_update_default_application(self, dont_ask_checkbox=True):
         if hasattr(self, 'splashScreen') and self.splashScreen:
@@ -706,8 +797,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception, e:
-                import traceback
-                traceback.print_exc()
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()
@@ -739,7 +828,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Writing failed: %s" %
                            local_socket.errorString())
             return False
-        if not local_socket.waitForReadyRead(self.timeout):
+        if not local_socket.waitForReadyRead(self.execution_timeout):
             debug.critical("Read error: %s" %
                            local_socket.errorString())
             return False
@@ -755,6 +844,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return False
 
     def parse_input_args_from_other_instance(self, msg):
+        reportusage.record_feature('args_from_other_instance')
         options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list

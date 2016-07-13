@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -727,13 +727,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                                     namespace)
         if not new_descriptor:
             return []
-        try:
-            return UpgradeWorkflowHandler.replace_module(controller, pipeline,
-                                                    module_id, new_descriptor)
-        except Exception, e:
-            import traceback
-            traceback.print_exc()
-            raise
+        return UpgradeWorkflowHandler.replace_module(controller, pipeline,
+                                                module_id, new_descriptor)
 
     return UpgradeWorkflowHandler.attempt_automatic_upgrade(controller, 
                                                             pipeline,

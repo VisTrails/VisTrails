@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -270,7 +270,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             self.setItemExpanded(item, not self.isItemExpanded(item))
 
     def contextMenuEvent(self, event):
-        # Just dispatches the menu event to the widget item
+        """Just dispatches the menu event to the widget item"""
         item = self.itemAt(event.pos())
         if item:
             # find top level

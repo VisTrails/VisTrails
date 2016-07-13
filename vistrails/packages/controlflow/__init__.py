@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -33,10 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from __future__ import division
 
-identifier="org.vistrails.vistrails.control_flow"
-name="Control Flow"
-version="0.2.4"
+identifier = "org.vistrails.vistrails.control_flow"
+name = "Control Flow"
+version = "0.2.4"
 old_identifiers = ["edu.utah.sci.vistrails.control_flow"]

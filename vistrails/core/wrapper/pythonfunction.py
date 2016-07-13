@@ -38,16 +38,31 @@ import importlib
 
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from .common import convert_input, convert_output
+from .common import convert_port
+
+IN_KWARG = -1
+ARGV = -2
+KWARG = -3
+SELF = -4
+OPERATION = -5
 
 
-def gen_function_module(spec, lib=None, klasses=None, **module_settings):
+def gen_function_module(spec, lib=None, klasses=None, translations={},
+                        **module_settings):
     """Create a module from a python function specification
 
     Parameters
     ----------
     spec : FunctionSpec
         A function specification
+    lib : python module
+         optional library module
+    klasses : dict
+         superclasses
+    translations : dict
+         port translations {signature: function}
+    module_settings : InstanceObject
+         module settings
     """
     if klasses is None:
         klasses = {}
@@ -60,28 +75,50 @@ def gen_function_module(spec, lib=None, klasses=None, **module_settings):
     for ispec in spec.all_input_port_specs():
         input_ports.append(CIPort(ispec.name, ispec.get_port_type(),
                                   **ispec.get_port_attrs()))
-    output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
+    output_ports = [COPort(ospec.name, ospec.get_port_type(),
+                           **ospec.get_port_attrs())
                     for ospec in spec.output_port_specs]
 
     def compute(self):
         # read inputs, convert, and translate to args
         args = []
         kwargs = {}
+        instance = None
+        ops = []
         for port in spec.all_input_port_specs():
             if self.has_input(port.name):
                 value = self.get_input(port.name)
-                value = convert_input(value, self.input_specs[port.name].signature)
-                if -1 == port.arg_pos:
-                        kwargs[port.arg] = value
-                elif -2 == port.arg_pos:
+                value = convert_port(port, value, self._translations['input'])
+                if IN_KWARG == port.arg_pos:
+                    kwargs[port.arg] = value
+                elif ARGV == port.arg_pos:
                     args = value
-                elif -3 == port.arg_pos:
+                elif KWARG == port.arg_pos:
                     kwargs.update(value)
+                elif SELF == port.arg_pos:
+                    instance = value
+                elif OPERATION == port.arg_pos:
+                    ops.extend(value)
                 else:
                     # make room for arg
                     while len(args) <= port.arg_pos:
                         args.append(None)
                     args[port.arg_pos] = value
+
+        if 'operation' == spec.method_type:
+            # Set module info on self output and quit
+            # FIXME: using spec.name assumes same package
+            # FIXME: serialize kwargs?
+            # NOTE: tempfile/callback not supported on operations
+            info = (spec.code_ref, args, kwargs)
+            ops.append(info)
+            for name in self.output_specs_order: # there is only one
+                self.set_output(name, ops)
+            return
+
+        # Optional temp file
+        if spec.tempfile:
+            kwargs[spec.tempfile] = self.file_pool.create_file
 
         # Optional callback used for progress reporting
         if spec.callback:
@@ -89,24 +126,22 @@ def gen_function_module(spec, lib=None, klasses=None, **module_settings):
                 self.logging.update_progress(self, c)
             kwargs[spec.callback] = callback
 
-        # Optional temp file
-        if spec.tempfile:
-            kwargs[spec.tempfile] = self.file_pool.create_file
-
-        if spec.is_method:
-            if '.' in spec.code_ref:
+        if 'method' == spec.method_type:
+            if instance:
+                function = getattr(instance, spec.code_ref)
+            elif '.' in spec.code_ref:
+                # DEPRECATED: Set SELF as arg_pos and use instance
                 # full paths are imported directly
                 m, c, n = spec.code_ref.rsplit('.', 2)
                 function = getattr(getattr(importlib.import_module(m), c), n)
-            else:
-                function = getattr(lib, spec.code_ref)
-        else:
+        elif 'function' == spec.method_type:
             if '.' in spec.code_ref:
                 # full paths are imported directly
                 m, f = spec.code_ref.rsplit('.', 1)
                 function = getattr(importlib.import_module(m), f)
             else:
                 function = getattr(lib, spec.code_ref)
+
 
         try:
             print args, kwargs
@@ -121,6 +156,24 @@ def gen_function_module(spec, lib=None, klasses=None, **module_settings):
 
         if spec.output_type is None or spec.output_type == 'object':
             # single object
+            if 'operation' != spec.method_type:
+                # apply operations
+                # the function must return a class instance for this to work
+                for op, op_args, op_kwargs in ops:
+                    if '.' in op:
+                        # Run as a function with obj as first argument
+                        # TODO: Support result on other position and as kwarg
+                        m, c, n = op.rsplit('.', 2)
+                        function = getattr(getattr(importlib.import_module(m), c), n)
+                        op_args[0] = result
+                    else:
+                        # it is a class method
+                        function = getattr(result, op)
+                    try:
+                        print op, op_args, op_kwargs
+                        function(*op_args, **op_kwargs)
+                    except Exception, e:
+                        raise ModuleError(self, e.message)
             for name in self.output_specs_order:
                 outputs[name] = result
         elif spec.output_type == 'list':
@@ -132,13 +185,17 @@ def gen_function_module(spec, lib=None, klasses=None, **module_settings):
                       for s in spec.output_port_specs])
             outputs = dict([(t[arg], value)
                             for arg, value in result.iteritems()])
-
+        elif spec.output_type == 'self':
+            # return instance
+            for name in self.output_specs_order:
+                outputs[name] = instance
         # convert values to vistrail types
-        for name in outputs:
-            if outputs[name] is not None:
-                outputs[name] = convert_output(outputs[name],
-                                            self.output_specs[name].signature)
-
+        for port in spec.output_port_specs:
+            name = port.name
+            if name in outputs and outputs[name] is not None:
+                outputs[name] = convert_port(port,
+                                             outputs[name],
+                                             self._translations['output'])
         # set outputs
         for key, value in outputs.iteritems():
             self.set_output(key, value)
@@ -150,7 +207,8 @@ def gen_function_module(spec, lib=None, klasses=None, **module_settings):
          '__name__': spec.name or spec.module_name,
          'is_cacheable': lambda self:spec.cacheable,
          '_input_ports': input_ports,
-         '_output_ports': output_ports}
+         '_output_ports': output_ports,
+         '_translations': translations}
 
     superklass = klasses.get(spec.superklass, Module) if klasses else Module
     new_klass = type(str(spec.module_name), (superklass,), d)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -126,11 +126,9 @@ class MplFigureCellWidget(QCellWidget):
             self.layout().addWidget(self.canvas)
 
     def keyPressEvent(self, event):
-        print "KEY PRESS:",  event.key()
         self.canvas.keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
-        print "KEY RELEASE:", event.key()
         self.canvas.keyReleaseEvent(event)
 
     def deleteLater(self):
@@ -140,8 +138,6 @@ class MplFigureCellWidget(QCellWidget):
         """
         # Destroy the old one if possible
         if self.figure is not None:
-            print "pylab:", pylab
-            print "self.figure:", self.figure
             pylab.close(self.figure)
 
         QCellWidget.deleteLater(self)
@@ -219,11 +215,8 @@ class MplFigureCellToolBar(QCellToolBar):
                 exclusive_actions[text] = action
 
         def get_callback(act, cb, txt):
-            print "CONSTRUCTING CALLBACK!", act, cb, txt
             def callback():
-                print "GOT CALLBACK!!"
                 cellWidget = act.toolBar.getSnappedWidget()
-                print "CALLING callback", cb
                 getattr(cellWidget.mplToolbar, cb)()
                 if txt in exclusive_actions:
                     for t, a in exclusive_actions.iteritems():
