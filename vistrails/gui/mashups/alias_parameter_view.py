@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -101,7 +101,6 @@ class QAliasParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         #self.pipeline_view.scene().setupScene(self.mshpController.vtPipeline)
         self.pipeline_view.scene().clear()
         self.pipeline_view.version_changed()
-        self.pipeline_view.zoomToFit()
         self.pipeline_view.updateAnnotatedIds(
                         self.mshpController.vtPipeline)
         #_app.notify('mashup_pipeline_view_set')

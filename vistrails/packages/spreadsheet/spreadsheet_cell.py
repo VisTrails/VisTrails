@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -1290,11 +1290,21 @@ class QCellDragLabel(QtGui.QLabel):
         self.startPos = QtCore.QPoint(event.pos())
         QtGui.QLabel.mousePressEvent(self, event)
 
+    def mouseReleaseEvent(self, event):
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        Note that dragging ended
+
+        """
+        self.startPos = None
+
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None
         Prepare to drag
 
         """
+        if self.startPos is None:
+            return
+
         p = event.pos() - self.startPos
         if p.manhattanLength()>=QtGui.QApplication.startDragDistance():
             drag = QtGui.QDrag(self)

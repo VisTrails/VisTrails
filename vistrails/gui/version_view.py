@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -865,8 +865,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 continue
             nodeUser = am[nodeId].user
             if controller.search and nodeId!=0:
-                ghosted = not controller.search.match(controller.vistrail, 
-                                                      am[nodeId])
+                action = am[nodeId]
+                if getattr(get_vistrails_configuration(), 'hideUpgrades',
+                           True):
+                    # Use upgraded version to match
+                    action = am[controller.vistrail.get_upgrade(nodeId, False)]
+                ghosted = not controller.search.match(controller, action)
             else:
                 ghosted = False
                 
@@ -878,7 +882,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
             configuration = get_vistrails_configuration()
-            if configuration.check('enableCustomVersionColors'):
+            if configuration.check('customVersionColors'):
                 custom_color = controller.vistrail.get_action_annotation(
                     nodeId,
                     custom_color_key)
@@ -1106,6 +1110,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.setScene(QVersionTreeScene(self))
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
+        self._view_fitted = False
 
     def set_default_layout(self):
         from vistrails.gui.collection.workspace import QWorkspaceWindow
@@ -1195,6 +1200,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.setWindowTitle(title)
 
     def set_controller(self, controller):
+        self._view_fitted = False
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
@@ -1268,3 +1274,9 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
 
     def select_current_version(self):
         self.scene().setupScene(self.controller)
+
+    def viewSelected(self):
+        if not self._view_fitted and self.isVisible():
+            # We only do this once after a set_controller() call
+            self.zoomToFit()
+            self._view_fitted = True

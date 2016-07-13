@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -42,7 +42,7 @@ import urllib2
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
-DOWNLOAD_URL = "http://www.vistrails.org/usersguide/v2.2/html/VisTrails.pdf"
+DOWNLOAD_URL = "http://www.vistrails.org/usersguide/dev/html/VisTrails.pdf"
 SAVE_TO = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else this_dir
 
 # http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -115,3 +115,6 @@ class BaseView(object):
         if event.type() == QtCore.QEvent.WindowTitleChange:
             self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
         QtGui.QWidget.changeEvent(self, event)
+
+    def viewSelected(self):
+        pass

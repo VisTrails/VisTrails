@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -42,8 +42,10 @@ Usage:
 
 from setuptools import setup
 import sys
+
 sys.setrecursionlimit(1500)
-VERSION = '2.2.3'
+
+VERSION = '2.x'
 
 # Add VTK 6.2 to path
 sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')
@@ -74,11 +76,11 @@ OPTIONS = {'argv_emulation': True,
                         sqlalchemy.dialects.firebird,sqlalchemy.dialects.mssql,\
                         sqlalchemy.dialects.oracle,sqlalchemy.dialects.sybase,\
                         sqlalchemy.dialects.drizzle,certifi,backports.ssl_match_hostname,\
-                        tej,pymongo',
+                        pymongo',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,\
                         api,twisted,Scientific,distutils,h5py,batchq,osgeo,\
                         nose,IPython,zmq,pygments,pyth,psycopg2,remoteq,\
-                        file_archive,sklearn',
+                        file_archive,sklearn,tej',
            'excludes': 'mpl_toolkits.basemap,PyQt4.uic,PyQt4.uic.Compiler,\
                         PyQt4.uic.Loader,PyQt4.uic.port_v2,PyQt4.uic.port_v3',
            'plist': plist,

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -197,7 +197,9 @@ def initialize():
         from .vtk_wrapper.parse import parse
         parse(spec_name)
     vtk_classes.initialize(spec_name)
-    _modules.extend([gen_class_module(spec, vtk_classes, klasses, signature=hasher.vtk_hasher)
+    _modules.extend([gen_class_module(spec, vtk_classes, klasses,
+                                      translations=vtk_classes.specs.get_translations(),
+                                      signature=hasher.vtk_hasher)
                      for spec in vtk_classes.specs.module_specs])
 
 ################# UPGRADES ###################################################

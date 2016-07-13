@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -129,15 +129,6 @@ def initialize(*args, **keywords):
         basicWidgets = addWidget('vistrails.packages.spreadsheet.basic_widgets')
     importWidgetModules(basicWidgets)
 
-    # Create application if there is no one available
-    global app
-    app = QtCore.QCoreApplication.instance()
-    if app==None:
-        app = QtGui.QApplication(sys.argv)
-    if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow
-        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
-
 
 def menu_items():
     """menu_items() -> tuple of (str,function)
@@ -146,6 +137,7 @@ def menu_items():
 
     """
     def show_spreadsheet():
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         spreadsheetWindow.show()
         spreadsheetWindow.activateWindow()
         spreadsheetWindow.raise_()

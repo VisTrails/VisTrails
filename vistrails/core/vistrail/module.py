@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -83,7 +83,6 @@ class Module(DBModule):
 
     def set_defaults(self, other=None):
         if other is None:
-            self.portVisible = set()
             self.visible_input_ports = set()
             self.visible_output_ports = set()
             self.connected_input_ports = {}
@@ -96,7 +95,6 @@ class Module(DBModule):
             self.list_depth = 0
             self.iterated_ports = []
         else:
-            self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
             self.visible_output_ports = copy.copy(other.visible_output_ports)
             self.connected_input_ports = copy.copy(other.connected_input_ports)
