@@ -406,26 +406,6 @@ class Bundle(BundleObjDictionary):
         return self._mapping.get_obj_from_bundle(self, item)
 
 
-class WorkflowBundle(Bundle):
-    def __init__(self):
-        Bundle.__init__(self)
-        self.set_single_type("log")
-
-    def get_primary_obj(self):
-        return self.get_object(DBWorkflow.vtType)
-
-class LogBundle(Bundle):
-    def __init__(self):
-        Bundle.__init__(self)
-        self.set_single_type("log")
-
-    def get_primary_obj(self):
-        return self.get_object(DBLog.vtType)
-
-class RegistryBundle(Bundle):
-    def get_primary_obj(self):
-        return self.get_object(DBRegistry.vtType)
-
 class BundleObjSerializer(object):
     def __init__(self, bundle_obj_mapping):
         self.mapping = bundle_obj_mapping
@@ -742,18 +722,18 @@ class XMLFileSerializer(FileSerializer):
 #     def get_obj_path(cls, vt_obj):
 #         return "vistrail"
 #
-class WorkflowXMLSerializer(XMLFileSerializer):
-    """ Serializes a workflow as an xml file
-    """
-
-    def __init__(self, obj_type, schema, translator_f, obj_path_as_type=False,
-                 do_id_update=False, inner_dir_name=None):
-        WorkflowXMLSerializer.__init__(self,
-                                       DBWorkflow.vtType,
-                                       "http://www.vistrails.org/workflow.xsd",
-                                        "translateWorkflow",
-                                       True, True)
-
+# class WorkflowXMLSerializer(XMLFileSerializer):
+#     """ Serializes a workflow as an xml file
+#     """
+#
+#     def __init__(self, obj_type, schema, translator_f, obj_path_as_type=False,
+#                  do_id_update=False, inner_dir_name=None):
+#         WorkflowXMLSerializer.__init__(self,
+#                                        DBWorkflow.vtType,
+#                                        "http://www.vistrails.org/workflow.xsd",
+#                                         "translateWorkflow",
+#                                        True, True)
+#
 #
 # class MashupXMLSerializer(XMLFileSerializer):
 #     """ Serializes mashuptrails to the 'mashups' folder
@@ -1553,6 +1533,14 @@ class DBManifest(Manifest):
         c.executemany(self._connection_obj.format_stmt(self.STMTS["insert"]),
                       [(self._bundle_id, self.version) + item
                        for item in sorted(self.get_items())])
+
+class DBBaseSerializer(BaseSerializer):
+    def load(self, *wargs, **kwargs):
+        pass
+
+    def save(self, *args, **kwargs):
+        pass
+
 
 class DBSerializer(BundleSerializer):
     SCHEMA = """
