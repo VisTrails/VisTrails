@@ -92,8 +92,7 @@ from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import IdScope, DBWorkflowExec
-from vistrails.db.services.bundle import BundleObj, \
-    WorkflowBundle, LogBundle, RegistryBundle
+from vistrails.db.services.bundle import BundleObj
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db, new_bundle
 from vistrails.db.services.vistrail import getSharedRoot
@@ -4109,7 +4108,7 @@ class VistrailController(object):
                 pipeline.add_module(module)
             for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)
-            bundle = WorkflowBundle()
+            bundle = new_bundle('workflow', version)
             bundle.add_object(pipeline)
             locator.save_as(bundle, version)
 
@@ -4121,7 +4120,7 @@ class VistrailController(object):
             else:
                 log = self.log
             #print log
-            bundle = LogBundle()
+            bundle = new_bundle('log')
             bundle.add_object(log)
             locator.save_as(bundle)
 
@@ -4133,7 +4132,7 @@ class VistrailController(object):
  
     def write_registry(self, locator):
         registry = vistrails.core.modules.module_registry.get_module_registry()
-        bundle = RegistryBundle()
+        bundle = new_bundle('registry')
         bundle.add_object(registry)
         locator.save_as(bundle)
 
@@ -4474,6 +4473,7 @@ class VistrailController(object):
         if not preview:
             for name, path in to_add:
                 # replace because they may have been updated
+                #FIXME is this the way the mapping does it?
                 obj = BundleObj(path, 'data', name)
                 if self.bundle.has_entry('data', name):
                     self.bundle.remove_object(obj)
@@ -4635,3 +4635,5 @@ class TestTerseGraph(unittest.TestCase):
             13L: [(14L, (False, False)), (17L, (False, False))],
             4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
         })
+
+    #FIXME add tests for write_workflow, write_log, write_registry

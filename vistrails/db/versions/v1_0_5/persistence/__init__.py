@@ -79,6 +79,9 @@ workflow_bmap.remove_mapping('vistrail')
 workflow_bmap.add_mapping(
     bundle.SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow'))
 
+log_bmap = vistrail_bmap.clone(primary_obj_type='log')
+registry_bmap = vistrail_bmap.clone(primary_obj_type='registry')
+
 class LogXMLSerializer(bundle.XMLAppendSerializer):
     def __init__(self, mapping):
         bundle.XMLAppendSerializer.__init__(self, mapping,
@@ -115,39 +118,46 @@ class MashupXMLSerializer(bundle.XMLFileSerializer):
         return b_obj.obj.db_name
 
 
-vt_dir_serializer = bundle.DirectorySerializer(vistrail_bmap,
-                                        [bundle.XMLFileSerializer(
-                                            vistrail_bmap.get_mapping("vistrail"),
-                                            "http://www.vistrails.org/vistrail.xsd",
-                                            "translateVistrail",
-                                            True, True),
-                                        (LogXMLSerializer(
-                                                vistrail_bmap.get_mapping("log")), True),
-                                        MashupXMLSerializer(
-                                                vistrail_bmap.get_mapping(
-                                                    "mashuptrail")),
-                                            bundle.FileRefSerializer(
-                                            vistrail_bmap.get_mapping(
-                                                'abstraction'), 'subworkflows')])
-wf_dir_serializer = bundle.DirectorySerializer(workflow_bmap,
-                                        [bundle.XMLFileSerializer(
-                                            workflow_bmap.get_mapping("workflow"),
-                                            "http://www.vistrails.org/workflow.xsd",
-                                            "translateWorkflow",
-                                            True, True),
-                                            (LogXMLSerializer(
-                                                workflow_bmap.get_mapping("log")), True),
-                                            MashupXMLSerializer(
-                                                workflow_bmap.get_mapping(
-                                                    "mashuptrail")),
-                                            bundle.FileRefSerializer(
-                                                workflow_bmap.get_mapping(
-                                                    'abstraction'),
-                                                'subworkflows')])
+serializers = [(LogXMLSerializer(vistrail_bmap.get_mapping("log")), True),
+               MashupXMLSerializer(vistrail_bmap.get_mapping("mashuptrail")),
+               bundle.FileRefSerializer(
+                   vistrail_bmap.get_mapping('abstraction'), 'subworkflows')]
+vt_dir_serializer = \
+    bundle.DirectorySerializer(vistrail_bmap,
+                               [bundle.XMLFileSerializer(
+                                   vistrail_bmap.get_mapping("vistrail"),
+                                   "http://www.vistrails.org/vistrail.xsd",
+                                   "translateVistrail",
+                                   True, True),] + serializers)
+wf_dir_serializer = \
+    bundle.DirectorySerializer(workflow_bmap,
+                               [bundle.XMLFileSerializer(
+                                   workflow_bmap.get_mapping("workflow"),
+                                   "http://www.vistrails.org/workflow.xsd",
+                                   "translateWorkflow",
+                                   True, True),] + serializers)
+log_dir_serializer = \
+    bundle.DirectorySerializer(log_bmap,
+                               [bundle.XMLFileSerializer(
+                                   vistrail_bmap.get_mapping(
+                                       "vistrail"),
+                                   "http://www.vistrails.org/vistrail.xsd",
+                                   "translateVistrail",
+                                   True, True), ] + serializers)
+reg_dir_serializer = \
+    bundle.DirectorySerializer(registry_bmap,
+                               [bundle.XMLFileSerializer(
+                                   vistrail_bmap.get_mapping(
+                                       "registry"),
+                                   "http://www.vistrails.org/registry.xsd",
+                                   "translateRegistry",
+                                   True, True), ] + serializers)
 
 def register_bundle_serializers():
     bundle.register_dir_serializer(vt_dir_serializer)
     bundle.register_dir_serializer(wf_dir_serializer)
+    bundle.register_dir_serializer(log_dir_serializer)
+    bundle.register_dir_serializer(reg_dir_serializer)
 
 class DAOList(dict):
     def __init__(self):
