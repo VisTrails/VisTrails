@@ -1,6 +1,10 @@
 FROM debian:8
 MAINTAINER Remi Rampin <remirampin@gmail.com>
 
+# Sanity check & mybinder compatibility
+USER root
+WORKDIR /
+
 # http.debian.net seems to contain bad mirrors, use something else
 RUN \
   sh -c 'echo "deb http://ftp.us.debian.org/debian jessie main" > /etc/apt/sources.list' && \
