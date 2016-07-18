@@ -48,7 +48,6 @@ from __future__ import division
 
 from datetime import datetime
 import email.utils
-import hashlib
 import os
 import re
 import urllib
@@ -674,13 +673,52 @@ def initialize(*args, **keywords):
 
     # Migrate files to new naming scheme: max 100 characters, with a hash if
     # it's too long
+    handled = set()
+
+    def move(old, new):
+        if os.path.exists(new):
+            os.remove(new)
+            handled.add(new)
+        os.rename(old, new)
+        handled.add(old)
+
+        old += '.etag'
+        new += '.etag'
+        if os.path.exists(new):
+            os.remove(new)
+            handled.add(new)
+        if os.path.exists(old):
+            os.rename(old, new)
+            handled.add(old)
+
     renamed = 0
-    for filename in list(os.listdir(package_directory)):
-        if len(filename) > MAX_CACHE_FILENAME:
-            new_name = cache_filename(filename)
-            os.rename(os.path.join(package_directory, filename),
-                      os.path.join(package_directory, new_name))
-            renamed += 1
+    for old_name in sorted(os.listdir(package_directory)):
+        old_filename = os.path.join(package_directory, old_name)
+        if old_filename in handled:
+            continue
+        if len(old_name) > MAX_CACHE_FILENAME:
+            hasher = sha_hash()
+            hasher.update(old_name)
+            new_name = (old_name[:MAX_CACHE_FILENAME - 41] +
+                        '_' + hasher.hexdigest())
+            new_filename = os.path.join(package_directory, new_name)
+            if os.path.exists(new_filename):
+                oldtime = os.path.getmtime(old_filename)
+                newtime = os.path.getmtime(new_filename)
+                if oldtime > newtime:
+                    move(old_filename, new_filename)
+                    renamed += 1
+                else:
+                    os.remove(old_filename)
+                    handled.add(old_filename)
+                    if os.path.exists(old_filename + '.etag'):
+                        os.remove(old_filename + '.etag')
+                        handled.add(old_filename + '.etag')
+            else:
+                move(old_filename, new_filename)
+                renamed += 1
+        else:
+            handled.add(old_filename + '.etag')
     if renamed:
         debug.warning("Renamed %d downloaded cache files" % renamed)
 

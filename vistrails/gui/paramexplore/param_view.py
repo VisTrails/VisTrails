@@ -65,7 +65,8 @@ class ParameterInfo(InstanceObject):
     #                   pos=,
     #                   value=,
     #                   spec=,
-    #                   is_alias=)
+    #                   is_alias=,
+    #                   union=)
     pass
 
 ################################################################################
@@ -195,7 +196,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                       pos=parameter.pos,
                                       value=v,
                                       spec=port_spec_item,
-                                      is_alias=True)
+                                      is_alias=True,
+                                      union=port_spec.union)
                 QParameterTreeWidgetItem((alias, [pInfo]),
                                          aliasRoot, label)
             aliasRoot.setExpanded(True)
@@ -235,13 +237,16 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                        pos=port_spec.port_spec_items[pId].pos,
                                        value="",
                                        spec=port_spec.port_spec_items[pId],
-                                       is_alias=False)
+                                       is_alias=False,
+                                       union=port_spec.union)
                          for pId in xrange(len(port_spec.port_spec_items))]
                 QParameterTreeWidgetItem((vv.name, pList),
                                          vistrailVarsRoot,
                                          label)
                 continue
                 
+            if module.is_valid:
+                port_dict = dict((p.name, p) for p in module.destinationPorts())
             function_names = {}
             # Add existing parameters
             mLabel = [module.name]
@@ -259,33 +264,37 @@ class QParameterTreeWidget(QSearchTreeWidget):
                         else:
                             moduleItem = QParameterTreeWidgetItem(None,
                                                                   self, mLabel)
-                    v = ', '.join([p.strValue for p in function.params])
-                    label = ['%s(%s)' % (function.name, v)]
-                    
+
                     try:
-                        port_spec = function.get_spec('input')
+                        if module.is_valid:
+                            port_spec = port_dict[function.name]
+                        else:
+                            port_spec = function.get_spec('input')
                     except Exception:
                         debug.critical("get_spec failed: %s %s %s" % \
                                        (module, function, function.sigstring))
                         continue
+                    v = ', '.join([p.strValue for p in function.params])
+                    label = ['%s(%s)' % (port_spec.union or function.name, v)]
                     port_spec_items = port_spec.port_spec_items
                     pList = [ParameterInfo(module_id=mId,
                                            name=function.name,
                                            pos=function.params[pId].pos,
                                            value=function.params[pId].strValue,
                                            spec=port_spec_items[pId],
-                                           is_alias=False)
+                                           is_alias=False,
+                                           union=port_spec.union)
                              for pId in xrange(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter is not None:
                         mName += '(%d)' % moduleItem.parameter
-                    fName = '%s :: %s' % (mName, function.name)
+                    fName = '%s :: %s' % (mName, port_spec.union or function.name)
                     QParameterTreeWidgetItem((fName, pList),
                                              moduleItem,
                                              label)
             # Add available parameters
             if module.is_valid:
-                for port_spec in module.destinationPorts():
+                for port_spec in port_dict.itervalues():
                     if (port_spec.name in function_names or
                         not port_spec.is_valid or 
                         not len(port_spec.port_spec_items) or
@@ -304,18 +313,19 @@ class QParameterTreeWidget(QSearchTreeWidget):
                             moduleItem = QParameterTreeWidgetItem(None, self,
                                                                   mLabel, False)
                     v = ', '.join([p.module for p in port_spec.port_spec_items])
-                    label = ['%s(%s)' % (port_spec.name, v)]
+                    label = ['%s(%s)' % (port_spec.union or port_spec.name, v)]
                     pList = [ParameterInfo(module_id=mId,
                                            name=port_spec.name,
                                            pos=port_spec.port_spec_items[pId].pos,
                                            value="",
                                            spec=port_spec.port_spec_items[pId],
-                                           is_alias=False)
+                                           is_alias=False,
+                                           union=port_spec.union)
                              for pId in xrange(len(port_spec.port_spec_items))]
                     mName = module.name
                     if moduleItem.parameter is not None:
                         mName += '(%d)' % moduleItem.parameter
-                    fName = '%s :: %s' % (mName, port_spec.name)
+                    fName = '%s :: %s' % (mName, port_spec.union or port_spec.name)
                     QParameterTreeWidgetItem((fName, pList),
                                              moduleItem,
                                              label, False)

@@ -1236,7 +1236,9 @@ class VistrailController(QtCore.QObject, BaseController):
         self._delayed_actions = []
 
         (a, b) = self.analogy[analogy_name]
-        c = analogy_target
+        a = self.create_upgrade(a)
+        b = self.create_upgrade(b)
+        c = self.create_upgrade(analogy_target)
         if self.current_version != c:
             self.change_selected_version(c)
 
