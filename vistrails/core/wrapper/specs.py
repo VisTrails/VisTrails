@@ -62,28 +62,27 @@ class SpecList(object):
         maps to modules in vistrails
     """
 
-    def __init__(self, module_specs=None, translations=None):
+    def __init__(self, module_specs=None, patches=None):
         """
-        translations : {signature: code}
-            A dict of port translations. 'code' should create
-            'input_t' and 'output_t' translation functions.
+        patches : {key: template_string}
+            A dict of patches. 'code' is a python string Template
 
 
         """
         if module_specs is None:
             module_specs = []
         self.module_specs = module_specs
-        if translations is None:
-            translations = {}
-        self.translations = translations
+        if patches is None:
+            patches = {}
+        self.patches = patches
 
     def write_to_xml(self, fname):
         root = ET.Element("specs")
         for spec in self.module_specs:
             root.append(spec.to_xml())
-        for key, code in self.translations.iteritems():
-            subelt = ET.Element('translation')
-            subelt.set('signature', key)
+        for key, code in self.patches.iteritems():
+            subelt = ET.Element('patch')
+            subelt.set('key', key)
             subelt.text = code
             root.append(subelt)
         tree = ET.ElementTree(root)
@@ -111,29 +110,16 @@ class SpecList(object):
         if klass is None:
             klass = ModuleSpec
         module_specs = []
-        translations = {}
+        patches = {}
         tree = ET.parse(fname)
         for elt in tree.getroot():
             if elt.tag == klass.xml_name:
                 module_specs.append(klass.from_xml(elt))
-            if elt.tag == 'translation':
-                translations[elt.get('signature')] = elt.text
-        retval = SpecList(module_specs, translations)
+            if elt.tag == 'patch':
+                patches[elt.get('key')] = elt.text
+        retval = SpecList(module_specs, patches)
         return retval
 
-    def get_translations(self):
-        # create function 'f' from translation code
-        # {input/output: {signature: function} }
-        translations = {'input':{}, 'output':{},
-                        'input_script':{}, 'output_script':{}}
-        for key, code in self.translations.iteritems():
-            exec code
-            translations['input'][key] = input_t
-            translations['output'][key] = output_t
-            # add the actual code for use in scripts
-            translations['input_script'][key] = code
-            translations['output_script'][key] = code
-        return translations
 
 ######### BASE MODULE SPEC ###########
 
@@ -362,8 +348,7 @@ class InputPortSpec(PortSpec):
         for k in self.attrs:
             default, _, _ = parse_props(self.attrs[k])
             # never copy port type attributes and name
-            # FIXME remove "translations"
-            type_props = ['name', 'defaults', 'values', 'entry_types', 'translations', 'port_type']
+            type_props = ['name', 'defaults', 'values', 'entry_types', 'port_type']
             if k in type_props:
                 continue
             alt_value = getattr(self, k)
@@ -406,8 +391,7 @@ class InputPortSpec(PortSpec):
         par_attrs = self._parent.get_port_attrs()
         for k, v in par_attrs.iteritems():
             # type properties are never copied from parent
-            if k == 'defaults' or k == "values" or k == "entry_types" or \
-                    k == "translations": # FIXME remove "translations"
+            if k == 'defaults' or k == "values" or k == "entry_types":
                 continue
             if k not in alt_attrs or alt_attrs[k] is None:
                 alt_attrs[k] = v
@@ -627,10 +611,19 @@ class ClassSpec(ModuleSpec):
     OutputSpecType = ClassOutputPortSpec
     attrs = {
         'methods_last': (False, False, True), # If True will compute methods before connections
+        'initialize': None,       # Function to call before input methods
         'compute': None,       # Function to call after input methods
-        'cleanup': None}       # Function to call after output methods
+        'cleanup': None,       # Function to call after output methods
+        'patches': (None, True, True)} # dict(key:[patch_key]) with method patches
     attrs.update(ModuleSpec.attrs)
 
+    def add_patch(self, method, patch_name):
+        if self.patches == None:
+            self.patches = dict()
+        if method not in self.patches:
+            self.patches[method] = []
+        if patch_name not in self.patches[method]:
+            self.patches[method].append(patch_name)
 
 ###############################################################################
 
@@ -799,16 +792,6 @@ class TestModuleSpec(unittest.TestCase):
         self.assertEqual(in_attrs, in_attrs2)
         self.assertEqual(alt_attrs, alt_attrs2)
 
-    def test_translations(self):
-        translations = {
-            'basic:Color':
-                "input_t = lambda value:tuple([int(c*256) for c in value.tuple])\n"
-                "def output_t(value):\n"
-                "    from vistrails.core.utils import InstanceObject\n"
-                "    return InstanceObject(tuple=value)"}
-        t_spec = SpecList([], translations)
-        translations = t_spec.get_translations()
-        self.assertEqual((1,2,3), translations['output']['basic:Color']((1,2,3)).tuple)
 
 #def run():
 #    specs = SpecList.read_from_xml("mpl_plots_raw.xml")

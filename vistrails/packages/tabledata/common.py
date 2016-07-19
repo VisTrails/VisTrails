@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2013-2014, NYU-Poly.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 from __future__ import division
 
 from vistrails.core.bundles.pyimport import py_import

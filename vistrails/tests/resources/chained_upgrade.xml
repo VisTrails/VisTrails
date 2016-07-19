@@ -1,0 +1,23 @@
+<vistrail id="" name="" version="1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2001-11-22 17:08:50" id="1" prevId="0" session="0" user="god">
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="Tuple" namespace="" package="edu.utah.sci.vistrails.basic" version="1.0" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="0.0" y="0.0" />
+    </add>
+  </action>
+  <action date="2002-11-23 15:11:51" id="2" prevId="1" session="2" user="god">
+    <annotation id="0" key="__description__" value="Upgrade" />
+    <delete id="2" objectId="0" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="3" objectId="0" parentObjId="" parentObjType="" what="module" />
+    <add id="4" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="Tuple" namespace="" package="edu.utah.sci.vistrails.basic" version="1.6" />
+    </add>
+    <add id="5" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="0.0" y="0.0" />
+    </add>
+  </action>
+  <actionAnnotation actionId="1" date="2002-09-12 14:41:53" id="0" key="__upgrade__" user="tommy" value="2" />
+  <actionAnnotation actionId="1" date="2002-09-12 14:42:20" id="1" key="__tag__" user="tommy" value="myTuple" />
+</vistrail>

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -40,16 +40,15 @@ import importlib
 import re
 
 from itertools import izip
+from string import Template
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.scripting import Script, Prelude
 
-from .common import convert_port, convert_port_script, get_input_spec, \
-                    get_output_spec
-
-
 METHOD_TYPES = ['method', 'nullary', 'OnOff', 'SetXToY']
+
+from .common import convert_port, convert_port_script, get_input_spec, get_output_spec, get_patches
 
 
 class BaseClassModule(Module):
@@ -61,6 +60,61 @@ class BaseClassModule(Module):
 
     _get_input_spec = classmethod(get_input_spec)
     _get_output_spec = classmethod(get_output_spec)
+
+    def call_patched(self, instance, method_name, params, patches=None):
+        """ call method using existing patches
+
+            it builds a patched script recursively and execute it at top level
+
+            supported patch tempalte variables
+            $self - instance
+            $original - original call or inner patch
+            $input - first input
+            $inputs - all inputs as list
+            $output - sets the output
+        """
+        if patches is None:
+            # top level
+            # FIXME: CHECK superclasses!
+            patches = get_patches(type(self), method_name)
+            script = self.call_patched(instance, method_name, params, patches)
+            output = None
+            locals_ = locals()
+            exec script + '\n' in locals_, locals_
+            if locals_.get('output') is not None:
+                output = locals_['output']
+            return output
+        if len(patches) == 0:
+            # original call
+            return 'output = instance.%s(*params)' % method_name
+        patch_name = patches.pop()
+        patch = self._patches[patch_name].strip()
+        template = Template(patch)
+        # get attributes in patch
+        vars = set([i[1] for i in Template.pattern.findall(patch)])
+        d = {}
+        if 'original' in vars:
+            # get inner patches
+            rest = self.call_patched(instance, method_name, params, patches)
+            d['original'] = rest
+            vars.remove('original')
+        # add attributes to patch
+        if 'self' in vars:
+            d['self'] = 'instance'
+            vars.remove('self')
+        if 'input' in vars:
+            d['input'] = 'params[0]'
+            vars.remove('input')
+        if 'inputs' in vars:
+            d['inputs'] = 'params'
+            vars.remove('inputs')
+        if 'output' in vars:
+            d['output'] = 'output'
+            vars.remove('output')
+        if vars:
+            raise Exception('Unknown variables in patch: %s' % vars)
+        # return final patch
+        return template.safe_substitute(d)
 
     def call_set_method(self, instance, port, params, method_results):
         # convert params
@@ -86,20 +140,18 @@ class BaseClassModule(Module):
             method_name += params[0]
             params = []
         prepend_params = port.get_prepend_params()
-        method = getattr(instance, method_name)
         try:
-            result = method(*(prepend_params + params))
+            result = self.call_patched(instance, method_name, prepend_params + params)
             # store result for output methods
             method_results[port.arg] = result
         except Exception, e:
             raise
 
     def call_get_method(self, instance, port):
-        method = getattr(instance, port.arg)
         try:
-            value = method(*(port.get_prepend_params()))
+            value = self.call_patched(instance, port.arg, port.get_prepend_params())
             # convert params
-            return convert_port(port, value, self._translations['output'])
+            return convert_port(port, value, self._patches, 'output')
         except Exception, e:
             raise
 
@@ -180,7 +232,7 @@ class BaseClassModule(Module):
             if port and port.method_type == 'argument':
                 params = self.get_input(port_name)
                 params = convert_port(port, params,
-                                      self._translations['input'])
+                                      self._patches, 'input')
 
                 if -1 == port.arg_pos:
                     kwargs[port.arg] = params
@@ -207,7 +259,7 @@ class BaseClassModule(Module):
             if port and port.method_type == 'attribute':
                 params = self.get_input(port_name)
                 params = convert_port(port, params,
-                                      self._translations['input'])
+                                      self._patches, 'input')
                 setattr(instance, port.arg, params)
 
     def get_attributes(self, instance):
@@ -218,7 +270,7 @@ class BaseClassModule(Module):
             port = self._get_output_spec(port_name)
             if port and port.method_type == 'attribute':
                 value = getattr(instance, port.arg)
-                value = convert_port(port, value, self._translations['output'])
+                value = convert_port(port, value, self._patches, 'output')
                 self.set_output(port_name, value)
 
     def compute(self):
@@ -238,14 +290,17 @@ class BaseClassModule(Module):
             else:
                instance = self._class[0](*args, **kwargs)
 
+        # optional initialize method
+        if spec.initialize:
+            self.call_patched(instance, spec.initialize, [])
         # Optional callback used for progress reporting
         if spec.callback:
             def callback(c):
                 self.logging.update_progress(self, c)
-            getattr(instance, spec.callback)(callback)
+            self.call_patched(instance, spec.callback, [callback])
         # Optional function for creating temporary files
         if spec.tempfile:
-            getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
+            self.call_patched(instance, spec.tempfile, [self.interpreter.filePool.create_file])
 
         # set input attributes on instance
         self.set_attributes(instance)
@@ -257,7 +312,7 @@ class BaseClassModule(Module):
 
         # optional compute method
         if spec.compute:
-            getattr(instance, spec.compute)()
+            self.call_patched(instance, spec.compute, [])
 
         # apply operations
         for op, op_args, op_kwargs in ops:
@@ -291,7 +346,8 @@ class BaseClassModule(Module):
 
         # optional cleanup method
         if spec.cleanup:
-            getattr(instance, spec.cleanup)()
+#            getattr(instance, spec.cleanup)()
+            self.call_patched(instance, spec.cleanup, [])
 
 
     ################ SCRIPT METHODS ############################
@@ -767,7 +823,7 @@ class BaseClassModule(Module):
         return (Script(code, inputs, outputs, skip_functions=True), preludes)
 
 
-def gen_class_module(spec, lib=None, modules=None, translations={},
+def gen_class_module(spec, lib=None, modules=None, patches={},
                      operations={}, **module_settings):
     """Create a module from a python class specification
 
@@ -823,7 +879,7 @@ def gen_class_module(spec, lib=None, modules=None, translations={},
          '_output_spec_table': _output_spec_table,
          '_module_spec': spec,
          'is_cacheable': lambda self:spec.cacheable,
-         '_translations': translations,
+         '_patches': patches,
          '_class': [_class]} # Avoid attaching it to the class
 
     superklass = modules.get(spec.superklass, BaseClassModule)

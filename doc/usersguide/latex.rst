@@ -17,7 +17,7 @@ To use the Latex extension, copy vistrails.sty and includevistrail.py from the e
 ``\usepackage{vistrails}``
 
 By default, VisTrails will be executed at www.vistrails.org and the images
-downloaded to your hard drive. This allows any user that downlods your paper to execute the workflows on the server. 
+downloaded to your hard drive. This allows any user that downlods your paper to execute the workflows on the server.
 
 Local Setup
 ^^^^^^^^^^^
@@ -26,7 +26,7 @@ If you want to run a local copy of VisTrails instead, add the following path to 
 
 ``\renewcommand{\vistrailspath}{/path/to/vistrails/run.py}``
 
-Depending on how you are running VisTrails and on which OS you are running, the \vistrailspath should be configured appropriately. Please check head.tex in VisTrails' extensions/latex directory for detailed instructions on the configuration for the different platforms. 
+Depending on how you are running VisTrails and on which OS you are running, the \vistrailspath should be configured appropriately. Please check head.tex in VisTrails' extensions/latex directory for detailed instructions on the configuration for the different platforms.
 
 By default, images are set up to link to their corresponding vistrail. This means that on a local setup, clicking on an image will open the local .vt file or will try to connect to the database if you loaded the vistrail from a database. This may not work when other users click on the images on different machines. However, if you are using your own web server, additional setup is required (see :ref:`sec-latex-setup-using-a-web-server`).  Otherwise, to setup the images without links (not clickable), add:
 
@@ -46,7 +46,7 @@ Setup For Use With Files on MediaWiki or a Web Server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. index:
-   pair: latex embedding; mediawiki 
+   pair: latex embedding; mediawiki
    pair: latex embedding; web server
 
 Many VisTrails files and/or data are stored in a database that readers
@@ -61,7 +61,7 @@ To setup your MediaWiki for use with VisTrails:
 
 * In your wiki/extensions folder, create a config.php file based on the config.php.sample file located in VisTrails' extensions/http folder.
 * Copy download.php, functions.php, and vistrailsExtension.php from the extensions/mediawiki folder to your wiki/extentions folder and update these files according to your needs.
-* Configure your .tex files with: 
+* Configure your .tex files with:
 
   ``\renewcommand{\vistrailsdownload}{http://yourwebserver.somethingelse/download.php}``
 
@@ -91,7 +91,7 @@ There are two ways of including VisTrails' objects in a Latex file. Usually you 
 * In ``History`` view, select the version node representing the workflow.
 * In ``Pipeline`` view, ensure that the workflow is being displayed.
 
-Now you can select ``Publish`` :math:`\rightarrow` ``To Paper...`` to launch a dialog with embedding options (see Figure :ref:`fig-configure-embedding`).  
+Now you can select ``Publish`` :math:`\rightarrow` ``To Paper...`` to launch a dialog with embedding options (see Figure :ref:`fig-configure-embedding`).
 
 .. _fig-configure-embedding:
 
@@ -107,20 +107,20 @@ Then perform the following steps:
 * Make sure that ``Latex`` is displayed in the ``In:`` combobox.
 * You should then choose from a number of "Embed" and "Download" options which will be explained in the tables below.
 * Press the "Copy to Clipboard" button
-* Paste clipboard contents into you Latex document 
+* Paste clipboard contents into you Latex document
 * Run pdflatex with the -shell-escape option: ``pdflatex -shell-escape example.tex``.
 
 **Note on using local VisTrails files:** Relative or absolute filenames can be used in the .tex file, but absolute filenames are used in the pdf.  Thus, if the absolute location of the file has changed, the pdf will need to be regenerated even if the relative location of the file has not changed.  Also, the VisTrails ``Embed`` function assumes the .vt file is in the same directory as the .tex file.  You will need to change this to an absolute filename if it is not.
 
 .. tabularcolumns:: |p{2.8cm}|p{3.0cm}|p{7.5cm}|
-   
+
 .. _table-options:
 
 .. only:: html
 
    **Configuration Options**
 
-   +-----------------------+-----------------------+--------------------------------------------------------------------------+ 
+   +-----------------------+-----------------------+--------------------------------------------------------------------------+
    | Option                | Latex Flag            | Description                                                              |
    +=======================+=======================+==========================================================================+
    | | Workflow Results    | version=<...>         | Show the results of the specified version.                               |
@@ -133,7 +133,7 @@ Then perform the following steps:
 
    **Embed Options**
 
-   +-----------------------+-----------------------+--------------------------------------------------------------------------+ 
+   +-----------------------+-----------------------+--------------------------------------------------------------------------+
    | Option                | Latex Flag            | Description                                                              |
    +=======================+=======================+==========================================================================+
    | As PDF                | | pdf                 | | Include images as pdf files. If this is not checked, a png image is    |
@@ -153,7 +153,7 @@ Then perform the following steps:
 
    **Download Options**
 
-   +-----------------------+-----------------------+--------------------------------------------------------------------------+ 
+   +-----------------------+-----------------------+--------------------------------------------------------------------------+
    | Option                | Latex Flag            | Description                                                              |
    +=======================+=======================+==========================================================================+
    | | Include Workflow    | embedworkflow         | When clicking on the image in the pdf, download the workflow only.       |
@@ -170,7 +170,7 @@ Then perform the following steps:
 .. only:: latex
 
    .. tabularcolumns:: |p{2.8cm}|p{3.0cm}|p{7.5cm}|
-   
+
    .. csv-table:: Configuration Options
       :header: **Option**, **Latex Flag**, **Description**
 
@@ -212,11 +212,11 @@ Example
 
 The following is an example command for including the execution results the workflow ``aliases`` from examples/head.vt in a pdf and caching the images. When clicking on the images, the user will start |vistrails| showing only the spreadsheet:
 
-| ``\vistrails[filename=head.vt,``
+| ``\vistrail[filename=head.vt,``
 | ``version=15,``
-| ``pdf,`` 
+| ``pdf,``
 | ``execute,``
-| ``showspreadsheetonly,`` 
+| ``showspreadsheetonly,``
 | ``]{width=0.45\linewidth} %Options you would give to the \includegraphics{} command``.
 
 See head.tex in the extensions/latex directory for a complete example of usage.
@@ -224,17 +224,17 @@ See head.tex in the extensions/latex directory for a complete example of usage.
 Additional Notes
 ^^^^^^^^^^^^^^^^
 
-After running at least once, VisTrails will cache the images and latex 
-instructions.  The latex code will be in the "cached" folder and the images in 
+After running at least once, VisTrails will cache the images and latex
+instructions.  The latex code will be in the "cached" folder and the images in
 vistrails_images.
 
-Vistrails will create in the current directory a directory called 
+Vistrails will create in the current directory a directory called
 vistrails_images/filename_version_options with the png/pdf files generated by the spreadsheet.
 
 Including crowdlabs.org workflow results in Latex
 =================================================
 
-It is also possible to embed results of workflows that are in www.crowdlabs.org. 
+It is also possible to embed results of workflows that are in www.crowdlabs.org.
 
 To use the crowdLabs extension, copy crowdlabs.sty and includecrowdlabs.py from the extensions/latex directory to the same directory as your .tex files.  Then, add the following line to the beginning of the latex file:
 
@@ -253,8 +253,3 @@ And click on the ``Embed this Workflow`` tab located below the image. Copy the s
 And paste it in the latex file.
 
 Currently crowdLabs supports only embedding workflow results in the png format. Do not use this extension together with the vistrails extension above.
-
-
- 
-
-

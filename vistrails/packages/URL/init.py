@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -48,11 +48,17 @@ from __future__ import division
 
 from datetime import datetime
 import email.utils
-import hashlib
 import os
 import re
 import urllib
 import urllib2
+
+try:
+    import hashlib
+    sha_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha_hash = sha.new
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.configuration import get_vistrails_persistent_configuration
@@ -76,6 +82,20 @@ from .https_if_available import build_opener
 
 package_directory = None
 
+MAX_CACHE_FILENAME = 100
+
+
+###############################################################################
+
+def cache_filename(url):
+    url = urllib.quote_plus(url)
+    if len(url) <= MAX_CACHE_FILENAME:
+        return url
+    else:
+        hasher = sha_hash()
+        hasher.update(url)
+        return url[:MAX_CACHE_FILENAME - 41] + "_" + hasher.hexdigest()
+
 
 ###############################################################################
 
@@ -91,7 +111,7 @@ class Downloader(object):
         Returns the path to the local file.
         """
         self.local_filename = os.path.join(package_directory,
-                                           urllib.quote_plus(self.url))
+                                           cache_filename(self.url))
 
         # Before download
         self.pre_download()
@@ -325,7 +345,7 @@ class SSHDownloader(object):
                 'pip': 'scp'})
 
         local_filename = os.path.join(package_directory,
-                                      urllib.quote_plus(self.url))
+                                      cache_filename(self.url))
 
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
@@ -542,8 +562,8 @@ class RepoSync(Module):
                 # local file not present or out of date, download or use cache
                 self.url = "%s/datasets/download/%s" % (self.base_url,
                                                        self.checksum)
-                local_filename = package_directory + '/' + \
-                        urllib.quote_plus(self.url)
+                local_filename = os.path.join(package_directory,
+                                              cache_filename(self.url))
                 if not self._file_is_in_local_cache(local_filename):
                     # file not in cache, download.
                     try:
@@ -671,6 +691,57 @@ def initialize(*args, **keywords):
             raise RuntimeError("Failed to create cache directory: %s" %
                                package_directory, e)
 
+    # Migrate files to new naming scheme: max 100 characters, with a hash if
+    # it's too long
+    handled = set()
+
+    def move(old, new):
+        if os.path.exists(new):
+            os.remove(new)
+            handled.add(new)
+        os.rename(old, new)
+        handled.add(old)
+
+        old += '.etag'
+        new += '.etag'
+        if os.path.exists(new):
+            os.remove(new)
+            handled.add(new)
+        if os.path.exists(old):
+            os.rename(old, new)
+            handled.add(old)
+
+    renamed = 0
+    for old_name in sorted(os.listdir(package_directory)):
+        old_filename = os.path.join(package_directory, old_name)
+        if old_filename in handled:
+            continue
+        if len(old_name) > MAX_CACHE_FILENAME:
+            hasher = sha_hash()
+            hasher.update(old_name)
+            new_name = (old_name[:MAX_CACHE_FILENAME - 41] +
+                        '_' + hasher.hexdigest())
+            new_filename = os.path.join(package_directory, new_name)
+            if os.path.exists(new_filename):
+                oldtime = os.path.getmtime(old_filename)
+                newtime = os.path.getmtime(new_filename)
+                if oldtime > newtime:
+                    move(old_filename, new_filename)
+                    renamed += 1
+                else:
+                    os.remove(old_filename)
+                    handled.add(old_filename)
+                    if os.path.exists(old_filename + '.etag'):
+                        os.remove(old_filename + '.etag')
+                        handled.add(old_filename + '.etag')
+            else:
+                move(old_filename, new_filename)
+                renamed += 1
+        else:
+            handled.add(old_filename + '.etag')
+    if renamed:
+        debug.warning("Renamed %d downloaded cache files" % renamed)
+
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     module_remap = {
@@ -691,6 +762,35 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 import unittest
 
 
+class TestNaming(unittest.TestCase):
+    def test_short(self):
+        self.assertEqual(cache_filename('http://www.google.com/search'),
+                         'http%3A%2F%2Fwww.google.com%2Fsearch')
+        self.assertEqual(cache_filename('scp://admin@machine:/etc/passwd'),
+                         'scp%3A%2F%2Fadmin%40machine%3A%2Fetc%2Fpasswd')
+
+    def test_long(self):
+        self.assertEqual(cache_filename('https://www.google.com/url?sa=t&rct=j'
+                                        '&q=&esrc=s&source=web&cd=1&cad=rja&ua'
+                                        'ct=8&ved=0ahUKEwjFlbDQ1ovLAhVsv4MKHcr'
+                                        'LAjMQFggcMAA&url=http%3A%2F%2Fwww.vis'
+                                        'trails.org%2Fusersguide%2Fdev%2Fhtml%'
+                                        '2Fjob_submission.html&usg=AFQjCNHc6W3'
+                                        'lWQShmPfYOMsT21kwckBEzw&sig2=3i2AMtOw'
+                                        'njJQsKtnqOSfQg&bvm=bv.114733917,d.dm'
+                                        'o'),
+                         'https%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3D'
+                         'j%26q%3'
+                         '_f7d14d30f12413851cc222a61618d5bad6119f77')
+        self.assertEqual(cache_filename('ssh://admin@machine.domain.tld:22022/'
+                                        'var/lib/apt/lists/security.debian.org'
+                                        '_dists_jessie_updates_main_binary-amd'
+                                        '64_Packages'),
+                         'ssh%3A%2F%2Fadmin%40machine.domain.tld%3A22022%2Fvar'
+                         '%2Flib%'
+                         '_e1f69dccfec6f14cdb08f6041a2a43e63d21863d')
+
+
 class TestDownloadFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -704,7 +804,7 @@ class TestDownloadFile(unittest.TestCase):
 
     def testIncorrectURL(self):
         from vistrails.tests.utils import execute
-        self.assertTrue(execute([
+        self.assertFalse(execute([
                 ('DownloadFile', identifier, [
                     ('url', [('String', 'http://idbetthisdoesnotexistohrly')]),
                 ]),
@@ -712,7 +812,7 @@ class TestDownloadFile(unittest.TestCase):
 
     def testIncorrectURL_2(self):
         from vistrails.tests.utils import execute
-        self.assertTrue(execute([
+        self.assertFalse(execute([
                 ('DownloadFile', identifier, [
                     ('url', [('String', 'http://neitherodesthisohrly')]),
                 ]),

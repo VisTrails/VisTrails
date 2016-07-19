@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -243,7 +243,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if res:
                 cellEvents = spreadsheetController.getEchoCellEvents()
             else:
-                return [], True
+                return [], errors or True
         except Exception, e:
             debug.unexpected_exception(e)
             print "Executing pipeline failed:", debug.format_exc()

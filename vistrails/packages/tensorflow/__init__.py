@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -33,38 +33,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+"""
+TensorFlow package for VisTrails.
+"""
 
-from __future__ import division, absolute_import
+from __future__ import division
 
-import vtk
+identifier = 'org.vistrails.vistrails.tensorflow'
+name = 'TensorFlow'
+version = '0.1.0'
 
-################################################################################
-# Some fixed classes that solve a few VTK API issues
-
-# This dictionary stores the patched class to vtk class mapping.
-# This would be naturally better stored as an attribute directly on the
-# patched class. VTK, however, doesn't like class attributes.
-description = {}
-
-# http://www.vtk.org/doc/nightly/html/classvtkImagePlaneWidget.html
-# SetUserControlledLookupTable needs to be set before calling
-# SetLookupTable.  VTK should do it automatically, so let's fix it
-
-
-# This fix seems to break on VTK versions larger than 5.0.3. It might also
-# be because of an interaction with python 2.6, but I haven't checked that.
-class vtkImagePlaneWidget_fixed(vtk.vtkImagePlaneWidget):
-    def SetLookupTable(self, lookup_table):
-        self.UserControlledLookupTableOn()
-        vtk.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
-v = vtk.vtkVersion()
-version = [v.GetVTKMajorVersion(),
-           v.GetVTKMinorVersion(),
-           v.GetVTKBuildVersion()]
-if version < [5, 0, 4]:
-    description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
-else:
-    description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget
-
-# Set docstring to wrap it correctly
-vtkImagePlaneWidget_fixed.SetLookupTable.__doc__ = vtk.vtkImagePlaneWidget.SetLookupTable.__doc__
+def package_requirements():
+    from vistrails.core.requirements import require_python_module
+    require_python_module('tensorflow')

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -37,6 +37,7 @@ from __future__ import division
 
 from vistrails.core import query
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core import reportusage
 from vistrails.core.utils import append_to_dict_of_lists
 import copy
 import re
@@ -87,11 +88,18 @@ class VisualQuery(query.Query):
             target_ids = nextTargetIds
             template_ids = nextTemplateIds
 
-    def run(self, vistrail, name):
+    def run(self, controller, name):
+        reportusage.record_feature('visualquery', controller)
         result = []
         self.tupleLength = 2
         for version in self.versions_to_check:
-            p = vistrail.getPipeline(version)
+            from vistrails.core.configuration import get_vistrails_configuration
+            hide_upgrades = getattr(get_vistrails_configuration(),
+                                    'hideUpgrades', True)
+            if hide_upgrades:
+                version = controller.create_upgrade(version, delay_update=True)
+            p = controller.get_pipeline(version, do_validate=False)
+
             matches = set()
             queryModuleNameIndex = {}
             for moduleId, module in p.modules.iteritems():
@@ -126,6 +134,7 @@ class VisualQuery(query.Query):
                 
             for m in matches:
                 result.append((version, m))
+
         self.queryResult = result
         self.computeIndices()
         return result

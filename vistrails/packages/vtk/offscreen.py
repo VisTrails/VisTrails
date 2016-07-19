@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -46,7 +46,7 @@ class VTKRenderOffscreen(Module):
     _output_ports = [('image', 'basic:File')]
 
     def compute(self):
-        r = self.get_input("renderer").vtkInstance
+        r = self.get_input("renderer")
         window = vtk.vtkRenderWindow()
         w = self.force_get_input("width", 512)
         h = self.force_get_input("height", 512)

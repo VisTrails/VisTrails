@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -70,7 +70,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1.1'
+version = '2.1.2'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -149,6 +149,14 @@ class Constant(Module):
     _output_ports = [OPort("value_as_string", "String")]
 
     __metaclass__ = meta_add_value_ports
+
+    @staticmethod
+    def validate(x):
+        raise NotImplementedError
+
+    @staticmethod
+    def translate_to_python(x):
+        raise NotImplementedError
 
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
@@ -392,7 +400,7 @@ class PathObject(object):
         raise AttributeError
 
 class Path(Constant):
-    _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
+    _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "Path"),
                     IPort("name", "String", optional=True)]
@@ -455,7 +463,7 @@ class File(Path):
     file system local to the machine where VisTrails is running."""
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
-                               constant_widget=("%s:FileChooserWidget" % \
+                               constant_widget=("%s:FileChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "File"),
                     IPort("create_file", "Boolean", optional=True)]
@@ -474,7 +482,7 @@ class File(Path):
 class Directory(Path):
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
-                               constant_widget=("%s:DirectoryChooserWidget" % \
+                               constant_widget=("%s:DirectoryChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "Directory"),
                     IPort("create_directory", "Boolean", optional=True)]
@@ -503,7 +511,7 @@ class Directory(Path):
 ##############################################################################
 
 class OutputPath(Path):
-    _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
+    _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "OutputPath")]
     _output_ports = [OPort("value", "OutputPath")]
@@ -836,7 +844,6 @@ class StandardOutput(NotCacheable, Module):
 
 # Tuple will be reasonably magic right now. We'll integrate it better
 # with vistrails later.
-# TODO: Check Tuple class, test, integrate.
 class Tuple(Module):
     """Tuple represents a tuple of values. Tuple might not be well
     integrated with the rest of VisTrails, so don't use it unless
@@ -1504,6 +1511,18 @@ def initialize(*args, **kwargs):
     _modules.extend(vistrails.core.modules.sub_module._modules)
     _modules.extend(vistrails.core.wrapper.pythonclass._modules)
 
+
+def remove_vtk_instance(controller):
+    def remap(old_func, new_module):
+        src = old_func.params[0].strValue
+        code = urllib.unquote(src)
+        new_code = code.replace('.vtkInstance', '')
+        src = urllib.quote(new_code)
+        new_function = controller.create_function(new_module, 'source', [src])
+        return [('add', new_function, 'module', new_module.id)]
+    return remap
+
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
     reg = get_module_registry()
@@ -1533,7 +1552,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         return ops
 
     module_remap = {'FileSink':
-    [(None, '1.6', None,
+                        [(None, '1.6', None,
                           {'dst_port_remap':
                                {'overrideFile': 'overwrite',
                                 'outputName': outputName_remap},
@@ -1554,17 +1573,20 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         [(None, '1.6', None,
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
-                        [(None, '1.6', None, {})],
+                        [(None, '2.1.2', None, {
+                          'function_remap':
+                               {'source': remove_vtk_instance(controller)},
+                        })],
                     'Tuple':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'StandardOutput':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'List':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'AssertEqual':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'Converter':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

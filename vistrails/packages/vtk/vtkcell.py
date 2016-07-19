@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -277,7 +277,7 @@ class QVTKWidget(QCellWidget):
         renWin = self.GetRenderWindow()
         for iHandler in self.iHandlers:
             if iHandler.observer:
-                iHandler.observer.vtkInstance.SetInteractor(None)
+                iHandler.observer.SetInteractor(None)
             iHandler.clear()
 
         # Remove old renderers first
@@ -289,40 +289,32 @@ class QVTKWidget(QCellWidget):
 
         (renderers, renderView, self.iHandlers, iStyle, picker) = inputPorts
         if renderView:
-            renderView.vtkInstance.SetRenderWindow(renWin)
-            renderView.vtkInstance.ResetCamera()
+            renderView.SetRenderWindow(renWin)
+            renderView.ResetCamera()
             self.addObserversToInteractorStyle()
-            renderers = [renderView.vtkInstance.GetRenderer()]
+            renderers = [renderView.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False
         if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
         j = 0
         for renderer in renderers:
-            if renderView==None:
-                vtkInstance = renderer
-                # Check deprecated vtkInstance
-                if hasattr(renderer, 'vtkInstance'):
-                    vtkInstance = renderer.vtkInstance
-                    # Old scripts may call this without setting module_id
-                    if hasattr(renderer, 'module_id'):
-                        self.renderer_maps[id(vtkInstance)] = renderer.module_id
-                renWin.AddRenderer(vtkInstance)
-            else:
-                vtkInstance = renderer
-            if hasattr(vtkInstance, 'IsActiveCameraCreated'):
+            if renderView is None:
+                # Old scripts may call this without setting module_id
+                if hasattr(renderer, 'module_id'):
+                    self.renderer_maps[id(renderer)] = renderer.module_id
+                renWin.AddRenderer(renderer)
+            if hasattr(renderer, 'IsActiveCameraCreated'):
                 if self.usecameras:
-                    vtkInstance.SetActiveCamera(cameralist[j])
+                    renderer.SetActiveCamera(cameralist[j])
                     j = j + 1
-                if not vtkInstance.IsActiveCameraCreated():
-                    vtkInstance.ResetCamera()
+                if not renderer.IsActiveCameraCreated():
+                    renderer.ResetCamera()
                 else:
-                    vtkInstance.ResetCameraClippingRange()
+                    renderer.ResetCameraClippingRange()
             
         iren = renWin.GetInteractor()
         if picker:
-            if hasattr(picker, 'vtkInstance'):
-                picker = picker.vtkInstance
             iren.SetPicker(picker)
 
         # Update interactor style
@@ -332,21 +324,13 @@ class QVTKWidget(QCellWidget):
                 iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
                 iStyleInstance = iStyle
-                # Check deprecated vtkInstance
-                if hasattr(iStyleInstance, 'vtkInstance'):
-                    iStyleInstance = iStyleInstance.vtkInstance
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
         for i in xrange(len(self.iHandlers)):
             iHandler = self.iHandlers[i]
-            if hasattr(iHandler, 'vtkInstance'):
-                iHandler = iHandler.vtkInstance
-                self.iHandler[i] = iHandler
             if iHandler.observer:
                 observer = iHandler.observer
-                if hasattr(observer, 'vtkInstance'):
-                    observer = observer.vtkInstance
                 observer.SetInteractor(iren)
         renWin.Render()
 

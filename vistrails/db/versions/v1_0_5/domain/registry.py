@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -33,24 +33,34 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-#import warnings
-
 
 from __future__ import division
 
-class VTKInstanceWrapper(object):
-    def __init__(self, instance, module_id=None):
-        self.vtkInstance = instance
-        self.module_id = module_id
-    # For future use: warns when .vtkInstance is used
-    #@property
-    #def vtkInstance(self):
-    #    warnings.warn(
-    #            "Dereferencing VTK object with '.vtkInstance' is not needed "
-    #            "anymore, call method directly",
-    #            DeprecationWarning,
-    #            stacklevel=2)
-    #    return self.__vtkInstance
+from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+    DBPortSpec
+from id_scope import IdScope
 
-    def __getattr__(self, name):
-        return getattr(self.vtkInstance, name)
+class DBRegistry(_DBRegistry):
+    def __init__(self, *args, **kwargs):
+        _DBRegistry.__init__(self, *args, **kwargs)
+        self.idScope = IdScope()
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBRegistry()
+        new_obj = _DBRegistry.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        return new_obj
+    
+    def update_id_scope(self):
+        for package in self.db_packages:
+            self.idScope.updateBeginId(DBPackage.vtType, package.db_id+1)
+            for descriptor in package.db_module_descriptors:
+                self.idScope.updateBeginId(DBModuleDescriptor.vtType,
+                                           descriptor.db_id+1)
+                for port_spec in descriptor.db_portSpecs:
+                    self.idScope.updateBeginId(DBPortSpec.vtType, 
+                                               port_spec.db_id+1)
+
+

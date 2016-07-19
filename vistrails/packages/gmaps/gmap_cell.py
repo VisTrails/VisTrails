@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -85,8 +85,8 @@ class GMapCellWidget(WebViewCellWidget):
       }
 
       #map-canvas, #map_canvas {
-      height: 100vh;
-      width: 100vw;
+      height: 100%%;
+      width: 100%%;
       }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization&sensor=false"></script>

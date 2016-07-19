@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -47,6 +47,7 @@ from vistrails.core import debug
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.reportusage import record_usage
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.db.domain import DBPackage
 
@@ -145,7 +146,7 @@ class Package(DBPackage):
             self.py_dependencies = set()
             self.old_identifiers = []
             self._default_configuration = None
-            self._persistent_configuration = None
+            self.persistent_configuration = None
         else:
             self._module = other._module
             self._init_module = other._init_module
@@ -158,8 +159,8 @@ class Package(DBPackage):
             self.old_identifiers = [i for i in self.old_identifiers]
             self._default_configuration = \
                                         copy.copy(other._default_configuration)
-            self._persistent_configuration = \
-                                    copy.copy(other._persistent_configuration)
+            self.persistent_configuration = \
+                                    copy.copy(other.persistent_configuration)
 
         # FIXME decide whether we want None or ''
         if self.version is None:
@@ -413,6 +414,7 @@ class Package(DBPackage):
 
         self.set_properties()
         self.do_load_configuration()
+        record_usage(loaded_package='%s %s' % (self.identifier, self.version))
 
     def initialize(self):
         if not self._loaded:
@@ -686,13 +688,6 @@ class Package(DBPackage):
 
     ##########################################################################
     # Configuration
-
-    def _get_persistent_configuration(self):
-        return self._persistent_configuration
-    def _set_persistent_configuration(self, config):
-        self._persistent_configuration = config
-    persistent_configuration = property(_get_persistent_configuration,
-                                        _set_persistent_configuration)
 
     def do_load_configuration(self):
         # Sometimes we don't want to change startup.xml, for example

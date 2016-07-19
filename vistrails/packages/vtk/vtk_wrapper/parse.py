@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -132,6 +132,152 @@ disallowed_modules = set(
         'vtkMPIGroup'
     ])
 
+patches = {
+'UpdateAlgorithm':
+"""
+is_aborted = [False]
+if hasattr($self, '_callback') and $self._callback is not None:
+    cbId = None
+    def ProgressEvent(obj, event):
+        try:
+            $self._callback(obj.GetProgress())
+        except Exception, e:
+            if e.__name__ == 'AbortExecution':
+                obj.SetAbortExecute(True)
+                $self.RemoveObserver(cbId)
+                is_aborted[0] = True
+            else:
+                raise
+    cbId = $self.AddObserver('ProgressEvent', ProgressEvent)
+$original
+if $self._callback is not None and not is_aborted[0]:
+    $self.RemoveObserver(cbId)
+""",
+'guarded_SimpleScalarTree':
+"""
+$original
+# This builds the scalar tree
+$self.BuildTree()
+""",
+'guarded_Writer':
+"""
+# The behavior for vtkWriter subclasses is to call Write()
+# If the user sets a name, we will create a file with that name
+# If not, we will create a temporary file using _tempfile
+$output = $self.GetFileName()
+if not $output:
+    $output = $self._tempfile(suffix='.vtk')
+    $self.SetFileName(fn)
+$self.Write()
+""",
+'guarded_SetFileName': # fixme add imports somewhere
+"""
+# This checks for the presence of file in VTK readers
+# Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
+# it has other ways of specifying files, like SetFilePrefix for
+# multiple files
+import vtk
+import os
+skip = [vtk.vtkBYUReader,
+        vtk.vtkImageReader,
+        vtk.vtkDICOMImageReader,
+        vtk.vtkTIFFReader]
+# vtkPLOT3DReader does not exist from version 6.0.0
+if not any(issubclass(type($self), x) for x in skip):
+    filename = $self.GetFileName()
+    if not os.path.isfile(filename):
+        raise Exception('File does not exist')
+$original
+""",
+'SetRenderWindow':
+"""
+import vtk
+window = vtk.vtkRenderWindow()
+w = 512
+h = 512
+window.OffScreenRenderingOn()
+window.SetSize(w, h)
+window.AddRenderer($input)
+window.Render()
+$self.SetRenderWindow(window)
+""",
+'TransferFunction':
+"""
+$input.set_on_vtk_volume_property($self)
+""",
+'PointData':
+"""
+$self.GetPointData().ShallowCopy($input)
+""",
+'CellData':
+"""
+$self.GetCellData().ShallowCopy($input)
+""",
+'PointIds':
+"""
+$self.GetPointIds().SetNumberOfIds($input.GetNumberOfIds())
+for i in xrange($input.GetNumberOfIds()):
+    $self.GetPointIds().SetId(i, $input.GetId(i))
+""",
+'CopyImportVoidPointer':
+"""
+$self.CopyImportVoidPointer($input, len($input))
+""",
+'GetFirstBlock':
+"""
+$output = $self.GetOutput().GetBlock(0)
+""",
+# Set magic tempfile
+'_set_tempfile':
+"""
+$self._tempfile = $input
+""",
+# Set magic callback
+'_set_callback':
+"""
+$self._callback = $input
+""",
+# Set initialize
+'_initialize':
+"""
+import locale
+$self._previous_locale = locale.setlocale(locale.LC_ALL)
+locale.setlocale(locale.LC_ALL, 'C')
+""",
+# Set cleanup
+'_cleanup':
+"""
+import locale
+locale.setlocale(locale.LC_ALL, $self._previous_locale)
+""",
+'SetLookupTable': # from fix_classes
+"""
+$self.UserControlledLookupTableOn()
+$original
+""",
+#basic:Color translation
+'basic:Color#input':
+"""
+$output = $input.tuple
+""",
+'basic:Color#output':
+"""
+from vistrails.core.utils import InstanceObject
+$output = InstanceObject(tuple=$input)
+""",
+#basic:File translation
+'basic:File#input':
+"""
+$output = $input.name
+""",
+'basic:File#output':
+"""
+vistrails.core.modules.basic_modules import PathObject
+$output = PathObject($input)
+""",
+}
+
+
 def create_module(base_cls_name, node):
     """create_module(base_cls_name: String, node: TreeNode) -> [ModuleSpec]
 
@@ -159,11 +305,13 @@ def create_module(base_cls_name, node):
 
     obsolete_list = obsolete_class_list()
 
+    cls = node.klass
+
     def is_abstract():
         """is_abstract tries to instantiate the class. If it's
         abstract, this will raise."""
         # Consider obsolete classes abstract
-        if node.klass in obsolete_list:
+        if cls in obsolete_list:
             return True
         try:
             getattr(vtk, node.name)()
@@ -172,7 +320,7 @@ def create_module(base_cls_name, node):
         return False
 
     try:
-        node.klass.__doc__.decode('latin-1')
+        cls.__doc__.decode('latin-1')
     except UnicodeDecodeError:
         print "ERROR decoding docstring", node.name
         raise
@@ -180,12 +328,12 @@ def create_module(base_cls_name, node):
     input_ports, output_ports = get_ports(node.klass)
     output_ports = list(output_ports) # drop generator
 
-    cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
-                 (not issubclass(node.klass, vtk.vtkAbstractMapper))) or \
-                issubclass(node.klass, vtk.vtkScalarTree)
+    cacheable = (issubclass(cls, vtk.vtkAlgorithm) and
+                 (not issubclass(cls, vtk.vtkAbstractMapper))) or \
+                issubclass(cls, vtk.vtkScalarTree)
 
-    is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
-    tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
+    is_algorithm = issubclass(cls, vtk.vtkAlgorithm)
+    tempfile = '_set_tempfile' if issubclass(cls, vtk.vtkWriter) else None
     callback = '_set_callback' if is_algorithm else None
     methods_last = hasattr(node.klass, 'SetRenderWindow')
 
@@ -201,10 +349,41 @@ def create_module(base_cls_name, node):
                             cacheable=cacheable,
                             input_port_specs=input_ports,
                             output_port_specs=output_ports,
-                            compute=compute,
-                            cleanup='_cleanup',
+                            compute='Update' if hasattr(cls, 'Update') else None,
                             methods_last=methods_last,
                             abstract=is_abstract())
+
+    # Add method patches
+    if cls == vtk.vtkAlgorithm:
+        module_spec.add_patch('Update', 'UpdateAlgorithm')
+        module_spec.add_patch('_set_callback', '_set_callback')
+    if cls == vtk.vtkScalarTree:
+        module_spec.add_patch('Update', 'guarded_SimpleScalarTree')
+    if cls == vtk.vtkWriter:
+        module_spec.add_patch('Update', 'guarded_Writer')
+        module_spec.add_patch('_set_tempfile', '_set_tempfile')
+    if hasattr(cls, 'SetFileName') and cls.__name__.endswith('Reader'):
+        # Data readers may fail when using non-C locale
+        # So we set it to C before reading and restore it afterwards
+        module_spec.initialize = '_initialize'
+        module_spec.add_patch('_initialize', '_initialize')
+        module_spec.cleanup = '_cleanup'
+        module_spec.add_patch('_cleanup', '_cleanup')
+        if not cls.__name__.endswith('TiffReader'):
+            module_spec.add_patch('Update', 'guarded_SetFileName')
+    if hasattr(cls, 'SetRenderWindow'):
+        module_spec.add_patch('vtkRenderer', 'SetRenderWindow')
+    if cls == vtk.vtkVolumeProperty:
+        module_spec.add_patch('SetTransferFunction', 'TransferFunction')
+    if cls == vtk.vtkDataSet:
+        module_spec.add_patch('PointData', 'PointData')
+        module_spec.add_patch('CellData', 'CellData')
+    if cls == vtk.vtkCell:
+        module_spec.add_patch('PointIds', 'PointIds')
+    if cls == vtk.vtkImageImport:
+        module_spec.add_patch('CopyImportString', 'CopyImportVoidPointer')
+    if cls == vtk.vtkMultiBlockPLOT3DReader:
+        module_spec.add_patch('FirstBlock', 'GetFirstBlock')
 
     module_specs = [module_spec]
     for child in node.children:
@@ -934,23 +1113,7 @@ def parse(filename="vtk_raw.xml"):
                     continue
                 specs_list.extend(create_module("vtkObjectBase", child))
 
-    # Translate File and Color ports
-    translations = {
-        'basic:Color':
-            "def input_t(value):\n"
-            "    return value.tuple\n"
-            "def output_t(value):\n" # Assumes receiving hex string, which is probably wrong
-            "    from vistrails.core.utils import InstanceObject\n"
-            "    return InstanceObject(tuple=value)",
-        'basic:File':
-            "def input_t(value):\n"
-            "    return value.name\n"
-            "def output_t(value):\n"
-            "    from vistrails.core.modules.basic_modules import PathObject\n"
-            "    return PathObject(value)"}
-
-
-    specs = SpecList(specs_list, translations=translations)
+    specs = SpecList(specs_list, patches=patches)
     specs.write_to_xml(filename)
 
 

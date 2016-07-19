@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -40,6 +40,7 @@ to checking dependencies to initializing them."""
 from __future__ import division
 
 import copy
+from distutils.version import LooseVersion
 import inspect
 import itertools
 import os
@@ -65,19 +66,21 @@ global _package_manager
 _package_manager = None
 
 class PackageManager(object):
-    # # add_package_menu_signal is emitted with a tuple containing the package
-    # # identifier, package name and the menu item
-    # add_package_menu_signal = QtCore.SIGNAL("add_package_menu")
-    # # remove_package_menu_signal is emitted with the package identifier
-    # remove_package_menu_signal = QtCore.SIGNAL("remove_package_menu")
-    # # package_error_message_signal is emitted with the package identifier,
-    # # package name and the error message
-    # package_error_message_signal = QtCore.SIGNAL("package_error_message_signal")
-    # # reloading_package_signal is emitted when a package reload has disabled
-    # # the packages, but has not yet enabled them
-    # reloading_package_signal = QtCore.SIGNAL("reloading_package_signal")
+    """Discovers and loads packages of VisTrails modules.
+
+    Signals:
+    * add_package_menu_signal is emitted with a tuple containing the package
+      identifier, package name and the menu item
+    * remove_package_menu_signal is emitted with the package identifier
+    * package_error_message_signal is emitted with the package identifier,
+      package name and the error message
+    * reloading_package_signal is emitted when a package reload has disabled
+      the packages, but has not yet enabled them
+    """
 
     class DependencyCycle(Exception):
+        """There is a cycle in the dependencies between packages.
+        """
         def __init__(self, p1, p2):
             self._package_1 = p1
             self._package_2 = p2
@@ -87,6 +90,8 @@ class PackageManager(object):
                      self._package_2))
 
     class PackageInternalError(Exception):
+        """An error was raised by the package while it was loading.
+        """
         def __init__(self, n, d):
             self._package_name = n
             self._description = d
@@ -95,9 +100,9 @@ class PackageManager(object):
                                                    self._description)
 
     def import_packages_module(self):
-        """Imports the packages module using path trickery to find it
-        in the right place.
+        """Imports the 'vistrails.packages' package.
 
+        This might need to manipulate the Python path to find it.
         """
         if self._packages is not None:
             return self._packages
@@ -117,9 +122,9 @@ class PackageManager(object):
         return vistrails.packages
 
     def import_user_packages_module(self):
-        """Imports the packages module using path trickery to find it
-        in the right place.
+        """Imports the 'userspackages' package.
 
+        This will need to manipulate the Python path to find it.
         """
         if self._userpackages is not None:
             return self._userpackages
@@ -131,7 +136,7 @@ class PackageManager(object):
             try:
                 import userpackages
             except ImportError:
-                debug.critical('ImportError: "userpackages" sys.path: %s' % 
+                debug.critical('ImportError: "userpackages" sys.path: %s' %
                                sys.path)
                 raise
             finally:
@@ -143,10 +148,6 @@ class PackageManager(object):
         return None
 
     def __init__(self, registry, startup):
-        """__init__(configuration: ConfigurationObject) -> PackageManager
-        configuration is the persistent configuration object of the application.
-        
-        """
         global _package_manager
         if _package_manager:
             m = "Package manager can only be constructed once."
@@ -202,6 +203,12 @@ class PackageManager(object):
 
     def _import_override(self,
                          name, globals={}, locals={}, fromlist=[], level=-1):
+        """Overridden __import__ function.
+
+        This replaces the builtin __import__ function globally so that we can
+        track imports done from a package. This is recorded in the Package so
+        that reloading the package actually reloads all dependent code.
+        """
         # Get the caller module, using globals (like the original __import
         # does)
         try:
@@ -262,9 +269,7 @@ class PackageManager(object):
         return self._orig_import(name, globals, locals, fromlist, level)
 
     def finalize_packages(self):
-        """Finalizes all installed packages. Call this only prior to exiting
-        VisTrails.
-
+        """Finalizes all initialized packages.
         """
         for package in self._package_list.itervalues():
             package.finalize()
@@ -285,9 +290,10 @@ class PackageManager(object):
         return pkg
 
     def add_package(self, codepath, add_to_package_list=True, prefix=None):
-        """Adds a new package to the manager. This does not initialize it.  To
-        do so, call initialize_packages()
+        """Adds a new package to the manager. This does not initialize it.
 
+        You will have to call initialize_packages() to initialize loaded but
+        uninitialized packages.
         """
         package = self.get_available_package(codepath)
         if add_to_package_list:
@@ -310,7 +316,11 @@ class PackageManager(object):
             del self._old_identifier_map[old_id]
 
     def remove_package(self, codepath):
-        """remove_package(name): Removes a package from the system."""
+        """Removes a package from the system.
+
+        Use late_disable_package() in application code so that the
+        configuration is updated.
+        """
         pkg = self._package_list[codepath]
 
         from vistrails.core.interpreter.cached import CachedInterpreter
@@ -329,23 +339,20 @@ class PackageManager(object):
         app.send_notification("package_removed", codepath)
 
     def has_package(self, identifier, version=None):
-        """has_package(identifer: string) -> Boolean.  
-        Returns true if given package identifier is present.
-
+        """Returns true if given package identifier is present.
         """
 
         # check if it's an old identifier
         identifier = self._old_identifier_map.get(identifier, identifier)
         if identifier in self._package_versions:
-            return (version is None or 
+            return (version is None or
                     version in self._package_versions[identifier])
         return False
 
     def look_at_available_package(self, codepath):
-        """look_at_available_package(codepath: string) -> Package
+        """Returns a Package object for an uninitialized package.
 
-        Returns a Package object for an uninstalled package. This does
-        NOT install a package.
+        This does NOT initialize it.
         """
         return self.get_available_package(codepath)
 
@@ -362,7 +369,6 @@ class PackageManager(object):
                 return self._registry.get_package_by_name(identifier, version)
             except MissingPackageVersion:
                 return self._registry.get_package_by_name(identifier)
-            
 
         max_version = '0'
         max_pkg = None
@@ -373,9 +379,9 @@ class PackageManager(object):
         return max_pkg
 
     def get_package_by_codepath(self, codepath):
-        """get_package_by_codepath(codepath: string) -> Package.
-        Returns a package with given codepath if it is enabled,
-        otherwise throws exception
+        """Returns a package with given codepath if it is initialized.
+
+        :raises MissingPackage: if the package is not loaded or initialized.
         """
         if codepath not in self._package_list:
             raise MissingPackage(codepath)
@@ -383,8 +389,7 @@ class PackageManager(object):
             return self._package_list[codepath]
 
     def get_package_by_identifier(self, identifier):
-        """get_package_by_identifier(identifier: string) -> Package.
-        Deprecated, use get_package() instead.
+        """Deprecated, use get_package() instead.
         """
         warnings.warn(
                 "You should use get_package instead of "
@@ -394,13 +399,12 @@ class PackageManager(object):
         return self.get_package(identifier)
 
     def get_package_configuration(self, codepath):
-        """get_package_configuration(codepath: string) ->
-        ConfigurationObject or None
+        """Returns the configuration object for the package, or None.
 
-        Returns the configuration object for the package, if existing,
-        or None. Throws MissingPackage if package doesn't exist.
+        This will only return None if the package exists but has no
+        configuration object.
+        :raises MissingPackage: if the package is not loaded or initialized.
         """
-
         pkg = self.get_package_by_codepath(codepath)
 
         if not hasattr(pkg.module, 'configuration'):
@@ -450,12 +454,7 @@ class PackageManager(object):
         return True
 
     def add_dependencies(self, package):
-        """add_dependencies(package) -> None.  Register all
-        dependencies a package contains by calling the appropriate
-        callback.
-
-        Does not add multiple dependencies - if a dependency is already there,
-        add_dependencies ignores it.
+        """Register all the dependencies of a package contains.
         """
         deps = package.dependencies()
         # FIXME don't hardcode this
@@ -478,9 +477,9 @@ class PackageManager(object):
 
     def late_enable_package(self, codepath, prefix_dictionary={},
                             needs_add=True):
-        """late_enable_package enables a package 'late', that is,
-        after VisTrails initialization. All dependencies need to be
-        already enabled.
+        """Enables a package 'late', i.e. after VisTrails initialization.
+
+        Note that all the dependencies need to already be enabled.
         """
         if needs_add:
             if codepath in self._package_list:
@@ -529,9 +528,9 @@ class PackageManager(object):
         self._startup.save_persisted_startup()
 
     def late_disable_package(self, codepath):
-        """late_disable_package disables a package 'late', that is,
-        after VisTrails initialization. All reverse dependencies need to be
-        already disabled.
+        """Disables a package 'late', i.e. after VisTrails initialization.
+
+        Note that all the reverse dependencies need to already be disabled.
         """
         pkg = self.get_package_by_codepath(codepath)
         self.remove_package(codepath)
@@ -568,13 +567,12 @@ class PackageManager(object):
 
     def initialize_packages(self, prefix_dictionary={},
                             report_missing_dependencies=True):
-        """initialize_packages(prefix_dictionary={}): None
+        """Initializes all installed packages.
 
-        Initializes all installed packages. If prefix_dictionary is
-        not {}, then it should be a dictionary from package names to
-        the prefix such that prefix + package_name is a valid python
-        import."""
-
+        :param prefix_dictionary: dictionary from package names to the prefix
+        such that prefix + package_name is a valid python import.
+        :type prefix_dictionary: dict
+        """
         failed = []
         # import the modules
         app = get_vistrails_application()
@@ -622,8 +620,8 @@ class PackageManager(object):
                         self._package_versions[package.identifier]:
                     raise VistrailsInternalError("Duplicate package version: "
                                                  "'%s' (version %s) in %s" % \
-                                                     (package.identifier, 
-                                                      package.version, 
+                                                     (package.identifier,
+                                                      package.version,
                                                       package.codepath))
                 else:
                     debug.warning('Duplicate package identifier: %s' % \
@@ -703,10 +701,10 @@ class PackageManager(object):
         self._startup.save_persisted_startup()
 
     def add_menu_items(self, pkg):
-        """add_menu_items(pkg: Package) -> None
-        If the package implemented the function menu_items(),
-        the package manager will emit a signal with the menu items to
-        be added to the builder window """
+        """Emit the appropriate signal if the package has menu items.
+
+        :type pkg: Package
+        """
         items = pkg.menu_items()
         if items:
             app = get_vistrails_application()
@@ -718,9 +716,10 @@ class PackageManager(object):
             #           items)
 
     def remove_menu_items(self, pkg):
-        """remove_menu_items(pkg: Package) -> None
-        Send a signal with the pkg identifier. The builder window should
-        catch this signal and remove the package menu items"""
+        """Emit the appropriate signal if the package has menu items.
+
+        :type pkg: Package
+        """
         if pkg.menu_items():
             app = get_vistrails_application()
             app.send_notification("pm_remove_package_menu",
@@ -729,56 +728,75 @@ class PackageManager(object):
             #           pkg.identifier)
 
     def show_error_message(self, pkg, msg):
-        """show_error_message(pkg: Package, msg: str) -> None
-        Print a message to standard error output and emit a signal to the
-        builder so if it is possible, a message box is also shown """
-
+        """Print and emit a notification for an error message.
+        """
+        # TODO: isn't debug enough for the UI?
         debug.critical("Package %s (%s) says: %s"%(pkg.name,
                                                    pkg.identifier,
                                                    msg))
         app = get_vistrails_application()
         app.send_notification("pm_package_error_message", pkg.identifier,
                               pkg.name, msg)
-        # self.emit(self.package_error_message_signal,
-        #           pkg.identifier,
-        #           pkg.name,
-        #           msg)
 
     def enabled_package_list(self):
-        """package_list() -> returns list of all enabled packages."""
+        """Returns list of all enabled packages."""
         return self._package_list.values()
 
     def identifier_is_available(self, identifier):
-        """identifier_is_available(identifier: str) -> Pkg
+        """Searchs for an available (but disabled) package.
 
-        returns true if there exists a package with the given
-        identifier in the list of available (ie, disabled) packages.
+        If found, returns succesfully loaded, uninitialized package.
 
-        If true, returns succesfully loaded, uninitialized package."""
+        There can be multiple package versions for a single identifier. If so,
+        return the version that passes requirements, or the latest version.
+        """
+        matches = []
         for codepath in self.available_package_names_list():
             pkg = self.get_available_package(codepath)
             try:
                 pkg.load()
                 if pkg.identifier == identifier:
-                    return pkg
+                    matches.append(pkg)
                 elif identifier in pkg.old_identifiers:
-                    return pkg
+                    matches.append(pkg)
                 if (hasattr(pkg._module, "can_handle_identifier") and
                         pkg._module.can_handle_identifier(identifier)):
-                    return pkg
+                    matches.append(pkg)
             except (pkg.LoadFailed, pkg.InitializationFailed,
                     MissingRequirement):
                 pass
             except Exception, e:
+                debug.warning(
+                    "Error loading package <codepath %s>" % pkg.codepath,
+                    e)
+        if len(matches) == 0:
+            return None
+        elif len(matches) == 1:
+            return matches[0]
+        # return package version that passes requirements
+        valids = []
+        for pkg in matches:
+            try:
+                pkg.check_requirements()
+                valids.append(pkg)
+            except (pkg.LoadFailed, pkg.InitializationFailed,
+                    MissingRequirement):
                 pass
-        return None
+            except Exception, e:
+                debug.warning(
+                    "Package <codepath %s> raised an exception while "
+                    "querying requirements" % pkg.codepath,
+                    e)
+        if len(valids) == 1:
+            return valids[0]
+        elif len(valids) == 0:
+            # return latest invalid package
+            valids = matches
+        # return latest version
+        return sorted(valids, key=lambda x: LooseVersion(x.version))[-1]
 
     def available_package_names_list(self):
-        """available_package_names_list() -> returns list with code-paths of all
-        available packages, by looking at the appropriate directories.
-
-        The distinction between package names, identifiers and
-        code-paths is described in doc/package_system.txt
+        """Returns the list of all available packages' codepaths.
         """
         return self._available_packages.keys()
 
@@ -832,14 +850,18 @@ class PackageManager(object):
         return self._available_packages.keys()
 
     def dependency_graph(self):
-        """dependency_graph() -> Graph.  Returns a graph with package
-        dependencies, where u -> v if u depends on v.  Vertices are
-        strings representing package names."""
+        """Returns a graph with package dependencies.
+
+        Vertices are the package identifiers (strings), and an edge u -> v
+        means that u depends on v.
+
+        :rtype: Graph
+        """
         return self._dependency_graph
 
     def can_be_disabled(self, identifier):
-        """Returns whether has no reverse dependencies (other
-        packages that depend on it."""
+        """Returns whether a package has no reverse dependencies.
+        """
         return self._dependency_graph.in_degree(identifier) == 0
 
     def reverse_dependencies(self, identifier):
@@ -866,7 +888,7 @@ class PackageManager(object):
                             not dep_graph.has_edge(identifier, dep_name):
                         dep_graph.add_edge(identifier, dep_name)
                         process_dependencies(dep_name)
-        
+
         for pkg_identifier in pkg_identifiers:
             process_dependencies(pkg_identifier)
 
@@ -879,7 +901,7 @@ class PackageManager(object):
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
         return list(reversed(sorted_packages))
-        
+
     def get_all_dependencies(self, identifier, reverse=False, dep_graph=None):
         if dep_graph is None:
             dep_graph = self._dependency_graph
@@ -888,21 +910,21 @@ class PackageManager(object):
             adj_list = dep_graph.inverse_adjacency_list
         else:
             adj_list = dep_graph.adjacency_list
-            
+
         all = [identifier]
         last_adds = [identifier]
         while len(last_adds) != 0:
             adds = [x[0] for y in last_adds for x in adj_list[y]]
             all.extend(adds)
             last_adds = adds
-        
+
         seen = set()
         order = []
         for pkg in reversed(all):
             if pkg not in seen:
                 order.append(pkg)
                 seen.add(pkg)
-        return order        
+        return order
 
     def all_dependencies(self, identifier, dep_graph=None):
         return self.get_all_dependencies(identifier, False, dep_graph)
