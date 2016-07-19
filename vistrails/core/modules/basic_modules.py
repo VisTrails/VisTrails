@@ -69,7 +69,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1.1'
+version = '2.1.2'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -1358,6 +1358,18 @@ def initialize(*args, **kwargs):
     _modules.extend(vistrails.core.modules.sub_module._modules)
     _modules.extend(vistrails.core.wrapper.pythonclass._modules)
 
+
+def remove_vtk_instance(controller):
+    def remap(old_func, new_module):
+        src = old_func.params[0].strValue
+        code = urllib.unquote(src)
+        new_code = code.replace('.vtkInstance', '')
+        src = urllib.quote(new_code)
+        new_function = controller.create_function(new_module, 'source', [src])
+        return [('add', new_function, 'module', new_module.id)]
+    return remap
+
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
     reg = get_module_registry()
@@ -1387,7 +1399,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         return ops
 
     module_remap = {'FileSink':
-    [(None, '1.6', None,
+                        [(None, '1.6', None,
                           {'dst_port_remap':
                                {'overrideFile': 'overwrite',
                                 'outputName': outputName_remap},
@@ -1408,17 +1420,20 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         [(None, '1.6', None,
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
-                        [(None, '1.6', None, {})],
+                        [(None, '2.1.2', None, {
+                          'function_remap':
+                               {'source': remove_vtk_instance(controller)},
+                        })],
                     'Tuple':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'StandardOutput':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'List':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'AssertEqual':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     'Converter':
-                        [(None, '2.1.1', None, {})],
+                        [(None, '2.1.2', None, {})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

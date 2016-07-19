@@ -36,19 +36,45 @@
 
 from __future__ import division
 
+from string import Template
 
-def convert_port(port, value, translations):
+
+def convert_port(port, value, patches, direction):
     """ translate port values between vistrail and native types
     port - PortSpec
     value - port value
     translations - dict(port_type: translator_function)
     """
     port_types = port.get_port_type()
-    if not isinstance(port_types, list):
-        return translations[port_types](value) if port_types in translations else value
-    return [(translations[p](value) if p in translations else value)
-            for p, v in zip(port_types, value)]
+    if isinstance(port_types, list):
+        return value
+    patch_name = '%s#%s' % (port_types, direction)
+    if patch_name not in patches:
+        return value
+    patch = patches[patch_name]
+    code = Template(patch).substitute(input='value',output='output')
+    output = None
+    locals_ = locals()
+    exec code + '\n' in locals_, locals_
+    if locals_.get('output') is not None:
+        output = locals_['output']
+    return output
 
+
+def get_patches(cls, method_name):
+    """ Get all named patches in self and superclass for a method_name
+    """
+    klasses = iter(cls.__mro__)
+    base = cls
+    patches = []
+    while base and hasattr(base, '_module_spec'):
+        spec = base._module_spec
+        if spec.patches and method_name in spec.patches:
+            for patch in spec.patches[method_name]:
+                if patch not in patches:
+                    patches.insert(0, patch)
+        base = klasses.next()
+    return patches
 
 def get_input_spec(cls, name):
     """ Get named input spec from self or superclass

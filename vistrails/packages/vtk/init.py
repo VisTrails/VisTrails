@@ -37,6 +37,7 @@ from __future__ import division
 
 import copy
 import re
+import urllib
 import os.path
 
 import vtk
@@ -55,6 +56,7 @@ from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.wrapper.pythonclass import gen_class_module
+from vistrails.core.wrapper.specs import SpecList, ClassSpec
 from vistrails.core.vistrail.port import Port
 
 from .tf_widget import _modules as tf_modules
@@ -63,7 +65,6 @@ from .offscreen import _modules as offscreen_modules
 
 from identifiers import identifier, version as package_version
 
-from .vtk_wrapper import vtk_classes
 from . import hasher
 
 
@@ -124,7 +125,7 @@ class vtkRendererToFile(ImageFileMode):
                       'jpg': vtk.vtkJPEGWriter,
                       'tif': vtk.vtkTIFFWriter,
                       'pnm': vtk.vtkPNMWriter}
-        r = output_module.get_input("value")[0].vtkInstance
+        r = output_module.get_input("value")[0]
         w = configuration["width"]
         h = configuration["height"]
         img_format = self.get_format(configuration)
@@ -145,7 +146,7 @@ class vtkRendererToIPythonMode(IPythonMode):
     def compute_output(self, output_module, configuration):
         from IPython.core.display import display, Image
 
-        r = output_module.get_input('value')[0].vtkInstance
+        r = output_module.get_input('value')[0]
         width = configuration['width']
         height = configuration['height']
 
@@ -196,11 +197,12 @@ def initialize():
     if not os.path.exists(spec_name):
         from .vtk_wrapper.parse import parse
         parse(spec_name)
-    vtk_classes.initialize(spec_name)
-    _modules.extend([gen_class_module(spec, vtk_classes, klasses,
-                                      translations=vtk_classes.specs.get_translations(),
+    specs = SpecList.read_from_xml(spec_name, ClassSpec)
+    #vtk_classes.initialize(spec_name)
+    _modules.extend([gen_class_module(spec, vtk, klasses,
+                                      patches=specs.patches,
                                       signature=hasher.vtk_hasher)
-                     for spec in vtk_classes.specs.module_specs])
+                     for spec in specs.module_specs])
 
 ################# UPGRADES ###################################################
 
@@ -649,6 +651,18 @@ def build_remap(module_name=None):
         for desc in pkg.descriptor_list:
             process_module(desc)
 
+
+def remove_vtk_instance(controller):
+    def remap(old_func, new_module):
+        src = old_func.params[0].strValue
+        code = urllib.unquote(src)
+        new_code = code.replace('.vtkInstance', '')
+        src = urllib.quote(new_code)
+        new_function = controller.create_function(new_module, 'Handler', [src])
+        return [('add', new_function, 'module', new_module.id)]
+    return remap
+
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
 
@@ -657,6 +671,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='vtkInteractionHandler')
         remap.add_remap('src_port_remap', 'self', 'Instance')
+        _remap.add_module_remap(remap)
+        remap = UpgradeModuleRemap(None, '1.0.2', '1.0.3',
+                                   module_name='vtkInteractionHandler')
+        remap.add_remap('function_remap', 'Handler', remove_vtk_instance(controller))
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKCell')
@@ -702,6 +720,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 # Manually upgrade to 1.0.2
                 module_remap.add_module_remap(
                         UpgradeModuleRemap('1.0.1', '1.0.2', '1.0.2',
+                                           module_name=module_name))
+            remap = module_remap.get_module_upgrade(module_name, '1.0.2')
+            # Only difference with 1.0.3 is the removal of ".vtkInstance" from source module code
+            if remap is None:
+                # Manually upgrade to 1.0.3
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.2', '1.0.3', '1.0.3',
                                            module_name=module_name))
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

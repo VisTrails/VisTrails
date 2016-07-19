@@ -165,7 +165,7 @@ class vtkInteractionHandler(NotCacheable, Module):
             self.shareddata = self.shareddata[0]
         if self.observer:
             source = urllib.unquote(self.handler)
-            observer = self.observer.vtkInstance
+            observer = self.observer
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
                 f = f.replace('Event', 'Handler')
@@ -173,8 +173,8 @@ class vtkInteractionHandler(NotCacheable, Module):
                            '\tobserver.AddObserver("%s", ' % e +
                            'self.eventHandler)\n')
             exec(source)
-            if hasattr(self.observer.vtkInstance, 'PlaceWidget'):
-                self.observer.vtkInstance.PlaceWidget()
+            if hasattr(self.observer, 'PlaceWidget'):
+                self.observer.PlaceWidget()
         self.set_output('Instance', self)
 
     def eventHandler(self, obj, event):
@@ -199,7 +199,7 @@ class vtkInteractionHandler(NotCacheable, Module):
         # Remove all observers
         if self.observer:
             for e in vtkInteractionHandler.vtkEvents:
-                self.observer.vtkInstance.RemoveObservers(e)
+                self.observer.RemoveObservers(e)
         Module.clear(self)
 
     def repaintCells(self):
