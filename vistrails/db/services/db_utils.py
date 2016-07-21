@@ -89,6 +89,14 @@ class DBConnection(object):
     def close(self):
         self.get_connection().close()
 
+    def run_statements(self, statements, c=None):
+        if isinstance(statements, basestring):
+            statements = [statements,]
+        if c is None:
+            c = self.get_connection().cursor()
+        for stmt in statements:
+            c.execute(self.format_stmt(stmt))
+
     def run_sql_file(self, fname):
         c = self.get_connection().cursor()
         with open(fname, 'rU') as f:
