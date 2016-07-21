@@ -210,6 +210,8 @@ class MultipleObjMapping(BundleObjMapping):
                                   True, attr_plural_name)
 
 class MultipleFileRefMapping(MultipleObjMapping):
+    # this doesn't work for a blob object...
+    # blobs can be lazy load perhaps but cannot use the same extract piece
     def __init__(self, obj_type, attr_name=None, attr_plural_name=None):
         def obj_id_extract_f(obj):
             return os.path.basename(obj)
@@ -1253,39 +1255,49 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
 
 class DBBlobSerializer(BundleObjSerializer):
     SCHEMA = """
-    CREATE TABLE blobdata(
+    CREATE TABLE {}(
         id integer not null primary key auto_increment,
         data mediumblob
     );
 
     """
 
-    DROP_SCHEMA = """DROP TABLE IF EXISTS %s;"""
+    DROP_SCHEMA = """DROP TABLE IF EXISTS {};"""
 
-    STMTS = {"load": "SELECT data FROM %s WHERE id=%s;",
-             "delete": "DELETE FROM %s WHERE id=%s;",
-             "insert": "INSERT INTO %s (data) VALUES (%s);",
-             "update": "UPDATE %s SET data=%s WHERE id=%s;"}
+    STMTS = {"load": "SELECT data FROM {} WHERE id=%s;",
+             "delete": "DELETE FROM {} WHERE id=%s;",
+             "insert": "INSERT INTO {} (data) VALUES (%s);",
+             "update": "UPDATE {} SET data=%s WHERE id=%s;"}
 
     def __init__(self, bundle_obj_mapping, table_name):
         BundleObjSerializer.__init__(self, bundle_obj_mapping)
         self.table_name = table_name
 
+    def get_schema(self):
+        return self.SCHEMA.format(self.table_name)
+
+    def get_drop_schema(self):
+        return self.DROP_SCHEMA.format(self.table_name)
+
+    def get_stmt(self, key):
+        stmt = self.STMTS[key]
+        return stmt.format(self.table_name)
+
     def load(self, db_id, connection_obj):
         c = connection_obj.get_connection().cursor()
-        c.execute(connection_obj.format_stmt(self.STMTS["load"]),
-                  (self.table_name, db_id,))
+        c.execute(connection_obj.format_stmt(self.get_stmt("load")),
+                  (db_id,))
         rows = c.fetchall()
         data = rows[0][0]
-        b_obj = self.mapping.create_bundle_obj(data)
+        b_obj = self.mapping.create_bundle_obj_f(data)
         return b_obj
 
     def save(self, obj, connection_obj):
         import sqlite3
         c = connection_obj.get_connection().cursor()
 
-        c.execute(connection_obj.format_stmt(self.STMTS["insert"]),
-                  (self.table_name, sqlite3.Binary(obj.obj),))
+        c.execute(connection_obj.format_stmt(self.get_stmt("insert")),
+                  (sqlite3.Binary(obj.obj),))
         db_id = c.lastrowid
         connection_obj.get_connection().commit()
         return db_id
@@ -1309,7 +1321,7 @@ class DBObjSerializer(BundleObjSerializer):
                                                         version)
         # obj_id = self.get_obj_id(vt_obj)
         # obj = BundleObj(vt_obj, obj_type, obj_id)
-        b_obj = self.mapping.create_bundle_obj(vt_obj)
+        b_obj = self.mapping.create_bundle_obj_f(vt_obj)
         return b_obj
 
     def save(self, b_obj, connection_obj, overwrite=True):
@@ -1484,14 +1496,15 @@ class DBBaseSerializer(BaseSerializer):
         bundle_id = bundle.get_metadata("id")
         bundle_name = bundle.get_metadata("name")
         s = self.get_serializer(bundle.bundle_type, bundle.version)
-        manifest = s.manifest_cls(bundle.bundle_type, bundle.version, bundle_id,
-                                  bundle_name)
+        manifest = s.manifest_cls(connection_obj, bundle.bundle_type,
+                                  bundle.version, bundle_id, bundle_name)
         s.save(bundle, connection_obj, manifest)
         manifest.save()
+        bundle.set_metadata("id", manifest.bundle_id)
 
 class DBSerializer(BundleSerializer):
     def __init__(self, mapping=None, serializers=[],
-                 manifest_cls=FileManifest):
+                 manifest_cls=DBManifest):
         BundleSerializer.__init__(self, mapping, serializers)
         self.manifest_cls = manifest_cls
         self.add_default_serializers()
@@ -1502,7 +1515,8 @@ class DBSerializer(BundleSerializer):
                 if isinstance(m, SingleRootBundleObjMapping):
                     s = DBObjSerializer(m)
                 elif isinstance(m, MultipleFileRefMapping):
-                    s = DBBlobSerializer(m)
+                    # FIXME obj_type or attr_name?
+                    s = DBBlobSerializer(m, m.obj_type)
                 self.add_serializer(s)
 
     def load(self, bundle_id, connection_obj, manifest):
@@ -1536,7 +1550,7 @@ class DBSerializer(BundleSerializer):
             try:
                 serializer = self.get_serializer(obj_type)
                 # FIXME need to fix this...
-                db_id = serializer.save(bundle_obj)
+                db_id = serializer.save(bundle_obj, connection_obj)
                 manifest.add_entry(obj_type, obj_id, db_id)
             except VistrailsDBException:
                 # cannot serialize object
@@ -2121,41 +2135,46 @@ class TestBundles(unittest.TestCase):
             connection_obj.run_statements(DBManifest.DROP_SCHEMA, c)
             db.cleanup()
             pass
-    #
-    # def run_bundle_db(self, db_klass):
-    #     try:
-    #         db = db_klass()
-    #     except ImportError:
-    #         self.skipTest("Cannot import dependencies for %s." % \
-    #                       db_klass.__name__)
-    #     connection_obj = db.setup()
-    #     c = connection_obj.get_connection().cursor()
-    #     c.execute(connection_obj.format_stmt(DBManifest.SCHEMA))
-    #     c.execute(connection_obj.format_stmt(DBSerializer.SCHEMA))
-    #     c.execute(connection_obj.format_stmt(DBDataSerializer.SCHEMA))
-    #
-    #     s1 = None
-    #     s2 = None
-    #     try:
-    #         b1 = self.create_bundle()
-    #         s1 = DBSerializer(connection_obj, name="test", bundle=b1)
-    #         s1.add_serializer('data', DBDataSerializer)
-    #         s1.save()
-    #
-    #         s2 = DBSerializer(connection_obj, bundle_id=1)
-    #         s2.add_serializer('data', DBDataSerializer)
-    #         b2 = s2.load()
-    #
-    #         self.compare_bundles(b1, b2)
-    #     finally:
-    #         if s1:
-    #             s1.cleanup()
-    #         if s2:
-    #             s2.cleanup()
-    #         c.execute(connection_obj.format_stmt(DBManifest.DROP_SCHEMA));
-    #         c.execute(connection_obj.format_stmt(DBSerializer.DROP_SCHEMA));
-    #         c.execute(connection_obj.format_stmt(DBDataSerializer.DROP_SCHEMA));
-    #         db.cleanup()
+
+    def run_bundle_db(self, db_klass):
+        try:
+            db = db_klass()
+        except ImportError:
+            self.skipTest("Cannot import dependencies for %s." % \
+                          db_klass.__name__)
+        connection_obj = db.setup()
+        c = connection_obj.get_connection().cursor()
+        connection_obj.run_statements(DBManifest.SCHEMA, c)
+        # FIXME hack to get correct schema, should go through mapping?
+        c.execute(connection_obj.format_stmt(
+            DBBlobSerializer(None,"image").get_schema()))
+
+        b1 = None
+        b2 = None
+        try:
+            b1 = self.create_bundle()
+            s = DBBaseSerializer()
+            blob_s = DBSerializer(b1.mapping)
+            s.register_serializer(blob_s)
+
+            s.save(b1, connection_obj)
+            bundle_id = b1.get_metadata("id")
+
+            print "BUNDLE ID", bundle_id
+
+            b2 = s.load(bundle_id, connection_obj)
+
+            self.compare_bundles(b1, b2)
+        finally:
+            if b1:
+                b1.cleanup()
+            if b2:
+                b2.cleanup()
+            connection_obj.run_statements(DBManifest.DROP_SCHEMA, c)
+            # FIXME hack to get correct schema, should go through mapping?
+            c.execute(connection_obj.format_stmt(
+                DBBlobSerializer(None, "image").get_drop_schema()))
+            db.cleanup()
     #
     # def test_manifest_mysql(self):
     #     self.run_manifest_db(MySQLDatabaseTest)
@@ -2166,8 +2185,8 @@ class TestBundles(unittest.TestCase):
     # def test_bundle_mysql(self):
     #     self.run_bundle_db(MySQLDatabaseTest)
     #
-    # def test_bundle_sqlite3(self):
-    #     self.run_bundle_db(SQLite3DatabaseTest)
+    def test_bundle_sqlite3(self):
+        self.run_bundle_db(SQLite3DatabaseTest)
 
     def create_vt_bundle(self):
         from vistrails.db.domain import DBVistrail
