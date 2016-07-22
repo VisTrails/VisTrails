@@ -74,13 +74,16 @@ vistrail_bmap = bundle.BundleMapping(my_version, 'vistrail',
                                   bundle.MultipleFileRefMapping('data'),
                               ],
                               primary_obj_type='vistrail')
-workflow_bmap = vistrail_bmap.clone(primary_obj_type='workflow')
+workflow_bmap = vistrail_bmap.clone(bundle_type='workflow',
+                                    primary_obj_type='workflow')
 workflow_bmap.remove_mapping('vistrail')
 workflow_bmap.add_mapping(
     bundle.SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow'))
 
-log_bmap = vistrail_bmap.clone(primary_obj_type='log')
-registry_bmap = vistrail_bmap.clone(primary_obj_type='registry')
+log_bmap = vistrail_bmap.clone(bundle_type='log',
+                               primary_obj_type='log')
+registry_bmap = vistrail_bmap.clone(bundle_type='registry',
+                                    primary_obj_type='registry')
 
 class LogXMLSerializer(bundle.XMLAppendSerializer):
     def __init__(self, mapping):
@@ -158,6 +161,13 @@ def register_bundle_serializers():
     bundle.register_dir_serializer(wf_dir_serializer)
     bundle.register_dir_serializer(log_dir_serializer)
     bundle.register_dir_serializer(reg_dir_serializer)
+
+def unregister_bundle_serializers():
+    bundle.unregister_dir_serializer(vt_dir_serializer)
+    bundle.unregister_dir_serializer(wf_dir_serializer)
+    bundle.unregister_dir_serializer(log_dir_serializer)
+    bundle.unregister_dir_serializer(reg_dir_serializer)
+
 
 class DAOList(dict):
     def __init__(self):
@@ -404,10 +414,13 @@ class DAOList(dict):
                 self['sql'][child.vtType].to_sql_fast(child, do_copy)
             sub_obj_written.append(subchildren_written)
 
-        # Execute all child insert/update statements
-        results = self['sql'][children[0][0].vtType].executeSQLCommands(
-                                                        db_connection,
-                                                        dbCommandList, False)
+        # FIXME this is really bizarre because children is used in the loop
+        # is this intended?
+        if len(children) > 0:
+            # Execute all child insert/update statements
+            results = self['sql'][children[0][0].vtType].executeSQLCommands(
+                                                            db_connection,
+                                                            dbCommandList, False)
 
         obj_written = sub_obj_written
         result_idx = 0

@@ -53,6 +53,9 @@ ElementTree = get_elementtree_library()
 def register_bundle_serializers():
     vistrails.db.services.bundle_legacy.register_bundle_serializers(my_version)
 
+def unregister_bundle_serializers():
+    vistrails.db.services.bundle_legacy.unregister_bundle_serializers(my_version)
+
 class DAOList(dict):
     def __init__(self):
         self['xml'] = XMLDAOListBase()

@@ -123,6 +123,11 @@ def register_bundle_serializers(version=None):
     if hasattr(pkg, 'register_bundle_serializers'):
         pkg.register_bundle_serializers()
 
+def unregister_bundle_serializers(version=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'unregister_bundle_serializers'):
+        pkg.unregister_bundle_serializers()
+
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion

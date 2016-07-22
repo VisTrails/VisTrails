@@ -164,6 +164,9 @@ def register_bundle_serializers(version):
 
     bundle.register_dir_serializer(vt_dir_serializer)
 
+def unregister_bundle_serializers(version):
+    bundle.unregister_dir_serializer(bundle_type='vistrail', version=version)
+
 class TestLegacyBundles(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
