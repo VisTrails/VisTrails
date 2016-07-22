@@ -1285,19 +1285,23 @@ class DBBlobSerializer(BundleObjSerializer):
         if self.table_name in self.alchemy.metadata.tables:
             self.table = self.alchemy.metadata.tables[self.table_name]
         else:
-            self.table = self.alchemy.sqlalchemy.Table(self.table_name, self.alchemy.metadata,
-                                    self.alchemy.sqlalchemy.Column('id',
-                                                      self.alchemy.sqlalchemy.types.VARCHAR(1023)),
-                                    self.alchemy.sqlalchemy.Column('data',
-                                                      self.alchemy.sqlalchemy.LargeBinary(
-                                                          2 ** 24)),
-                                    )
+            sa = self.alchemy.sqlalchemy
+            self.table = sa.Table(self.table_name, self.alchemy.metadata,
+                                  sa.Column('id',
+                                            sa.types.INT,
+                                            primary_key=True,
+                                            autoincrement=True),
+                                  sa.Column('name',
+                                            sa.types.VARCHAR(1023)),
+                                  sa.Column('data',
+                                            sa.LargeBinary(2 ** 24)),
+                                  )
         return self.table
 
     def load_data(self, db_connection, id):
         tbl = self.get_table()
         cmd = tbl.select().where(tbl.c.id == id)
-        return db_connection.execute(cmd).fetchall()
+        return db_connection.execute(cmd).fetchone()
 
     def delete_data(self, db_connection, id):
         tbl = self.get_table()
@@ -1309,10 +1313,11 @@ class DBBlobSerializer(BundleObjSerializer):
         cmd = tbl.update().where(tbl.c.id == id)
         return db_connection.execute(cmd.values({'data': data}))
 
-    def insert_data(self, db_connection, id, data):
+    def insert_data(self, db_connection, name, data):
         tbl = self.get_table()
         cmd = tbl.insert()
-        return db_connection.execute(cmd.values({'id': id, 'data': data}))
+        res = db_connection.execute(cmd.values({'name': name, 'data': data}))
+        return res.inserted_primary_key[0]
 
     # def get_schema(self):
     #     return self.SCHEMA.format(self.table_name)
@@ -1327,12 +1332,13 @@ class DBBlobSerializer(BundleObjSerializer):
     def load(self, db_id, connection_obj, dir_path):
         # c = connection_obj.get_connection().cursor()
         # print connection_obj.format_stmt(self.get_stmt("load")), db_id
-        rows = self.load_data(connection_obj, db_id)
+        res = self.load_data(connection_obj, db_id)
         # c.execute(connection_obj.format_stmt(self.get_stmt("load")),
         #           (db_id,))
         # rows = c.fetchall()
-        data = rows[0][0]
-        f_path = os.path.join(dir_path, db_id)
+        data = res['data']
+        name = res['name']
+        f_path = os.path.join(dir_path, name)
         with open(f_path, 'wb') as f:
             f.write(data)
         b_obj = self.mapping.create_bundle_obj_f(f_path)
@@ -1345,11 +1351,10 @@ class DBBlobSerializer(BundleObjSerializer):
         # need to load the data...
         with open(obj.obj, 'rb') as f:
             # FIXME need update logic
-            self.insert_data(connection_obj, obj.id, f.read())
+            db_id = self.insert_data(connection_obj, obj.id, f.read())
             # c.execute(connection_obj.format_stmt(self.get_stmt("insert")),
             #           (obj.id, sqlite3.Binary(f.read()),))
         # db_id = c.lastrowid
-        db_id = obj.id
         # connection_obj.get_connection().commit()
         return db_id
 
@@ -1386,7 +1391,6 @@ class DBObjSerializer(BundleObjSerializer):
         if vt_obj.db_version is None:
             vt_obj.db_version = vistrails.db.versions.currentVersion
 
-        print "SAVING", vt_obj.vtType, vt_obj.db_version, self.translator_f
         dao_list = vistrails.db.versions.getVersionDAO(version)
         vt_obj = vistrails.db.versions.translate_object(vt_obj, self.translator_f,
                                                         vt_obj.db_version,
@@ -1507,44 +1511,42 @@ class DBManifest(Manifest):
         if 'manifest' in self.alchemy.metadata.tables:
             self.info_table = self.alchemy.metadata.tables['manifest']
         else:
-            sqla = self.alchemy.sqlalchemy
-            self.info_table = sqla.Table('manifest', self.alchemy.metadata,
-                                         sqla.Column('bundle_id',
-                                                     sqla.types.INT,
+            sa = self.alchemy.sqlalchemy
+            self.info_table = sa.Table('manifest', self.alchemy.metadata,
+                                         sa.Column('bundle_id',
+                                                     sa.types.INT,
                                                      primary_key=True,
                                                      autoincrement=True),
-                                         sqla.Column('bundle_version',
-                                                     sqla.types.VARCHAR(15)),
-                                         sqla.Column('bundle_type',
-                                                     sqla.types.VARCHAR(255)),
-                                         sqla.Column('bundle_name',
-                                                     sqla.types.VARCHAR(255)))
+                                         sa.Column('bundle_version',
+                                                     sa.types.VARCHAR(15)),
+                                         sa.Column('bundle_type',
+                                                     sa.types.VARCHAR(255)),
+                                         sa.Column('bundle_name',
+                                                     sa.types.VARCHAR(255)))
         return self.info_table
 
     def get_items_table(self):
         if 'manifest_items' in self.alchemy.metadata.tables:
             self.items_table = self.alchemy.metadata.tables['manifest_items']
         else:
-            sqla = self.alchemy.sqlalchemy
-            self.items_table = sqla.Table('manifest_items', self.alchemy.metadata,
-                                         sqla.Column('bundle_id',
-                                                     sqla.types.INT),
-                                         sqla.Column('obj_type',
-                                                     sqla.types.VARCHAR(255)),
-                                         sqla.Column('obj_id',
-                                                     sqla.types.VARCHAR(255)),
-                                         sqla.Column('db_id',
-                                                     sqla.types.INT))
+            sa = self.alchemy.sqlalchemy
+            self.items_table = sa.Table('manifest_items', self.alchemy.metadata,
+                                         sa.Column('bundle_id',
+                                                     sa.types.INT),
+                                         sa.Column('obj_type',
+                                                     sa.types.VARCHAR(255)),
+                                         sa.Column('obj_id',
+                                                     sa.types.VARCHAR(255)),
+                                         sa.Column('db_id',
+                                                     sa.types.INT))
         return self.items_table
 
     def load(self):
         info_tbl = self.get_info_table()
         items_tbl = self.get_items_table()
         # c = self.connection_obj.get_connection().cursor()
-        print "SELF.BUNDLE_ID", self.bundle_id
         cmd = info_tbl.select().where(info_tbl.c.bundle_id == self.bundle_id)
         res = self.connection_obj.execute(cmd).fetchone()
-        print "RESULT:", res
         self.bundle_version = res['bundle_version']
         self.bundle_type = res['bundle_type']
         self.bundle_name = res['bundle_name']
@@ -1587,7 +1589,6 @@ class DBManifest(Manifest):
             cmd = items_tbl.delete().where(items_tbl.c.bundle_id == self.bundle_id)
             self.connection_obj.execute(cmd)
         cmd = items_tbl.insert()
-        print "BUNDLE_ID:", self.bundle_id
         self.connection_obj.execute(cmd, [{'bundle_id': self.bundle_id,
                                                'obj_type': item[0],
                                                'obj_id': item[1],
@@ -1645,7 +1646,6 @@ class DBSerializer(BundleSerializer):
 
     def add_default_serializers(self):
         for m in self.mapping.mappings():
-            print "MAPPING", m.obj_type
             if not self.has_serializer(m.obj_type):
                 if isinstance(m, SingleRootBundleObjMapping):
                     s = DBObjSerializer(m, m.obj_type,
@@ -1964,10 +1964,10 @@ class TestSQLDatabase(object):
         m = BundleMapping('0.0.0', 'image',
                           [MultipleFileRefMapping('image', 'image')])
         b = Bundle(m)
-        fname1 = os.path.join(resource_directory(), u'images', u'info.png')
+        fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         o1 = BundleObj(fname1, "image", "abc")
         b.add_object(o1)
-        fname2 = os.path.join(resource_directory(), u'images', u'left.png')
+        fname2 = os.path.join(resource_directory(), 'images', 'left.png')
         o2 = BundleObj(fname2, "image", "def")
         b.add_object(o2)
         return b
@@ -1979,7 +1979,8 @@ class TestSQLDatabase(object):
         for obj_type, obj_id, obj in b1.get_items():
             obj2 = b2.get_bundle_obj(obj_type, obj_id)
             # not ideal, but fails when trying to compare objs without __eq__
-            self.assertEqual(obj.obj.__class__, obj2.obj.__class__)
+            if not (isinstance(obj.obj, basestring) and isinstance(obj2.obj, basestring)):
+                self.assertEqual(obj.obj.__class__, obj2.obj.__class__)
             # self.assertEqual(str(obj.obj), str(obj2.obj))
 
     def test_db_bundle(self):
@@ -1993,8 +1994,6 @@ class TestSQLDatabase(object):
 
             s.save(b1, self.conn)
             bundle_id = b1.get_metadata("id")
-
-            print "BUNDLE ID", bundle_id
 
             b2 = s.load(bundle_id, self.conn)
 
@@ -2048,20 +2047,20 @@ class TestSQLDatabase(object):
             db.cleanup()
 
 
-# class TestMySQLDatabase(TestSQLDatabase):
-#     db_version = None
-#
-#     @classmethod
-#     def get_config(cls):
-#         return {"user": "vt_test",
-#                 "passwd": None,
-#                 "host": "localhost",
-#                 "port": None,
-#                 "db": "vt_test",
-#                 "version": cls.db_version}
-#
-# class TestMySQLDatabase_v1_0_5(TestMySQLDatabase, unittest.TestCase):
-#     db_version = '1.0.5'
+class TestMySQLDatabase(TestSQLDatabase):
+    db_version = None
+
+    @classmethod
+    def get_config(cls):
+        return {"user": "vt_test",
+                "passwd": None,
+                "host": "localhost",
+                "port": None,
+                "db": "vt_test",
+                "version": cls.db_version}
+
+class TestMySQLDatabase_v1_0_5(TestMySQLDatabase, unittest.TestCase):
+    db_version = '1.0.5'
 
 class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
     db_fname = None
@@ -2460,8 +2459,6 @@ class TestBundles(unittest.TestCase):
 
             s.save(b1, connection_obj)
             bundle_id = b1.get_metadata("id")
-
-            print "BUNDLE ID", bundle_id
 
             b2 = s.load(bundle_id, connection_obj)
 
