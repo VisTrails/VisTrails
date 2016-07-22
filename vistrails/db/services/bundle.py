@@ -214,10 +214,12 @@ class MultipleFileRefMapping(MultipleObjMapping):
     # blobs can be lazy load perhaps but cannot use the same extract piece
     def __init__(self, obj_type, attr_name=None, attr_plural_name=None):
         def obj_id_extract_f(obj):
-            return os.path.basename(obj)
+            if os.path.exists(obj):
+                return os.path.basename(obj)
+            else:
+                raise ValueError('Object does not have an id or a pathname')
         MultipleObjMapping.__init__(self, obj_type, obj_id_extract_f,
                                         attr_name, attr_plural_name)
-
 
 class BundleMapping(object):
     def __init__(self, version, bundle_type, mappings=[],
@@ -469,7 +471,6 @@ class BundleSerializer(object):
         # no need to separate serializer types (e.g. xml/json)
         # too much complication, just create a new mapping for that
         s_key = serializer.mapping.obj_type
-        # print "REGISTERING:", s_key
         if s_key in self._serializers:
             raise VistrailsDBException('Serializer already has object serializer '
                                        'for "%s" registered.' % s_key)
@@ -1137,6 +1138,8 @@ class DirectorySerializer(BundleSerializer):
                     s = FileRefSerializer(m)
                 elif isinstance(m, MultipleFileRefMapping):
                     s = FileRefSerializer(m, m.attr_plural_name)
+                else:
+                    raise Exception("No serialzier for {}".format(m.obj_type))
                 self.add_serializer(s)
 
     def load(self, dir_path, manifest):
@@ -1254,52 +1257,100 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
 
 
 class DBBlobSerializer(BundleObjSerializer):
-    SCHEMA = """
-    CREATE TABLE {}(
-        id integer not null primary key auto_increment,
-        data mediumblob
-    );
+    # SCHEMA = """
+    # CREATE TABLE {}(
+    #     id varchar(1023) primary key,
+    #     data mediumblob
+    # );
+    #
+    # """
+    #
+    # # "id integer not null primary key auto_increment,"
+    # DROP_SCHEMA = """DROP TABLE IF EXISTS {};"""
+    #
+    # STMTS = {"load": "SELECT data FROM {} WHERE id=%s;",
+    #          "delete": "DELETE FROM {} WHERE id=%s;",
+    #          "insert": "INSERT INTO {} (id, data) VALUES (%s, %s);",
+    #          "update": "UPDATE {} SET data=%s WHERE id=%s;"}
 
-    """
-
-    DROP_SCHEMA = """DROP TABLE IF EXISTS {};"""
-
-    STMTS = {"load": "SELECT data FROM {} WHERE id=%s;",
-             "delete": "DELETE FROM {} WHERE id=%s;",
-             "insert": "INSERT INTO {} (data) VALUES (%s);",
-             "update": "UPDATE {} SET data=%s WHERE id=%s;"}
+    # FIXME hack to hold a reference to alchemy on the cls
+    alchemy = None
 
     def __init__(self, bundle_obj_mapping, table_name):
         BundleObjSerializer.__init__(self, bundle_obj_mapping)
         self.table_name = table_name
 
-    def get_schema(self):
-        return self.SCHEMA.format(self.table_name)
+    #FIXME should be moved to the versions and schema specs
+    def get_table(self):
+        if self.table_name in self.alchemy.metadata.tables:
+            self.table = self.alchemy.metadata.tables[self.table_name]
+        else:
+            self.table = self.alchemy.sqlalchemy.Table(self.table_name, self.alchemy.metadata,
+                                    self.alchemy.sqlalchemy.Column('id',
+                                                      self.alchemy.sqlalchemy.types.VARCHAR(1023)),
+                                    self.alchemy.sqlalchemy.Column('data',
+                                                      self.alchemy.sqlalchemy.LargeBinary(
+                                                          2 ** 24)),
+                                    )
+        return self.table
 
-    def get_drop_schema(self):
-        return self.DROP_SCHEMA.format(self.table_name)
+    def load_data(self, db_connection, id):
+        tbl = self.get_table()
+        cmd = tbl.select().where(tbl.c.id == id)
+        return db_connection.execute(cmd).fetchall()
 
-    def get_stmt(self, key):
-        stmt = self.STMTS[key]
-        return stmt.format(self.table_name)
+    def delete_data(self, db_connection, id):
+        tbl = self.get_table()
+        cmd = tbl.delete().where(tbl.c.id == id)
+        return db_connection.execute(cmd)
 
-    def load(self, db_id, connection_obj):
-        c = connection_obj.get_connection().cursor()
-        c.execute(connection_obj.format_stmt(self.get_stmt("load")),
-                  (db_id,))
-        rows = c.fetchall()
+    def update_data(self, db_connection, id, data):
+        tbl = self.get_table()
+        cmd = tbl.update().where(tbl.c.id == id)
+        return db_connection.execute(cmd.values({'data': data}))
+
+    def insert_data(self, db_connection, id, data):
+        tbl = self.get_table()
+        cmd = tbl.insert()
+        return db_connection.execute(cmd.values({'id': id, 'data': data}))
+
+    # def get_schema(self):
+    #     return self.SCHEMA.format(self.table_name)
+    #
+    # def get_drop_schema(self):
+    #     return self.DROP_SCHEMA.format(self.table_name)
+    #
+    # def get_stmt(self, key):
+    #     stmt = self.STMTS[key]
+    #     return stmt.format(self.table_name)
+
+    def load(self, db_id, connection_obj, dir_path):
+        # c = connection_obj.get_connection().cursor()
+        # print connection_obj.format_stmt(self.get_stmt("load")), db_id
+        rows = self.load_data(connection_obj, db_id)
+        # c.execute(connection_obj.format_stmt(self.get_stmt("load")),
+        #           (db_id,))
+        # rows = c.fetchall()
         data = rows[0][0]
-        b_obj = self.mapping.create_bundle_obj_f(data)
+        f_path = os.path.join(dir_path, db_id)
+        with open(f_path, 'wb') as f:
+            f.write(data)
+        b_obj = self.mapping.create_bundle_obj_f(f_path)
         return b_obj
 
     def save(self, obj, connection_obj):
-        import sqlite3
-        c = connection_obj.get_connection().cursor()
+        # import sqlite3
+        # c = connection_obj.get_connection().cursor()
 
-        c.execute(connection_obj.format_stmt(self.get_stmt("insert")),
-                  (sqlite3.Binary(obj.obj),))
-        db_id = c.lastrowid
-        connection_obj.get_connection().commit()
+        # need to load the data...
+        with open(obj.obj, 'rb') as f:
+            # FIXME need update logic
+            self.insert_data(connection_obj, obj.id, f.read())
+            # c.execute(connection_obj.format_stmt(self.get_stmt("insert")),
+            #           (obj.id, sqlite3.Binary(f.read()),))
+        # db_id = c.lastrowid
+        db_id = obj.id
+        # connection_obj.get_connection().commit()
         return db_id
 
 
@@ -1310,7 +1361,7 @@ class DBObjSerializer(BundleObjSerializer):
         self.translator_f = translator_f
         self.version = version
 
-    def load(self, db_id, connection_obj, lock=False):
+    def load(self, db_id, connection_obj, dir_path=None, lock=False):
         db_connection = connection_obj.get_connection()
         if self.version is None:
             version = self.get_db_object_version(db_connection, db_id,
@@ -1332,7 +1383,10 @@ class DBObjSerializer(BundleObjSerializer):
                 version = vistrails.db.versions.currentVersion
 
         vt_obj = b_obj.obj
+        if vt_obj.db_version is None:
+            vt_obj.db_version = vistrails.db.versions.currentVersion
 
+        print "SAVING", vt_obj.vtType, vt_obj.db_version, self.translator_f
         dao_list = vistrails.db.versions.getVersionDAO(version)
         vt_obj = vistrails.db.versions.translate_object(vt_obj, self.translator_f,
                                                         vt_obj.db_version,
@@ -1439,6 +1493,8 @@ class DBManifest(Manifest):
                               "obj_type, obj_id, db_id) "
                               "VALUES (%s, %s, %s, %s);")}
 
+    alchemy = None
+
     def __init__(self, connection_obj, bundle_type=None, bundle_version=None,
                  bundle_id=None, bundle_name=None):
         Manifest.__init__(self, bundle_type=bundle_type,
@@ -1447,34 +1503,99 @@ class DBManifest(Manifest):
         self.bundle_id = bundle_id
         self.bundle_name = bundle_name
 
+    def get_info_table(self):
+        if 'manifest' in self.alchemy.metadata.tables:
+            self.info_table = self.alchemy.metadata.tables['manifest']
+        else:
+            sqla = self.alchemy.sqlalchemy
+            self.info_table = sqla.Table('manifest', self.alchemy.metadata,
+                                         sqla.Column('bundle_id',
+                                                     sqla.types.INT,
+                                                     primary_key=True,
+                                                     autoincrement=True),
+                                         sqla.Column('bundle_version',
+                                                     sqla.types.VARCHAR(15)),
+                                         sqla.Column('bundle_type',
+                                                     sqla.types.VARCHAR(255)),
+                                         sqla.Column('bundle_name',
+                                                     sqla.types.VARCHAR(255)))
+        return self.info_table
+
+    def get_items_table(self):
+        if 'manifest_items' in self.alchemy.metadata.tables:
+            self.items_table = self.alchemy.metadata.tables['manifest_items']
+        else:
+            sqla = self.alchemy.sqlalchemy
+            self.items_table = sqla.Table('manifest_items', self.alchemy.metadata,
+                                         sqla.Column('bundle_id',
+                                                     sqla.types.INT),
+                                         sqla.Column('obj_type',
+                                                     sqla.types.VARCHAR(255)),
+                                         sqla.Column('obj_id',
+                                                     sqla.types.VARCHAR(255)),
+                                         sqla.Column('db_id',
+                                                     sqla.types.INT))
+        return self.items_table
+
     def load(self):
-        c = self.connection_obj.get_connection().cursor()
-        c.execute(self.connection_obj.format_stmt(self.STMTS["load_info"]),
-                  (self.bundle_id,))
-        self.bundle_version, self.bundle_type, self.bundle_name = c.fetchone()
-        c.execute(self.connection_obj.format_stmt(self.STMTS["load_items"]),
-                  (self.bundle_id,))
-        rows = c.fetchall()
+        info_tbl = self.get_info_table()
+        items_tbl = self.get_items_table()
+        # c = self.connection_obj.get_connection().cursor()
+        print "SELF.BUNDLE_ID", self.bundle_id
+        cmd = info_tbl.select().where(info_tbl.c.bundle_id == self.bundle_id)
+        res = self.connection_obj.execute(cmd).fetchone()
+        print "RESULT:", res
+        self.bundle_version = res['bundle_version']
+        self.bundle_type = res['bundle_type']
+        self.bundle_name = res['bundle_name']
+        # c.execute(self.connection_obj.format_stmt(self.STMTS["load_info"]),
+        #           (self.bundle_id,))
+        # self.bundle_version, self.bundle_type, self.bundle_name = c.fetchone()
+        cmd = items_tbl.select().where(items_tbl.c.bundle_id == self.bundle_id)
+        rows = self.connection_obj.execute(cmd).fetchall()
+        # c.execute(self.connection_obj.format_stmt(self.STMTS["load_items"]),
+        #           (self.bundle_id,))
+        # rows = c.fetchall()
         for row in rows:
-            self.add_entry(*row)
+            self.add_entry(row['obj_type'], row['obj_id'], row['db_id'])
 
     def save(self):
-        c = self.connection_obj.get_connection().cursor()
+        # c = self.connection_obj.get_connection().cursor()
+        info_tbl = self.get_info_table()
+        items_tbl = self.get_items_table()
         if self.bundle_id is None:
-            c.execute(
-                self.connection_obj.format_stmt(self.STMTS["insert_info"]),
-                (None, self.bundle_version, self.bundle_type,
-                 self.bundle_name))
-            self.bundle_id = c.lastrowid
+            cmd = info_tbl.insert()
+            res = self.connection_obj.execute(cmd.values({'bundle_version': self.bundle_version,
+                                                    'bundle_type': self.bundle_type,
+                                                    'bundle_name': self.bundle_name}))
+            self.bundle_id = res.inserted_primary_key[0]
+            # c.execute(
+            #     self.connection_obj.format_stmt(self.STMTS["insert_info"]),
+            #     (None, self.bundle_version, self.bundle_type,
+            #      self.bundle_name))
+            # self.bundle_id = c.lastrowid
         else:
-            c.execute(self.connection_obj.format_stmt(self.STMTS["update_info"]),
-                (self.bundle_version, self.bundle_type,
-                 self.bundle_name, self.bundle_id))
-            c.execute(self.connection_obj.format_stmt(self.STMTS["delete_items"]),
-                      (self.bundle_id,))
-        c.executemany(self.connection_obj.format_stmt(self.STMTS["insert_items"]),
-                      [(self.bundle_id,) + item
-                       for item in sorted(self.get_items())])
+            # c.execute(self.connection_obj.format_stmt(self.STMTS["update_info"]),
+            #     (self.bundle_version, self.bundle_type,
+            #      self.bundle_name, self.bundle_id))
+            # c.execute(self.connection_obj.format_stmt(self.STMTS["delete_items"]),
+            #           (self.bundle_id,))
+            cmd = info_tbl.update().where(info_tbl.c.bundle_id == self.bundle_id)
+            self.connection_obj.execute(cmd.values({'bundle_version': self.bundle_version,
+                                                    'bundle_type': self.bundle_type,
+                                                    'bundle_name': self.bundle_name}))
+            cmd = items_tbl.delete().where(items_tbl.c.bundle_id == self.bundle_id)
+            self.connection_obj.execute(cmd)
+        cmd = items_tbl.insert()
+        print "BUNDLE_ID:", self.bundle_id
+        self.connection_obj.execute(cmd, [{'bundle_id': self.bundle_id,
+                                               'obj_type': item[0],
+                                               'obj_id': item[1],
+                                               'db_id': item[2]}
+                                              for item in sorted(self.get_items())])
+        # c.executemany(self.connection_obj.format_stmt(self.STMTS["insert_items"]),
+        #               [(self.bundle_id,) + item
+        #                for item in sorted(self.get_items())])
 
 class DBBaseSerializer(BaseSerializer):
     def load(self, bundle_id, connection_obj):
@@ -1482,9 +1603,11 @@ class DBBaseSerializer(BaseSerializer):
         manifest = DBManifest(connection_obj, bundle_id=bundle_id)
         manifest.load()
         s = self.get_serializer(manifest.bundle_type, manifest.bundle_version)
-        bundle = s.load(bundle_id, connection_obj, manifest)
+        dir_path = tempfile.mkdtemp(prefix='vt_save')
+        bundle = s.load(bundle_id, connection_obj, manifest, dir_path)
         bundle.set_metadata("id", bundle_id)
         bundle.set_metadata("name", manifest.bundle_name)
+        bundle.set_metadata("dir_path", dir_path)
         bundle.serializer = self
         return bundle
 
@@ -1492,6 +1615,11 @@ class DBBaseSerializer(BaseSerializer):
         # TODO overwrite flag?
         # check if already exists?
         # TODO check if bundle.id already exists in DB
+
+        dir_path = bundle.get_metadata("dir_path")
+        if dir_path is None:
+            dir_path = tempfile.mkdtemp(prefix='vt_save')
+            bundle.set_metadata("dir_path", dir_path)
 
         bundle_id = bundle.get_metadata("id")
         bundle_name = bundle.get_metadata("name")
@@ -1502,6 +1630,12 @@ class DBBaseSerializer(BaseSerializer):
         manifest.save()
         bundle.set_metadata("id", manifest.bundle_id)
 
+    def cleanup(self, bundle):
+        dir_path = bundle.get_metadata("dir_path")
+        if dir_path is not None:
+            shutil.rmtree(dir_path)
+
+
 class DBSerializer(BundleSerializer):
     def __init__(self, mapping=None, serializers=[],
                  manifest_cls=DBManifest):
@@ -1511,15 +1645,20 @@ class DBSerializer(BundleSerializer):
 
     def add_default_serializers(self):
         for m in self.mapping.mappings():
+            print "MAPPING", m.obj_type
             if not self.has_serializer(m.obj_type):
                 if isinstance(m, SingleRootBundleObjMapping):
-                    s = DBObjSerializer(m)
+                    s = DBObjSerializer(m, m.obj_type,
+                                        "translate{}".format(m.obj_type.capitalize()))
                 elif isinstance(m, MultipleFileRefMapping):
                     # FIXME obj_type or attr_name?
                     s = DBBlobSerializer(m, m.obj_type)
+                else:
+                    #FIXME update this!
+                    s = DBObjSerializer(m, m.obj_type, "")
                 self.add_serializer(s)
 
-    def load(self, bundle_id, connection_obj, manifest):
+    def load(self, bundle_id, connection_obj, manifest, dir_path):
         assert self.mapping.bundle_type == manifest.bundle_type
         bundle = self.new_bundle()
 
@@ -1527,12 +1666,13 @@ class DBSerializer(BundleSerializer):
             serializer = self.get_serializer(obj_type)
             if self.lazy and self.is_lazy(obj_type):
                 # For lazy, must have obj type and id correct
-                lazy_obj = LazyBundleObj(lambda s=serializer, db_id=db_id: \
-                                             s.load(db_id, connection_obj),
-                                         obj_type, obj_id)
+                lazy_obj = LazyBundleObj(
+                    lambda s=serializer, db_id=db_id, d=dir_path: \
+                        s.load(db_id, connection_obj, dir_path),
+                    obj_type, obj_id)
                 bundle.add_lazy_object(lazy_obj)
             else:
-                obj = serializer.load(db_id, connection_obj)
+                obj = serializer.load(db_id, connection_obj, dir_path)
                 if obj is not None:
                     # FIXME test/assert that what serializer loads matches manifest
                     if obj.id is None:
@@ -1541,7 +1681,6 @@ class DBSerializer(BundleSerializer):
                         obj.obj_type = obj_type
                     bundle.add_object(obj)
         # TODO assert that what was loaded matches the manifest?
-        # bundle.set_metadata("dir_path", dir_path)
         return bundle
 
 
@@ -1556,7 +1695,6 @@ class DBSerializer(BundleSerializer):
                 # cannot serialize object
                 debug.warning('Cannot serialize object(s) of type "%s"' % \
                               obj_type)
-        # bundle.set_metadata("dir_path", dir_path)
 
 
     # def __init__(self, connection_obj, version=None, bundle_id=None, name="", bundle=None,
@@ -1787,6 +1925,168 @@ class SQLite3DatabaseTest(DatabaseTest):
         self.connection_obj.close()
         os.unlink(self.fname)
 
+
+
+class TestSQLDatabase(object):
+    conn = None
+
+    @classmethod
+    def get_config(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def setUpClass(cls):
+        from vistrails.db.services.io import open_db_connection, create_db_tables
+        from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
+        cls.conn = open_db_connection(cls.get_config())
+        # need to add in the new definitions or modify them (in the case of thumbnail)
+        # FIXME hack to make sure we have the correct table
+        DBBlobSerializer.alchemy = alchemy
+        DBBlobSerializer(None, 'image').get_table()
+        DBManifest.alchemy = alchemy
+        dummy_manifest = DBManifest(cls.conn)
+        dummy_manifest.get_info_table()
+        dummy_manifest.get_items_table()
+        # DBManifest(cls.conn).get_info_table()
+        # DBManifest(cls.conn).get_items_table()
+        create_db_tables(cls.conn)
+
+    @classmethod
+    def tearDownClass(cls):
+        from vistrails.db.services.io import close_db_connection, drop_db_tables
+        drop_db_tables(cls.conn)
+        close_db_connection(cls.conn)
+        cls.conn = None
+
+    def create_bundle(self):
+        # should be able to have default serializer
+        # created from BundleObjMapping
+        m = BundleMapping('0.0.0', 'image',
+                          [MultipleFileRefMapping('image', 'image')])
+        b = Bundle(m)
+        fname1 = os.path.join(resource_directory(), u'images', u'info.png')
+        o1 = BundleObj(fname1, "image", "abc")
+        b.add_object(o1)
+        fname2 = os.path.join(resource_directory(), u'images', u'left.png')
+        o2 = BundleObj(fname2, "image", "def")
+        b.add_object(o2)
+        return b
+
+    def compare_bundles(self, b1, b2):
+        print b1.get_items()
+        print b2.get_items()
+        self.assertEqual(len(b1.get_items()), len(b2.get_items()))
+        for obj_type, obj_id, obj in b1.get_items():
+            obj2 = b2.get_bundle_obj(obj_type, obj_id)
+            # not ideal, but fails when trying to compare objs without __eq__
+            self.assertEqual(obj.obj.__class__, obj2.obj.__class__)
+            # self.assertEqual(str(obj.obj), str(obj2.obj))
+
+    def test_db_bundle(self):
+        b1 = None
+        b2 = None
+        try:
+            b1 = self.create_bundle()
+            s = DBBaseSerializer()
+            dbs = DBSerializer(b1.mapping)
+            s.register_serializer(dbs)
+
+            s.save(b1, self.conn)
+            bundle_id = b1.get_metadata("id")
+
+            print "BUNDLE ID", bundle_id
+
+            b2 = s.load(bundle_id, self.conn)
+
+            self.compare_bundles(b1, b2)
+        finally:
+            if b1:
+                b1.cleanup()
+            if b2:
+                b2.cleanup()
+
+    def run_vt_db_bundle(self, db_klass):
+        try:
+            db = db_klass()
+        except ImportError:
+            self.skipTest("Cannot import dependencies for %s." % \
+                          db_klass.__name__)
+
+        utils = vistrails.db.versions.get_sql_utils('1.0.5')
+        conn = utils.open_db_connection(config)
+        conn.__vt_db_version__ = version
+
+        connection_obj = db.setup()
+        c = connection_obj.get_connection().cursor()
+        connection_obj.run_statements(DBManifest.SCHEMA, c)
+        schema_dir = vistrails.db.versions.getVersionSchemaDir()
+        vt_schema = os.path.join(schema_dir, 'vistrails.sql')
+        connection_obj.run_sql_file(vt_schema)
+
+        self.register_vt_db_serializer()
+        b1 = None
+        b2 = None
+
+        try:
+            b1 = self.create_vt_bundle()
+            db_serializer.save(b1, connection_obj)
+
+            bundle_id = b1.get_metadata("id")
+            b2 = db_serializer.load(bundle_id, connection_obj)
+
+            self.compare_bundles(b1, b2)
+        finally:
+            if b1:
+                b1.cleanup()
+            if b2:
+                b2.cleanup()
+            self.unregister_vt_db_serializer()
+            connection_obj.run_statements(DBManifest.DROP_SCHEMA, c)
+            # schema_dir = vistrails.db.versions.getVersionSchemaDir(db_version)
+            # vt_drop_schema = os.path.join(schema_dir, 'vistrails_drop.sql')
+            # connection_obj.run_sql_file(vt_drop_schema)
+            db.cleanup()
+
+
+# class TestMySQLDatabase(TestSQLDatabase):
+#     db_version = None
+#
+#     @classmethod
+#     def get_config(cls):
+#         return {"user": "vt_test",
+#                 "passwd": None,
+#                 "host": "localhost",
+#                 "port": None,
+#                 "db": "vt_test",
+#                 "version": cls.db_version}
+#
+# class TestMySQLDatabase_v1_0_5(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '1.0.5'
+
+class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
+    db_fname = None
+
+    @classmethod
+    def get_db_fname(cls):
+        if cls.db_fname is None:
+            import os
+            import tempfile
+            (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+            os.close(h)
+            cls.db_fname = fname
+        return cls.db_fname
+
+    @classmethod
+    def get_config(cls):
+        return {"dialect": "sqlite",
+                "db": cls.get_db_fname(),
+                "version": "1.0.5"}
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestSQLite3Database, cls).tearDownClass()
+        os.unlink(cls.db_fname)
+
 from vistrails.core.system import resource_directory, vistrails_root_directory
 
 class TestBundles(unittest.TestCase):
@@ -1975,7 +2275,8 @@ class TestBundles(unittest.TestCase):
         vt_db_serializer = DBSerializer(bmap,
                                         [VistrailDBSerializer(bmap.get_mapping("vistrail")),
                                          (DBObjSerializer(
-                                             bmap.get_mapping("log")), True),
+                                             bmap.get_mapping("log"),
+                                         DBLog.vtType, "translateLog"), True),
                                         ])
         register_db_serializer(vt_db_serializer)
 
@@ -2022,10 +2323,10 @@ class TestBundles(unittest.TestCase):
         m = BundleMapping('0.0.0', 'image',
                           [MultipleFileRefMapping('image', 'image')])
         b = Bundle(m)
-        fname1 = os.path.join(resource_directory(), 'images', 'info.png')
+        fname1 = os.path.join(resource_directory(), u'images', u'info.png')
         o1 = BundleObj(fname1, "image", "abc")
         b.add_object(o1)
-        fname2 = os.path.join(resource_directory(), 'images', 'left.png')
+        fname2 = os.path.join(resource_directory(), u'images', u'left.png')
         o2 = BundleObj(fname2, "image", "def")
         b.add_object(o2)
         return b
@@ -2281,10 +2582,15 @@ class TestBundles(unittest.TestCase):
         except ImportError:
             self.skipTest("Cannot import dependencies for %s." % \
                           db_klass.__name__)
+
+        utils = vistrails.db.versions.get_sql_utils('1.0.5')
+        conn = utils.open_db_connection(config)
+        conn.__vt_db_version__ = version
+
         connection_obj = db.setup()
         c = connection_obj.get_connection().cursor()
-        c.execute(connection_obj.format_stmt(DBManifest.SCHEMA))
-        schema_dir = vistrails.db.versions.getVersionSchemaDir(db_version)
+        connection_obj.run_statements(DBManifest.SCHEMA,c)
+        schema_dir = vistrails.db.versions.getVersionSchemaDir()
         vt_schema = os.path.join(schema_dir, 'vistrails.sql')
         connection_obj.run_sql_file(vt_schema)
 
@@ -2306,7 +2612,7 @@ class TestBundles(unittest.TestCase):
             if b2:
                 b2.cleanup()
             self.unregister_vt_db_serializer()
-            c.execute(connection_obj.format_stmt(DBManifest.DROP_SCHEMA));
+            connection_obj.run_statements(DBManifest.DROP_SCHEMA, c)
             # schema_dir = vistrails.db.versions.getVersionSchemaDir(db_version)
             # vt_drop_schema = os.path.join(schema_dir, 'vistrails_drop.sql')
             # connection_obj.run_sql_file(vt_drop_schema)
