@@ -1795,12 +1795,23 @@ class DBSerializer(BundleSerializer):
 
 base_serializers = {}
 bundle_mappings = {}
-base_serializers["dir_serializer"] = DirectoryBaseSerializer()
-dir_serializer = base_serializers["dir_serializer"]
-base_serializers["zip_serializer"] = ZIPBaseSerializer()
-zip_serializer = base_serializers["zip_serializer"]
-base_serializers["db_serializer"] = DBBaseSerializer()
-db_serializer = base_serializers["db_serializer"]
+
+def initialize_serializers():
+    global base_serializers
+    base_serializers["dir_serializer"] = DirectoryBaseSerializer()
+    # dir_serializer = base_serializers["dir_serializer"]
+    base_serializers["zip_serializer"] = ZIPBaseSerializer()
+    # zip_serializer = base_serializers["zip_serializer"]
+    base_serializers["db_serializer"] = DBBaseSerializer()
+    # db_serializer = base_serializers["db_serializer"]
+
+initialize_serializers()
+
+def get_serializer(k):
+    global base_serializers
+    if k not in base_serializers:
+        raise ValueError('Serializer "%s" was not found')
+    return base_serializers[k]
 
 def register_bundle_mapping(bmap):
     #FIXME handle case where already exists, for now, clobber
@@ -1830,18 +1841,15 @@ def new_bundle(bundle_type='vistrail', version=None):
     return get_bundle_mapping(bundle_type, version).new_bundle()
 
 def register_dir_serializer(s, also_zip=True):
-    "REGISTERING SERIALIZER", s
-    import traceback
-    traceback.print_stack()
-    dir_serializer.register_serializer(s)
+    get_serializer("dir_serializer").register_serializer(s)
     if also_zip:
-        zip_serializer.register_serializer(s)
+        get_serializer("zip_serializer").register_serializer(s)
     register_bundle_mapping(s.mapping)
 
 def register_zip_serializer(s, also_dir=False):
-    zip_serializer.register_serializer(s)
+    get_serializer("zip_serializer").register_serializer(s)
     if also_dir:
-        dir_serializer.register_serializer(s)
+        get_serializer("dir_serializer").register_serializer(s)
     register_bundle_mapping(s.mapping)
 
 def unregister_dir_serializer(s=None, bundle_type=None, version=None,
@@ -1853,9 +1861,9 @@ def unregister_dir_serializer(s=None, bundle_type=None, version=None,
     if bundle_type is None or version is None:
         raise TypeError("Either s or the (bundle_type and version) arguments"
                         " must be passed.")
-    dir_serializer.unregister_serializer(bundle_type, version)
+    get_serializer("dir_serializer").unregister_serializer(bundle_type, version)
     if also_zip:
-        zip_serializer.unregister_serializer(bundle_type, version)
+        get_serializer("zip_serializer").unregister_serializer(bundle_type, version)
 
 def unregister_zip_serializer(s=None, bundle_type=None, version=None,
                               also_dir=False):
@@ -1865,12 +1873,12 @@ def unregister_zip_serializer(s=None, bundle_type=None, version=None,
     if bundle_type is None or version is None:
         raise TypeError("Either s or the (bundle_type and version) arguments"
                         " must be passed.")
-    zip_serializer.unregister_serializer(bundle_type, version)
+    get_serializer("zip_serializer").unregister_serializer(bundle_type, version)
     if also_dir:
-        dir_serializer.unregister_serializer(bundle_type, version)
+        get_serializer("dir_serializer").unregister_serializer(bundle_type, version)
 
 def register_db_serializer(s):
-    db_serializer.register_serializer(s)
+    get_serializer("db_serializer").register_serializer(s)
     register_bundle_mapping(s.mapping)
 
 def unregister_db_serializer(s=None, bundle_type=None, version=None):
@@ -1880,7 +1888,7 @@ def unregister_db_serializer(s=None, bundle_type=None, version=None):
     if bundle_type is None or version is None:
         raise TypeError("Either s or the (bundle_type and version) arguments"
                         " must be passed.")
-    db_serializer.unregister_serializer(bundle_type, version)
+    get_serializer("db_serializer").unregister_serializer(bundle_type, version)
 
 
 import unittest
@@ -2080,6 +2088,7 @@ class TestFileBundle(TestBundle, unittest.TestCase):
             os.unlink(fname)
 
     def register_vt_serializer(self):
+        import vistrails.db.services.bundle as vtbundle
         # FIXME want to specify serializer at same time--no bobj mapping later
         bmap = self.bundle_mapping
 
@@ -2130,11 +2139,12 @@ class TestFileBundle(TestBundle, unittest.TestCase):
                                                         bmap.get_mapping(
                                                             "mashuptrail"))])
 
-        register_dir_serializer(vt_dir_serializer)
+        vtbundle.register_dir_serializer(vt_dir_serializer)
 
 
     def unregister_vt_serializer(self):
-        unregister_dir_serializer(bundle_type='vistrail', version='0.0.0')
+        import vistrails.db.services.bundle as vtbundle
+        vtbundle.unregister_dir_serializer(bundle_type='vistrail', version='0.0.0')
 
     def test_vt_dir_bundle(self):
         d = tempfile.mkdtemp(prefix='vtbundle_test')
@@ -2145,9 +2155,9 @@ class TestFileBundle(TestBundle, unittest.TestCase):
         b2 = None
         try:
             b1 = self.create_vt_bundle()
-            dir_serializer.save(b1, inner_d)
+            get_serializer("dir_serializer").save(b1, inner_d)
 
-            b2 = dir_serializer.load(inner_d)
+            b2 = get_serializer("dir_serializer").load(inner_d)
 
             self.compare_bundles(b1, b2)
         finally:
@@ -2167,9 +2177,9 @@ class TestFileBundle(TestBundle, unittest.TestCase):
         b2 = None
         try:
             b1 = self.create_vt_bundle()
-            zip_serializer.save(b1, fname)
+            get_serializer("zip_serializer").save(b1, fname)
 
-            b2 = zip_serializer.load(fname)
+            b2 = get_serializer("zip_serializer").load(fname)
 
             self.compare_bundles(b1, b2)
         finally:
@@ -2220,6 +2230,7 @@ class TestSQLDatabase(TestBundle):
         cls.conn = None
 
     def register_vt_db_serializer(self):
+        import vistrails.db.services.bundle as vtbundle
         bmap = self.bundle_mapping
 
         class VistrailDBSerializer(DBObjSerializer):
@@ -2326,10 +2337,11 @@ class TestSQLDatabase(TestBundle):
                                          DBBlobSerializer(bmap.get_mapping("thumbnail"),
                                                           "thumbnail_new")
                                         ])
-        register_db_serializer(vt_db_serializer)
+        vtbundle.register_db_serializer(vt_db_serializer)
 
     def unregister_vt_db_serializer(self):
-        unregister_db_serializer(bundle_type='vistrail', version='0.0.0')
+        import vistrails.db.services.bundle as vtbundle
+        vtbundle.unregister_db_serializer(bundle_type='vistrail', version='0.0.0')
 
     def test_manifest_db(self):
         """To run this, you need to create a user named "vt_test" on
@@ -2391,10 +2403,10 @@ class TestSQLDatabase(TestBundle):
 
         try:
             b1 = self.create_vt_bundle()
-            db_serializer.save(b1, connection_obj)
+            get_serializer("db_serializer").save(b1, connection_obj)
 
             bundle_id = b1.get_metadata("id")
-            b2 = db_serializer.load(bundle_id, connection_obj)
+            b2 = get_serializer("db_serializer").load(bundle_id, connection_obj)
 
             self.compare_bundles(b1, b2)
         finally:
@@ -2408,10 +2420,18 @@ class TestSQLDatabase(TestBundle):
         # we import db.services.io above so these are already registered
         # could probably do the imports to target specific version to alleviate
         #
+
+        # FIXME unit tests need to wrap any call to this module's globals
+        import vistrails.db.services.bundle as vtbundle
+        # FIXME hack to make sure we have the correct table
+        from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
+        vtbundle.DBBlobSerializer.alchemy = alchemy
+        vtbundle.DBManifest.alchemy = alchemy
+
         vistrails.db.versions.register_bundle_serializers()
         vistrails.db.versions.register_bundle_serializers('1.0.4')  # legacy
-        print "DIR SERIALIZERS:", dir_serializer._serializers
-        print "ZIP SERIALIZERS:", zip_serializer._serializers
+        # print "DIR SERIALIZERS:", dir_serializer._serializers
+        # print "ZIP SERIALIZERS:", zip_serializer._serializers
         self.register_vt_db_serializer()
         in_fname = os.path.join(vistrails_root_directory(), 'tests',
                                 'resources', 'terminator.vt')
@@ -2419,12 +2439,15 @@ class TestSQLDatabase(TestBundle):
         b1 = None
         b2 = None
         try:
-            b1 = zip_serializer.load(in_fname)
-            db_serializer.save(b1, self.conn)
+            zs = vtbundle.get_serializer("zip_serializer")
+            b1 = zs.load(in_fname)
+            # hack to ensure that we get the correct serializer
+            b1.mapping.version = '0.0.0'
+            vtbundle.get_serializer("db_serializer").save(b1, self.conn)
 
             bundle_id = b1.get_metadata('id')
             # FIXME check if file structure matches what we expect
-            b2 = db_serializer.load(bundle_id, self.conn)
+            b2 = vtbundle.get_serializer("db_serializer").load(bundle_id, self.conn)
             self.compare_bundles(b1, b2)
         finally:
             if b1:

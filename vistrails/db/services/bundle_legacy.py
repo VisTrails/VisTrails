@@ -41,12 +41,12 @@ from vistrails.core import debug
 from vistrails.core.system import resource_directory, vistrails_root_directory
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBLog, DBWorkflowExec, DBMashuptrail
-import vistrails.db.services.bundle as bundle
+import vistrails.db.services.bundle as vtbundle
 import vistrails.db.versions
 
-class DummyManifest(bundle.Manifest):
+class DummyManifest(vtbundle.Manifest):
     def __init__(self, bundle_type='vistrail', bundle_version='1.0.4', dir_path=None):
-        bundle.Manifest.__init__(self, bundle_type, bundle_version)
+        vtbundle.Manifest.__init__(self, bundle_type, bundle_version)
         self._dir_path = dir_path
 
     def load(self):
@@ -70,23 +70,23 @@ class DummyManifest(bundle.Manifest):
         # don't actually do anything here since legacy vts have no manifest file
         pass
 
-class LegacyAbstractionFileSerializer(bundle.FileRefSerializer):
+class LegacyAbstractionFileSerializer(vtbundle.FileRefSerializer):
     def __init__(self, mapping):
-        bundle.FileRefSerializer.__init__(self, mapping)
+        vtbundle.FileRefSerializer.__init__(self, mapping)
 
     def get_obj_id(self, filename):
-        return bundle.FileRefSerializer.get_obj_id(self, filename)[len('abstraction_'):]
+        return vtbundle.FileRefSerializer.get_obj_id(self, filename)[len('abstraction_'):]
 
     def get_basename(self, obj):
         return 'abstraction_%s' % obj.id
 
-class LegacyLogXMLSerializer(bundle.XMLAppendSerializer):
+class LegacyLogXMLSerializer(vtbundle.XMLAppendSerializer):
     def __init__(self, mapping):
-        bundle.XMLAppendSerializer.__init__(self, mapping,
+        vtbundle.XMLAppendSerializer.__init__(self, mapping,
                                      "http://www.vistrails.org/log.xsd",
                                      "translateLog",
-                                     DBWorkflowExec.vtType,
-                                     True, True)
+                                              DBWorkflowExec.vtType,
+                                              True, True)
 
     def create_obj(self, inner_obj_list=None):
         if inner_obj_list is not None:
@@ -100,12 +100,12 @@ class LegacyLogXMLSerializer(bundle.XMLAppendSerializer):
     def add_inner_obj(self, vt_obj, inner_obj):
         vt_obj.db_add_workflow_exec(inner_obj)
 
-class LegacyMashupXMLSerializer(bundle.XMLFileSerializer):
+class LegacyMashupXMLSerializer(vtbundle.XMLFileSerializer):
     def __init__(self, mapping):
-        bundle.XMLFileSerializer.__init__(self, mapping,
+        vtbundle.XMLFileSerializer.__init__(self, mapping,
                                    "http://www.vistrails.org/mashup.xsd",
                                    "translateMashup",
-                                   inner_dir_name="mashups")
+                                            inner_dir_name="mashups")
 
     def finish_load(self, b_obj):
         b_obj.obj_type = "mashup"
@@ -113,34 +113,34 @@ class LegacyMashupXMLSerializer(bundle.XMLFileSerializer):
     def get_obj_id(self, b_obj):
         return b_obj.obj.db_name
 
-class AbstractionFileRefMapping(bundle.MultipleObjMapping):
+class AbstractionFileRefMapping(vtbundle.MultipleObjMapping):
     def __init__(self, obj_type, attr_name=None, attr_plural_name=None):
         def obj_id_extract_f(obj):
             return os.path.basename(obj)[len('abstraction_'):]
-        bundle.MultipleObjMapping.__init__(self, obj_type, obj_id_extract_f,
-                                           attr_name, attr_plural_name)
+        vtbundle.MultipleObjMapping.__init__(self, obj_type, obj_id_extract_f,
+                                             attr_name, attr_plural_name)
 
 def register_bundle_serializers(version):
     # FIXME want to specify serializer at same time--no bobj mapping later
-    legacy_bmap = bundle.BundleMapping(version, 'vistrail',
-                                       [bundle.SingleRootBundleObjMapping(
+    legacy_bmap = vtbundle.BundleMapping(version, 'vistrail',
+                                         [vtbundle.SingleRootBundleObjMapping(
                                            DBVistrail.vtType, 'vistrail'),
-                                           bundle.SingleRootBundleObjMapping(
+                                           vtbundle.SingleRootBundleObjMapping(
                                                DBLog.vtType,
                                                'log'),
-                                           bundle.MultipleObjMapping(
+                                           vtbundle.MultipleObjMapping(
                                                DBMashuptrail.vtType,
                                                lambda obj: obj.db_name,
                                                'mashup'),
-                                           bundle.MultipleFileRefMapping(
+                                           vtbundle.MultipleFileRefMapping(
                                                'thumbnail'),
                                            AbstractionFileRefMapping(
                                                'abstraction'),
-                                           bundle.SingleRootBundleObjMapping(
+                                           vtbundle.SingleRootBundleObjMapping(
                                                'job'),
                                        ])
-    vt_dir_serializer = bundle.DirectorySerializer(legacy_bmap,
-                                                   [bundle.XMLFileSerializer(
+    vt_dir_serializer = vtbundle.DirectorySerializer(legacy_bmap,
+                                                     [vtbundle.XMLFileSerializer(
                                                        legacy_bmap.get_mapping(
                                                            "vistrail"),
                                                        "http://www.vistrails.org/vistrail.xsd",
@@ -152,7 +152,7 @@ def register_bundle_serializers(version):
                                                        LegacyMashupXMLSerializer(
                                                            legacy_bmap.get_mapping(
                                                                "mashuptrail")),
-                                                       bundle.FileRefSerializer(
+                                                       vtbundle.FileRefSerializer(
                                                            legacy_bmap.get_mapping(
                                                                "thumbnail"),
                                                            'thumbs'),
@@ -160,12 +160,12 @@ def register_bundle_serializers(version):
                                                            legacy_bmap.get_mapping(
                                                                "abstraction"))
                                                    ],
-                                                   manifest_cls=DummyManifest)
+                                                     manifest_cls=DummyManifest)
 
-    bundle.register_dir_serializer(vt_dir_serializer)
+    vtbundle.register_dir_serializer(vt_dir_serializer)
 
 def unregister_bundle_serializers(version):
-    bundle.unregister_dir_serializer(bundle_type='vistrail', version=version)
+    vtbundle.unregister_dir_serializer(bundle_type='vistrail', version=version)
 
 class TestLegacyBundles(unittest.TestCase):
     @classmethod
@@ -193,7 +193,7 @@ class TestLegacyBundles(unittest.TestCase):
         b2 = None
         b3 = None
         try:
-            s = bundle.zip_serializer
+            s = vtbundle.get_serializer("zip_serializer")
             b1 = s.load(in_fname)
             s.save(b1, out_fname)
 
@@ -215,7 +215,7 @@ class TestLegacyBundles(unittest.TestCase):
                                 'resources','jobs.vt')
         b = None
         try:
-            b = bundle.zip_serializer.load(in_fname)
+            b = vtbundle.get_serializer("zip_serializer").load(in_fname)
             bobjs = b.get_bundle_objs('mashuptrail')
             self.assertEquals(len(bobjs), 1)
             self.assertEquals(len(b.mashups), 1)

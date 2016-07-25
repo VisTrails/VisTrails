@@ -62,8 +62,7 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
-from vistrails.db.services.bundle import dir_serializer, zip_serializer, \
-    get_bundle_mapping, new_bundle
+import vistrails.db.services.bundle as vtbundle
 import vistrails.db.services.log
 import vistrails.db.services.opm
 import vistrails.db.services.prov
@@ -378,6 +377,9 @@ register_bundle_serializers(currentVersion)
 register_bundle_serializers('1.0.4') # legacy
 register_bundle_serializers('1.0.3') # legacy
 
+def new_bundle(*args, **kwargs):
+    return vtbundle.new_bundle(*args, **kwargs)
+
 def open_from_xml(filename, type):
     if type == DBVistrail.vtType:
         return open_vistrail_from_xml(filename)
@@ -409,15 +411,15 @@ def save_to_xml(obj, filename, version=None):
                                    "'%s' to xml" % type)
 
 def open_bundle_from_zip_xml(filename):
-    return zip_serializer.load(filename)
+    return vtbundle.get_serializer("zip_serializer").load(filename)
 
 def save_bundle_to_zip_xml(bundle, filename, version=None):
     if version is not None:
-        mapping = get_bundle_mapping(bundle.bundle_type, version)
+        mapping = vtbundle.get_bundle_mapping(bundle.bundle_type, version)
         #FIXME translations need to be stored somewhere accessible
         bundle = bundle.translate(mapping)
     #FIXME does save return anything different?
-    zip_serializer.save(bundle, filename)
+    vtbundle.get_serializer("zip_serializer").save(bundle, filename)
     return bundle
 
 def open_bundle_from_db(bundle_type, connection, primary_obj_id, tmp_dir=None):
@@ -537,7 +539,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     """
 
-    return zip_serializer.load(filename)
+    return vtbundle.get_serializer("zip_serializer").load(filename)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
     """open_vistrail_bundle_from_db(db_connection, id: long, tmp_dir: str) -> SaveBundle
@@ -636,15 +638,9 @@ def save_vistrail_bundle_to_zip_xml(bundle, filename, vt_save_dir=None, version=
     if bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                    'bundle does not contain a vistrail')
-    if not vt_save_dir:
-        vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
 
-    zip_serializer.save(bundle, filename)
-    serializer = get_zip_bundle_serializer(filename, dir_path=vt_save_dir,
-                                           bundle=bundle)
-    serializer.save(filename)
-
-    return (bundle, vt_save_dir)
+    vtbundle.get_serializer("zip_serializer").save(bundle, filename)
+    return bundle
 
 def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None, save_wfs=True):
     if save_bundle.vistrail is None:
@@ -1668,7 +1664,7 @@ class TestTranslations(unittest.TestCase):
     def run_vistrail_translation_test(self, version):
         bundle = None
         try:
-            s = zip_serializer
+            s = vtbundle.get_serializer("zip_serializer")
             bundle = s.load(self.get_filename())
             vt1 = bundle.vistrail
             vt2 = translate_vistrail(vt1, currentVersion, version)
@@ -1681,7 +1677,7 @@ class TestTranslations(unittest.TestCase):
     def run_workflow_translation_test(self, version):
         bundle = None
         try:
-            s = zip_serializer
+            s = vtbundle.get_serialzier("zip_serializer")
             bundle = s.load(self.get_filename())
             vt = bundle.vistrail
             # 258 is Image Slices HW in terminator.vt
@@ -1699,7 +1695,7 @@ class TestTranslations(unittest.TestCase):
     def run_log_translation_test(self, version):
         bundle = None
         try:
-            s = zip_serializer
+            s = vtbundle.get_serializer("zip_serializer")
             bundle = s.load(self.get_filename())
             log1 = bundle.log # lazy load here
             log1.db_version = '1.0.5'
@@ -1758,14 +1754,14 @@ class TestTranslations(unittest.TestCase):
         (h2, fname2) = tempfile.mkstemp(prefix='vt_test_', suffix='.zip')
         os.close(h2)
 
-        s = zip_serializer
+        s = vtbundle.get_serializer("zip_serializer")
         b1 = None
         b2 = None
         b3 = None
         b4 = None
         try:
             b1 = s.load(self.get_filename())
-            b2 = b1.translate(get_bundle_mapping('vistrail', currentVersion))
+            b2 = b1.translate(vtbundle.get_bundle_mapping('vistrail', currentVersion))
             s.save(b2, fname1)
 
             saved_zip1 = zipfile.ZipFile(fname1)
@@ -1777,7 +1773,7 @@ class TestTranslations(unittest.TestCase):
             self.assertTrue('subworkflows/AddValues(29ff781c-fef5-11e2-abf5-0023dfde3d57).xml' in paths)
 
             b3 = s.load(fname1)
-            b4 = b3.translate(get_bundle_mapping('vistrail', '1.0.3'))
+            b4 = b3.translate(vtbundle.get_bundle_mapping('vistrail', '1.0.3'))
             s.save(b4, fname2)
 
             saved_zip2 = zipfile.ZipFile(fname2)
@@ -1801,7 +1797,7 @@ class TestTranslations(unittest.TestCase):
 
     def test_new_bundle(self):
         from vistrails.core.system import resource_directory
-        b = new_bundle()
+        b = vtbundle.new_bundle()
         b.add_object(DBVistrail())
         b.add_object(DBLog())
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')

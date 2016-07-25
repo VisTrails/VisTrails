@@ -48,7 +48,7 @@ from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
-import vistrails.db.services.bundle as bundle
+import vistrails.db.services.bundle as vtbundle
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail, DBWorkflowExec
@@ -58,41 +58,41 @@ root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
 
 ElementTree = get_elementtree_library()
 
-vistrail_bmap = bundle.BundleMapping(my_version, 'vistrail',
-                              [bundle.SingleRootBundleObjMapping(
+vistrail_bmap = vtbundle.BundleMapping(my_version, 'vistrail',
+                                       [vtbundle.SingleRootBundleObjMapping(
                                   DBVistrail.vtType, 'vistrail'),
-                                  bundle.SingleRootBundleObjMapping(DBLog.vtType,
+                                  vtbundle.SingleRootBundleObjMapping(DBLog.vtType,
                                                              'log'),
-                                  bundle.SingleRootBundleObjMapping(
+                                  vtbundle.SingleRootBundleObjMapping(
                                       DBRegistry.vtType, 'registry'),
-                                  bundle.MultipleObjMapping(DBMashuptrail.vtType,
-                                                     lambda obj: obj.db_name,
+                                  vtbundle.MultipleObjMapping(DBMashuptrail.vtType,
+                                                              lambda obj: obj.db_name,
                                                      'mashup'),
-                                  bundle.MultipleFileRefMapping('thumbnail'),
-                                  bundle.MultipleFileRefMapping('abstraction'),
-                                  bundle.SingleRootBundleObjMapping('job'),
-                                  bundle.MultipleFileRefMapping('data'),
+                                  vtbundle.MultipleFileRefMapping('thumbnail'),
+                                  vtbundle.MultipleFileRefMapping('abstraction'),
+                                  vtbundle.SingleRootBundleObjMapping('job'),
+                                  vtbundle.MultipleFileRefMapping('data'),
                               ],
-                              primary_obj_type='vistrail')
+                                       primary_obj_type='vistrail')
 workflow_bmap = vistrail_bmap.clone(bundle_type='workflow',
                                     primary_obj_type='workflow')
 workflow_bmap.remove_mapping('vistrail')
 workflow_bmap.add_mapping(
-    bundle.SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow'))
+    vtbundle.SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow'))
 
 log_bmap = vistrail_bmap.clone(bundle_type='log',
                                primary_obj_type='log')
 registry_bmap = vistrail_bmap.clone(bundle_type='registry',
                                     primary_obj_type='registry')
 
-class LogXMLSerializer(bundle.XMLAppendSerializer):
+class LogXMLSerializer(vtbundle.XMLAppendSerializer):
     def __init__(self, mapping):
-        bundle.XMLAppendSerializer.__init__(self, mapping,
+        vtbundle.XMLAppendSerializer.__init__(self, mapping,
                                      "http://www.vistrails.org/log.xsd",
                                      "translateLog",
-                                     DBWorkflowExec.vtType,
+                                              DBWorkflowExec.vtType,
                                      'log',
-                                     True, True)
+                                              True, True)
 
     def create_obj(self, inner_obj_list=None):
         if inner_obj_list is not None:
@@ -107,12 +107,12 @@ class LogXMLSerializer(bundle.XMLAppendSerializer):
         vt_obj.db_add_workflow_exec(inner_obj)
 
 
-class MashupXMLSerializer(bundle.XMLFileSerializer):
+class MashupXMLSerializer(vtbundle.XMLFileSerializer):
     def __init__(self, mapping):
-        bundle.XMLFileSerializer.__init__(self, mapping,
+        vtbundle.XMLFileSerializer.__init__(self, mapping,
                                    "http://www.vistrails.org/mashup.xsd",
                                    "translateMashup",
-                                   inner_dir_name="mashups")
+                                            inner_dir_name="mashups")
 
     def finish_load(self, b_obj):
         b_obj.obj_type = "mashup"
@@ -123,33 +123,33 @@ class MashupXMLSerializer(bundle.XMLFileSerializer):
 
 serializers = [(LogXMLSerializer(vistrail_bmap.get_mapping("log")), True),
                MashupXMLSerializer(vistrail_bmap.get_mapping("mashuptrail")),
-               bundle.FileRefSerializer(
+               vtbundle.FileRefSerializer(
                    vistrail_bmap.get_mapping('abstraction'), 'subworkflows')]
 vt_dir_serializer = \
-    bundle.DirectorySerializer(vistrail_bmap,
-                               [bundle.XMLFileSerializer(
+    vtbundle.DirectorySerializer(vistrail_bmap,
+                                 [vtbundle.XMLFileSerializer(
                                    vistrail_bmap.get_mapping("vistrail"),
                                    "http://www.vistrails.org/vistrail.xsd",
                                    "translateVistrail",
                                    True, True),] + serializers)
 wf_dir_serializer = \
-    bundle.DirectorySerializer(workflow_bmap,
-                               [bundle.XMLFileSerializer(
+    vtbundle.DirectorySerializer(workflow_bmap,
+                                 [vtbundle.XMLFileSerializer(
                                    workflow_bmap.get_mapping("workflow"),
                                    "http://www.vistrails.org/workflow.xsd",
                                    "translateWorkflow",
                                    True, True),] + serializers)
 log_dir_serializer = \
-    bundle.DirectorySerializer(log_bmap,
-                               [bundle.XMLFileSerializer(
+    vtbundle.DirectorySerializer(log_bmap,
+                                 [vtbundle.XMLFileSerializer(
                                    vistrail_bmap.get_mapping(
                                        "vistrail"),
                                    "http://www.vistrails.org/vistrail.xsd",
                                    "translateVistrail",
                                    True, True), ] + serializers)
 reg_dir_serializer = \
-    bundle.DirectorySerializer(registry_bmap,
-                               [bundle.XMLFileSerializer(
+    vtbundle.DirectorySerializer(registry_bmap,
+                                 [vtbundle.XMLFileSerializer(
                                    vistrail_bmap.get_mapping(
                                        "registry"),
                                    "http://www.vistrails.org/registry.xsd",
@@ -157,16 +157,16 @@ reg_dir_serializer = \
                                    True, True), ] + serializers)
 
 def register_bundle_serializers():
-    bundle.register_dir_serializer(vt_dir_serializer)
-    bundle.register_dir_serializer(wf_dir_serializer)
-    bundle.register_dir_serializer(log_dir_serializer)
-    bundle.register_dir_serializer(reg_dir_serializer)
+    vtbundle.register_dir_serializer(vt_dir_serializer)
+    vtbundle.register_dir_serializer(wf_dir_serializer)
+    vtbundle.register_dir_serializer(log_dir_serializer)
+    vtbundle.register_dir_serializer(reg_dir_serializer)
 
 def unregister_bundle_serializers():
-    bundle.unregister_dir_serializer(vt_dir_serializer)
-    bundle.unregister_dir_serializer(wf_dir_serializer)
-    bundle.unregister_dir_serializer(log_dir_serializer)
-    bundle.unregister_dir_serializer(reg_dir_serializer)
+    vtbundle.unregister_dir_serializer(vt_dir_serializer)
+    vtbundle.unregister_dir_serializer(wf_dir_serializer)
+    vtbundle.unregister_dir_serializer(log_dir_serializer)
+    vtbundle.unregister_dir_serializer(reg_dir_serializer)
 
 
 class DAOList(dict):
@@ -558,7 +558,7 @@ class TestPersistence(unittest.TestCase):
 
     def create_vt_bundle(self):
         from vistrails.core.system import resource_directory
-        b = bundle.new_bundle('vistrail', my_version)
+        b = vtbundle.new_bundle('vistrail', my_version)
         b.add_object(DBVistrail())
         b.add_object(DBLog())
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
@@ -572,7 +572,7 @@ class TestPersistence(unittest.TestCase):
         d = tempfile.mkdtemp(prefix='vtbundle_test')
         inner_d = os.path.join(d, 'mybundle')
 
-        s = bundle.dir_serializer
+        s = vtbundle.get_serializer("dir_serializer")
         b1 = None
         b2 = None
         try:
