@@ -60,6 +60,9 @@ class BaseScript(object):
                 # Skip if it is an attribute (followed by dot)
                 if isinstance(node.previous, redbaron.DotNode):
                     continue
+                # Skif if this is a call argument name
+                if isinstance(node.parent, redbaron.CallArgumentNode) and node.parent.target == node:
+                    continue
                 node.value = renames[v]
                 counts[v] = counts.get(v, 0) + 1
         if not counts:
