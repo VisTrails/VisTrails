@@ -45,12 +45,10 @@ import vistrails.core.db.action
 import vistrails.core.db.io
 from vistrails.core.db.locator import UntitledLocator, FileLocator
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.modules.basic_modules import create_constant
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package as _Package
 from vistrails.core.modules.sub_module import get_port_spec_info
 from vistrails.core.modules.utils import parse_port_spec_string
-from vistrails.core.modules.vistrails_module import ModuleConnector
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import DummyView
@@ -732,23 +730,6 @@ class Module(object):
                     self.pipeline == other.pipeline)
         else:
             return ModuleValuePair(self.module, other)
-
-    def compute(self, outputs, **kwargs):
-        """ executes a module directly
-
-            output_dict: A dict with outputs to set
-        """
-        if isinstance(outputs, basestring):
-            outputs = (outputs,)
-        instance = self.descriptor.module()
-        for port in kwargs:
-            mc = ModuleConnector(create_constant(kwargs[port]), 'value')
-            instance.set_input_port(port, mc)
-        for port in outputs:
-            instance.enable_output_port(port)
-        instance.compute()
-        result = [instance.get_output(port) for port in outputs]
-        return result[0] if len(result)==1 else result
 
 
 class ModuleNamespace(object):

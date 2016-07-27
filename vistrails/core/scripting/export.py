@@ -411,12 +411,24 @@ def generate_api_code(module):
     preludes = []
     desc = module.module_descriptor
     pkg_name = desc.identifier.replace('.', '_')
-    preludes.append(Prelude('import vistrails.core.api as API'))
-    preludes.append(Prelude("%s = API.load_package(%r)" % (
+    preludes.append(Prelude('import vistrails.core.scripting.api as api'))
+    preludes.append(Prelude("%s = api.Package(%r)" % (
                             pkg_name, desc.identifier)))
     code = ''
-    instance = re.sub('(?!^)([A-Z]+)', r'_\1', desc.name).lower()
-    code += "%s = %s.%s()\n" % (instance, pkg_name, desc.name)
+    # instance does not need to be stored, we use it as a function
+    #instance = re.sub('(?!^)([A-Z]+)', r'_\1', desc.name).lower()
+    #code += "%s = %s.%s()\n" % (instance, pkg_name, desc.name)
+    instance = '.' + desc.name
+    if desc.namespace:
+        ns = desc.namespace
+        parts = ''
+        for part in ns.split('|'):
+            if re.match('[_A-Za-z][_a-zA-Z0-9]*', part):
+                parts += '.' + part
+            else:
+                parts += "['" + part + "']"
+        instance = parts + instance
+
     function_ports = [p.name for p in module.functions]
     used_ports = set(function_ports)
     used_ports.update(module.connected_input_ports)
@@ -439,10 +451,11 @@ def generate_api_code(module):
         result_str = outputs[0] + ' = '
     else:
         result_str = ', '.join(outputs) + ' = '
-    code += "%s%s.compute(%r, %s)" % (result_str,
-                                      instance,
-                                      outputs[0] if len(outputs)==1 else outputs,
-                                      kwargs)
+    code += "%s%s%s(%r, %s)" % (result_str,
+                                pkg_name,
+                                instance,
+                                outputs[0] if len(outputs)==1 else outputs,
+                                kwargs)
     return Script(code, 'variables', 'variables'), preludes
 
 

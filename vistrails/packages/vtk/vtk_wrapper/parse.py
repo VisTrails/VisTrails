@@ -133,26 +133,6 @@ disallowed_modules = set(
     ])
 
 patches = {
-'UpdateAlgorithm':
-"""
-is_aborted = [False]
-if hasattr($self, '_callback') and $self._callback is not None:
-    cbId = None
-    def ProgressEvent(obj, event):
-        try:
-            $self._callback(obj.GetProgress())
-        except Exception, e:
-            if e.__name__ == 'AbortExecution':
-                obj.SetAbortExecute(True)
-                $self.RemoveObserver(cbId)
-                is_aborted[0] = True
-            else:
-                raise
-    cbId = $self.AddObserver('ProgressEvent', ProgressEvent)
-$original
-if $self._callback is not None and not is_aborted[0]:
-    $self.RemoveObserver(cbId)
-""",
 'guarded_SimpleScalarTree':
 """
 $original
@@ -167,26 +147,18 @@ $self.BuildTree()
 $output = $self.GetFileName()
 if not $output:
     $output = $self._tempfile(suffix='.vtk')
-    $self.SetFileName(fn)
+    $self.SetFileName($output)
 $self.Write()
 """,
-'guarded_SetFileName': # fixme add imports somewhere
+'guarded_SetFileName':
 """
 # This checks for the presence of file in VTK readers
 # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
 # it has other ways of specifying files, like SetFilePrefix for
 # multiple files
-import vtk
 import os
-skip = [vtk.vtkBYUReader,
-        vtk.vtkImageReader,
-        vtk.vtkDICOMImageReader,
-        vtk.vtkTIFFReader]
-# vtkPLOT3DReader does not exist from version 6.0.0
-if not any(issubclass(type($self), x) for x in skip):
-    filename = $self.GetFileName()
-    if not os.path.isfile(filename):
-        raise Exception('File does not exist')
+if not os.path.isfile($self.GetFileName()):
+    raise Exception('File does not exist')
 $original
 """,
 'SetRenderWindow':
@@ -235,7 +207,26 @@ $self._tempfile = $input
 # Set magic callback
 '_set_callback':
 """
-$self._callback = $input
+# Patch Update with callback
+import types
+old_Update = $self.Update
+def update_with_callback(self):
+    is_aborted = [False]
+    cbId = None
+    def ProgressEvent(obj, event):
+        try:
+            $input(obj.GetProgress())
+        except Exception, e:
+            if e.__name__ == 'AbortExecution':
+                obj.SetAbortExecute(True)
+                self.RemoveObserver(cbId)
+                is_aborted[0] = True
+            else:
+                raise
+    cbId = self.AddObserver('ProgressEvent', ProgressEvent)
+    old_Update()
+    self.RemoveObserver(cbId)
+$self.Update = types.MethodType(update_with_callback, $self)
 """,
 # Set initialize
 '_initialize':
@@ -274,6 +265,10 @@ $output = $input.name
 """
 vistrails.core.modules.basic_modules import PathObject
 $output = PathObject($input)
+""",
+'vtkInstanceDeprecation':
+"""
+$self.vtkInstance = $self
 """,
 }
 
@@ -337,12 +332,9 @@ def create_module(base_cls_name, node):
     callback = '_set_callback' if is_algorithm else None
     methods_last = hasattr(node.klass, 'SetRenderWindow')
 
-    compute = 'Update' if hasattr(node.klass, 'Update') else None
-
     module_spec = ClassSpec(module_name=node.name,
                             superklass=base_cls_name,
-                            code_ref="vistrails.packages.vtk.vtk_wrapper."
-                                     "vvtk." + node.name,
+                            code_ref="vtk." + node.name,
                             docstring=node.klass.__doc__.decode('latin-1'),
                             callback=callback,
                             tempfile=tempfile,
@@ -355,7 +347,7 @@ def create_module(base_cls_name, node):
 
     # Add method patches
     if cls == vtk.vtkAlgorithm:
-        module_spec.add_patch('Update', 'UpdateAlgorithm')
+        # Patches Update method with callback
         module_spec.add_patch('_set_callback', '_set_callback')
     if cls == vtk.vtkScalarTree:
         module_spec.add_patch('Update', 'guarded_SimpleScalarTree')
@@ -369,7 +361,16 @@ def create_module(base_cls_name, node):
         module_spec.add_patch('_initialize', '_initialize')
         module_spec.cleanup = '_cleanup'
         module_spec.add_patch('_cleanup', '_cleanup')
-        if not cls.__name__.endswith('TiffReader'):
+        # This checks for the presence of file in VTK readers
+        # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
+        # it has other ways of specifying files, like SetFilePrefix for
+        # multiple files
+        skip = [vtk.vtkBYUReader,
+                vtk.vtkImageReader,
+                vtk.vtkDICOMImageReader,
+                vtk.vtkTIFFReader]
+        # vtkPLOT3DReader does not exist from version 6.0.0
+        if not any(issubclass(cls, x) for x in skip):
             module_spec.add_patch('Update', 'guarded_SetFileName')
     if hasattr(cls, 'SetRenderWindow'):
         module_spec.add_patch('vtkRenderer', 'SetRenderWindow')
@@ -384,6 +385,10 @@ def create_module(base_cls_name, node):
         module_spec.add_patch('CopyImportString', 'CopyImportVoidPointer')
     if cls == vtk.vtkMultiBlockPLOT3DReader:
         module_spec.add_patch('FirstBlock', 'GetFirstBlock')
+
+    # Add ".vtkInstance" so that PythonSources that still uses this works
+    module_spec.initialize = '_initialize'
+    module_spec.add_patch('_initialize', 'vtkInstanceDeprecation')
 
     module_specs = [module_spec]
     for child in node.children:

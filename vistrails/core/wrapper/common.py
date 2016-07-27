@@ -39,16 +39,17 @@ from __future__ import division
 from string import Template
 
 
-def convert_port(port, value, patches, direction):
+def convert_port(port, value, patches, port_type):
     """ translate port values between vistrail and native types
     port - PortSpec
     value - port value
-    translations - dict(port_type: translator_function)
+    patches - dict(patch_name: patch_code)
+    port_type - 'input' or 'output'
     """
     port_types = port.get_port_type()
     if isinstance(port_types, list):
         return value
-    patch_name = '%s#%s' % (port_types, direction)
+    patch_name = '%s#%s' % (port_types, port_type)
     if patch_name not in patches:
         return value
     patch = patches[patch_name]
@@ -76,24 +77,22 @@ def get_patches(cls, method_name):
         base = klasses.next()
     return patches
 
-def convert_port_script(code, port, port_name, translations, port_type):
+
+def convert_port_script(code, port, port_name, patches, port_type):
     """ create port translation code between vistrail and native types
     code - string
     port - PortSpec
-    translations - dict(port_type: translator_function)
+    patches - dict(patch_name: patch_code)
     port_type - 'input' or 'output'
     """
-    if port_type == 'input':
-        translations = translations['input_script']
-        conv_name = 'input_t'
-    else:
-        translations = translations['output_script']
-        conv_name = 'output_t'
     port_types = port.get_port_type()
-    if port_types in translations:
-        # FIXME: only add once and not both input/output
-        code.append(translations[port_types])
-        code.append('%s = %s(%s)' % (port_name, conv_name, port.name))
+    if isinstance(port_types, list):
+        return
+    patch_name = '%s#%s' % (port_types, port_type)
+    if patch_name not in patches:
+        return
+    patch = patches[patch_name].strip()
+    code.append(Template(patch).substitute(input=port_name, output=port_name))
 
 
 def get_input_spec(cls, name):

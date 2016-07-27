@@ -61,65 +61,98 @@ class BaseClassModule(Module):
     _get_input_spec = classmethod(get_input_spec)
     _get_output_spec = classmethod(get_output_spec)
 
-    def call_patched(self, instance, method_name, params, patches=None):
+    def call_patched(self, instance, method_name, params=[], patches=None, variables=None):
         """ call method using existing patches
+
+            variables: which inputs are using explicit variables
 
             it builds a patched script recursively and execute it at top level
 
             supported patch tempalte variables
             $self - instance
             $original - original call or inner patch
-            $input - first input
-            $inputs - all inputs as list
+            $method_name - methosd name
+            $input - input (or input list for function tuple)
             $output - sets the output
         """
         if patches is None:
             # top level
-            # FIXME: CHECK superclasses!
+            variables = [None]*len(params)
             patches = get_patches(type(self), method_name)
-            script = self.call_patched(instance, method_name, params, patches)
+            patches.reverse()
+            script = self.call_patched(instance, method_name, params, patches, variables)
             output = None
-            locals_ = locals()
+            locals_     = locals()
             exec script + '\n' in locals_, locals_
             if locals_.get('output') is not None:
                 output = locals_['output']
             return output
         if len(patches) == 0:
             # original call
-            return 'output = instance.%s(*params)' % method_name
+            use_variables = not all(v is None for v in variables)
+            if not use_variables:
+                if len(params) > 1:
+                    p = '*params'
+                elif len(params) == 1:
+                    p = 'params[0]'
+                else:
+                    p = ''
+            else:
+                # add unmodified variables
+                variables = [(v if v is not None else ('params[%d]' % i)) for i, v in enumerate(variables)]
+                p = ', '.join(variables)
+            return 'output = instance.%s(%s)' % (method_name, p)
         patch_name = patches.pop()
         patch = self._patches[patch_name].strip()
         template = Template(patch)
+        prelude = ''
+        tail = ''
         # get attributes in patch
         vars = set([i[1] for i in Template.pattern.findall(patch)])
         d = {}
-        if 'original' in vars:
-            # get inner patches
-            rest = self.call_patched(instance, method_name, params, patches)
-            d['original'] = rest
-            vars.remove('original')
         # add attributes to patch
         if 'self' in vars:
             d['self'] = 'instance'
             vars.remove('self')
         if 'input' in vars:
-            d['input'] = 'params[0]'
+            d['input'] = 'params' if len(params) > 1 else 'params[0]'
             vars.remove('input')
-        if 'inputs' in vars:
-            d['inputs'] = 'params'
-            vars.remove('inputs')
         if 'output' in vars:
             d['output'] = 'output'
             vars.remove('output')
+        if 'method_name' in vars:
+            d['method_name'] = method_name
+            vars.remove('method_name')
+        for var in vars:
+            if not var.startswith('input'):
+                continue
+            i = int(var[5:])
+            if variables[i] is None:
+                variables[i] = 'params%d' % i
+                prelude += 'params%d = params[%d]\n' % (i, i)
+            d[var] = variables[i]
+            vars.remove(var)
+        # do the recursion last so that variables can be set for final call
+        if 'original' in vars:
+            # add inner patches
+            rest = self.call_patched(instance, method_name, params, patches,
+                                     variables)
+            d['original'] = rest
+            vars.remove('original')
+        elif patches:
+            # no original call is required but more patches exist,
+            # add inner patches to the end.
+            tail = '\n' + self.call_patched(instance, method_name, params,
+                                            patches, variables)
         if vars:
             raise Exception('Unknown variables in patch: %s' % vars)
         # return final patch
-        return template.safe_substitute(d)
+        return prelude + template.substitute(d) + tail
 
     def call_set_method(self, instance, port, params, method_results):
         # convert params
         # convert values to vistrail types
-        params = convert_port(port, params, self._translations['input'])
+        params = convert_port(port, params, self._patches, 'input')
         if ',' in port.port_type:
             params = list(params)
         else:
@@ -141,7 +174,8 @@ class BaseClassModule(Module):
             params = []
         prepend_params = port.get_prepend_params()
         try:
-            result = self.call_patched(instance, method_name, prepend_params + params)
+            params = prepend_params + params
+            result = self.call_patched(instance, method_name, params)
             # store result for output methods
             method_results[port.arg] = result
         except Exception, e:
@@ -149,7 +183,8 @@ class BaseClassModule(Module):
 
     def call_get_method(self, instance, port):
         try:
-            value = self.call_patched(instance, port.arg, port.get_prepend_params())
+            params = port.get_prepend_params()
+            value = self.call_patched(instance, port.arg, params)
             # convert params
             return convert_port(port, value, self._patches, 'output')
         except Exception, e:
@@ -292,7 +327,7 @@ class BaseClassModule(Module):
 
         # optional initialize method
         if spec.initialize:
-            self.call_patched(instance, spec.initialize, [])
+            self.call_patched(instance, spec.initialize)
         # Optional callback used for progress reporting
         if spec.callback:
             def callback(c):
@@ -312,7 +347,7 @@ class BaseClassModule(Module):
 
         # optional compute method
         if spec.compute:
-            self.call_patched(instance, spec.compute, [])
+            self.call_patched(instance, spec.compute)
 
         # apply operations
         for op, op_args, op_kwargs in ops:
@@ -347,7 +382,7 @@ class BaseClassModule(Module):
         # optional cleanup method
         if spec.cleanup:
 #            getattr(instance, spec.cleanup)()
-            self.call_patched(instance, spec.cleanup, [])
+            self.call_patched(instance, spec.cleanup)
 
 
     ################ SCRIPT METHODS ############################
@@ -358,34 +393,147 @@ class BaseClassModule(Module):
             serializable the translation code will be written out instead.
 
         """
+        port_types = port.get_port_type()
+        if isinstance(port_types, list):
+            return value
+        patch_name = '%s#%s' % (port_types, 'input')
+        if patch_name not in cls._patches:
+            return value
         # First try to get the translated value directly
-        was_simplified = False
-        value0 = value
         try:
-            final_value = convert_port(port, value0, cls._translations['input'])
+            final_value = convert_port(port, value, cls._patches, 'input')
             # Test: If it can be reversed, it is serializable.
             reversed_value = ast.literal_eval(repr(final_value))
             if reversed_value == final_value:
-                value = final_value
-                was_simplified = True
-        except Exception, e:
+                return final_value
+        except Exception:
             pass
-        if not was_simplified:
-            # Add translation code
-            port_name = port.name
-            # Make sure port.name is not aready used as an input port
-            if port_name in module.connected_input_ports:
-                i = 0
-                new_name = port_name + '_0'
-                while new_name in module.connected_input_ports:
-                    i += 1
-                    new_name = '%s_%s' % (port_name, i)
-                port_name = new_name
-            code.append('%s = %s' % (port_name, repr(value0)))
-            convert_port_script(code, port, port.name, cls._translations, 'input')
-            value = port_name
-        return value
+        # Add translation code
+        port_name = port.name
+        # Make sure port.name is not aready used as an input port
+        if port_name in module.connected_input_ports:
+            i = 0
+            new_name = port_name + '_0'
+            while new_name in module.connected_input_ports:
+                i += 1
+                new_name = '%s_%s' % (port_name, i)
+            port_name = new_name
+        convert_port_script(code, port, repr(value), cls._patches, 'input')
+        return port_name
 
+    @classmethod
+    def call_patched_script(cls, instance, method_name, params=None,
+                            patches=None, variables=None, output=None,
+                            input_tuple=False, prepend_params=''):
+        """ create patched script using existing patches
+
+            instance: name of class instance
+            params: name of parameter or list of parameter values or None
+            output: name of output
+            input_tuple: is the input a parameter tuple or single value
+            prepend_params: string to prepend to the final call
+
+            it builds a patched script recursively
+
+            supported patch tempalte variables
+            $self - instance
+            $original - original call or inner patch
+            $method_name - method name
+            $input - method inputs
+            $inputX - specific index in the input
+            $output - sets the output
+        """
+        if patches is None:
+            # top level
+            if isinstance(params, list):
+                variables = [None]*len(params)
+            else:
+                # increase size on demand
+                variables = []
+            patches = get_patches(cls, method_name)
+            patches.reverse()
+            script = cls.call_patched_script(instance, method_name, params,
+                                             patches, variables, output, input_tuple,
+                                             prepend_params)
+            return script
+        if len(patches) == 0:
+            # original call
+            script = ''
+            if params is None:
+                parameters = ''
+            else:
+                use_variables = not all(v is None for v in variables)
+                if isinstance(params, list):
+                    if use_variables:
+                        for i, v in enumerate(variables):
+                            if v is not None:
+                                params[i] = v
+                    parameters = prepend_params + ', '.join([repr(v) for v in params])
+                else:
+                    if use_variables:
+                        for i, v in enumerate(variables):
+                            if v is not None:
+                                script += '%s = %s' % (params, v)
+                    parameters = (prepend_params + ('*' if input_tuple else '') +
+                                  params)
+            set_output = '%s = ' % output if output else ''
+            script += "%s%s.%s(%s)" % (set_output, instance, method_name, parameters)
+            return script
+        patch_name = patches.pop()
+        patch = cls._patches[patch_name].strip()
+        template = Template(patch)
+        prelude = ''
+        tail = ''
+        # get attributes in patch
+        vars = set([i[1] for i in Template.pattern.findall(patch)])
+        d = {}
+        # add attributes to patch
+        if 'self' in vars:
+            d['self'] = instance
+            vars.remove('self')
+        if 'input' in vars:
+            d['input'] = params
+            vars.remove('input')
+        if 'output' in vars:
+            d['output'] = output
+            vars.remove('output')
+        if 'method_name' in vars:
+            d['method_name'] = method_name
+            vars.remove('method_name')
+        for var in vars:
+            if not var.startswith('input'):
+                continue
+            i = int(var[5:])
+            while len(variables) <= i:
+                variables.append(None)
+            if variables[i] is None:
+                # FIXME: make sure this is unique
+                if isinstance(params, list):
+                    variables[i] = 'params%d' % i
+                    prelude += '%s = %s\n' % (variables[i], params[i])
+                else:
+                    variables[i] = '%s%d' % (params, i)
+                    prelude += '%s = %s[%d]\n' % (variables[i], params, i)
+            d[var] = variables[i]
+            vars.remove(var)
+        # do the recursion last so that variables can be set for final call
+        if 'original' in vars:
+            # get inner patches
+            rest = cls.call_patched_script(instance, method_name, params,
+                                           patches, output, input_tuple,
+                                           prepend_params)
+            d['original'] = rest
+            vars.remove('original')
+        elif patches:
+            # no original call is required but more patches exist,
+            # add inner patches to the end.
+            tail = '\n' + cls.call_patched_script(instance, method_name,
+                                                  params, patches, output,
+                                                  input_tuple, prepend_params)
+        if vars:
+            raise Exception('Unknown variables in patch: %s' % vars)
+        # return final patch
+        return prelude + template.substitute(d) + tail
 
     @classmethod
     def call_set_connection_methods_script(cls, module, code, instance,
@@ -408,11 +556,9 @@ class BaseClassModule(Module):
             else: # depth == 0
                 loop_name = port.name
             loop_code = []
-            if (len(module.input_specs[port_name].signature) == 1 and
-                port.get_port_type() in cls._translations['input']):
-                # convert all values to vistrail types
-                convert_port_script(loop_code, port, loop_name,
-                                    cls._translations, 'input')
+            # convert all values to vistrail types
+            convert_port_script(loop_code, port, loop_name,
+                                cls._patches, 'input')
 
             if port.method_type == 'OnOff':
                 # This converts OnOff ports to XOn(), XOff() calls
@@ -438,25 +584,26 @@ class BaseClassModule(Module):
                 # We could also check all enums, but that is equally ugly
                 loop_code.append("getattr(%s, '%s' + %s)()" % (instance,
                                                                port.arg,
-                                                               port.name))
+                                                               loop_name))
             else:
-
-                star = '*' if len(module.input_specs[port.name].signature) != 1 else ''
                 prepend_params = [repr(p) for p in port.get_prepend_params()]
                 if prepend_params:
                     prepend_params = ', '.join(prepend_params) + ', '
                 else:
                     prepend_params = ''
-                parameters = prepend_params + star + loop_name
-
-                set_output = ''
+                is_tuple = len(module.input_specs[port.name].signature) != 1
+                output = None
                 if (port.name in module.connected_output_ports and
                     cls._get_output_spec(port_name).method_type == 'method'):
-                    set_output = '%s =' % port.name
+                    output = loop_name
                     method_results[port.arg] = port.name
-
-                loop_code.append("%s%s.%s(%s)" % (set_output, instance,
-                                                  port.arg, parameters))
+                code_call = cls.call_patched_script(instance,
+                                                    port.arg,
+                                                    loop_name,
+                                                    output=output,
+                                                    input_tuple=is_tuple,
+                                                    prepend_params=prepend_params)
+                loop_code.append(code_call)
             if port.depth == 1:
                 # indent loop_code
                 code.extend(['    ' + line for line in loop_code])
@@ -474,11 +621,10 @@ class BaseClassModule(Module):
                 continue
             value = [p.value() for p in function.params]
 
-            if (len(module.input_specs[port_name].signature) == 1 and
-                port.get_port_type() in cls._translations['input']):
-                # convert values to vistrail types
+            # convert values to vistrail types
+            if len(value) == 1:
                 value = [cls.convert_value_or_translate_script(module, code,
-                                                             port, value[0])]
+                                                              port, value[0])]
 
             if port.method_type == 'OnOff':
                 # This converts OnOff ports to XOn(), XOff() calls
@@ -503,19 +649,25 @@ class BaseClassModule(Module):
                 #params = []
                 code.append("%s.%s%s()" % (instance, port.arg, value[0]))
             else:
-                params = ', '.join([repr(v) for v in value])
                 prepend_params = [repr(p) for p in port.get_prepend_params()]
-                if prepend_params:
-                    params =  ', '.join(prepend_params) + ', ' + params
+                prepend_params =  ', '.join(prepend_params) if prepend_params else ''
 
-                set_output = ''
+                output = None
                 if (port.name in module.connected_output_ports and
                     cls._get_output_spec(port_name).method_type == 'method'):
-                    set_output = '%s =' % port.name
+                    output = port.name
                     method_results[port.arg] = port.name
 
-                code.append("%s%s.%s(%s)" % (set_output, instance, port.arg,
-                                              params))
+                #code.append("%s%s.%s(%s)" % (set_output, instance, port.arg,
+                #                             params))
+                is_tuple = len(module.input_specs[port.name].signature) != 1
+                code_call = cls.call_patched_script(instance,
+                                                    port.arg,
+                                                    value,
+                                                    output=output,
+                                                    input_tuple=is_tuple,
+                                                    prepend_params=prepend_params)
+                code.append(code_call)
 
     @classmethod
     def call_get_method_script(cls, module, code, instance, port):
@@ -524,10 +676,15 @@ class BaseClassModule(Module):
             prepend_params += ', '.join(prepend_params)
         else:
             prepend_params = ''
-        code.append("%s = %s.%s(%s)" % (port.name, instance, port.arg,
-                                      prepend_params))
-        convert_port_script(code, port, port.name, cls._translations,
-                            'output')
+        #code.append("%s = %s.%s(%s)" % (port.name, instance, port.arg,
+        #                              prepend_params))
+
+        code_call = cls.call_patched_script(instance,
+                                            port.arg,
+                                            output=port.name,
+                                            prepend_params=prepend_params)
+        code.append(code_call)
+        convert_port_script(code, port, port.name, cls._patches, 'output')
 
     @classmethod
     def call_inputs_script(cls, module, code, instance, method_results):
@@ -578,7 +735,7 @@ class BaseClassModule(Module):
             pspec = cls._get_input_spec(port)
             if pspec.method_type != 'argument':
                 continue
-            convert_port_script(code, pspec, port, cls._translations, 'input')
+            convert_port_script(code, pspec, port, cls._patches, 'input')
             arg_dict[port] = port
 
         # Set functions manually (to correct depth)
@@ -587,24 +744,21 @@ class BaseClassModule(Module):
             pspec = cls._get_input_spec(port)
             if pspec.method_type == 'argument':
                 if len(module.input_specs[port.name].signature) == 1:
-                    value = repr(function.params[0].value())
-                else:
-                    # a tuple
-                    value = repr(tuple([p.value() for p in function.params]))
-
-                if (len(module.input_specs[port].signature) == 1 and
-                    pspec.get_port_type() in cls._translations):
+                    value = function.params[0].value()
                     # convert values to vistrail types
                     value = cls.convert_value_or_translate_script(module,
                                                                   code,
                                                                   pspec,
                                                                   value)
+                    value = repr(value)
+                else:
+                    # a tuple
+                    value = repr(tuple([p.value() for p in function.params]))
                 depth = - pspec.depth
                 while depth:
                     depth += 1
                     value = '[%s]' % value
                 arg_dict[port] = value
-
         args = []
         star_args = None
         kwargs = {}
@@ -659,18 +813,17 @@ class BaseClassModule(Module):
             pspec = cls._get_input_spec(port)
             if pspec.method_type == 'argument':
                 if len(module.input_specs[port.name].signature) == 1:
-                    value = repr(function.params[0].value())
-                else:
-                    # a tuple
-                    value = repr(tuple([p.value() for p in function.params]))
-
-                if (len(module.input_specs[port].signature) == 1 and
-                    pspec.get_port_type() in cls._translations):
+                    value = function.params[0].value()
                     # convert values to vistrail types
                     value = cls.convert_value_or_translate_script(module,
                                                                   code,
                                                                   pspec,
                                                                   value)
+                    value = repr(value)
+                else:
+                    # a tuple
+                    value = repr(tuple([p.value() for p in function.params]))
+
                 # FIXME: If depth > 1 we should merge all functions on each port
                 depth = - pspec.depth
                 while depth:
@@ -682,8 +835,8 @@ class BaseClassModule(Module):
         for port_name in module.connected_input_ports:
             port = cls._get_input_spec(port_name)
             if port and port.method_type == 'attribute':
-                convert_port_script(code, port, port.name,
-                                    cls._translations, 'input')
+                convert_port_script(code, port, port.name, cls._patches,
+                                    'input')
                 code.append('%s.%s = %s' % (instance, port.arg, port.name))
 
     @classmethod
@@ -695,7 +848,7 @@ class BaseClassModule(Module):
             port = cls._get_output_spec(port_name)
             if port and port.method_type == 'attribute':
                 code.append('%s = %s.' % (port.name, instance, port.arg))
-                convert_port_script(code, port, port.name, cls._translations,
+                convert_port_script(code, port, port.name, cls._patches,
                                     'output')
 
     @classmethod
@@ -718,6 +871,16 @@ class BaseClassModule(Module):
         #used_input_functions = [f.name for f in module.functions]
         code = []
         preludes = []
+
+        def strip_preludes(script):
+            no_preludes = []
+            for s in script.split('\n'):
+                if s.startswith('import ') or s.startswith('from '):
+                    preludes.append(Prelude(s))
+                else:
+                    no_preludes.append(s)
+            return '\n'.join(no_preludes)
+
         spec = cls._module_spec
         module.input_specs = dict((p.name, p) for p in module.destinationPorts())
 
@@ -761,15 +924,25 @@ class BaseClassModule(Module):
             code.append("%s = %s(%s)" % (instance, class_name, args))
             #instance = module._class[0](*args, **kwargs)
 
+        # optional initialize method
+        if spec.initialize:
+            code.append(strip_preludes(cls.call_patched_script(instance,
+                                                            spec.initialize)))
+            #getattr(instance, spec.cleanup)()
+
         # Optional callback used for progress reporting
         if spec.callback:
-            # no callback for scripts right now
+            # no callback for scripts
             pass
+
         # Optional function for creating temporary files
         if spec.tempfile:
-            # TODO: need to call mktmp directly from scripts
             #getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
-            pass
+            preludes.append(Prelude('import tempfile'))
+            code.append(strip_preludes(cls.call_patched_script(instance,
+                                                               spec.tempfile,
+                                                               ['tempfile.mkstemp'])))
+
         # set input attributes on instance
         cls.set_attributes_script(module, code, instance)
 
@@ -780,7 +953,8 @@ class BaseClassModule(Module):
 
         # optional compute method
         if spec.compute:
-            code.append("%s.%s()" % (instance, spec.compute))
+            code.append(strip_preludes(cls.call_patched_script(instance,
+                                                            spec.compute)))
             #getattr(instance, spec.compute)()
 
         # apply operations
@@ -806,7 +980,8 @@ class BaseClassModule(Module):
 
         # optional cleanup method
         if spec.cleanup:
-            code.append("%s.%s()" % (instance, spec.cleanup))
+            code.append(strip_preludes(cls.call_patched_script(instance,
+                                                               spec.cleanup)))
             #getattr(instance, spec.cleanup)()
 
         inputs = dict((n, n) for n in module.connected_input_ports)
@@ -816,9 +991,9 @@ class BaseClassModule(Module):
         if 'Instance' in outputs:
             outputs['Instance'] = instance
 
-        # Set skip_functions, as we have used them directly
+        # We set skip_functions, because we have used them directly
         # We cannot use "inputs" for this, since there may exist connections
-        # for the same ports.
+        # on the same ports.
         code = '\n'.join(code)
         return (Script(code, inputs, outputs, skip_functions=True), preludes)
 
