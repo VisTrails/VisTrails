@@ -207,7 +207,9 @@ def write_workflow_to_python(pipeline):
             name = output_loop_map.get((src.moduleId, src.name),
                                        src_mod.get_output(src.name))
 
+            # get depth difference to destination port
             depth = pipeline._connection_depths.get(conn_id, 0)
+            # account for module looping
             depth += pipeline.modules[src.moduleId].list_depth
 
             print("Input %s: var %s" % (port, name))
@@ -271,19 +273,20 @@ def write_workflow_to_python(pipeline):
             else:
                 # merge connections
                 items = []
-                max_depth = max([c[1] for c in conns])
                 for name, depth in conns:
                     # wrap to max depth
-                    while depth < max_depth:
+                    while depth < 0:
                         depth += 1
                         name = '[%s]' % name
                     items.append(name)
                 # assign names to list items in loop
                 # like "xItem", "xItemItem", etc.
                 new_names = [make_unique(port, all_vars)]
-                for i in xrange(depth):
-                    new_name = make_unique(new_names[-1] + 'Item', all_vars)
-                    new_names.append(new_name)
+                max_depth = max([c[1] for c in conns])
+                if max_depth > 0:
+                    for i in xrange(max_depth):
+                        new_name = make_unique(new_names[-1] + 'Item', all_vars)
+                        new_names.append(new_name)
                 text.append('%s = %s' % (new_names[0], ' + '.join(items)))
                 code.set_input(port, new_names[-1])
                 merged_inputs.append((port, new_names, max_depth))
