@@ -35,8 +35,11 @@
 ###############################################################################
 from __future__ import division, absolute_import
 
+
+import __builtin__
 import ast
 import importlib
+import keyword
 import re
 
 from itertools import izip
@@ -50,6 +53,34 @@ METHOD_TYPES = ['method', 'nullary', 'OnOff', 'SetXToY']
 
 from .common import convert_port, convert_port_script, get_input_spec, get_output_spec, get_patches
 
+
+reserved = [set(keyword.kwlist + dir(__builtin__))]
+
+
+def python_name(name, names={}):
+    # return valid python identifier from string, while making sure
+    # they are unique
+    # a default remapping for some basic characters
+    if name in names:
+        return names[name]
+    original_name = name
+    mapping = {'+': 'Plus',
+               '-': 'Minus',
+               '=': 'Equal',
+              }
+    for key, value in mapping.iteritems():
+        name.replace(key, value)
+    # strip invalid chars
+    name = re.sub('[^0-9a-zA-Z_]', '', name)
+    # This function is used for instances and variables, transform to lowercase
+    name = re.sub('(?!^)([A-Z]+)', r'_\1', name).lower()
+    base_name = name
+    i = 0
+    while name in names.itervalues() or name in reserved:
+        i += 1
+        name = base_name + '_%d' % i
+    names[original_name] = name
+    return name
 
 class BaseClassModule(Module):
     """ Wraps a python class as a vistrails Module using a ClassSpec
@@ -409,17 +440,12 @@ class BaseClassModule(Module):
         except Exception:
             pass
         # Add translation code
-        port_name = port.name
-        # Make sure port.name is not aready used as an input port
-        if port_name in module.connected_input_ports:
-            i = 0
-            new_name = port_name + '_0'
-            while new_name in module.connected_input_ports:
-                i += 1
-                new_name = '%s_%s' % (port_name, i)
-            port_name = new_name
-        convert_port_script(code, port, repr(value), cls._patches, 'input')
-        return port_name
+        port_name = python_name(port.name, module.input_names)
+        # Make sure port_name is not also used as an input port
+        if port.name in module.connected_input_ports:
+            port_name = port_name + '_0'
+        new_name = convert_port_script(code, port, repr(value), cls._patches, 'input')
+        return new_name
 
     @classmethod
     def call_patched_script(cls, instance, method_name, params=None,
@@ -545,19 +571,20 @@ class BaseClassModule(Module):
         """
         for port_name in module.connected_input_ports:
             port = cls._get_input_spec(port_name)
+            port_name = python_name(port.name, module.input_names)
             if port.method_type not in METHOD_TYPES:
                 continue
             if port.depth == 1:
                 # Need to loop the list of functions on each port
                 # There is no way to know how many functions are on a port
-                # FIXME: "{port.name}Item" may not be unique
-                loop_name = port.name + 'Item'
-                code.append('for %s in %s:' % (loop_name, port.name))
+                loop_name = port_name + '_item'
+                code.append('for %s in %s:' % (loop_name, port_name))
             else: # depth == 0
-                loop_name = port.name
+                loop_name = port_name
             loop_code = []
             # convert all values to vistrail types
-            convert_port_script(loop_code, port, loop_name,
+            # FIXME: no need to rename translations inside loops
+            loop_name = convert_port_script(loop_code, port, loop_name,
                                 cls._patches, 'input')
 
             if port.method_type == 'OnOff':
@@ -575,7 +602,7 @@ class BaseClassModule(Module):
                 #    params = []
                 #else:
                 #    return
-                loop_code.append('if %s:' % port.name)
+                loop_code.append('if %s:' % port_name)
                 loop_code.append('    %s.%s()' % (instance, port.arg))
             elif port.method_type == 'SetXToY':
                 # Append enum name to function name and delete params
@@ -596,7 +623,7 @@ class BaseClassModule(Module):
                 if (port.name in module.connected_output_ports and
                     cls._get_output_spec(port_name).method_type == 'method'):
                     output = loop_name
-                    method_results[port.arg] = port.name
+                    method_results[port.arg] = port_name
                 code_call = cls.call_patched_script(instance,
                                                     port.arg,
                                                     loop_name,
@@ -679,12 +706,28 @@ class BaseClassModule(Module):
         #code.append("%s = %s.%s(%s)" % (port.name, instance, port.arg,
         #                              prepend_params))
 
+        create_output_variable = bool(get_patches(cls, port.arg))
+        port_name = python_name(port.name, module.output_names)
+        if create_output_variable:
+            output = port_name
+        else:
+            # We can use the output call as the output directly
+            output = None
         code_call = cls.call_patched_script(instance,
                                             port.arg,
-                                            output=port.name,
+                                            output=output,
                                             prepend_params=prepend_params)
-        code.append(code_call)
-        convert_port_script(code, port, port.name, cls._patches, 'output')
+        if create_output_variable:
+            code.append(code_call)
+            new_variable = False
+        else:
+            # the code will only contain the output call
+            new_variable = port_name
+            module.output_names[port.name] = port_name = code_call
+        new_name = convert_port_script(code, port, port_name, cls._patches, 'output', new_variable)
+        if new_name == new_variable:
+            # translation had to create the new variable
+            module.output_names[port.name] = new_name
 
     @classmethod
     def call_inputs_script(cls, module, code, instance, method_results):
@@ -735,7 +778,9 @@ class BaseClassModule(Module):
             pspec = cls._get_input_spec(port)
             if pspec.method_type != 'argument':
                 continue
-            convert_port_script(code, pspec, port, cls._patches, 'input')
+            port_name = python_name(port, module.input_names)
+            port_name = convert_port_script(code, pspec, port_name,
+                                            cls._patches, 'input')
             arg_dict[port] = port
 
         # Set functions manually (to correct depth)
@@ -835,20 +880,23 @@ class BaseClassModule(Module):
         for port_name in module.connected_input_ports:
             port = cls._get_input_spec(port_name)
             if port and port.method_type == 'attribute':
-                convert_port_script(code, port, port.name, cls._patches,
+                port_name = python_name(port.name, module.input_names)
+
+                port_name = convert_port_script(code, port, port_name, cls._patches,
                                     'input')
-                code.append('%s.%s = %s' % (instance, port.arg, port.name))
+                code.append('%s.%s = %s' % (instance, port.arg, port_name))
 
     @classmethod
     def get_attributes_script(cls, module, code, instance):
         """
-        set class attributes
+        get class attributes
         """
         for port_name in module.connected_output_ports:
             port = cls._get_output_spec(port_name)
             if port and port.method_type == 'attribute':
-                code.append('%s = %s.' % (port.name, instance, port.arg))
-                convert_port_script(code, port, port.name, cls._patches,
+                port_name = python_name(port.name, module.output_names)
+                code.append('%s = %s.' % (port_name, instance, port.arg))
+                convert_port_script(code, port, port_name, cls._patches,
                                     'output')
 
     @classmethod
@@ -861,7 +909,7 @@ class BaseClassModule(Module):
         #   - irrespective of port
         #   - Required by VTK
         #   - Used by iterating all function (lists) and using them in order
-        # * connections are ordered by age on each port
+        # * connections are ordered by (port, age)
         #   - Lists are joined into a single port item
         #   - Used by iterating the connected value (list) on each port
         #     and using them in order.
@@ -883,6 +931,8 @@ class BaseClassModule(Module):
 
         spec = cls._module_spec
         module.input_specs = dict((p.name, p) for p in module.destinationPorts())
+        module.input_names = dict()
+        module.output_names = dict()
 
         # Set up the class instance
         if ('Instance' in module.connected_input_ports and
@@ -984,8 +1034,10 @@ class BaseClassModule(Module):
                                                                spec.cleanup)))
             #getattr(instance, spec.cleanup)()
 
-        inputs = dict((n, n) for n in module.connected_input_ports)
-        outputs = dict((n, n) for n in module.connected_output_ports)
+        inputs = dict((n, module.input_names.get(n, n))
+                      for n in module.connected_input_ports)
+        outputs = dict((n, module.output_names.get(n, n))
+                       for n in module.connected_output_ports)
         if 'Instance' in inputs:
             inputs['Instance'] = instance
         if 'Instance' in outputs:

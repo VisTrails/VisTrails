@@ -3,9 +3,13 @@
 
 from __future__ import division, unicode_literals
 
+import __builtin__
+import keyword
+
 from vistrails.core.bundles import py_import
 from vistrails.core.scripting.utils import utf8
 
+reserved = list(set(keyword.kwlist + dir(__builtin__)))
 
 redbaron = None
 
@@ -30,7 +34,7 @@ def make_unique(name, all_vars, more_vars=set()):
     """
     i = 1
     n = name
-    while n in all_vars or n in more_vars:
+    while n in all_vars or n in more_vars or n in reserved:
         i += 1
         n = '%s_%d' % (name, i)
     all_vars.add(n)

@@ -78,7 +78,7 @@ def get_patches(cls, method_name):
     return patches
 
 
-def convert_port_script(code, port, port_name, patches, port_type):
+def convert_port_script(code, port, port_name, patches, port_type, new_variable=None):
     """ create port translation code between vistrail and native types
     code - string
     port - PortSpec
@@ -87,12 +87,21 @@ def convert_port_script(code, port, port_name, patches, port_type):
     """
     port_types = port.get_port_type()
     if isinstance(port_types, list):
-        return
+        return port_name
     patch_name = '%s#%s' % (port_types, port_type)
     if patch_name not in patches:
-        return
+        return port_name
     patch = patches[patch_name].strip()
-    code.append(Template(patch).substitute(input=port_name, output=port_name))
+    if port_type == 'input':
+        # make sure we do not mutate input
+        new_name = port_name + '_inner'
+    elif new_variable:
+        # create new variable to store translated value
+        new_name = new_variable
+    else:
+        new_name = port_name
+    code.append(Template(patch).substitute(input=port_name, output=new_name))
+    return new_name
 
 
 def get_input_spec(cls, name):

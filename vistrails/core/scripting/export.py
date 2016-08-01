@@ -7,12 +7,13 @@ a standalone Python script.
 from __future__ import division, unicode_literals
 
 import ast
+import copy
 import re
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import List
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.scripting.scripts import make_unique, Script, Prelude
+from vistrails.core.scripting.scripts import make_unique, Script, Prelude, reserved
 from vistrails.core.scripting.utils import utf8
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 
@@ -26,7 +27,7 @@ def write_workflow_to_python(pipeline):
     # scope
     # These are either variables from translated modules (internal or output
     # ports) or imported names
-    all_vars = set()
+    all_vars = set(reserved)
 
     # Should we import izip or product from itertools?
     import_izip = False
@@ -257,7 +258,7 @@ def write_workflow_to_python(pipeline):
                     # add directly
                     new_names = [name]
                     for i in xrange(depth):
-                        name = make_unique(new_names[-1] + 'Item', all_vars)
+                        name = make_unique(new_names[-1] + '_item', all_vars)
                         new_names.append(name)
                     code.set_input(port, name)
                     merged_inputs.append((port, new_names, depth))
@@ -266,7 +267,7 @@ def write_workflow_to_python(pipeline):
                     while depth:
                         depth += 1
                         name = '[%s]' % name
-                    new_name = make_unique(port, all_vars)
+                    new_name = make_unique(code.inputs[port], all_vars)
                     text.append('%s = %s' % (new_name, name))
                     code.set_input(port, new_name)
                     merged_inputs.append((port, [new_name], 0))
@@ -281,11 +282,11 @@ def write_workflow_to_python(pipeline):
                     items.append(name)
                 # assign names to list items in loop
                 # like "xItem", "xItemItem", etc.
-                new_names = [make_unique(port, all_vars)]
+                new_names = [make_unique(code.inputs[port], all_vars)]
                 max_depth = max([c[1] for c in conns])
                 if max_depth > 0:
                     for i in xrange(max_depth):
-                        new_name = make_unique(new_names[-1] + 'Item', all_vars)
+                        new_name = make_unique(new_names[-1] + '_item', all_vars)
                         new_names.append(new_name)
                 text.append('%s = %s' % (new_names[0], ' + '.join(items)))
                 code.set_input(port, new_names[-1])
@@ -305,7 +306,7 @@ def write_workflow_to_python(pipeline):
             # Output values are collected from the inside and out
             for port in connected_outputs:
                 sub_ports = output_sub_ports[port]
-                new_name = make_unique(sub_ports[-1] + 'Item', all_vars)
+                new_name = make_unique(sub_ports[-1] + '_item', all_vars)
                 code.set_output(port, new_name)
                 sub_ports.append(new_name)
 
