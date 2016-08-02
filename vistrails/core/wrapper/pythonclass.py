@@ -430,7 +430,9 @@ class BaseClassModule(Module):
         port_types = port.get_port_type()
         if isinstance(port_types, list):
             return value
-        patch_name = '%s#%s' % (port_types, 'input')
+        if port_types not in cls._translations:
+            return value
+        patch_name = cls._translations[port_types][0]
         if patch_name not in cls._patches:
             return value
         # First try to get the translated value directly
