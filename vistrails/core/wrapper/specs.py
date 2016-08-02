@@ -38,7 +38,10 @@ from __future__ import division
 
 import ast
 import copy
+import os.path
+import shutil
 
+from redbaron import RedBaron
 from xml.etree import cElementTree as ET
 
 def parse_props(props):
@@ -62,28 +65,30 @@ class SpecList(object):
         maps to modules in vistrails
     """
 
-    def __init__(self, module_specs=None, patches=None):
+    def __init__(self, module_specs=None, translations=None):
         """
-        patches : {key: template_string}
-            A dict of patches. 'code' is a python string Template
+        translations : {type_string: [{input patch}, {output patch}}
+            A dict of translations mapping port types to input/output patches
 
 
         """
         if module_specs is None:
             module_specs = []
         self.module_specs = module_specs
-        if patches is None:
-            patches = {}
-        self.patches = patches
+        if translations is None:
+            translations = {}
+        self.translations = translations
+        self.patches = {}
 
-    def write_to_xml(self, fname):
+    def write_to_xml(self, fname, patch_file=None):
         root = ET.Element("specs")
         for spec in self.module_specs:
             root.append(spec.to_xml())
-        for key, code in self.patches.iteritems():
-            subelt = ET.Element('patch')
-            subelt.set('key', key)
-            subelt.text = code
+        for port_type, [input_patch, output_patch] in self.translations.iteritems():
+            subelt = ET.Element('translation')
+            subelt.set('type', port_type)
+            subelt.set('input', input_patch)
+            subelt.set('output', output_patch)
             root.append(subelt)
         tree = ET.ElementTree(root)
 
@@ -105,20 +110,58 @@ class SpecList(object):
 
         tree.write(fname)
 
+        if patch_file:
+            patch_name = os.path.splitext(fname)[0] + '-patches.py'
+            shutil.copyfile(patch_file, patch_name)
+
     @staticmethod
     def read_from_xml(fname, klass=None):
         if klass is None:
             klass = ModuleSpec
         module_specs = []
-        patches = {}
+        translations = {}
         tree = ET.parse(fname)
         for elt in tree.getroot():
             if elt.tag == klass.xml_name:
                 module_specs.append(klass.from_xml(elt))
-            if elt.tag == 'patch':
-                patches[elt.get('key')] = elt.text
-        retval = SpecList(module_specs, patches)
+            if elt.tag == 'translation':
+                translations[elt.get('type')] = [elt.get('input'), elt.get('output')]
+        retval = SpecList(module_specs, translations)
+        # read patch file from same directory if it exists
+        patch_name = os.path.splitext(fname)[0] + '-patches.py'
+        if os.path.exists(patch_name):
+            retval.read_patches(patch_name)
         return retval
+
+    def read_patches(self, fname):
+        """ Read patches from a file """
+        patches = {}
+        with open(fname) as src:
+            red = RedBaron(src.read())
+        for patch in red.node_list:
+            if patch.type != 'def':
+                continue
+            new_patch = patch.copy()
+            # remove trailing lines
+            tail = 1000
+            for i, line in enumerate(patch.value):
+                if line.type == 'endl' and line.indent == '':
+                    # The function has ended, the rest is trailing comments
+                    tail = i
+            while len(new_patch.value) > tail:
+                del new_patch.value[tail]
+
+            patch_lines = []
+            for line in new_patch.dumps().split('\n'):
+                # ignore lines with single newline
+                if not line.startswith('    '):
+                    continue
+                # deindent line
+                patch_lines.append(line[4:])
+            final_patch = '\n'.join(patch_lines).strip()
+            arguments = [a.name.value for a in patch.arguments]
+            patches[patch.name] = (arguments, final_patch)
+            self.patches = patches
 
 
 ######### BASE MODULE SPEC ###########

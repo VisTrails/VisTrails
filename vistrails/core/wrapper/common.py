@@ -36,10 +36,12 @@
 
 from __future__ import division
 
-from string import Template
+from redbaron import RedBaron
+
+from vistrails.core.scripting.scripts import rename_variables
 
 
-def convert_port(port, value, patches, port_type):
+def convert_port(port, value, patches, translations, port_type):
     """ translate port values between vistrail and native types
     port - PortSpec
     value - port value
@@ -49,11 +51,15 @@ def convert_port(port, value, patches, port_type):
     port_types = port.get_port_type()
     if isinstance(port_types, list):
         return value
-    patch_name = '%s#%s' % (port_types, port_type)
+    if port_types not in translations:
+        return value
+    patch_name = translations[port_types][0 if port_type == 'input' else 1]
     if patch_name not in patches:
         return value
-    patch = patches[patch_name]
-    code = Template(patch).substitute(input='value',output='output')
+    _, patch = patches[patch_name]
+    script = RedBaron(patch)
+    rename_variables(script, dict(input='value', output='output'))
+    code = script.dumps()
     output = None
     locals_ = locals()
     exec code + '\n' in locals_, locals_
@@ -78,7 +84,7 @@ def get_patches(cls, method_name):
     return patches
 
 
-def convert_port_script(code, port, port_name, patches, port_type, new_variable=None):
+def convert_port_script(code, port, port_name, patches, translations, port_type, new_variable=None):
     """ create port translation code between vistrail and native types
     code - string
     port - PortSpec
@@ -88,10 +94,12 @@ def convert_port_script(code, port, port_name, patches, port_type, new_variable=
     port_types = port.get_port_type()
     if isinstance(port_types, list):
         return port_name
-    patch_name = '%s#%s' % (port_types, port_type)
+    if port_types not in translations:
+        return port_name
+    patch_name = translations[port_types][0 if port_type == 'input' else 1]
     if patch_name not in patches:
         return port_name
-    patch = patches[patch_name].strip()
+    _, patch = patches[patch_name]
     if port_type == 'input':
         # make sure we do not mutate input
         new_name = port_name + '_inner'
@@ -100,7 +108,9 @@ def convert_port_script(code, port, port_name, patches, port_type, new_variable=
         new_name = new_variable
     else:
         new_name = port_name
-    code.append(Template(patch).substitute(input=port_name, output=new_name))
+    script = RedBaron(patch)
+    rename_variables(script, dict(input=port_name, output=new_name))
+    code.append(script.dumps())
     return new_name
 
 

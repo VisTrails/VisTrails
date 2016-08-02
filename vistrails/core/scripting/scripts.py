@@ -23,6 +23,24 @@ def get_redbaron():
     redbaron = py_import('redbaron', {'pip': 'redbaron'})
     return redbaron
 
+def rename_variables(source, renames):
+    """ Rename NameNodes in the code, skipping those that are not variables
+
+    """
+    get_redbaron()
+    counts = {}
+    for node in source.find_all('NameNode'):
+        v = node.value
+        if v in renames:
+            # Skip if it is an attribute (followed by dot)
+            if isinstance(node.previous, redbaron.DotNode):
+                continue
+            # Skif if this is a call argument name
+            if isinstance(node.parent, redbaron.CallArgumentNode) and node.parent.target == node:
+                continue
+            node.value = renames[v]
+            counts[v] = counts.get(v, 0) + 1
+    return counts
 
 def make_unique(name, all_vars, more_vars=set()):
     """Makes a variable name unique.
@@ -57,18 +75,7 @@ class BaseScript(object):
             del self.source[-1]
 
     def rename(self, renames):
-        counts = {}
-        for node in self.source.find_all('NameNode'):
-            v = node.value
-            if v in renames:
-                # Skip if it is an attribute (followed by dot)
-                if isinstance(node.previous, redbaron.DotNode):
-                    continue
-                # Skif if this is a call argument name
-                if isinstance(node.parent, redbaron.CallArgumentNode) and node.parent.target == node:
-                    continue
-                node.value = renames[v]
-                counts[v] = counts.get(v, 0) + 1
+        counts = rename_variables(self.source, renames)
         if not counts:
             print("rename():\n    no renames")
         else:

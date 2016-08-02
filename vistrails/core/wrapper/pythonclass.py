@@ -35,39 +35,36 @@
 ###############################################################################
 from __future__ import division, absolute_import
 
-
-import __builtin__
 import ast
+import copy
 import importlib
-import keyword
 import re
 
 from itertools import izip
-from string import Template
+from redbaron import RedBaron
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.scripting import Script, Prelude
+from vistrails.core.scripting.scripts import rename_variables, reserved
+
+from .common import convert_port, convert_port_script, get_input_spec,\
+                    get_output_spec, get_patches
 
 METHOD_TYPES = ['method', 'nullary', 'OnOff', 'SetXToY']
 
-from .common import convert_port, convert_port_script, get_input_spec, get_output_spec, get_patches
-
-
-reserved = [set(keyword.kwlist + dir(__builtin__))]
-
 
 def python_name(name, names={}):
-    # return valid python identifier from string, while making sure
-    # they are unique
-    # a default remapping for some basic characters
+    """ Creates unique valid python identifier from string
+
+    """
     if name in names:
         return names[name]
     original_name = name
+    # a default remapping for some basic characters
     mapping = {'+': 'Plus',
                '-': 'Minus',
-               '=': 'Equal',
-              }
+               '=': 'Equal'}
     for key, value in mapping.iteritems():
         name.replace(key, value)
     # strip invalid chars
@@ -81,6 +78,7 @@ def python_name(name, names={}):
         name = base_name + '_%d' % i
     names[original_name] = name
     return name
+
 
 class BaseClassModule(Module):
     """ Wraps a python class as a vistrails Module using a ClassSpec
@@ -113,7 +111,7 @@ class BaseClassModule(Module):
             patches.reverse()
             script = self.call_patched(instance, method_name, params, patches, variables)
             output = None
-            locals_     = locals()
+            locals_ = locals()
             exec script + '\n' in locals_, locals_
             if locals_.get('output') is not None:
                 output = locals_['output']
@@ -134,12 +132,11 @@ class BaseClassModule(Module):
                 p = ', '.join(variables)
             return 'output = instance.%s(%s)' % (method_name, p)
         patch_name = patches.pop()
-        patch = self._patches[patch_name].strip()
-        template = Template(patch)
+        vars, patch = self._patches[patch_name]
+        vars = copy.copy(vars)
         prelude = ''
         tail = ''
         # get attributes in patch
-        vars = set([i[1] for i in Template.pattern.findall(patch)])
         d = {}
         # add attributes to patch
         if 'self' in vars:
@@ -177,13 +174,14 @@ class BaseClassModule(Module):
                                             patches, variables)
         if vars:
             raise Exception('Unknown variables in patch: %s' % vars)
-        # return final patch
-        return prelude + template.substitute(d) + tail
+        script = RedBaron(patch)
+        rename_variables(script, d)
+        return prelude + script.dumps() + tail
 
     def call_set_method(self, instance, port, params, method_results):
         # convert params
         # convert values to vistrail types
-        params = convert_port(port, params, self._patches, 'input')
+        params = convert_port(port, params, self._patches, self._translations, 'input')
         if ',' in port.port_type:
             params = list(params)
         else:
@@ -217,7 +215,7 @@ class BaseClassModule(Module):
             params = port.get_prepend_params()
             value = self.call_patched(instance, port.arg, params)
             # convert params
-            return convert_port(port, value, self._patches, 'output')
+            return convert_port(port, value, self._patches, self._translations, 'output')
         except Exception, e:
             raise
 
@@ -298,7 +296,9 @@ class BaseClassModule(Module):
             if port and port.method_type == 'argument':
                 params = self.get_input(port_name)
                 params = convert_port(port, params,
-                                      self._patches, 'input')
+                                      self._patches,
+                                      self._translations,
+                                      'input')
 
                 if -1 == port.arg_pos:
                     kwargs[port.arg] = params
@@ -325,7 +325,9 @@ class BaseClassModule(Module):
             if port and port.method_type == 'attribute':
                 params = self.get_input(port_name)
                 params = convert_port(port, params,
-                                      self._patches, 'input')
+                                      self._patches,
+                                      self._translations,
+                                      'input')
                 setattr(instance, port.arg, params)
 
     def get_attributes(self, instance):
@@ -336,7 +338,8 @@ class BaseClassModule(Module):
             port = self._get_output_spec(port_name)
             if port and port.method_type == 'attribute':
                 value = getattr(instance, port.arg)
-                value = convert_port(port, value, self._patches, 'output')
+                value = convert_port(port, value, self._patches,
+                                     self._translations, 'output')
                 self.set_output(port_name, value)
 
     def compute(self):
@@ -432,7 +435,8 @@ class BaseClassModule(Module):
             return value
         # First try to get the translated value directly
         try:
-            final_value = convert_port(port, value, cls._patches, 'input')
+            final_value = convert_port(port, value, cls._patches,
+                                       cls._translations, 'input')
             # Test: If it can be reversed, it is serializable.
             reversed_value = ast.literal_eval(repr(final_value))
             if reversed_value == final_value:
@@ -444,7 +448,8 @@ class BaseClassModule(Module):
         # Make sure port_name is not also used as an input port
         if port.name in module.connected_input_ports:
             port_name = port_name + '_0'
-        new_name = convert_port_script(code, port, repr(value), cls._patches, 'input')
+        new_name = convert_port_script(code, port, repr(value), cls._patches,
+                                       cls._translations, 'input')
         return new_name
 
     @classmethod
@@ -506,12 +511,10 @@ class BaseClassModule(Module):
             script += "%s%s.%s(%s)" % (set_output, instance, method_name, parameters)
             return script
         patch_name = patches.pop()
-        patch = cls._patches[patch_name].strip()
-        template = Template(patch)
+        vars, patch = cls._patches[patch_name]
+        vars = copy.copy(vars)
         prelude = ''
         tail = ''
-        # get attributes in patch
-        vars = set([i[1] for i in Template.pattern.findall(patch)])
         d = {}
         # add attributes to patch
         if 'self' in vars:
@@ -558,8 +561,9 @@ class BaseClassModule(Module):
                                                   input_tuple, prepend_params)
         if vars:
             raise Exception('Unknown variables in patch: %s' % vars)
-        # return final patch
-        return prelude + template.substitute(d) + tail
+        script = RedBaron(patch)
+        rename_variables(script, d)
+        return prelude + script.dumps() + tail
 
     @classmethod
     def call_set_connection_methods_script(cls, module, code, instance,
@@ -585,7 +589,7 @@ class BaseClassModule(Module):
             # convert all values to vistrail types
             # FIXME: no need to rename translations inside loops
             loop_name = convert_port_script(loop_code, port, loop_name,
-                                cls._patches, 'input')
+                                cls._patches, cls._translations, 'input')
 
             if port.method_type == 'OnOff':
                 # This converts OnOff ports to XOn(), XOff() calls
@@ -724,7 +728,8 @@ class BaseClassModule(Module):
             # the code will only contain the output call
             new_variable = port_name
             module.output_names[port.name] = port_name = code_call
-        new_name = convert_port_script(code, port, port_name, cls._patches, 'output', new_variable)
+        new_name = convert_port_script(code, port, port_name, cls._patches,
+                                       cls._translations, 'output', new_variable)
         if new_name == new_variable:
             # translation had to create the new variable
             module.output_names[port.name] = new_name
@@ -780,7 +785,9 @@ class BaseClassModule(Module):
                 continue
             port_name = python_name(port, module.input_names)
             port_name = convert_port_script(code, pspec, port_name,
-                                            cls._patches, 'input')
+                                            cls._patches,
+                                            cls._translations,
+                                            'input')
             arg_dict[port] = port
 
         # Set functions manually (to correct depth)
@@ -882,8 +889,9 @@ class BaseClassModule(Module):
             if port and port.method_type == 'attribute':
                 port_name = python_name(port.name, module.input_names)
 
-                port_name = convert_port_script(code, port, port_name, cls._patches,
-                                    'input')
+                port_name = convert_port_script(code, port, port_name,
+                                                cls._patches, cls._translations,
+                                                'input')
                 code.append('%s.%s = %s' % (instance, port.arg, port_name))
 
     @classmethod
@@ -896,7 +904,8 @@ class BaseClassModule(Module):
             if port and port.method_type == 'attribute':
                 port_name = python_name(port.name, module.output_names)
                 code.append('%s = %s.' % (port_name, instance, port.arg))
-                convert_port_script(code, port, port_name, cls._patches,
+                convert_port_script(code, port, port_name,
+                                    cls._patches, cls._translations,
                                     'output')
 
     @classmethod
@@ -1050,7 +1059,7 @@ class BaseClassModule(Module):
         return (Script(code, inputs, outputs, skip_functions=True), preludes)
 
 
-def gen_class_module(spec, lib=None, modules=None, patches={},
+def gen_class_module(spec, lib=None, modules=None, patches={}, translations={},
                      operations={}, **module_settings):
     """Create a module from a python class specification
 
@@ -1107,6 +1116,7 @@ def gen_class_module(spec, lib=None, modules=None, patches={},
          '_module_spec': spec,
          'is_cacheable': lambda self:spec.cacheable,
          '_patches': patches,
+         '_translations': translations,
          '_class': [_class]} # Avoid attaching it to the class
 
     superklass = modules.get(spec.superklass, BaseClassModule)

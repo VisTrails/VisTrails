@@ -36,8 +36,10 @@
 
 from __future__ import division, absolute_import
 
-from itertools import izip, chain
+import os.path
 import re
+
+from itertools import izip, chain
 
 import vtk
 
@@ -131,146 +133,6 @@ disallowed_modules = set(
         'vtkGeoTerrainCache',
         'vtkMPIGroup'
     ])
-
-patches = {
-'guarded_SimpleScalarTree':
-"""
-$original
-# This builds the scalar tree
-$self.BuildTree()
-""",
-'guarded_Writer':
-"""
-# The behavior for vtkWriter subclasses is to call Write()
-# If the user sets a name, we will create a file with that name
-# If not, we will create a temporary file using _tempfile
-$output = $self.GetFileName()
-if not $output:
-    $output = $self._tempfile(suffix='.vtk')
-    $self.SetFileName($output)
-$self.Write()
-""",
-'guarded_SetFileName':
-"""
-# This checks for the presence of file in VTK readers
-# Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
-# it has other ways of specifying files, like SetFilePrefix for
-# multiple files
-import os
-if not os.path.isfile($self.GetFileName()):
-    raise Exception('File does not exist')
-$original
-""",
-'SetRenderWindow':
-"""
-import vtk
-window = vtk.vtkRenderWindow()
-w = 512
-h = 512
-window.OffScreenRenderingOn()
-window.SetSize(w, h)
-window.AddRenderer($input)
-window.Render()
-$self.SetRenderWindow(window)
-""",
-'TransferFunction':
-"""
-$input.set_on_vtk_volume_property($self)
-""",
-'PointData':
-"""
-$self.GetPointData().ShallowCopy($input)
-""",
-'CellData':
-"""
-$self.GetCellData().ShallowCopy($input)
-""",
-'PointIds':
-"""
-$self.GetPointIds().SetNumberOfIds($input.GetNumberOfIds())
-for i in xrange($input.GetNumberOfIds()):
-    $self.GetPointIds().SetId(i, $input.GetId(i))
-""",
-'CopyImportVoidPointer':
-"""
-$self.CopyImportVoidPointer($input, len($input))
-""",
-'GetFirstBlock':
-"""
-$output = $self.GetOutput().GetBlock(0)
-""",
-# Set magic tempfile
-'_set_tempfile':
-"""
-$self._tempfile = $input
-""",
-# Set magic callback
-'_set_callback':
-"""
-# Patch Update with callback
-import types
-old_Update = $self.Update
-def update_with_callback(self):
-    is_aborted = [False]
-    cbId = None
-    def ProgressEvent(obj, event):
-        try:
-            $input(obj.GetProgress())
-        except Exception, e:
-            if e.__name__ == 'AbortExecution':
-                obj.SetAbortExecute(True)
-                self.RemoveObserver(cbId)
-                is_aborted[0] = True
-            else:
-                raise
-    cbId = self.AddObserver('ProgressEvent', ProgressEvent)
-    old_Update()
-    self.RemoveObserver(cbId)
-$self.Update = types.MethodType(update_with_callback, $self)
-""",
-# Set initialize
-'_initialize':
-"""
-import locale
-$self._previous_locale = locale.setlocale(locale.LC_ALL)
-locale.setlocale(locale.LC_ALL, 'C')
-""",
-# Set cleanup
-'_cleanup':
-"""
-import locale
-locale.setlocale(locale.LC_ALL, $self._previous_locale)
-""",
-'SetLookupTable': # from fix_classes
-"""
-$self.UserControlledLookupTableOn()
-$original
-""",
-#basic:Color translation
-'basic:Color#input':
-"""
-$output = $input.tuple
-""",
-'basic:Color#output':
-"""
-from vistrails.core.utils import InstanceObject
-$output = InstanceObject(tuple=$input)
-""",
-#basic:File translation
-'basic:File#input':
-"""
-$output = $input.name
-""",
-'basic:File#output':
-"""
-vistrails.core.modules.basic_modules import PathObject
-$output = PathObject($input)
-""",
-'vtkInstanceDeprecation':
-"""
-$self.vtkInstance = $self
-""",
-}
 
 
 def create_module(base_cls_name, node):
@@ -1118,9 +980,16 @@ def parse(filename="vtk_raw.xml"):
                     continue
                 specs_list.extend(create_module("vtkObjectBase", child))
 
-    specs = SpecList(specs_list, patches=patches)
-    specs.write_to_xml(filename)
+    # Set up port translations as {type: (input_patch, output_patch)}
+    translations = {'basic:Color': ('basic_Color_input', 'basic_Color_output'),
+                    'basic:File': ('basic_File_input', 'basic_File_output')}
 
+    patch_name = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                               'vtk_patch.py'))
+
+    specs = SpecList(specs_list, translations=translations)
+    specs.write_to_xml(filename, patch_name)
+    # write patch file
 
 if __name__ == '__main__':
     parse()

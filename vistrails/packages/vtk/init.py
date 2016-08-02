@@ -229,6 +229,7 @@ def initialize():
     #vtk_classes.initialize(spec_name)
     _modules.extend([gen_class_module(spec, vtk, klasses,
                                       patches=specs.patches,
+                                      translations=specs.translations,
                                       signature=hasher.vtk_hasher)
                      for spec in specs.module_specs])
 
