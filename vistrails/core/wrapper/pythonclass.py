@@ -70,7 +70,7 @@ def python_name(name, names={}):
     # strip invalid chars
     name = re.sub('[^0-9a-zA-Z_]', '', name)
     # This function is used for instances and variables, transform to lowercase
-    name = re.sub('(?!^)([A-Z]+)', r'_\1', name).lower()
+    name = re.sub('(?!^)(?<=[a-z])([A-Z]+)', r'_\1', name).lower()
     base_name = name
     i = 0
     while name in names.itervalues() or name in reserved:
