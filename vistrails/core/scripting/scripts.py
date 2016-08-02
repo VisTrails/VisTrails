@@ -240,6 +240,9 @@ class Script(BaseScript):
         for port, var in list(self.inputs.iteritems()):
             if var in renames:
                 self.inputs[port] = renames[var]
+                # If there is an output with the same name, update that too
+                if renames[var] in self.outputs.values():
+                    self.outputs[port] = renames[var]
         for port, var in list(self.outputs.iteritems()):
             if var in renames:
                 self.outputs[port] = renames[var]
@@ -268,10 +271,10 @@ class Script(BaseScript):
         self.rename(renames)
 
     def set_input(self, port, varname):
-        if port in self.outputs and self.outputs[port] == self.inputs[port]:
+        if self.inputs[port] in self.outputs.values():
             # it is used as output as well so update the output name
-            self.rename({self.outputs[port]: varname})
-            self.outputs[port] = varname
+            inverse_output = dict([(v, k) for k, v in self.outputs.iteritems()])
+            self.set_output(inverse_output[self.inputs[port]], varname)
         self.rename({self.inputs[port]: varname})
         self.inputs[port] = varname
         self.unset_inputs.discard(port)

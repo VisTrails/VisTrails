@@ -246,8 +246,7 @@ class vtkInteractionHandler(NotCacheable, Module):
 
             code += "if hasattr(Observer.vtkInstance, 'PlaceWidget'):\n"
             code += "    Observer.vtkInstance.PlaceWidget()\n"
-            code += "Instance = Observer\n"
-        return Script(code, 'variables', 'variables'), preludes
+        return Script(code, 'variables', {'Instance': 'Observer'}), preludes
 
 
 _modules = [vtkInteractionHandler]
