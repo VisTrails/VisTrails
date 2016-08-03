@@ -1677,7 +1677,7 @@ class TestTranslations(unittest.TestCase):
     def run_workflow_translation_test(self, version):
         bundle = None
         try:
-            s = vtbundle.get_serialzier("zip_serializer")
+            s = vtbundle.get_serializer("zip_serializer")
             bundle = s.load(self.get_filename())
             vt = bundle.vistrail
             # 258 is Image Slices HW in terminator.vt
