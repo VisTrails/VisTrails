@@ -415,8 +415,8 @@ def generate_api_code(module):
     preludes = []
     desc = module.module_descriptor
     pkg_name = desc.identifier.replace('.', '_')
-    preludes.append(Prelude('import vistrails.core.scripting.api as api'))
-    preludes.append(Prelude("%s = api.Package(%r)" % (
+    preludes.append(Prelude('import vistrails'))
+    preludes.append(Prelude("%s = vistrails.Package(%r)" % (
                             pkg_name, desc.identifier)))
     code = ''
     # instance does not need to be stored, we use it as a function
