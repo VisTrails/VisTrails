@@ -302,6 +302,7 @@ class Bundle(BundleObjDictionary):
         self._mapping = mapping
         self._serializer = None
         self._metadata = {}
+        self._structure_changed = False
 
     @property
     def bundle_type(self):
@@ -315,17 +316,32 @@ class Bundle(BundleObjDictionary):
     def mapping(self):
         return self._mapping
 
+    def has_changes(self):
+        if self._structure_changed:
+            return True
+        for k1, k2, b_obj in self.get_items():
+            if hasattr(b_obj.obj, 'has_changes') and b_obj.obj.has_changes():
+                return True
+        return False
+
+    def reset_changed(self):
+        self._structure_changed = False
+        # assume that db code will reset the other changed flags
+        # FIXME may need to check for objects that aren't saved to bundle?
+
     def add_object(self, obj, obj_type=None):
         if not isinstance(obj, BundleObj):
             # check for BundleObjMapping, raises exception if cannot
             obj = self.mapping.create_bundle_obj(obj, obj_type)
         self.add_entry(obj, obj)
+        self._structure_changed = True
 
     def remove_object(self, obj, obj_type=None):
         if not isinstance(obj, BundleObj):
             # check for BundleObjMapping
             obj = self.mapping.create_bundle_obj(obj, obj_type)
         self.remove_entry(obj)
+        self._structure_changed = True
 
     def change_object(self, obj, obj_type=None):
         #FIXME path for LazyBundleObj -> BundleObj change?
@@ -334,14 +350,17 @@ class Bundle(BundleObjDictionary):
             obj = self.mapping.create_bundle_obj(obj, obj_type)
             raise VistrailsDBException('Can only change BundleObj objects.')
         self.change_entry(obj, obj)
+        self._structure_changed = True
 
     def add_lazy_object(self, obj):
         if not isinstance(obj, LazyBundleObj):
             raise VistrailsDBException('Can only add LazyBundleObj objects.')
         self.add_entry((obj.obj_type, obj.id), obj)
+        self._structure_changed = True
 
     def remove_lazy_object(self, obj):
         self.remove_entry(obj)
+        self._structure_changed = True
 
     def get_bundle_obj(self, obj_type, obj_id=None):
         return self.get_value((obj_type, obj_id))
@@ -378,6 +397,7 @@ class Bundle(BundleObjDictionary):
 
     def set_metadata(self, k, v):
         self._metadata[k] = v
+        self._structure_changed = True
 
     def cleanup(self):
         if self.serializer is not None:
