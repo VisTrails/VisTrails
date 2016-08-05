@@ -34,6 +34,7 @@
 ##
 ###############################################################################
 
+import collections
 import zipfile
 
 from vistrails.core import debug
@@ -266,15 +267,23 @@ class BundleMapping(object):
         raise VistrailsDBException('Do not know how to create BundleObj for '
                                    'obj "%s", add BundleObjMapping')
 
-    def get_obj_from_bundle(self, bundle, name):
+    def get_name_info(self, name):
+        mapping = None
+        plural = False
         if name in self._mappings_by_name:
             mapping = self._mappings_by_name[name]
             if mapping.attr_plural_name == name:
+                plural = True
+        return mapping, plural
+
+    def get_obj_from_bundle(self, bundle, name):
+        mapping, plural = self.get_name_info(name)
+        if mapping is not None:
+            if plural:
                 if bundle.has_entries(mapping.obj_type):
-                    # return all of them
                     return [bo.obj for bo in bundle.get_values(mapping.obj_type)]
                 return []
-            else: # have single attr name
+            else:
                 if bundle.has_entry(mapping.obj_type, None):
                     return bundle.get_value((mapping.obj_type, None)).obj
         return None
@@ -292,6 +301,55 @@ class BundleMapping(object):
         return BundleMapping(version, bundle_type, self.mappings(),
                              primary_obj_type)
 
+class BundleList(list):
+    # FIXME want to limit the methods here? cover more?
+    # only really care when the list items themselves are changed
+    # checking objects is done recursively via has_changes calls
+    def __init__(self, parent, obj_type, initial=[]):
+        self._parent = parent
+        self._obj_type = obj_type
+        super(BundleList, self).__init__(initial)
+
+    def remove(self, x):
+        self._parent.remove_object(x, self._obj_type)
+        super(BundleList, self).remove(x)
+
+    def pop(self, i=-1):
+        self._parent.remove_object(self[i], self._obj_type)
+        return super(BundleList, self).pop(i)
+
+    def insert(self, i, x):
+        self._parent.add_object(x, self._obj_type)
+        super(BundleList, self).insert(i, x)
+
+    def __iadd__(self, y):
+        for x in y:
+            self._parent.add_object(x, self._obj_type)
+        return super(BundleList, self).__iadd__(y)
+
+    def extend(self, t):
+        for x in t:
+            self._parent.add_object(x, self._obj_type)
+        super(BundleList, self).extend(t)
+
+    def append(self, x):
+        self._parent.add_object(x, self._obj_type)
+        super(BundleList, self).append(x)
+
+    def __delslice__(self, i, j):
+        for x in self[i:j]:
+            self._parent.remove_object(x, self._obj_type)
+        return super(BundleList, self).__delslice__(i, j)
+
+    def __setitem__(self, i, y):
+        self._parent.remove_object(self[i], self._obj_type)
+        self._parent.add_object(y, self._obj_type)
+        super(BundleList, self).__setitem__(i, y)
+
+    def __delitem__(self, i):
+        self._parent.remove_object(self[i], self._obj_type)
+        super(BundleList, self).__delitem__(i)
+
 
 class Bundle(BundleObjDictionary):
     """ Assume a bundle contains a set of objects.  If an object is a list
@@ -303,6 +361,7 @@ class Bundle(BundleObjDictionary):
         self._serializer = None
         self._metadata = {}
         self._structure_changed = False
+        self._locator = None
 
     @property
     def bundle_type(self):
@@ -315,6 +374,14 @@ class Bundle(BundleObjDictionary):
     @property
     def mapping(self):
         return self._mapping
+
+    @property
+    def locator(self):
+        return self._locator
+
+    @locator.setter
+    def locator(self, locator):
+        self._locator = locator
 
     def has_changes(self):
         if self._structure_changed:
@@ -427,8 +494,13 @@ class Bundle(BundleObjDictionary):
     def __getattr__(self, item):
         """ Returns the default bundleobj(s) of the specified type or None
         """
+        mapping, plural = self._mapping.get_name_info(item)
+        if plural:
+            # return a trackable list
+            # alternately make this an ordered dictionary?
+            items = self._mapping.get_obj_from_bundle(self, item)
+            return BundleList(self, mapping.obj_type, items)
         return self._mapping.get_obj_from_bundle(self, item)
-
 
 class BundleObjSerializer(object):
     def __init__(self, bundle_obj_mapping):
