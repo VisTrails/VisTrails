@@ -193,7 +193,7 @@ class VistrailController(object):
         self.layoutTheme = DefaultCoreTheme()
         
         # job monitor
-        self.jobMonitor = None
+        self.job_monitor = None
 
         # bundle associated with this controller
         self.bundle = None
@@ -262,11 +262,12 @@ class VistrailController(object):
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
             if mashups is not None:
                 self._mashups = mashups
+            # FIXME this should be done as a bundle translation at the db level
             if not jobs:
                 # <2.2 stored jobs as annotations
                 jobs = vistrail.get_annotation('__jobs__')
                 jobs = jobs and jobs.value
-            self.jobMonitor = JobMonitor(jobs)
+            self.job_monitor = JobMonitor(jobs)
 
             if bundle is not None:
                 # call package hooks
@@ -3942,10 +3943,12 @@ class VistrailController(object):
 
         bundle = new_bundle()
 
+        # FIXME this should be part of the bundle serialization not here
         # Save jobs
-        if self.jobMonitor.workflows:
-            bundle.add_object(self.jobMonitor.serialize(), 'job')
+        if self.job_monitor.workflows:
+            bundle.add_object(self.job_monitor.serialize(), 'job')
 
+        # FIXME think this should be handled at bundle level...
         # add vistrail
         if export:
             bundle.add_object(self.vistrail.do_copy())

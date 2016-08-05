@@ -445,7 +445,7 @@ class VistrailController(QtCore.QObject, BaseController):
             version_id = self.current_version
             # check if a job exist for this workflow
             current_workflow = None
-            for wf in self.jobMonitor.workflows.itervalues():
+            for wf in self.job_monitor.workflows.itervalues():
                 try:
                     wf_version = int(wf.version)
                 except ValueError:
@@ -456,10 +456,10 @@ class VistrailController(QtCore.QObject, BaseController):
                         continue
                 if version_id == wf_version:
                     current_workflow = wf
-                    self.jobMonitor.startWorkflow(wf)
+                    self.job_monitor.startWorkflow(wf)
             if not current_workflow:
                 current_workflow = JobWorkflow(version_id)
-                self.jobMonitor.startWorkflow(current_workflow)
+                self.job_monitor.startWorkflow(current_workflow)
 
         if self.current_pipeline:
             locator = self.get_locator()
@@ -500,7 +500,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress.show()
 
-            if not self.jobMonitor.currentWorkflow():
+            if not self.job_monitor.currentWorkflow():
                 self.create_job = True
 
             result = self.execute_current_workflow(reason=reason, sinks=sinks)
@@ -508,7 +508,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress.setValue(100)
         finally:
             jobView.updating_now = False
-            self.jobMonitor.finishWorkflow()
+            self.job_monitor.finishWorkflow()
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
@@ -1353,7 +1353,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                        os.path.join(extra_info['pathDumpCells'], name)
                     pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
                     kwargs = {'locator': self.locator,
-                              'job_monitor': self.jobMonitor,
+                              'job_monitor': self.job_monitor,
                               'current_version': self.current_version,
                               'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
                               'logger': self.get_logger(),
@@ -1375,18 +1375,18 @@ class VistrailController(QtCore.QObject, BaseController):
                     job_id = 'Parameter Exploration %s %s %s_%s_%s' % ((self.current_version, pe.id) + pipelinePositions[pi])
 
                     current_workflow = None
-                    for wf in self.jobMonitor.workflows.itervalues():
+                    for wf in self.job_monitor.workflows.itervalues():
                         if job_id == wf.version:
                             current_workflow = wf
-                            self.jobMonitor.startWorkflow(wf)
+                            self.job_monitor.startWorkflow(wf)
                             break
                     if not current_workflow:
                         current_workflow = JobWorkflow(job_id)
-                        self.jobMonitor.startWorkflow(current_workflow)
+                        self.job_monitor.startWorkflow(current_workflow)
                     try:
                         result = interpreter.execute(modifiedPipelines[pi], **kwargs)
                     finally:
-                        self.jobMonitor.finishWorkflow()
+                        self.job_monitor.finishWorkflow()
 
                     for error in result.errors.itervalues():
                         if use_spreadsheet:

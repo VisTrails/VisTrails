@@ -112,7 +112,7 @@ def run_and_get_results(w_list, parameters='',
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        jobMonitor = controller.jobMonitor
+        jobMonitor = controller.job_monitor
         current_workflow = jobMonitor.currentWorkflow()
         if not current_workflow:
             for job in jobMonitor.workflows.itervalues():

@@ -676,10 +676,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         text = "### Workflows with jobs ###\n"
         text += "workflow | start date | status\n"
         text += '\n'.join(
-            ["%s %s %s" %(j.version,
+            ["%s %s %s" % (j.version,
                           j.start,
                           "FINISHED" if j.completed() else "RUNNING")
-             for i, j in controller.jobMonitor.workflows.iteritems()])
+             for i, j in controller.job_monitor.workflows.iteritems()])
         print text
         return text
 
@@ -689,7 +689,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                         auto_save=False)
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"
-        workflow = [wf for wf in controller.jobMonitor.workflows.itervalues()
+        workflow = [wf for wf in controller.job_monitor.workflows.itervalues()
                     if wf.version == int(version)]
         if len(workflow) < 1:
             text = "No job for workflow with id %s" % version

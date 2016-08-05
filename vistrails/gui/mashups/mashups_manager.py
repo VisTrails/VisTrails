@@ -186,7 +186,7 @@ class MashupsManager(object):
                                               pipeline_view=view)
         current_log = vt_controller.log
         newvt_controller.log = current_log
-        newvt_controller.jobMonitor = vt_controller.jobMonitor
+        newvt_controller.job_monitor = vt_controller.jobMonitor
         newvt_controller.disable_autosave()
         return newvt_controller
     
@@ -196,7 +196,7 @@ class MashupsManager(object):
         newvt_controller = BaseVistrailController(vistrail, None)
         current_log = vt_controller.log
         newvt_controller.log = current_log
-        newvt_controller.jobMonitor = vt_controller.jobMonitor
+        newvt_controller.job_monitor = vt_controller.jobMonitor
         # DAK: why does the base version copy the _mashups but the non-base
         # version doesn't??
         for m in vt_controller._mashups:
