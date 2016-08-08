@@ -712,7 +712,10 @@ class BaseClassModule(Module):
         #code.append("%s = %s.%s(%s)" % (port.name, instance, port.arg,
         #                              prepend_params))
 
-        create_output_variable = bool(get_patches(cls, port.arg))
+        # We can avoid creating an output variable if there are no patches,
+        # But this can create problems if we are only allowed to call
+        # the output method once, so this is disabled for now.
+        create_output_variable = True # bool(get_patches(cls, port.arg))
         port_name = python_name(port.name, module.output_names)
         if create_output_variable:
             output = port_name
