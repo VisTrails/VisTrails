@@ -1,0 +1,22 @@
+<workflow id="0" name="untitled" version="1.0.4" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/workflow.xsd">
+  <connection id="57">
+    <port id="114" moduleId="30" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+    <port id="115" moduleId="31" moduleName="PythonSource" name="combine" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
+  </connection>
+  <module cache="1" id="30" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="41" x="28.289446186" y="-7.70323928955" />
+    <function id="27" name="value" pos="0">
+      <parameter alias="" id="66" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="1" />
+    </function>
+  </module>
+  <module cache="1" id="31" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="42" x="18.7220480669" y="-103.370950888" />
+    <function id="28" name="source" pos="0">
+      <parameter alias="" id="68" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="assert%28combine%20%3D%3D%20%5B1%5D%29%0A" />
+    </function>
+    <annotation id="66" key="__desc__" value="check [1]" />
+    <portSpec depth="1" id="41" maxConns="-1" minConns="0" name="combine" optional="0" sortKey="0" type="input">
+      <portSpecItem default="" entryType="" id="8" label="" module="Integer" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+</workflow>
