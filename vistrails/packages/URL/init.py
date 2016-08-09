@@ -804,7 +804,7 @@ class TestDownloadFile(unittest.TestCase):
 
     def testIncorrectURL(self):
         from vistrails.tests.utils import execute
-        self.assertFalse(execute([
+        self.assertTrue(execute([
                 ('DownloadFile', identifier, [
                     ('url', [('String', 'http://idbetthisdoesnotexistohrly')]),
                 ]),
@@ -812,7 +812,7 @@ class TestDownloadFile(unittest.TestCase):
 
     def testIncorrectURL_2(self):
         from vistrails.tests.utils import execute
-        self.assertFalse(execute([
+        self.assertTrue(execute([
                 ('DownloadFile', identifier, [
                     ('url', [('String', 'http://neitherodesthisohrly')]),
                 ]),

@@ -107,9 +107,9 @@ def write_workflow_to_python(pipeline):
     # Writes the preludes
     for prelude in final_preludes:
         text.append(prelude)
-    #if preludes:
+    if preludes:
+        text.append('')
     #    text.append('# PRELUDE ENDS -- pipeline code follows\n\n')
-    text.append('')
 
     # ########################################
     # Walk through the pipeline a second time to generate the full script
@@ -578,9 +578,9 @@ s3 = ['1', '2', '3']
 # CONNECTION str2 s2
 # CONNECTION str3 s3
 value = []
-for (s1Item, (s2Item, s3Item)) in product(s1, izip(s2, s3)):
-    valueItem = s1Item + s2Item + s3Item
-    value.append(valueItem)
+for (s1_item, (s2_item, s3_item)) in product(s1, izip(s2, s3)):
+    value_item = s1_item + s2_item + s3_item
+    value.append(value_item)
 
 
 # MODULE 25 org.vistrails.vistrails.basic:PythonSource
@@ -634,10 +634,10 @@ s2 = ['1', '2', '3']
 # CONNECTION str1 s1
 # CONNECTION str2 s2
 value = []
-for s1Item in s1:
-    for s2Item in s2:
-        valueItem = s1Item + s2Item
-        value.append(valueItem)
+for s1_item in s1:
+    for s2_item in s2:
+        value_item = s1_item + s2_item
+        value.append(value_item)
 
 
 # MODULE 23 org.vistrails.vistrails.basic:PythonSource
@@ -661,9 +661,9 @@ s2 = ['1', '2', '3']
 # CONNECTION str2 s2
 # CONNECTION str1 s1
 value = []
-for s1Item, s2Item in izip(s1, s2):
-    valueItem = s1Item + s2Item
-    value.append(valueItem)
+for s1_item, s2_item in izip(s1, s2):
+    value_item = s1_item + s2_item
+    value.append(value_item)
 
 
 # MODULE 25 org.vistrails.vistrails.basic:PythonSource
@@ -688,9 +688,9 @@ s2 = ['1', '2', '3']
 # CONNECTION str2 s2
 # CONNECTION str1 s1
 value = []
-for (s2Item, s1Item) in product(s2, s1):
-    valueItem = s1Item + s2Item
-    value.append(valueItem)
+for (s2_item, s1_item) in product(s2, s1):
+    value_item = s1_item + s2_item
+    value.append(value_item)
 
 
 # MODULE 28 org.vistrails.vistrails.basic:PythonSource
