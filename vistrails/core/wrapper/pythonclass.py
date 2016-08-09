@@ -369,7 +369,10 @@ class BaseClassModule(Module):
             self.call_patched(instance, spec.callback, [callback])
         # Optional function for creating temporary files
         if spec.tempfile:
-            self.call_patched(instance, spec.tempfile, [self.interpreter.filePool.create_file])
+            # use function that returns PathObject.name
+            def unwrap_tempfile(*args, **kwargs):
+                return self.interpreter.filePool.create_file(*args, **kwargs).name
+            self.call_patched(instance, spec.tempfile, [unwrap_tempfile])
 
         # set input attributes on instance
         self.set_attributes(instance)
