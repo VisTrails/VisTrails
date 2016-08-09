@@ -186,15 +186,14 @@ class vtkRendererOutput(OutputModule):
         # perform appropriate camera or actor manipulation depending on the
         # nature of the events.
         code += 'renWin = vtk.vtkRenderWindow()\n'
-        code += 'renWin.AddRenderer(value[0].vtkInstance)\n'
+        code += 'for value_item in value:\n'
+        code += '    renWin.AddRenderer(value_item)\n'
         code += 'iren = vtk.vtkRenderWindowInteractor()\n'
         code += 'iren.SetRenderWindow(renWin)\n'
         code += 'renWin.SetSize(1024, 768)\n'
         # This allows the interactor to initalize itself. It has to be
         # called before an event loop.
         code += 'iren.Initialize()\n'
-        # We'll zoom in a little by accessing the camera and invoking a "Zoom"
-        # method on it.
         code += 'renWin.Render()\n'
         # Start the event loop.
         code += 'iren.Start()'

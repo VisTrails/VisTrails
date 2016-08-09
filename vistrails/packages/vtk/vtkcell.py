@@ -132,7 +132,8 @@ class VTKCell(SpreadsheetCell):
         # perform appropriate camera or actor manipulation depending on the
         # nature of the events.
         code += 'renWin = vtk.vtkRenderWindow()\n'
-        code += 'renWin.AddRenderer(AddRenderer[0].vtkInstance)\n'
+        code += 'for renderer_item in AddRenderer:\n'
+        code += '    renWin.AddRenderer(renderer_item)\n'
         code += 'iren = vtk.vtkRenderWindowInteractor()\n'
         code += 'iren.SetRenderWindow(renWin)\n'
         code += 'renWin.SetSize(1024, 768)\n'
@@ -143,8 +144,6 @@ class VTKCell(SpreadsheetCell):
         if "InteractionHandler" in module.connected_input_ports:
             code += 'for iHandler in InteractionHandler:\n'
             code += '    iHandler.SetInteractor(iren)\n'
-        # We'll zoom in a little by accessing the camera and invoking a "Zoom"
-        # method on it.
         code += 'renWin.Render()\n'
         # Start the event loop.
         code += 'iren.Start()'
