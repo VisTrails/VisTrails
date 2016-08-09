@@ -471,9 +471,15 @@ def build_remap(module_name=None):
                     if c in ports:
                         dest_port = c
                         break
+            output_port_spec = get_output_port_spec(new_module, 'StructuredGrid')
+            src_port = Port(name=output_port_spec.name,
+                            type='source',
+                            spec=output_port_spec,
+                            moduleId=new_module.id,
+                            moduleName=new_module.name)
             conn = create_new_connection(controller,
                                          new_module,
-                                         'StructuredGrid',
+                                         src_port,
                                          module1,
                                          dest_port)
             return [('add', conn)]
@@ -678,11 +684,19 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
     except ImportError:
         # Manually upgrade to 1.0.1
-        if _remap.get_module_remaps(module_name):
+        # Handle module name remap
+        old_name = module_name
+        for on, nn in module_name_remap.iteritems():
+            if old_name == nn:
+                old_name = on
+        if _remap.get_module_remaps(old_name):
             module_remap = copy.copy(_remap)
-            module_remap.add_module_remap(
-                    UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
-                                       module_name=module_name))
+            remap = module_remap.get_module_upgrade(module_name, '1.0.0')
+            if remap is None:
+                # Manually upgrade to 1.0.1
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                           module_name=module_name))
         else:
             module_remap = _remap
     else:
@@ -691,7 +705,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 'VTKCell', 'vtkRendererOutput',
                 '1.0.1', 'AddRenderer',
                 start_version='1.0.0')
-        if _remap.get_module_remaps(module_name):
+        # Handle module name remap
+        old_name = module_name
+        for on, nn in module_name_remap.iteritems():
+            if old_name == nn:
+                old_name = on
+        if _remap.get_module_remaps(old_name):
             remap = module_remap.get_module_upgrade(module_name, '1.0.0')
             if remap is None:
                 # Manually upgrade to 1.0.1
