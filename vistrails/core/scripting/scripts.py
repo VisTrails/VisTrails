@@ -84,7 +84,7 @@ class BaseScript(object):
                 print("    %s: %d" % (v, c))
 
     def __unicode__(self):
-        return self.source.dumps()
+        return self.source.dumps().strip()
 
 
 class Prelude(BaseScript):
