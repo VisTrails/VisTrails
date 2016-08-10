@@ -867,6 +867,13 @@ class Tuple(Module):
         self.values = values
         self.set_output("value", values)
 
+    @classmethod
+    def to_python_script(cls, module):
+        input_ports_order = [p.name for p in module.input_port_specs]
+        code = 'value = ' + str(tuple(input_ports_order)).replace("'", '')
+        return Script(code, inputs='variables', outputs='variables')
+
+
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
     reverses the actions of Tuple.
@@ -894,6 +901,14 @@ class Untuple(Module):
             values = self.get_input("value")
         for p, value in izip(self.output_ports_order, values):
             self.set_output(p, value)
+
+    @classmethod
+    def to_python_script(cls, module):
+        output_ports_order = [p.name for p in module.output_port_specs]
+        code = str(tuple(output_ports_order)).replace("'", ''
+                                            ).replace('(', ''
+                                            ).replace(')', '') + '= value'
+        return Script(code, inputs='variables', outputs='variables')
 
 ##############################################################################
 
