@@ -589,7 +589,6 @@ expected = 'A+1A-2A*3B+1B-2B*3C+1C-2C*3'
 # CONNECTION s1 value
 result = ''.join(value)
 assert(result==expected)
-
 """)
 
     def test_loop_wrap(self):
@@ -602,7 +601,6 @@ value = 1
 # CONNECTION combine value
 combine = [value]
 assert(combine == [1])
-
 """)
 
     def test_loop_append_mixed(self):
@@ -620,7 +618,6 @@ value = 5
 # CONNECTION i o
 i = [value] + o
 assert(len(i) == 4)
-
 """)
 
     def test_loop_cartesian(self):
@@ -672,7 +669,6 @@ expected = 'A1B2C3'
 # CONNECTION s1 value
 result = ''.join(value)
 assert(result == expected)
-
 """)
 
     def test_loop_cartesian_reversed(self):
@@ -699,5 +695,4 @@ expected = 'A1B1C1A2B2C2A3B3C3'
 # CONNECTION s1 value
 result = ''.join(value)
 assert(result == expected)
-
 """)
