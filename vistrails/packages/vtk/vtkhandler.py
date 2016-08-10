@@ -228,15 +228,14 @@ class vtkInteractionHandler(NotCacheable, Module):
                     source = urllib.unquote(str(f.parameters[0].strValue))
             code += source + '\n'
 
-            code += 'if len(SharedData)==1:\n'
-            code += '    SharedData = SharedData[0]\n'
+            code += 'sd = SharedData[0] if len(SharedData)==1 else SharedData\n'
 
             # Add eventHandler
             code += "def eventHandler(obj, event):\n"
             code += "     f = event[0].lower() + event[1:]\n"
             code += "     f = f.replace('Event', 'Handler')\n"
             code += "     if f in locals():\n"
-            code += "         locals(f)(obj, SharedData)\n"
+            code += "         locals(f)(obj, sd)\n"
 
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
@@ -244,9 +243,10 @@ class vtkInteractionHandler(NotCacheable, Module):
                 if f in source:
                     code += "Observer.AddObserver('%s', eventHandler)\n" % e
 
-            code += "if hasattr(Observer.vtkInstance, 'PlaceWidget'):\n"
-            code += "    Observer.vtkInstance.PlaceWidget()\n"
-        return Script(code, 'variables', {'Instance': 'Observer'}), preludes
+            code += "if hasattr(Observer, 'PlaceWidget'):\n"
+            code += "    Observer.PlaceWidget()\n"
+            code += "Instance = Observer\n"
+        return Script(code, 'variables', 'variables'), preludes
 
 
 _modules = [vtkInteractionHandler]

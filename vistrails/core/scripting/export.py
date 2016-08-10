@@ -441,7 +441,7 @@ def generate_api_code(module):
     input_ports = set(reg.module_destination_ports_from_descriptor(False, desc))
     input_ports.update(module.input_port_specs)
     for iport in input_ports:
-        if iport.defaults:
+        if iport.defaults and not all([d is None for d in iport.defaults]):
             used_ports.add(iport.name)
     # This does not work with VTK because ports have already been merged into connections
     kwargs = {}
