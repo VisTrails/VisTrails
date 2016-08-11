@@ -121,7 +121,7 @@ def execute_wf(wf, output_port):
         # Build a controller and execute
         controller = VistrailController()
         controller.set_vistrail(vistrail, None)
-        controller.change_selected_version(vistrail.get_version_number(tag))
+        controller.change_selected_version(vistrail.get_version_id(tag))
         execution = controller.execute_current_workflow(
                 custom_aliases=None,
                 custom_params=None,

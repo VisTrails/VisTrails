@@ -1338,8 +1338,8 @@ class TestDiffView(TestVisTrailsGUI):
         view = vistrails.api.open_vistrail_from_file(filename)
         view.controller.change_selected_version(0)
         # get tags
-        v1 = view.controller.vistrail.get_version_number('Volume Rendering HW')
-        v2 = view.controller.vistrail.get_version_number('Volume Rendering SW')
+        v1 = view.controller.vistrail.get_version_id('Volume Rendering HW')
+        v2 = view.controller.vistrail.get_version_id('Volume Rendering SW')
 
         hideUpgrades = getattr(get_vistrails_configuration(), 'hideUpgrades', True)
         # without upgrades

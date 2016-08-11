@@ -391,7 +391,7 @@ class VistrailsApplicationInterface(object):
         if isinstance(version, basestring):
             try:
                 version = \
-                    self.get_controller().vistrail.get_version_number(version)
+                    self.get_controller().vistrail.get_version_id(version)
             except Exception, e:
                 debug.unexpected_exception(e)
                 version = None

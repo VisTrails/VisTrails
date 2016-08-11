@@ -866,7 +866,7 @@ class QVistrailList(QtGui.QTreeWidget):
             if isinstance(version, str):
                 try:
                     version = \
-                        view.controller.vistrail.get_version_number(version)
+                        view.controller.vistrail.get_version_id(version)
                 except Exception:
                     version = None
             if self.searchMode:

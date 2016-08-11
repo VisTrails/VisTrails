@@ -453,7 +453,7 @@ class VistrailController(QtCore.QObject, BaseController):
                     wf_version = int(wf.version)
                 except ValueError:
                     try:
-                        wf_version = self.vistrail.get_version_number(wf.version)
+                        wf_version = self.vistrail.get_version_id(wf.version)
                     except KeyError:
                         # this is a PE or mashup
                         continue

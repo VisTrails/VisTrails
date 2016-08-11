@@ -278,7 +278,7 @@ class Vistrail(DBVistrail):
         """
         return len(self.actionMap)
 
-    def get_version_number(self, version):
+    def get_version_id(self, version):
         """get_version_number(version) -> Integer
         Returns the version number given a tag.
 
