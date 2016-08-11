@@ -156,15 +156,18 @@ class ${obj.getClassName()}(object):
         % endif
         % endif
         % endfor
-        
+
+        % if obj.getKey() is not None or len(obj.getForeignKeys()) > 0:
         # set new ids
         if new_ids:
+            % if obj.getKey() is not None:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self.${obj.getKey().getPrivateName()})] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self.${obj.getKey().getPrivateName()})] = new_id
+            cp.${obj.getKey().getPrivateName()} = new_id
+            % endif
             % if len(obj.getForeignKeys()) > 0:
             % for field in obj.getForeignKeys():
             <% 
@@ -183,7 +186,8 @@ class ${obj.getClassName()}(object):
                                         self.${field.getPrivateName()})]
             % endfor
             % endif
-        
+        % endif
+
         # recreate indices and set flags
         % for field in obj.getPythonFields():
         % if len(field.getAllIndices()) > 0:
