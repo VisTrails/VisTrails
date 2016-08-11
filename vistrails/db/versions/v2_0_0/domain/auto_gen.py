@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -81,16 +81,8 @@ class DBOpmWasGeneratedBy(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -325,16 +317,16 @@ class DBConfigKey(object):
         cp = DBConfigKey(name=self._db_name)
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_name)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_name)] = new_id
+            cp._db_name = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -460,16 +452,16 @@ class DBMashupAlias(object):
                            name=self._db_name)
         if self._db_component is not None:
             cp._db_component = self._db_component.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -643,16 +635,16 @@ class DBGroup(object):
             cp._db_controlParameters = []
         else:
             cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -1121,16 +1113,8 @@ class DBOpmWasControlledBy(object):
             cp._db_ends = []
         else:
             cp._db_ends = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_ends]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1416,20 +1400,20 @@ class DBAdd(object):
                    parentObjType=self._db_parentObjType)
         if self._db_data is not None:
             cp._db_data = self._db_data.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
                 cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
             if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
                 cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1669,16 +1653,8 @@ class DBProvGeneration(object):
             cp._db_prov_entity = self._db_prov_entity.do_copy(new_ids, id_scope, id_remap)
         if self._db_prov_activity is not None:
             cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1837,16 +1813,8 @@ class DBOpmUsed(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2077,18 +2045,12 @@ class DBOpmArtifactIdCause(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmArtifactIdCause(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_artifact', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2149,18 +2111,12 @@ class DBRefProvEntity(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvEntity(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2233,16 +2189,16 @@ class DBVtConnection(object):
                             vt_dest_port=self._db_vt_dest_port,
                             vt_source_signature=self._db_vt_source_signature,
                             vt_dest_signature=self._db_vt_dest_signature)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2414,16 +2370,16 @@ class DBOpmAccount(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAccount(id=self._db_id,
                           value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2545,20 +2501,20 @@ class DBGroupExec(object):
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
                 cp._db_module_id = id_remap[('module', self._db_module_id)]
             if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
                 cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
-        
+
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -2929,18 +2885,12 @@ class DBOpmAgentId(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAgentId(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_agent', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_agent', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -3011,16 +2961,16 @@ class DBParameter(object):
                          type=self._db_type,
                          val=self._db_val,
                          alias=self._db_alias)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -3276,16 +3226,16 @@ class DBVistrail(object):
             cp._db_actionAnnotations = []
         else:
             cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_tags_id_index = dict((v.db_id, v) for v in cp._db_tags)
@@ -3938,16 +3888,8 @@ class DBOpmArtifactValue(object):
         cp = DBOpmArtifactValue()
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4033,16 +3975,8 @@ class DBConfigStr(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigStr(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4115,16 +4049,8 @@ class DBStartup(object):
             cp._db_enabled_packages = self._db_enabled_packages.do_copy(new_ids, id_scope, id_remap)
         if self._db_disabled_packages is not None:
             cp._db_disabled_packages = self._db_disabled_packages.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4355,16 +4281,16 @@ class DBModule(object):
             cp._db_portSpecs = []
         else:
             cp._db_portSpecs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -4850,18 +4776,18 @@ class DBPort(object):
                     moduleName=self._db_moduleName,
                     name=self._db_name,
                     signature=self._db_signature)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_moduleId') and ('module', self._db_moduleId) in id_remap:
                 cp._db_moduleId = id_remap[('module', self._db_moduleId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -5024,16 +4950,8 @@ class DBOpmAgents(object):
             cp._db_agents = []
         else:
             cp._db_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_agents]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_agents_id_index = dict((v.db_id, v) for v in cp._db_agents)
         if not new_ids:
@@ -5153,16 +5071,8 @@ class DBOpmDependencies(object):
             cp._db_dependencys = []
         else:
             cp._db_dependencys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_dependencys]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -5291,18 +5201,18 @@ class DBPEFunction(object):
             cp._db_parameters = []
         else:
             cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
                 cp._db_module_id = id_remap[('module', self._db_module_id)]
-        
+
         # recreate indices and set flags
         cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
         if not new_ids:
@@ -5557,18 +5467,18 @@ class DBWorkflow(object):
             cp._db_others = []
         else:
             cp._db_others = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_others]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
                 cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
-        
+
         # recreate indices and set flags
         cp.db_modules_id_index = dict((v.db_id, v) for v in cp._db_modules)
         cp.db_connections_id_index = dict((v.db_id, v) for v in cp._db_connections)
@@ -6075,18 +5985,18 @@ class DBMashupAction(object):
                             user=self._db_user)
         if self._db_mashup is not None:
             cp._db_mashup = self._db_mashup.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_prevId') and ('mashup_action', self._db_prevId) in id_remap:
                 cp._db_prevId = id_remap[('mashup_action', self._db_prevId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -6249,16 +6159,8 @@ class DBConfiguration(object):
             cp._db_config_keys = []
         else:
             cp._db_config_keys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_config_keys]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_config_keys_name_index = dict((v.db_name, v) for v in cp._db_config_keys)
         if not new_ids:
@@ -6384,22 +6286,22 @@ class DBChange(object):
                       parentObjType=self._db_parentObjType)
         if self._db_data is not None:
             cp._db_data = self._db_data.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_oldObjId') and (self._db_what, self._db_oldObjId) in id_remap:
                 cp._db_oldObjId = id_remap[(self._db_what, self._db_oldObjId)]
             if hasattr(self, 'db_newObjId') and (self._db_what, self._db_newObjId) in id_remap:
                 cp._db_newObjId = id_remap[(self._db_what, self._db_newObjId)]
             if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
                 cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -6675,16 +6577,16 @@ class DBPackage(object):
             cp._db_module_descriptors = []
         else:
             cp._db_module_descriptors = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_descriptors]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_module_descriptors_id_index = dict((v.db_id, v) for v in cp._db_module_descriptors)
         cp.db_module_descriptors_name_index = dict(((v.db_name,v.db_namespace,v.db_version), v) for v in cp._db_module_descriptors)
@@ -6947,16 +6849,16 @@ class DBLoopExec(object):
             cp._db_loop_iterations = []
         else:
             cp._db_loop_iterations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_iterations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_loop_iterations_id_index = dict((v.db_id, v) for v in cp._db_loop_iterations)
         if not new_ids:
@@ -7137,16 +7039,16 @@ class DBConnection(object):
             cp._db_ports = []
         else:
             cp._db_ports = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_ports]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_ports_id_index = dict((v.db_id, v) for v in cp._db_ports)
         cp.db_ports_type_index = dict((v.db_type, v) for v in cp._db_ports)
@@ -7285,16 +7187,8 @@ class DBConfigBool(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigBool(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7389,18 +7283,18 @@ class DBAction(object):
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_prevId') and ('action', self._db_prevId) in id_remap:
                 cp._db_prevId = id_remap[('action', self._db_prevId)]
-        
+
         # recreate indices and set flags
         cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -7693,16 +7587,8 @@ class DBStartupPackage(object):
         cp = DBStartupPackage(name=self._db_name)
         if self._db_configuration is not None:
             cp._db_configuration = self._db_configuration.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7799,16 +7685,8 @@ class DBConfigInt(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigInt(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7869,18 +7747,12 @@ class DBOpmProcessIdEffect(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmProcessIdEffect(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_process', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7941,18 +7813,12 @@ class DBRefProvPlan(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvPlan(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8033,16 +7899,8 @@ class DBOpmAccounts(object):
             cp._db_opm_overlapss = []
         else:
             cp._db_opm_overlapss = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_overlapss]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_accounts_id_index = dict((v.db_id, v) for v in cp._db_accounts)
         if not new_ids:
@@ -8197,18 +8055,12 @@ class DBRefProvAgent(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvAgent(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_agent', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_agent', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8295,16 +8147,16 @@ class DBPortSpec(object):
             cp._db_portSpecItems = []
         else:
             cp._db_portSpecItems = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecItems]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_portSpecItems_id_index = dict((v.db_id, v) for v in cp._db_portSpecItems)
         if not new_ids:
@@ -8568,16 +8420,8 @@ class DBEnabledPackages(object):
             cp._db_packages = []
         else:
             cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_packages_name_index = dict((v.db_name, v) for v in cp._db_packages)
         if not new_ids:
@@ -8686,16 +8530,16 @@ class DBOpmArtifact(object):
             cp._db_accounts = []
         else:
             cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8858,18 +8702,18 @@ class DBLog(object):
             cp._db_workflow_execs = []
         else:
             cp._db_workflow_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_workflow_execs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
                 cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
-        
+
         # recreate indices and set flags
         cp.db_workflow_execs_id_index = dict((v.db_id, v) for v in cp._db_workflow_execs)
         if not new_ids:
@@ -9112,16 +8956,16 @@ class DBLoopIteration(object):
             cp._db_item_execs = []
         else:
             cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         if not new_ids:
@@ -9354,18 +9198,12 @@ class DBOpmProcessIdCause(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmProcessIdCause(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_process', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9437,16 +9275,8 @@ class DBOpmArtifacts(object):
             cp._db_artifacts = []
         else:
             cp._db_artifacts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_artifacts]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_artifacts_id_index = dict((v.db_id, v) for v in cp._db_artifacts)
         if not new_ids:
@@ -9566,16 +9396,16 @@ class DBPEParameter(object):
                            interpolator=self._db_interpolator,
                            value=self._db_value,
                            dimension=self._db_dimension)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9767,16 +9597,16 @@ class DBWorkflowExec(object):
             cp._db_machines = []
         else:
             cp._db_machines = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_machines]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -10253,16 +10083,16 @@ class DBLocation(object):
         cp = DBLocation(id=self._db_id,
                         x=self._db_x,
                         y=self._db_y)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -10376,16 +10206,16 @@ class DBFunction(object):
             cp._db_parameters = []
         else:
             cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
         if not new_ids:
@@ -10562,18 +10392,18 @@ class DBActionAnnotation(object):
                                 action_id=self._db_action_id,
                                 date=self._db_date,
                                 user=self._db_user)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
                 cp._db_action_id = id_remap[('action', self._db_action_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -10745,16 +10575,16 @@ class DBProvActivity(object):
                             vt_error=self._db_vt_error)
         if self._db_is_part_of is not None:
             cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11004,16 +10834,8 @@ class DBProvUsage(object):
             cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
         if self._db_prov_entity is not None:
             cp._db_prov_entity = self._db_prov_entity.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11143,18 +10965,12 @@ class DBOpmArtifactIdEffect(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmArtifactIdEffect(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_artifact', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11234,16 +11050,8 @@ class DBOpmGraph(object):
             cp._db_agents = self._db_agents.do_copy(new_ids, id_scope, id_remap)
         if self._db_dependencies is not None:
             cp._db_dependencies = self._db_dependencies.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11454,16 +11262,8 @@ class DBIsPartOf(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBIsPartOf(prov_ref=self._db_prov_ref)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11553,16 +11353,8 @@ class DBOpmWasDerivedFrom(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11797,16 +11589,16 @@ class DBControlParameter(object):
         cp = DBControlParameter(id=self._db_id,
                                 name=self._db_name,
                                 value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11906,16 +11698,16 @@ class DBPluginData(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPluginData(id=self._db_id,
                           data=self._db_data)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12003,20 +11795,20 @@ class DBDelete(object):
                       objectId=self._db_objectId,
                       parentObjId=self._db_parentObjId,
                       parentObjType=self._db_parentObjType)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
                 cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
             if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
                 cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12160,16 +11952,16 @@ class DBVistrailVariable(object):
                                 module=self._db_module,
                                 namespace=self._db_namespace,
                                 value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_name)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_name)] = new_id
+            cp._db_name = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12329,16 +12121,8 @@ class DBOpmOverlaps(object):
             cp._db_opm_account_ids = []
         else:
             cp._db_opm_account_ids = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_account_ids]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12456,16 +12240,8 @@ class DBOpmWasTriggeredBy(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12722,18 +12498,18 @@ class DBModuleDescriptor(object):
             cp._db_portSpecs = []
         else:
             cp._db_portSpecs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_base_descriptor_id') and ('module_descriptor', self._db_base_descriptor_id) in id_remap:
                 cp._db_base_descriptor_id = id_remap[('module_descriptor', self._db_base_descriptor_id)]
-        
+
         # recreate indices and set flags
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
         cp.db_portSpecs_name_index = dict(((v.db_name,v.db_type), v) for v in cp._db_portSpecs)
@@ -12982,18 +12758,18 @@ class DBTag(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBTag(id=self._db_id,
                    name=self._db_name)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_id') and ('action', self._db_id) in id_remap:
                 cp._db_id = id_remap[('action', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13073,16 +12849,8 @@ class DBOpmRole(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmRole(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13217,16 +12985,8 @@ class DBProvDocument(object):
             cp._db_prov_associations = []
         else:
             cp._db_prov_associations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_prov_entitys_id_index = dict((v.db_id, v) for v in cp._db_prov_entitys)
         cp.db_prov_activitys_id_index = dict((v.db_id, v) for v in cp._db_prov_activitys)
@@ -13676,16 +13436,8 @@ class DBOpmProcesses(object):
             cp._db_processs = []
         else:
             cp._db_processs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_processs]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_processs_id_index = dict((v.db_id, v) for v in cp._db_processs)
         if not new_ids:
@@ -13797,18 +13549,12 @@ class DBOpmAccountId(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAccountId(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_account', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_account', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13885,16 +13631,16 @@ class DBPortSpecItem(object):
                             default=self._db_default,
                             values=self._db_values,
                             entry_type=self._db_entry_type)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14132,16 +13878,16 @@ class DBMashupComponent(object):
                                widget=self._db_widget,
                                seq=self._db_seq,
                                parent=self._db_parent)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14517,18 +14263,18 @@ class DBMashup(object):
             cp._db_aliases = []
         else:
             cp._db_aliases = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_aliases]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_vtid') and ('vistrail', self._db_vtid) in id_remap:
                 cp._db_vtid = id_remap[('vistrail', self._db_vtid)]
-        
+
         # recreate indices and set flags
         cp.db_aliases_id_index = dict((v.db_id, v) for v in cp._db_aliases)
         if not new_ids:
@@ -14795,18 +14541,18 @@ class DBMachine(object):
                        architecture=self._db_architecture,
                        processor=self._db_processor,
                        ram=self._db_ram)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_vistrailId') and ('vistrail', self._db_vistrailId) in id_remap:
                 cp._db_vistrailId = id_remap[('vistrail', self._db_vistrailId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14958,16 +14704,8 @@ class DBConfigFloat(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigFloat(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15032,16 +14770,16 @@ class DBOther(object):
         cp = DBOther(id=self._db_id,
                      key=self._db_key,
                      value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15139,18 +14877,12 @@ class DBRefProvActivity(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15267,16 +14999,16 @@ class DBAbstraction(object):
             cp._db_controlParameters = []
         else:
             cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -15710,16 +15442,16 @@ class DBProvAgent(object):
                          vt_machine_architecture=self._db_vt_machine_architecture,
                          vt_machine_processor=self._db_vt_machine_processor,
                          vt_machine_ram=self._db_vt_machine_ram)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15957,16 +15689,16 @@ class DBMashuptrail(object):
             cp._db_actionAnnotations = []
         else:
             cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -16352,18 +16084,18 @@ class DBRegistry(object):
             cp._db_packages = []
         else:
             cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_root_descriptor_id') and ('module_descriptor', self._db_root_descriptor_id) in id_remap:
                 cp._db_root_descriptor_id = id_remap[('module_descriptor', self._db_root_descriptor_id)]
-        
+
         # recreate indices and set flags
         cp.db_packages_id_index = dict((v.db_id, v) for v in cp._db_packages)
         cp.db_packages_identifier_index = dict(((v.db_identifier,v.db_version), v) for v in cp._db_packages)
@@ -16603,16 +16335,16 @@ class DBOpmAgent(object):
             cp._db_accounts = []
         else:
             cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -16764,16 +16496,16 @@ class DBProvEntity(object):
                           vt_location_y=self._db_vt_location_y)
         if self._db_is_part_of is not None:
             cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17073,16 +16805,16 @@ class DBAnnotation(object):
         cp = DBAnnotation(id=self._db_id,
                           key=self._db_key,
                           value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17184,16 +16916,8 @@ class DBOpmTime(object):
         cp = DBOpmTime(no_later_than=self._db_no_later_than,
                        no_earlier_than=self._db_no_earlier_than,
                        clock_id=self._db_clock_id)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17314,18 +17038,18 @@ class DBParameterExploration(object):
             cp._db_functions = []
         else:
             cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
                 cp._db_action_id = id_remap[('action', self._db_action_id)]
-        
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         if not new_ids:
@@ -17574,18 +17298,18 @@ class DBMashupActionAnnotation(object):
                                       action_id=self._db_action_id,
                                       date=self._db_date,
                                       user=self._db_user)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_action_id') and ('mashup_action', self._db_action_id) in id_remap:
                 cp._db_action_id = id_remap[('mashup_action', self._db_action_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17750,16 +17474,16 @@ class DBOpmProcess(object):
             cp._db_accounts = []
         else:
             cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17911,16 +17635,8 @@ class DBDisabledPackages(object):
             cp._db_packages = []
         else:
             cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_packages_name_index = dict((v.db_name, v) for v in cp._db_packages)
         if not new_ids:
@@ -18056,20 +17772,20 @@ class DBModuleExec(object):
             cp._db_loop_execs = []
         else:
             cp._db_loop_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_execs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
             if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
                 cp._db_module_id = id_remap[('module', self._db_module_id)]
             if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
                 cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
-        
+
         # recreate indices and set flags
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_loop_execs_id_index = dict((v.db_id, v) for v in cp._db_loop_execs)
@@ -18422,16 +18138,8 @@ class DBProvAssociation(object):
             cp._db_prov_agent = self._db_prov_agent.do_copy(new_ids, id_scope, id_remap)
         if self._db_prov_plan is not None:
             cp._db_prov_plan = self._db_prov_plan.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -18597,16 +18305,8 @@ class DBOpmProcessValue(object):
         cp = DBOpmProcessValue()
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
