@@ -917,7 +917,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
             self.create_workflow(c)
         
             p = c.current_pipeline
-            actions = UpgradeWorkflowHandler.remap_module(c, 0, p, pkg_remap)
+            m = p.get_modules_by_name("TestUpgradeA",
+                                      "org.vistrails.vistrails.tests.upgrade")[0]
+            actions = UpgradeWorkflowHandler.remap_module(c, m.id, p, pkg_remap)
         finally:
             if created_vistrail:
                 app.close_vistrail()
@@ -1067,8 +1069,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
                     loaded_objs[0], locator, *loaded_objs[1:])
 
             # Select version (triggers all the validation/upgrade/loading)
-            self.assertEqual(controller.get_latest_version_in_graph(), 1)
-            controller.do_version_switch(1)
+            self.assertEqual(controller.get_latest_version_in_graph(),
+                             "93133e0d-baa5-48ca-918f-9531f40a29a3")
+            controller.do_version_switch("93133e0d-baa5-48ca-918f-9531f40a29a3")
 
             self.assertEqual(count[0], 5)
         # Restores handle_invalid_pipeline()
@@ -1133,9 +1136,10 @@ class TestUpgradePackageRemap(unittest.TestCase):
                     loaded_objs[0], locator, *loaded_objs[1:])
 
             # Select version (triggers all the validation/upgrade/loading)
-            self.assertEqual(controller.get_latest_version_in_graph(), 1)
+            self.assertEqual(controller.get_latest_version_in_graph(),
+                             "9ecef67f-0e5d-4bcf-85e4-0899bc354aa3")
             try:
-                controller.do_version_switch(1)
+                controller.do_version_switch("9ecef67f-0e5d-4bcf-85e4-0899bc354aa3")
             except InvalidPipeline:
                 pass
             else:
@@ -1155,7 +1159,8 @@ class TestUpgradePackageRemap(unittest.TestCase):
                             'maxPipelineFixAttempts', 50)
         self.assertEqual(count[0], max_loops)
         # Check that original version gets selected
-        self.assertEqual(1, controller.current_version)
+        self.assertEqual("9ecef67f-0e5d-4bcf-85e4-0899bc354aa3",
+                         controller.current_version)
 
 if __name__ == '__main__':
     import vistrails.core.application

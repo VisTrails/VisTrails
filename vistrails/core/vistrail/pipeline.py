@@ -276,6 +276,15 @@ class Pipeline(DBWorkflow):
     def fresh_connection_id(self):
         return self.get_tmp_id(Connection.vtType)
 
+    def get_modules_by_name(self, name, package=None, namespace=None):
+        res = []
+        for module in self.modules.itervalues():
+            if (module.name == name and
+                (package is None or module.package == package) and
+                (namespace is None or module.namespace == namespace)):
+                res.append(module)
+        return res
+
     def connections_to_module(self, moduleId):
         """ connections_to_module(int moduleId) -> list of module ids
         returns a list of module ids that are inputs to the given moduleId

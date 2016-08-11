@@ -86,8 +86,10 @@ def run(fname, new_fname=None):
     for k,v in external_data["id_remap"].iteritems():
         print k, '->', v
 
+    vtdbio.save_vistrail_to_xml(new_vistrail, new_fname)
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: python {} <vt-file>".format(sys.argv[0]))
 
-    run(sys.argv[1])
+    run(*sys.argv[1:])
