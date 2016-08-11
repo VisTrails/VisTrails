@@ -44,6 +44,9 @@ from vistrails.db import VistrailsDBException
 
 currentVersion = '2.0.0'
 
+def get_current_version():
+    return currentVersion
+
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion

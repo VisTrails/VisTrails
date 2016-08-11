@@ -64,7 +64,7 @@ import vistrails.db.services.prov
 import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
-from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
+from vistrails.db.versions import getVersionDAO, get_current_version, getVersionSchemaDir, \
     translate_vistrail, translate_workflow, translate_log, translate_registry, translate_startup
 
 import unittest
@@ -488,7 +488,7 @@ def get_matching_abstraction_id(db_connection, abstraction):
 
 def setup_db_tables(db_connection, version=None, old_version=None):
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if old_version is None:
         old_version = version
     try:
@@ -672,11 +672,11 @@ def close_zip_xml(temp_dir):
         raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, str(e)))
 
 def serialize(object):
-    daoList = getVersionDAO(currentVersion)
+    daoList = getVersionDAO(get_current_version())
     return daoList.serialize(object)
 
 def unserialize(str, obj_type):
-    daoList = getVersionDAO(currentVersion)
+    daoList = getVersionDAO(get_current_version())
     return daoList.unserialize(str, obj_type)
  
 ##############################################################################
@@ -841,9 +841,9 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/vistrail.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not vistrail.db_version:
-        vistrail.db_version = currentVersion
+        vistrail.db_version = get_current_version()
 
     # current_action holds the current action id 
     # (used by the controller--write_vistrail)
@@ -1036,9 +1036,9 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not vistrail.db_version:
-        vistrail.db_version = currentVersion
+        vistrail.db_version = get_current_version()
 
     dao_list = getVersionDAO(version)
 
@@ -1091,7 +1091,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
             workflow.db_group = id
             workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
             workflow.db_name = name
-            workflow = translate_workflow(workflow, currentVersion, version)
+            workflow = translate_workflow(workflow, get_current_version(), version)
             wfToSave.append(workflow)
             #print "done"
     if wfToSave:
@@ -1136,9 +1136,9 @@ def save_workflow_to_xml(workflow, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/workflow.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not workflow.db_version:
-        workflow.db_version = currentVersion
+        workflow.db_version = get_current_version()
     workflow = translate_workflow(workflow, workflow.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1160,9 +1160,9 @@ def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not workflow.db_version:
-        workflow.db_version = currentVersion
+        workflow.db_version = get_current_version()
     workflow = translate_workflow(workflow, workflow.db_version, version)
     dao_list = getVersionDAO(version)
 
@@ -1210,11 +1210,11 @@ def open_log_from_xml(filename, was_appended=False):
             daoList = getVersionDAO(version)
             workflow_exec = \
                 daoList.read_xml_object(DBWorkflowExec.vtType, node)
-            if version != currentVersion:
+            if version != get_current_version():
                 # if version is wrong, dump this into a dummy log object, 
                 # then translate, then get workflow_exec back
                 log = DBLog()
-                translate_log(log, currentVersion, version)
+                translate_log(log, get_current_version(), version)
                 log.db_add_workflow_exec(workflow_exec)
                 log = translate_log(log, version)
                 workflow_exec = log.db_workflow_execs[0]
@@ -1275,9 +1275,9 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
 
 def save_log_to_xml(log, filename, version=None, do_append=False):
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not log.db_version:
-        log.db_version = currentVersion
+        log.db_version = get_current_version()
     log = translate_log(log, log.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1314,9 +1314,9 @@ def save_log_to_db(log, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not log.db_version:
-        log.db_version = currentVersion
+        log.db_version = get_current_version()
     log = translate_log(log, log.db_version, version)
     dao_list = getVersionDAO(version)
 
@@ -1350,7 +1350,7 @@ def save_opm_to_xml(opm_graph, filename, version=None):
     # FIXME, we're using workflow, version, and log here...
     # which aren't in DBOpmGraph...
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     daoList = getVersionDAO(version)
     tags = {'xmlns': 'http://openprovenance.org/model/v1.01.a',
             }
@@ -1368,7 +1368,7 @@ def save_prov_to_xml(prov_document, filename, version=None):
     # FIXME, we're using workflow, version, and log here...
     # which aren't in DBProvDocument...
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     daoList = getVersionDAO(version)
     tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
             'xmlns:dcterms': 'http://purl.org/dc/terms/',
@@ -1414,9 +1414,9 @@ def save_registry_to_xml(registry, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/registry.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not registry.db_version:
-        registry.db_version = currentVersion
+        registry.db_version = get_current_version()
     registry = translate_registry(registry, registry.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1439,9 +1439,9 @@ def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not registry.db_version:
-        registry.db_version = currentVersion
+        registry.db_version = get_current_version()
     registry = translate_registry(registry, registry.db_version, version)
     dao_list = getVersionDAO(version)
 
@@ -1496,9 +1496,9 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
             abs.db_id = None
             abs.db_last_modified = get_current_time(db_connection)
             version = get_db_version(db_connection)
-            version = version if version else currentVersion
+            version = version if version else get_current_version()
             if not abs.db_version:
-                abs.db_version = currentVersion
+                abs.db_version = get_current_version()
             abs = translate_vistrail(abs, abs.db_version, version)
             # Always copy for now
             getVersionDAO(version).save_to_db(db_connection, abs, True)
@@ -1666,7 +1666,7 @@ def save_mashuptrail_to_xml(mashuptrail, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/mashup.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     
     if not mashuptrail.db_version:
         mashuptrail.db_version = version
@@ -1725,9 +1725,9 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
             mashuptrail.db_last_modified = get_current_time(db_connection)
             mashuptrail.db_id = None
             version = get_db_version(db_connection)
-            version = version if version else currentVersion
+            version = version if version else get_current_version()
             if not mashuptrail.db_version:
-                mashuptrail.db_version = currentVersion
+                mashuptrail.db_version = get_current_version()
             #FIXME: This must be enabled at some point
             #mashuptrail = translate_vistrail(mashuptrail, mashuptrail.db_version, version)
             # Always copy for now
@@ -1753,9 +1753,9 @@ def open_startup_from_xml(filename):
 def save_startup_to_xml(startup, filename, version=None):
     tags = {}
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not startup.db_version:
-        startup.db_version = currentVersion
+        startup.db_version = get_current_version()
     # FIXME add translation, etc.
     # startup = translate_startup(startup, startup.db_version, version)
 
@@ -1774,7 +1774,7 @@ def delete_entity_from_db(db_connection, type, obj_id):
         raise VistrailsDBException(msg)
     version = get_db_version(db_connection)
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     dao_list = getVersionDAO(version)
     dao_list.delete_from_db(db_connection, type, obj_id)
     db_connection.commit()
