@@ -162,7 +162,7 @@ class vtkInteractionHandler(NotCacheable, Module):
         """        
         self.observer = self.force_get_input('Observer')
         self.handler = self.force_get_input('Handler', '')
-        self.shareddata = self.force_get_input('SharedData')
+        self.shareddata = self.force_get_input('SharedData') or []
         if len(self.shareddata) == 1:
             self.shareddata = self.shareddata[0]
         if self.observer:
@@ -223,12 +223,16 @@ class vtkInteractionHandler(NotCacheable, Module):
         preludes = []
         if 'Observer' in module.connected_input_ports:
             # Add event code
+            source = None
             for f in module.functions:
                 if f.name == 'Handler':
                     source = urllib.unquote(str(f.parameters[0].strValue))
-            code += source + '\n'
+                    code += source + '\n'
 
-            code += 'sd = SharedData[0] if len(SharedData)==1 else SharedData\n'
+            if 'SharedData' in module.connected_input_ports:
+                code += 'sd = SharedData[0] if len(SharedData)==1 else SharedData\n'
+            else:
+                code += 'sd = None\n'
 
             # Add eventHandler
             code += "def eventHandler(obj, event):\n"
@@ -240,7 +244,7 @@ class vtkInteractionHandler(NotCacheable, Module):
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
                 f = f.replace('Event', 'Handler')
-                if f in source:
+                if source and f in source:
                     code += "Observer.AddObserver('%s', eventHandler)\n" % e
 
             code += "if hasattr(Observer, 'PlaceWidget'):\n"
