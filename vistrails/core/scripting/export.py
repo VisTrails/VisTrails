@@ -48,9 +48,6 @@ def write_workflow_to_python(pipeline):
 
     reg = get_module_registry()
 
-    # set port specs and module depth
-    pipeline.validate(False)
-
     # ########################################
     # Walk through the pipeline to get all the codes
     #
@@ -514,6 +511,7 @@ class TestExport(unittest.TestCase):
                                            'tests', 'resources',
                                            filename))
         pipeline = locator.load(Pipeline)
+        pipeline.validate(False)
 
         self.assertEqual('\n'.join(write_workflow_to_python(pipeline)) + '\n',
                          expected_source)

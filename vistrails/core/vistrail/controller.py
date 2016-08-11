@@ -4044,6 +4044,9 @@ class VistrailController(object):
     def write_workflow_to_python(self, filename):
         if not self.current_pipeline:
             return
+        # Need a valid pipeline
+        self.validate(self.current_pipeline)
+
         with io.open(filename, 'w', encoding='utf-8', newline='\n') as f:
             for l in write_workflow_to_python(self.current_pipeline):
                 f.write(l)
