@@ -1336,7 +1336,7 @@ class ModuleRegistry(DBRegistry):
             if version == -1L:
                 version = vistrail.get_latest_version()
             (new_version, new_pipeline) = \
-                controller.handle_invalid_pipeline(e, long(version), vistrail, 
+                controller.handle_invalid_pipeline(e, version, vistrail,
                                                    False, True)
             del controller
             vistrail.set_annotation('__abstraction_descriptor_info__', 

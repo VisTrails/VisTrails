@@ -293,17 +293,10 @@ class Map(Module):
                     group.pipeline = pipeline_db_module.pipeline
                     pipeline_db_module = group
 
-                # getting highest id between functions to guarantee unique ids
-                # TODO: can get current IdScope here?
-                if pipeline_db_module.functions:
-                    high_id = max(function.db_id
-                                  for function in pipeline_db_module.functions)
-                else:
-                    high_id = 0
-
                 # adding function and parameter to module in pipeline
                 # TODO: 'pos' should not be always 0 here
-                id_scope = IdScope(beginId=long(high_id+1))
+                # FIXME do we need a new id scope or can we use current vistrail/workflows?
+                id_scope = IdScope()
                 for elementValue, inputPort in izip(element, nameInput):
 
                     p_spec = pipeline_db_module.get_port_spec(inputPort, 'input')

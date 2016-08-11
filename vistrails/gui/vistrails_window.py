@@ -1665,10 +1665,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def executeParameterExploration(self, pe_id):
         vistrail = self.current_view.controller.vistrail
         try:
-            pe_id = int(pe_id)
             pe = vistrail.get_paramexp(pe_id)
-        except ValueError:
-            pe= vistrail.get_named_paramexp(pe_id)
         except Exception, e:
             debug.unexpected_exception(e)
             return

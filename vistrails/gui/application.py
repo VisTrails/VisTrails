@@ -663,7 +663,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"
         workflow = [wf for wf in controller.jobMonitor.workflows.itervalues()
-                    if wf.version == int(version)]
+                    if wf.version == version]
         if len(workflow) < 1:
             text = "No job for workflow with id %s" % version
             print text

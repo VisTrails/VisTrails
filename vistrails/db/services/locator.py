@@ -221,8 +221,9 @@ class BaseLocator(object):
         args['version_tag'] = None
         if 'workflow' in parsed_dict:
             workflow_arg = parsed_dict['workflow'][0]
+            # FIXME need to try uuid first, then tag (or vice versa)
             try:
-                args['version_node'] = int(workflow_arg)
+                args['version_node'] = workflow_arg
             except ValueError:
                 args['version_tag'] = workflow_arg
         if 'workflow_exec' in parsed_dict:
@@ -1049,7 +1050,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                long(self._obj_id) == long(other._obj_id) and
+                self._obj_id == other._obj_id and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):

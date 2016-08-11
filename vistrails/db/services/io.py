@@ -374,7 +374,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
                 raise VistrailsDBException(msg)
         else:
             c.close()
-            return int(rows[0][0])
+            return rows[0][0]
     except get_db_lib().Error, e:
         c.close()
         msg = "Connection error when trying to get db id from name"

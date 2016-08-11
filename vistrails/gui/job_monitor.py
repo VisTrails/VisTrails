@@ -264,17 +264,14 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     workflow_item.resume()
                 else:
                     return
-            try:
-                int(workflow.version)
-            except ValueError:
-                if (workflow.version.startswith("Parameter Exploration") or
-                    workflow.version.startswith("Mashup")):
-                    QtGui.QMessageBox.question(self, "Running job(s) found",
-                        'Running jobs in "%s" are not yet monitored. Rerun it to start monitoring.' %
-                                             workflow_item.text(0),
-                        QtGui.QMessageBox.Ok)
-                    # do not notify again
-                    workflow_item.pause()
+            if (workflow.version.startswith("Parameter Exploration") or
+                workflow.version.startswith("Mashup")):
+                QtGui.QMessageBox.question(self, "Running job(s) found",
+                    'Running jobs in "%s" are not yet monitored. Rerun it to start monitoring.' %
+                                         workflow_item.text(0),
+                    QtGui.QMessageBox.Ok)
+                # do not notify again
+                workflow_item.pause()
                 return
             # Ask user to re-execute workflow
             ret = QtGui.QMessageBox.question(self, "Running job(s) found",
@@ -689,11 +686,6 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         """ Shows this pipeline
 
         """
-        try:
-            int(self.workflow.version)
-        except ValueError:
-            # this is not a pipeline id
-            return
         from vistrails.gui.vistrails_window import _app
         view = _app.getViewFromLocator(self.parent().controller.locator)
         _app.change_view(view)

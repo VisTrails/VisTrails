@@ -498,7 +498,7 @@ class QLogView(QPipelineView):
             return False
         try:
             workflow_execs = [e for e in self.log 
-                                if e.id == int(str(exec_id))]
+                                if e.id == exec_id]
         except ValueError:
             return False
         if len(workflow_execs):

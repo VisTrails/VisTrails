@@ -112,6 +112,9 @@ class Mashuptrail(DBMashuptrail):
         return max_ver
 
     def getMashup(self, version):
+        tag_map = self.getTagMap()
+        if version in tag_map:
+            return self.actionMap[tag_map[version]].mashup
         if version in self.actionMap.keys():
             return self.actionMap[version].mashup
         else:
@@ -180,7 +183,7 @@ class Mashuptrail(DBMashuptrail):
             if a.key == "__tag__":
                 tagMap[a.value] = a.action_id
         return tagMap
-    
+
     def addActionAnnotation(self, action_id, key, value, user, date):
         id = self.id_scope.getNewId("mashup_actionAnnotation")
         annot = ActionAnnotation(id=id, action_id=action_id, key=key,

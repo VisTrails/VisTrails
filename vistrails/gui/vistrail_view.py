@@ -1163,10 +1163,6 @@ class QVistrailView(QtGui.QWidget):
         """
         for mashuptrail in self.controller._mashups:
             if str(mashuptrail.id) == mashuptrail_id:
-                try:
-                    mashupVersion = int(mashupVersion)
-                except ValueError:
-                    mashupVersion = mashuptrail.getTagMap()[mashupVersion]
                 mashup = mashuptrail.getMashup(mashupVersion)
                 return mashup
         return None

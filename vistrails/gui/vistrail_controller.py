@@ -449,14 +449,11 @@ class VistrailController(QtCore.QObject, BaseController):
             # check if a job exist for this workflow
             current_workflow = None
             for wf in self.jobMonitor.workflows.itervalues():
+                # FIXME this code does not work since tried to use int cohersion to detect when we had a tag
                 try:
-                    wf_version = int(wf.version)
-                except ValueError:
-                    try:
-                        wf_version = self.vistrail.get_version_id(wf.version)
-                    except KeyError:
-                        # this is a PE or mashup
-                        continue
+                    wf_version = self.vistrail.get_version_id(wf.version)
+                except KeyError:
+                    continue
                 if version_id == wf_version:
                     current_workflow = wf
                     self.jobMonitor.startWorkflow(wf)

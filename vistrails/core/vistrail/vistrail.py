@@ -283,7 +283,11 @@ class Vistrail(DBVistrail):
         Returns the version number given a tag.
 
         """
-        return self.get_tag_str(version).action_id
+        if self.has_tag_str(version):
+            return self.get_tag_str(version).action_id
+        if version not in self.actionMap:
+            raise KeyError("Cannot find version %s" % version)
+        return version
 
     def get_ordered_actions(self):
         """get_ordered_actions() -> [Action]
@@ -661,6 +665,8 @@ class Vistrail(DBVistrail):
         """ Check if vistrail has a default paramexp for action action_id
             and returns it (using latest id)
         """
+        if self.has_named_paramexp(action_id):
+            return self.get_named_paramexp(action_id)
         pes = self.get_paramexps(action_id)
         if not len(pes):
             return None

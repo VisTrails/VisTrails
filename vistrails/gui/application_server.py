@@ -198,12 +198,12 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
             v = locator.load().vistrail
-            p = v.getPipeline(long(version))
+            p = v.getPipeline(version)
 
             if p:
                 result = []
@@ -251,7 +251,7 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
             (vistrail, abstractions, thumbnails, mashups) = \
@@ -561,7 +561,7 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
             (vistrail, _, _, _)  = io.load_vistrail(locator)
@@ -636,7 +636,7 @@ class RequestHandler(object):
                             database=db_name,
                             user=db_read_user,
                             passwd=db_read_pass,
-                            obj_id=int(vt_id),
+                            obj_id=vt_id,
                             obj_type=None,
                             connection_id=None)
         (vistrail, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
@@ -652,7 +652,7 @@ class RequestHandler(object):
         if vt_tag == '':
             version = vistrail.get_latest_version()#-1;
         else:
-            version = int(vt_tag)
+            version = vt_tag
 
         c.change_selected_version(version)
         workflow = c.current_pipeline.__copy__()
@@ -788,7 +788,7 @@ class RequestHandler(object):
                                     gc.collect()
                                     results = \
                                       vistrails.core.console_mode.run_and_get_results(
-                                                    [(locator,int(workflow))],
+                                                    [(locator,workflow)],
                                                     s_alias,
                                                     update_vistrail=False,
                                                     extra_info=extra_info)
@@ -803,7 +803,7 @@ class RequestHandler(object):
                                     for e in errors.itervalues():
                                         self.server_logger.error("Module failed: %s"% str(e))
                                     for i in objs.iterkeys():
-                                        if errors.has_key(long(i)):
+                                        if errors.has_key(i):
                                             ok = False
                                             result += str(errors[i])
                                 if ok:
@@ -835,7 +835,7 @@ class RequestHandler(object):
                         try:
                             results = \
                                vistrails.core.console_mode.run_and_get_results(
-                                                [(locator,int(workflow))],
+                                                [(locator,workflow)],
                                                     s_alias,
                                                     extra_info=extra_info)
                         except Exception, e:
@@ -847,7 +847,7 @@ class RequestHandler(object):
                             for e in errors.itervalues():
                                 self.server_logger.error(str(e))
                             for i in objs.iterkeys():
-                                if errors.has_key(long(i)):
+                                if errors.has_key(i):
                                     ok = False
                                     result += str(errors[i])
 
@@ -917,7 +917,7 @@ class RequestHandler(object):
 
         if not is_local:
             # use same hashing as on crowdlabs webserver
-            dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
+            dest_version = "%s_%s_%d_%s_%s" % (host, db_name, int(port), vt_id, version)
             dest_version = hashlib.sha1(dest_version).hexdigest()
             path_to_figures = os.path.join(media_dir, "photos", "wf_execution", dest_version)
 
@@ -972,14 +972,14 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_write_user,
                                     passwd=db_write_pass,
-                                    obj_id=int(vt_id),
+                                    obj_id=vt_id,
                                     obj_type=None,
                                     connection_id=None)
                 self.server_logger.info("run_and_get_results(%s,%s,%s,%s,%s)" % \
                             (locator, version, parameters, True, extra_info))
                 try:
                     results = vistrails.core.console_mode.run_and_get_results(
-                            [(locator, int(version))],
+                            [(locator, version)],
                             parameters,
                             update_vistrail=True,
                             extra_info=extra_info,
@@ -1050,12 +1050,12 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
             v = locator.load().vistrail
-            p = v.getPipeline(long(version))
+            p = v.getPipeline(version)
 
             if p:
                 result = []
@@ -1093,7 +1093,7 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
@@ -1127,7 +1127,7 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
@@ -1157,12 +1157,12 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
             (v, _ , _, _)  = io.load_vistrail(locator)
-            p = v.getPipeline(long(version))
+            p = v.getPipeline(version)
             if p:
                 result = io.serialize(p)
                 self.server_logger.info("success")
@@ -1193,8 +1193,8 @@ class RequestHandler(object):
         self.server_logger.info("get_wf_graph_pdf(%s,%s,%s,%s,%s) request received" % \
                                 (host, port, db_name, vt_id, version))
         try:
-            vt_id = long(vt_id)
-            version = long(version)
+            vt_id = vt_id
+            version = version
             subdir = 'workflows'
             filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s_%s.pdf" % (vt_id, version)
@@ -1234,7 +1234,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=int(vt_id),
+                                    obj_id=vt_id,
                                     obj_type=None,
                                     connection_id=None)
 
@@ -1277,8 +1277,8 @@ class RequestHandler(object):
         self.server_logger.info("get_wf_graph_png(%s,%s,%s,%s,%s) request received" % \
                                 (host, port, db_name, vt_id, version))
         try:
-            vt_id = long(vt_id)
-            version = long(version)
+            vt_id = vt_id
+            version = version
             subdir = 'workflows'
             filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s_%s.png" % (vt_id, version)
@@ -1319,7 +1319,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=int(vt_id),
+                                    obj_id=vt_id,
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
@@ -1359,7 +1359,7 @@ class RequestHandler(object):
                             database=db_name,
                             user=db_read_user,
                             passwd=db_read_pass,
-                            obj_id=int(vt_id),
+                            obj_id=vt_id,
                             obj_type=None,
                             connection_id=None)
         vt_mod_time = locator.get_db_modification_time()
@@ -1377,7 +1377,7 @@ class RequestHandler(object):
         
         self.server_logger.info("get_vt_graph_png(%s, %s, %s, %s)" % (host, port, db_name, vt_id))
         try:
-            vt_id = long(vt_id)
+            vt_id = vt_id
             subdir = 'vistrails'
             filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s.png" % vt_id
@@ -1425,7 +1425,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=int(vt_id),
+                                    obj_id=vt_id,
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
@@ -1466,7 +1466,7 @@ class RequestHandler(object):
 
         self.server_logger.info("get_vt_graph_pdf(%s, %s, %s, %s)" % (host, port, db_name, vt_id))
         try:
-            vt_id = long(vt_id)
+            vt_id = vt_id
             subdir = 'vistrails'
             filepath = os.path.join(media_dir, 'graphs', subdir)
             base_fname = "graph_%s.pdf" % vt_id
@@ -1515,7 +1515,7 @@ class RequestHandler(object):
                                     database=db_name,
                                     user=db_read_user,
                                     passwd=db_read_pass,
-                                    obj_id=int(vt_id),
+                                    obj_id=vt_id,
                                     obj_type=None,
                                     connection_id=None)
                 (v, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
@@ -1562,7 +1562,7 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
             save_bundle = locator.load()
@@ -1609,12 +1609,12 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
             (v, _ , _, _)  = io.load_vistrail(locator)
-            p = v.getPipeline(long(version))
+            p = v.getPipeline(version)
             if p:
                 vistrail = Vistrail()
                 action_list = []
@@ -1713,14 +1713,14 @@ class RequestHandler(object):
                                 database=db_name,
                                 user=db_read_user,
                                 passwd=db_read_pass,
-                                obj_id=int(vt_id),
+                                obj_id=vt_id,
                                 obj_type=None,
                                 connection_id=None)
 
             result = []
             v = locator.load().vistrail
             for elem, tag in v.get_tagMap().iteritems():
-                action_map = v.actionMap[long(elem)]
+                action_map = v.actionMap[elem]
                 thumbnail_fname = ""
                 if v.get_thumbnail(elem):
                     thumbnail_dir = system.get_vistrails_directory(

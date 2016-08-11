@@ -875,7 +875,7 @@ class Pipeline(DBWorkflow):
                 if module.is_abstraction():
                     try:
                         desc = module.module_descriptor
-                        if long(module.internal_version) != long(desc.version):
+                        if module.internal_version != desc.version:
                             exceptions.add(MissingModuleVersion(
                                 desc.package, desc.name, desc.namespace,
                                 desc.version, desc.package_version, module.id))

@@ -1931,7 +1931,7 @@ class VistrailController(object):
         self.ensure_abstractions_loaded(abs_vistrail, avail_fnames)
         try:
             abstraction = new_abstraction(name, abs_vistrail, abs_fname,
-                                          long(module_version))
+                                          module_version)
         except InvalidPipeline, e:
             # handle_invalid_pipeline will raise it's own InvalidPipeline
             # exception if it fails
@@ -1942,7 +1942,7 @@ class VistrailController(object):
             # controller so user is prompted if in GUI mode
             abs_controller = self.__class__(abs_vistrail, auto_save=False)
             (new_version, new_pipeline) = \
-                abs_controller.handle_invalid_pipeline(e, long(module_version),
+                abs_controller.handle_invalid_pipeline(e, module_version,
                                                        force_no_delay=True) 
             try:
                 abstraction = new_abstraction(name, abs_vistrail, abs_fname,
@@ -2054,7 +2054,7 @@ class VistrailController(object):
         # This step also avoid duplication of abstraction upgrades.  Otherwise, when we try to add the old version
         # to the registry, it raises an InvalidPipeline exception and automatically tries to handle it by creating
         # another upgrade for the old version.
-        upgrade_version = abs_vistrail.get_upgrade(long(module_version))
+        upgrade_version = abs_vistrail.get_upgrade(module_version)
         if upgrade_version is not None:
             old_version = module_version
             module_version = str(upgrade_version)
@@ -2867,7 +2867,7 @@ class VistrailController(object):
             if ann.key != Vistrail.UPGRADE_ANNOTATION:
                 continue
             # The target is an upgrade
-            upgrades.add(int(ann.value))
+            upgrades.add(ann.value)
 
         while x:
             current = x.pop()
