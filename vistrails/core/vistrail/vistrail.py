@@ -1067,8 +1067,8 @@ class Vistrail(DBVistrail):
         upgrade_rev_map = {}
         for ann in self.action_annotations:
             if ann.key == Vistrail.UPGRADE_ANNOTATION:
-                upgrade_map[ann.action_id] = int(ann.value)
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_map[ann.action_id] = ann.value
+                upgrade_rev_map[ann.value] = ann.action_id
         if start_at_base is True:
             while base_version in upgrade_rev_map:
                 base_version = upgrade_rev_map[base_version]

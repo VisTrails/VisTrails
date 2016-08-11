@@ -2780,7 +2780,7 @@ class VistrailController(object):
                     if p in current.vertices:
                         break
                     highest = p
-                if highest != ROOT_VERSION:
+                if highest != Vistrail.ROOT_VERSION:
                     changed = True
                     if highest == self.current_version:
                         new_current_version = full.parent(highest)
@@ -3321,7 +3321,7 @@ class VistrailController(object):
     def handle_invalid_pipeline(self, e, new_version=-1, vistrail=None,
                                 report_all_errors=False, force_no_delay=False,
                                 delay_update=False, level=0, pipeline_only=False):
-        debug.debug('Running handle_invalid_pipeline on %d' % new_version)
+        debug.debug('Running handle_invalid_pipeline on %s' % new_version)
         if delay_update:
             force_no_delay = True
         def check_exceptions(exception_set):
@@ -3685,7 +3685,7 @@ class VistrailController(object):
                         "upgrade paths!" % level)
             else:
                 debug.debug('Recursing handle_invalid_pipeline on '
-                            'version %d to level %d' % (new_version, level))
+                            'version %s to level %d' % (new_version, level))
                 return self.handle_invalid_pipeline(new_err,
                                                     new_version,
                                                     vistrail,
@@ -4327,7 +4327,7 @@ class VistrailController(object):
                     result = copy.copy(self.current_pipeline)
                 result.perform_action(action)
 
-            if self._cache_pipelines and self.get_tag(long(version)):
+            if self._cache_pipelines and self.get_tag(version):
                 # stash a copy for future use for tagged (and upgraded) pipelines
                 if do_validate:
                     try:
@@ -4347,13 +4347,13 @@ class VistrailController(object):
                     raise
         return result
 
-    def get_tag(self, version_number):
+    def get_tag(self, version_id):
         # Follow upgrades forward to find tag
         if not getattr(get_vistrails_configuration(),
                                         'hideUpgrades', True):
-            return self.vistrail.getVersionName(version_number)
+            return self.vistrail.getVersionName(version_id)
         tag = self.vistrail.search_upgrade_versions(
-                version_number,
+                version_id,
                 lambda vt, v, bv: vt.getVersionName(v) or None) or ''
         return tag
 
