@@ -555,6 +555,8 @@ class UpgradeWorkflowHandler(object):
                 new_module.add_port_spec(new_spec)
 
         function_ops = []
+        # Keep correct pos in both remapped and copied functions
+        pos = 0
         for function in old_module.functions:
             if function.name not in function_remap:
                 function_name = function.name
@@ -564,7 +566,11 @@ class UpgradeWorkflowHandler(object):
                     # don't add the function back in
                     continue                    
                 elif not isinstance(remap, basestring):
-                    function_ops.extend(remap(function, new_module))
+                    funs = remap(function, new_module)
+                    for fun in funs:
+                        fun[1].pos = pos
+                        pos += 1
+                    function_ops.extend(funs)
                     continue
                 else:
                     function_name = remap
@@ -590,6 +596,8 @@ class UpgradeWorkflowHandler(object):
                                                       function_port_spec,
                                                       new_param_vals,
                                                       aliases)
+            new_function.pos = pos
+            pos += 1
             new_module.add_function(new_function)
 
         if None in function_remap:
