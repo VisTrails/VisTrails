@@ -52,6 +52,7 @@ try:
 except ImportError:
     import StringIO
 
+from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.modules.vistrails_module import Module
 
 
@@ -243,9 +244,9 @@ def run_file(filename, tag_filter=lambda x: True):
     errors = []
     for version, name in controller.vistrail.get_tagMap().iteritems():
         if tag_filter(name):
-            controller.change_selected_version(0)
+            controller.change_selected_version(Vistrail.ROOT_VERSION)
             controller.change_selected_version(version)
-            assert controller.current_version != 0
+            assert controller.current_version != Vistrail.ROOT_VERSION
             (result,), _ = controller.execute_current_workflow()
             if result.errors:
                 errors.append(("%d: %s" % (version, name), result.errors))

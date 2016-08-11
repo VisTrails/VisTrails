@@ -41,6 +41,7 @@ import os
 from vistrails.core.db.locator import FileLocator, DBLocator, UntitledLocator
 from vistrails.core.publishing.parse_latex import parse_latex_file, \
      parse_vt_command, build_vt_command
+from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -669,7 +670,7 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
             
     def updateVersion(self, versionNumber):
         self.versionNumber = versionNumber
-        if versionNumber > 0:
+        if versionNumber != Vistrail.ROOT_VERSION:
             self.versionTag = self.controller.vistrail.getVersionName(self.versionNumber)
         self.updateEmbedText()
 
