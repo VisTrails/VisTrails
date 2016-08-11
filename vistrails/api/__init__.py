@@ -282,9 +282,8 @@ def select_version(version, ctrl=None):
     if ctrl is None:
         ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    if isinstance(version, str):
-        version = vistrail.get_tag_str(version).action_id
-    ctrl.change_selected_version(version)
+    version_id = vistrail.get_version_id(version)
+    ctrl.change_selected_version(version_id)
     ctrl.invalidate_version_tree(False)
 
 def undo():

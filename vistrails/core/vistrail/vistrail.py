@@ -285,9 +285,9 @@ class Vistrail(DBVistrail):
         """
         if self.has_tag_str(version):
             return self.get_tag_str(version).action_id
-        if version not in self.actionMap:
-            raise KeyError("Cannot find version %s" % version)
-        return version
+        if version in self.actionMap:
+            return version
+        raise KeyError("Cannot find version %s" % version)
 
     def get_ordered_actions(self):
         """get_ordered_actions() -> [Action]
@@ -1232,7 +1232,7 @@ class TestVistrail(unittest.TestCase):
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""
         v = Vistrail()
-        p = v.getPipeline(0)
+        p = v.getPipeline(Vistrail.ROOT_VERSION)
 
     def test_empty_action_chain_2(self):
         from vistrails.core.db.locator import XMLFileLocator
