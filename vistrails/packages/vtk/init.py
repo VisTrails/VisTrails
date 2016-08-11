@@ -238,15 +238,18 @@ _remap = None
 _controller = None
 _pipeline = None
 
+
 def _get_controller():
     global _controller
     return _controller
+
 
 def _get_pipeline():
     global _pipeline
     return _pipeline
 
 module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
+
 
 def base_name(name):
     """Returns name without overload index.
@@ -256,27 +259,30 @@ def base_name(name):
         return name[:i]
     return name
 
+
+def create_function(module, *argv, **kwargs):
+    reg = get_module_registry()
+    controller = _get_controller()
+    # create function using the current module version and identifier
+    # FIXME: This should really be handled by the upgrade code somehow
+    new_desc = reg.get_descriptor_by_name(module.package,
+                                          module.name,
+                                          module.namespace)
+    old_identifier = module.package
+    module.package = identifier
+    old_package_version = module.version
+    module.version = new_desc.package_version
+    new_function = controller.create_function(module, *argv, **kwargs)
+    module.package = old_identifier
+    module.version = old_package_version
+    return new_function
+
+
 def build_remap(module_name=None):
     global _remap, _controller
 
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
-
-    def create_function(module, *argv, **kwargs):
-        controller = _get_controller()
-        # create function using the current module version and identifier
-        # FIXME: This should really be handled by the upgrade code somehow
-        new_desc = reg.get_descriptor_by_name(module.package,
-                                              module.name,
-                                              module.namespace)
-        old_identifier = module.package
-        module.package = identifier
-        old_package_version = module.version
-        module.version = new_desc.package_version
-        new_function = controller.create_function(module, *argv, **kwargs)
-        module.package = old_identifier
-        module.version = old_package_version
-        return new_function
 
     def get_port_specs(descriptor, port_type):
         ports = {}
@@ -692,7 +698,7 @@ def remove_vtk_instance(controller):
         code = urllib.unquote(src)
         new_code = code.replace('.vtkInstance', '')
         src = urllib.quote(new_code)
-        new_function = controller.create_function(new_module, 'Handler', [src])
+        new_function = create_function(new_module, 'Handler', [src])
         return [('add', new_function, 'module', new_module.id)]
     return remap
 
