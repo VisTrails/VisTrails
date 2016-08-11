@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -44,7 +44,7 @@ from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
     QCellToolBar
 import os
-import shutil
+import webbrowser
 ############################################################################
 
 class WebViewCell(SpreadsheetCell):
@@ -81,6 +81,7 @@ class WebViewCellWidget(QCellWidget):
         """
         QCellWidget.__init__(self, parent)
         self.setLayout(QtGui.QVBoxLayout(self))
+        self.toolBarType = WebViewCellToolBar
         QtWebKit.QWebSettings.globalSettings().setAttribute(
             QtWebKit.QWebSettings.DeveloperExtrasEnabled, True)
         self.browser = QtWebKit.QWebView()
@@ -118,3 +119,28 @@ class WebViewCellWidget(QCellWidget):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
+
+
+class OpenInBrowserAction(QtGui.QAction):
+    def __init__(self, parent):
+        QtGui.QAction.__init__(self,
+                               QtGui.QIcon(":/images/new-window.png"),
+                               "Open in &Browser",
+                               parent)
+        self._view = None
+        self.setEnabled(False)
+        self.setStatusTip("Open this page in the system web browser")
+
+    def updateStatus(self, info):
+        self._view = info[3]
+        self.setEnabled(self._view is not None)
+
+    def triggeredSlot(self, checked=False):
+        if self._view is not None:
+            webbrowser.open(self._view.browser.url().toString())
+
+
+class WebViewCellToolBar(QCellToolBar):
+    def createToolBar(self):
+        self.appendAction(OpenInBrowserAction(self))
+        self.addAnimationButtons()

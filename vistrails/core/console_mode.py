@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -57,9 +57,9 @@ import vistrails.db
 
 
 ################################################################################
-    
-def run_and_get_results(w_list, parameters='', output_dir=None, 
-                        update_vistrail=True, extra_info=None, 
+
+def run_and_get_results(w_list, parameters='',
+                        update_vistrail=True, extra_info=None,
                         reason='Console Mode Execution'):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
                            output_dir:str, update_vistrail: boolean,
@@ -86,7 +86,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
             msg = "Invalid version tag or number: %s" % workflow
             raise VistrailsInternalError(msg)
         controller.change_selected_version(version)
-        
+
         for e in elements:
             pos = e.find("=")
             if pos != -1:
@@ -103,19 +103,6 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
                             c = mashup.getAliasByName(key).component
                             params.append((c.vttype, c.vtid, value))
 
-        if output_dir is not None and controller.current_pipeline is not None:
-            # FIXME DAK: why is this always done?!? there is a flag for it...
-            if is_running_gui():
-                controller.updatePipelineScene()
-                base_fname = "%s_%s_pipeline.pdf" % (locator.short_filename, version)
-                filename = os.path.join(output_dir, base_fname)
-                controller.current_pipeline_scene.saveToPDF(filename)
-            else:
-                debug.critical("Cannot save pipeline figure when not "
-                               "running in gui mode")
-            base_fname = "%s_%s_pipeline.xml" % (locator.short_filename, version)
-            filename = os.path.join(output_dir, base_fname)
-            vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
@@ -128,7 +115,11 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
                 try:
                     job_version = int(job.version)
                 except ValueError:
-                    job_version =  v.get_version_number(job.version)
+                    try:
+                        job_version =  v.get_version_number(job.version)
+                    except KeyError:
+                        # this is a PE or mashup
+                        continue
                 if version == job_version:
                     current_workflow = job
                     jobMonitor.startWorkflow(job)
@@ -169,7 +160,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
 
 ################################################################################
 
-def get_wf_graph(w_list, output_dir=None, pdf=False):
+def get_wf_graph(w_list, output_dir, pdf=False):
     """run_and_get_results(w_list: list of (locator, version), 
                            output_dir:str, pdf:bool)
     Load all workflows in wf_list and dump their graph to output_dir.
@@ -185,6 +176,9 @@ def get_wf_graph(w_list, output_dir=None, pdf=False):
                 controller = GUIVistrailController(v, locator, abstractions, 
                                                    thumbnails, mashups,
                                                    auto_save=False)
+                # FIXME TE: why is this needed
+                controller.current_pipeline_view.set_controller(controller)
+
                 version = None
                 if isinstance(workflow, basestring):
                     version = v.get_version_number(workflow)
@@ -195,9 +189,10 @@ def get_wf_graph(w_list, output_dir=None, pdf=False):
                 else:
                     msg = "Invalid version tag or number: %s" % workflow
                     raise VistrailsInternalError(msg)
-            
-                if (output_dir is not None and 
-                    controller.current_pipeline is not None):
+
+                controller.change_selected_version(version)
+
+                if controller.current_pipeline is not None:
                     controller.updatePipelineScene()
                     if pdf:
                         base_fname = "%s_%s_pipeline.pdf" % \
@@ -260,14 +255,14 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
 
 ################################################################################
 
-def run(w_list, parameters='', output_dir=None, update_vistrail=True,
+def run(w_list, parameters='', update_vistrail=True,
         extra_info=None, reason="Console Mode Execution"):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
-    results = run_and_get_results(w_list, parameters, output_dir, 
+    results = run_and_get_results(w_list, parameters,
                                   update_vistrail,extra_info, reason)
     for result in results:
         (objs, errors, executed) = (result.objects,

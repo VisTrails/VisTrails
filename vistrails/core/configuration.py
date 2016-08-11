@@ -1,6 +1,6 @@
 ##############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -64,6 +64,7 @@ autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
 batch: Run in batch mode instead of interactive mode
 cache: Cache previous results so they may be used in future computations
+customVersionColors: Allow setting custom colors for versions
 dataDir: Default data directory
 db: The name for the database to load the vistrail from
 dbDefault: Save vistrails in a database by default
@@ -73,10 +74,12 @@ detachHistoryView: Show the version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
-execute: Execute any specified workflows
+NoExecute: Do not execute specified workflows
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
+fixedCustomVersionColorSaturation: Don't vary custom color with age
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
+graphsAsPdf: Generate graphs in PDF format instead of images
 handlerDontAsk: Do not ask about extension handling at startup
 hideUpgrades: Don't show upgrade nodes in the version tree
 host: The hostname for the database to load the vistrail from
@@ -94,10 +97,16 @@ maximizeWindows: VisTrails windows should be maximized
 migrateTags: Move tags to upgraded versions
 multiHeads: Use multiple screens for VisTrails windows
 multithread: Server will start a thread for each request
+outputDirectory: Directory in which to place output files
+outputPipelineGraph: Output the workflow graph as an image
+outputVersionTree: Output the version tree as an image
 packageDir: System packages directory
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
+reportUsage: Report anonymous usage statistics to the developers
+enableUsage: Enable sending anonymous usage statistics
+disableUsage: Disable sending anonymous usage statistics
 repositoryHTTPURL: Remote package repository URL
 repositoryLocalPath: Local package repository directory
 rootDirectory: Directory that contains the VisTrails source code
@@ -115,6 +124,7 @@ showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
 showSpreadsheetOnly: Hides the VisTrails main window
 showVariantErrors: Show error when variant input value doesn't match type during execution
+showVistrailsNews: Show news from VisTrails (once per message)
 showWindow: Show the main window
 singleInstance: Do not allow more than one instance of VisTrails to run at once
 spreadsheetDumpCells: Defines the location for generated cells
@@ -137,8 +147,6 @@ userPackageDir: Local packages directory
 viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-withVersionTree: Output the version tree as an image
-withWorkflow: Output the workflow graph as an image
 """
 
 _documentation = """
@@ -158,6 +166,11 @@ batch: Boolean
 cache: Boolean
 
     Cache previous results so they may be used in future computations.
+
+customVersionColors: Boolean
+
+    Allow setting custom colors for versions, and display these colors in the
+    version tree.
 
 dataDir: Path
 
@@ -199,9 +212,9 @@ errorLog: Boolean
 
     Write errors to a log file.
 
-execute: Boolean
+noExecute: Boolean
 
-    Execute any specified workflows.
+    Do not execute specified workflows.
 
 executionLog: Boolean
 
@@ -212,9 +225,18 @@ fileDir: Path
     The location that VisTrails uses as a default directory for
     specifying files.
 
+fixedCustomVersionColorSaturation: Boolean
+
+    Don't change the saturation according to the age of the version if it has a
+    custom color.
+
 fixedSpreadsheetCells: Boolean
 
     Draw spreadsheet cells at a fixed size (for testing).
+
+graphsAsPdf: Boolean
+
+    Generate graphs in PDF format instead of images
 
 handlerDontAsk: Boolean
 
@@ -255,11 +277,11 @@ jobList: Boolean
 
 jobInfo: Boolean
 
-    List jobs in running workflow
+    List jobs in running workflow.
 
 loadPackages: Boolean
 
-    Whether to load the packages enabled in the configuration file
+    Whether to load the packages enabled in the configuration file.
 
 logDir: Path
 
@@ -309,9 +331,21 @@ outputDefaultSettings: ConfigurationObject
 
     One or more comma-separated key=value parameters.
 
+outputDirectory: Path
+
+    Directory in which to place output files
+
+outputPipelineGraph: Boolean
+
+    Output the workflow graph as an image.
+
 outputSettings: ConfigurationObject
 
     One or more comma-separated key=value parameters.
+
+outputVersionTree: Boolean
+
+    Output the version tree as an image.
 
 packageDir: Path
 
@@ -338,6 +372,18 @@ pythonPrompt: Boolean
 recentVistrailList: String
 
     Storage for recent vistrails. Users should not edit.
+
+reportUsage: Integer
+
+    Report anonymous usage statistics to the developers
+
+enableUsage: Boolean
+
+    Enable sending anonymous usage statistics
+
+disableUsage: Boolean
+
+    Disable sending anonymous usage statistics
 
 repositoryHTTPURL: URL
 
@@ -400,6 +446,10 @@ showDebugPopups: Boolean
 
     Always show the debug popups or only if there is a modal widget.
 
+showInlineParameterWidgets: Boolean
+
+    Show editable parameters inside modules.
+
 showMovies: Boolean
 
     *Deprecated* Set automatic movie creation on the spreadsheet.
@@ -421,6 +471,11 @@ showVariantErrors: Boolean
 
     Alert the user if the value along a connection coming from a
     Variant output doesn't match the input port.
+
+showVistrailsNews: Boolean
+
+    Show news from VisTrails on startup. Each message will only be displayed
+    once.
 
 showWindow: Boolean
 
@@ -512,8 +567,8 @@ userPackageDir: Boolean
 
 viewOnLoad: String
 
-    Whether to show pipeline or history view when opening vistrail
-    Can be either appropriate/pipeline/history
+    Whether to show pipeline or history view when opening vistrail.
+    Can be either appropriate/pipeline/history.
 
 webRepositoryURL: URL
 
@@ -524,18 +579,6 @@ webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
     like crowdLabs.
-
-withVersionTree: Boolean
-
-    Output the version tree as an image.
-
-withWorkflow: Boolean
-
-    Output the workflow graph as an image.
-
-showInlineParameterWidgets: Boolean
-
-    Show editable parameters inside modules
 
 """
 
@@ -616,8 +659,8 @@ class ConfigFieldParent(object):
 
 base_config = {
     "Command-Line":
-    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG,
-                 flag='-e'),
+    [ConfigField("noExecute", False, bool, ConfigType.COMMAND_LINE_FLAG,
+                 flag='-E'),
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG,
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
@@ -630,9 +673,11 @@ base_config = {
      ConfigField("parameterExploration", False, bool,
                  ConfigType.COMMAND_LINE_FLAG),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField("outputVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('enableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('disableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
      ConfigField("port", None, int, ConfigType.COMMAND_LINE),
@@ -665,8 +710,12 @@ base_config = {
                                  "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
                                            1: "Critical Errors and Warnings",
-                                           2: "Errors, Warnings, and " \
-                                           "Debug Messages"}})],
+                                           2: "Errors, Warnings, and "
+                                              "Debug Messages"}}),
+     ConfigField('reportUsage', -1, int, ConfigType.INTERNAL,
+                 widget_type="usagestats",
+                 widget_options={'label': 'Anonymous usage reporting'}),
+     ConfigField('showVistrailsNews', True, bool, ConfigType.SHOW_HIDE)],
     "Startup":
     [ConfigField('maximizeWindows', False, bool, ConfigType.ON_OFF),
      ConfigField('multiHeads', False, bool, ConfigType.ON_OFF),
@@ -701,7 +750,7 @@ base_config = {
                                  "remap": {"appropriate": "Most Appropriate",
                                            "history": "Always History",
                                            "pipeline": "Always Pipeline"}}),
-     ConfigField('enableCustomVersionColors', False, bool, ConfigType.ON_OFF),
+     ConfigField('customVersionColors', False, bool, ConfigType.ON_OFF),
      ConfigField('fixedCustomVersionColorSaturation', False,
                  bool, ConfigType.ON_OFF)],
     "Thumbnails":
@@ -745,7 +794,9 @@ base_config = {
      ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL),
      ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL),
      ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL),
-     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL)],
+     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL),
+     ConfigField('maxPipelineFixAttempts', 50, int, ConfigType.INTERNAL),
+     ConfigField('lastShownNews', '', str, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
@@ -856,8 +907,8 @@ def find_simpledoc(arg_path):
 def set_field_labels(fields, prefix=""):
     for field in fields:
         if isinstance(field, ConfigFieldParent):
-            prefix = "%s%s." % (prefix, field.name)
-            set_field_labels(field.sub_fields, prefix=prefix)
+            new_prefix = "%s%s." % (prefix, field.name)
+            set_field_labels(field.sub_fields, prefix=new_prefix)
         else:
             full_field_name = "%s%s" % (prefix, field.name)
             label = find_simpledoc(full_field_name)
@@ -986,7 +1037,7 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
             config_type = field.field_type
             if config_type is None:
                 config_type = ConfigType.NORMAL
-            if (config_type == ConfigType.INTERNAL or \
+            if (config_type == ConfigType.INTERNAL or
                 config_type == ConfigType.STORAGE or
                 config_type == ConfigType.INTERNAL_SUBOBJECT):
                 # these are not in the command line

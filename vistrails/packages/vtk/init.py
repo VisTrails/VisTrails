@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -41,18 +41,20 @@ import os.path
 
 import vtk
 
+from distutils.version import LooseVersion
 from vistrails.core.configuration import ConfigField
-from vistrails.core.modules.basic_modules import PathObject, \
+from vistrails.core.modules.basic_modules import Path, PathObject, \
                                                        identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
-from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType, current_dot_vistrails
+from vistrails.core.system import systemType, current_dot_vistrails
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.port import Port
 from .pythonclass import BaseClassModule, gen_class_module
 
 from .tf_widget import _modules as tf_modules
@@ -98,7 +100,11 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     win2image.SetInput(window)
     win2image.Update()
     writer = vtk_format()
-    writer.SetInput(win2image.GetOutput())
+    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
+       LooseVersion('6.0.0'):
+        writer.SetInputData(win2image.GetOutput())
+    else:
+        writer.SetInput(win2image.GetOutput())
     writer.SetFileName(output_filename)
     writer.Write()
     window.Finalize()
@@ -422,11 +428,26 @@ def build_remap(module_name=None):
                                           old_conn.source,
                                           path_module,
                                           'name')
+            # Avoid descriptor lookup by explicitly creating Ports
+            input_port_id = controller.id_scope.getNewId(Port.vtType)
+            input_port = Port(id=input_port_id,
+                              name='value',
+                              type='source',
+                              signature=(Path,),
+                              moduleId=path_module.id,
+                              moduleName=path_module.name)
+            output_port_id = controller.id_scope.getNewId(Port.vtType)
+            output_port = Port(id=output_port_id,
+                               name=name,
+                               type='destination',
+                               signature=(Path,),
+                               moduleId=new_module.id,
+                               moduleName=new_module.name)
             conn2 = create_new_connection(controller,
                                           path_module,
-                                          'value',
+                                          input_port,
                                           new_module,
-                                          name)
+                                          output_port)
             return [('add', path_module),
                     ('add', conn1),
                     ('add', conn2)]
@@ -450,9 +471,15 @@ def build_remap(module_name=None):
                     if c in ports:
                         dest_port = c
                         break
+            output_port_spec = get_output_port_spec(new_module, 'StructuredGrid')
+            src_port = Port(name=output_port_spec.name,
+                            type='source',
+                            spec=output_port_spec,
+                            moduleId=new_module.id,
+                            moduleName=new_module.name)
             conn = create_new_connection(controller,
                                          new_module,
-                                         'StructuredGrid',
+                                         src_port,
                                          module1,
                                          dest_port)
             return [('add', conn)]
@@ -640,7 +667,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKCell')
-        remap.add_remap('src_port_remap', 'self', 'Instance')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKViewCell',
@@ -658,11 +684,19 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
     except ImportError:
         # Manually upgrade to 1.0.1
-        if _remap.get_module_remaps(module_name):
+        # Handle module name remap
+        old_name = module_name
+        for on, nn in module_name_remap.iteritems():
+            if old_name == nn:
+                old_name = on
+        if _remap.get_module_remaps(old_name):
             module_remap = copy.copy(_remap)
-            module_remap.add_module_remap(
-                    UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
-                                       module_name=module_name))
+            remap = module_remap.get_module_upgrade(module_name, '1.0.0')
+            if remap is None:
+                # Manually upgrade to 1.0.1
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                           module_name=module_name))
         else:
             module_remap = _remap
     else:
@@ -671,7 +705,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 'VTKCell', 'vtkRendererOutput',
                 '1.0.1', 'AddRenderer',
                 start_version='1.0.0')
-        if _remap.get_module_remaps(module_name):
+        # Handle module name remap
+        old_name = module_name
+        for on, nn in module_name_remap.iteritems():
+            if old_name == nn:
+                old_name = on
+        if _remap.get_module_remaps(old_name):
             remap = module_remap.get_module_upgrade(module_name, '1.0.0')
             if remap is None:
                 # Manually upgrade to 1.0.1

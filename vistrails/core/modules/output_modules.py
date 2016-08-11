@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -486,10 +486,13 @@ class FileMode(OutputMode):
             if suffix is None:
                 suffix = ''
             if dirname is None:
-                # FIXME should unify with VisTrails output
-                # directory global!  should check for abspath (if
-                # not, use relative to global output directory)
                 dirname = ''
+            if not os.path.isabs(dirname):
+                vt_output_dir = getattr(get_vistrails_temp_configuration(),
+                                        'outputDirectory',
+                                        None)
+                if vt_output_dir:
+                    dirname = os.path.join(vt_output_dir, dirname)
 
             # seriesPadding and series have defaults so no
             # need to default them
@@ -608,15 +611,16 @@ class IPythonMode(OutputMode):
             return False
         else:
             ip = get_ipython()
-            if ip is None or not isinstance(ip, ZMQInteractiveShell):
-                return False
-            warnings.warn("Looks like we're running from the notebook; "
-                          "automatically enabling IPythonMode.\n"
-                          "If this is right, please call "
-                          "vistrails.ipython_mode(True) so that this keeps "
-                          "working in the future (and this warning doesn't "
-                          "show).")
-            return True
+            if ip is not None and isinstance(ip, ZMQInteractiveShell):
+                warnings.warn(
+                        "Looks like you might be running from IPython; you "
+                        "might want to call\nvistrails.ipython_mode(True) to "
+                        "enable IPythonMode, allowing output modules to\n"
+                        "render to the notebook.\n"
+                        "If this is wrong, please call "
+                        "vistrails.ipython_mode(False) to get rid of this\n"
+                        "warning.")
+            return False
 
     def compute_output(self, output_module, configuration):
         from IPython.core.display import display

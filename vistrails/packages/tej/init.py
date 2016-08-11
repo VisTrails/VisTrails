@@ -4,7 +4,9 @@ import contextlib
 import io
 import logging
 import os
+import shutil
 import urllib
+import sys
 
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
@@ -23,6 +25,11 @@ this_pkg = __name__[:-5]
 
 
 class ServerLogger(tej.ServerLogger):
+    """Subclass of tej server logger that can be toggled on and off.
+
+    This is used to hide server messages from the VisTrails console when
+    running tej commands.
+    """
     def __init__(self):
         self.hidden = False
         tej.ServerLogger.__init__(self)
@@ -45,6 +52,8 @@ ServerLogger = ServerLogger()
 
 
 class RemoteQueue(tej.RemoteQueue):
+    """Subclass of tej's RemoteQueue that uses our `ServerLogger`.
+    """
     def server_logger(self):
         return ServerLogger
 
@@ -55,12 +64,17 @@ class QueueCache(object):
     def __init__(self):
         self._cache = {}
 
-    def get(self, destination, queue):
-        key = destination, queue
+    def get(self, destination, queue, setup_runtime, need_runtime):
+        key = (destination,
+               queue,
+               setup_runtime or None,
+               tuple(sorted(need_runtime)) if need_runtime else None)
         if key in self._cache:
             return self._cache[key]
         else:
-            queue = RemoteQueue(destination, queue)
+            queue = RemoteQueue(destination, queue,
+                                setup_runtime=setup_runtime,
+                                need_runtime=need_runtime)
             self._cache[key] = queue
             return queue
 
@@ -72,6 +86,16 @@ class Queue(Module):
 
     `hostname` can be a hostname or a full destination in the format:
     ``[ssh://][user@]server[:port]``, e.g. ``vistrails@nyu.edu``.
+
+    If `setup_runtime` is set, it should be the name of the runtime to deploy
+    on the server if the queue doesn't already exist. If None (the default),
+    tej will select what is appropriate automatically. If `need_runtime` is
+    set, this should be one of the accepted values.
+
+    If `need_runtime` is set, it is a comma-separated list of runtime names
+    that are acceptable. If the queue already exists on the server and this
+    argument is not None, the installed runtime will be matched against it, and
+    execution will fail if it is not one of the provided values.
     """
     _input_ports = [('hostname', '(basic:String)'),
                     ('username', '(basic:String)',
@@ -79,7 +103,11 @@ class Queue(Module):
                     ('port', '(basic:Integer)',
                      {'optional': True, 'defaults': "['22']"}),
                     ('queue', '(basic:String)',
-                     {'optional': True, 'defaults': "['~/.tej']"})]
+                     {'optional': True, 'defaults': "['~/.tej']"}),
+                    ('setup_runtime', '(basic:String)',
+                     {'optional': True}),
+                    ('need_runtime', '(basic:String)',
+                     {'optional': True})]
     _output_ports = [('queue', '(org.vistrails.extra.tej:Queue)')]
 
     def compute(self):
@@ -90,11 +118,97 @@ class Queue(Module):
                            'port': self.get_input('port')}
             destination_str = tej.destination_as_string(destination)
 
+        if self.has_input('setup_runtime'):
+            setup_runtime = self.get_input('setup_runtime')
+        else:
+            setup_runtime = None
+
+        if self.has_input('need_runtime'):
+            need_runtime = set(
+                e.strip()
+                for e in self.get_input('need_runtime').split(','))
+        else:
+            need_runtime = None
+
         queue = self.get_input('queue')
-        self.set_output('queue', QueueCache.get(destination_str, queue))
+        self.set_output('queue', QueueCache.get(destination_str, queue,
+                                                setup_runtime, need_runtime))
+
+
+class AssembleDirectoryMixin(object):
+    """A mixin for assembling a directory from paths passed on port specs.
+
+    Modules using this mixin should use the DirectoryConfigurationWidget
+    configuration widget to setup the input port specs.
+    :meth:`assemble_directory` returns a PathObject for the temporary directory
+    with the paths copied into it.
+    """
+    def __init__(self):
+        self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        super(AssembleDirectoryMixin, self).transfer_attrs(module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
+    def assemble_directory(self, base=None, do_copy=False):
+        """Create the directory using the optional `base` and the port specs.
+
+        :type base: PathObject
+
+        This creates a directory that contains all the contents of `base` (if
+        provided, else start empty), and all the additional files and
+        directories provided as input port specs (configured using the
+        `DirectoryConfigurationWidget`).
+
+        If there are no input port specs and `do_copy` is False, this method
+        will just return the currect location of `base` without copying it to a
+        temporary directory.
+        """
+        if self.input_ports_order or do_copy:
+            directory = self.interpreter.filePool.create_directory(
+                    prefix='vt_tmp_makedirectory_')
+
+            # Copy everything in base
+            if base is not None:
+                for name in os.listdir(base.name):
+                    src = os.path.join(base.name, name)
+                    dst = os.path.join(directory.name, name)
+                    if os.path.isdir(src):
+                        shutil.copytree(src, dst)
+                    else:
+                        shutil.copy2(src, dst)
+            # Copy from port specs
+            for name in self.input_ports_order:
+                shutil.copy(self.get_input(name).name,
+                            os.path.join(directory.name, name))
+            return directory
+        else:
+            return base
+
+
+class MakeDirectory(AssembleDirectoryMixin, Module):
+    """Creates a temporary directory and puts the given files in it.
+    """
+    _settings = ModuleSettings(configure_widget=(
+            '%s.widgets' % this_pkg, 'DirectoryConfigurationWidget'))
+    _output_ports = [('directory', '(basic:Directory)')]
+
+    def __init__(self):
+        AssembleDirectoryMixin.__init__(self)
+        Module.__init__(self)
+
+    def compute(self):
+        directory = self.assemble_directory()
+        self.set_output('directory', directory)
 
 
 class RemoteJob(object):
+    """This implements the JobMonitor's JobHandle interface.
+
+    These objects are returned to the JobMonitor via the ModuleSuspended
+    exceptions; they are used by the JobMonitor to figure out the status of the
+    submitted job.
+    """
     def __init__(self, queue, job_id):
         self.queue = queue
         self.job_id = job_id
@@ -117,7 +231,8 @@ class Job(Module):
     the creating module would have failed/suspended.
 
     You probably won't use this module directly since it references a
-    pre-existing job by name.
+    pre-existing job by name; just use one of the SubmitJob modules that
+    compute the upstream's signature.
     """
     _input_ports = [('id', '(basic:String)'),
                     ('queue', Queue)]
@@ -156,7 +271,9 @@ class BaseSubmitJob(JobMixin, Module):
     is finished, you can obtain files from it.
     """
     _settings = ModuleSettings(abstract=True)
-    _input_ports = [('queue', Queue)]
+    _input_ports = [('queue', Queue),
+                    ('print_error', '(basic:Boolean)',
+                     {'optional': True, 'defaults': "['False']"})]
     _output_ports = [('job', '(org.vistrails.extra.tej:Job)'),
                      ('exitcode', '(basic:Integer)')]
 
@@ -173,8 +290,12 @@ class BaseSubmitJob(JobMixin, Module):
     def job_read_inputs(self):
         """Reads the input ports.
         """
-        return {'destination': self.get_input('queue').destination_string,
-                'queue': str(self.get_input('queue').queue),
+        queue = self.get_input('queue')
+        return {'destination': queue.destination_string,
+                'queue': str(queue.queue),
+                'setup_runtime': queue.setup_runtime or '',
+                'need_runtime': (','.join(queue.need_runtime)
+                                 if queue.need_runtime is not None else ''),
                 'job_id': self.make_id()}
 
     def job_start(self, params):
@@ -187,7 +308,9 @@ class BaseSubmitJob(JobMixin, Module):
     def job_get_handle(self, params):
         """Gets a RemoteJob object to monitor a runnning job.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
         return RemoteJob(queue, params['job_id'])
 
     def job_finish(self, params):
@@ -195,8 +318,11 @@ class BaseSubmitJob(JobMixin, Module):
 
         Gets the exit code from the server.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
-        status, target, arg = queue.status(params['job_id'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
+        with ServerLogger.hide_output():
+            status, target, arg = queue.status(params['job_id'])
         assert status == tej.RemoteQueue.JOB_DONE
         params['exitcode'] = int(arg)
         return params
@@ -204,22 +330,53 @@ class BaseSubmitJob(JobMixin, Module):
     def job_set_results(self, params):
         """Sets the output ports once the job is finished.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
         self.set_output('exitcode', params['exitcode'])
         self.set_output('job', RemoteJob(queue, params['job_id']))
 
+        if self.get_input('print_error') and params['exitcode'] != 0:
+            # If it failed and 'print_error' is set, download and print stderr
+            # then fail
+            destination = self.interpreter.filePool.create_file(
+                    prefix='vt_tmp_job_err_').name
+            with ServerLogger.hide_output():
+                queue.download(params['job_id'],
+                               '_stderr',
+                               destination=destination,
+                               recursive=False)
+            with open(destination, 'r') as fin:
+                chunk = fin.read(4096)
+                sys.stderr.write(chunk)
+                while len(chunk) == 4096:
+                    chunk = fin.read(4096)
+                    if chunk:
+                        sys.stderr.write(chunk)
+            raise ModuleError(self,
+                              "Job failed with status %d" % params['exitcode'])
 
-class SubmitJob(BaseSubmitJob):
+
+class SubmitJob(AssembleDirectoryMixin, BaseSubmitJob):
     """Submits a generic job (a directory).
     """
-    _input_ports = [('job', '(basic:Directory)'),
+    _settings = ModuleSettings(configure_widget=(
+            '%s.widgets' % this_pkg, 'DirectoryConfigurationWidget'))
+    _input_ports = [('job', '(basic:Directory)',
+                     {'optional': True}),
                     ('script', '(basic:String)',
                      {'optional': True, 'defaults': "['start.sh']"})]
+
+    def __init__(self):
+        AssembleDirectoryMixin.__init__(self)
+        Module.__init__(self)
 
     def job_start(self, params):
         """Sends the directory and submits the job.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
 
         # First, check if job already exists
         try:
@@ -230,10 +387,25 @@ class SubmitJob(BaseSubmitJob):
         else:
             return params
 
+        if self.has_input('job'):
+            job_dir = self.get_input('job')
+            if not os.path.exists(job_dir.name):
+                raise ModuleError(self, "Directory doesn't exist")
+        else:
+            job_dir = None
+
+        # Use AssembleDirectoryMixin to get additional files from port specs
+        job_dir = self.assemble_directory(job_dir, False)
+
+        # Check that the script exists
+        script = self.get_input('script')
+        if not os.path.exists(os.path.join(job_dir.name, script)):
+            raise ModuleError(self, "Script does not exist")
+
         # Alright, submit a new job
         queue.submit(params['job_id'],
-                     self.get_input('job').name,
-                     self.get_input('script'))
+                     job_dir.name,
+                     script)
         return params
 
 
@@ -246,12 +418,12 @@ class SubmitShellJob(BaseSubmitJob):
     _output_ports = [('stderr', '(basic:File)'),
                      ('stdout', '(basic:File)')]
 
-    _job_interpreter = '/bin/sh'
-
     def job_start(self, params):
         """Creates a temporary job with the given source, upload and submit it.
         """
-        queue = QueueCache.get(params['destination'], params['queue'])
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
 
         # First, check if job already exists
         try:
@@ -272,15 +444,9 @@ class SubmitShellJob(BaseSubmitJob):
             kwargs = {'mode': 'wb'}
         else:
             kwargs = {'mode': 'w', 'newline': '\n'}
-        with io.open(os.path.join(directory, 'vistrails_source.sh'),
+        with io.open(os.path.join(directory, 'start.sh'),
                      **kwargs) as fp:
             fp.write(source)
-        with io.open(os.path.join(directory, 'start.sh'), 'w',
-                     newline='\n') as fp:
-            fp.write(u'%s '
-                     u'vistrails_source.sh '
-                     u'>_stdout.txt '
-                     u'2>_stderr.txt\n' % self._job_interpreter)
 
         queue.submit(params['job_id'], directory)
 
@@ -293,13 +459,15 @@ class SubmitShellJob(BaseSubmitJob):
 
         temp_dir = self.interpreter.filePool.create_directory(
                 prefix='vt_tmp_shelljobout_').name
-        queue = QueueCache.get(params['destination'], params['queue'])
-        queue.download(params['job_id'], ['_stderr.txt', '_stdout.txt'],
+        queue = QueueCache.get(params['destination'], params['queue'],
+                               params.get('setup_runtime') or None,
+                               params.get('need_runtime') or None)
+        queue.download(params['job_id'], ['_stderr', '_stdout'],
                        directory=temp_dir)
         self.set_output('stderr',
-                        PathObject(os.path.join(temp_dir, '_stderr.txt')))
+                        PathObject(os.path.join(temp_dir, '_stderr')))
         self.set_output('stdout',
-                        PathObject(os.path.join(temp_dir, '_stdout.txt')))
+                        PathObject(os.path.join(temp_dir, '_stdout')))
 
 
 class DownloadFile(Module):
@@ -315,10 +483,11 @@ class DownloadFile(Module):
 
         destination = self.interpreter.filePool.create_file(
                 prefix='vt_tmp_shelljobout_')
-        job.queue.download(job.job_id,
-                           self.get_input('filename'),
-                           destination=destination.name,
-                           recursive=False)
+        with ServerLogger.hide_output():
+            job.queue.download(job.job_id,
+                               self.get_input('filename'),
+                               destination=destination.name,
+                               recursive=False)
 
         self.set_output('file', destination)
 
@@ -337,10 +506,11 @@ class DownloadDirectory(Module):
         destination = self.interpreter.filePool.create_directory(
                 prefix='vt_tmp_shelljobout_').name
         target = os.path.join(destination, 'dir')
-        job.queue.download(job.job_id,
-                           self.get_input('pathname'),
-                           destination=target,
-                           recursive=True)
+        with ServerLogger.hide_output():
+            job.queue.download(job.job_id,
+                               self.get_input('pathname'),
+                               destination=target,
+                               recursive=True)
 
         self.set_output('directory', PathObject(target))
 
@@ -349,6 +519,8 @@ _tej_log_handler = None
 
 
 class _VisTrailsTejLogHandler(logging.Handler):
+    """Custom handler for the 'tej' logger that re-logs to VisTrails.
+    """
     def emit(self, record):
         msg = "tej: %s" % self.format(record)
         if record.levelno >= logging.CRITICAL:
@@ -383,4 +555,5 @@ def finalize():
 
 _modules = [Queue,
             Job, BaseSubmitJob, SubmitJob, SubmitShellJob,
-            DownloadFile, DownloadDirectory]
+            DownloadFile, DownloadDirectory,
+            MakeDirectory]

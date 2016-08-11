@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -160,7 +160,7 @@ class VistrailsInternalError(Exception):
 
     """
     def __str__(self):
-        return "Vistrails Internal Error: " + str(self.message)
+        return "Vistrails Internal Error: %s" % Exception.__str__(self)
 
 class VersionTooLow(Exception):
     """VersionTooLow is raised when you're running an outdated version of
@@ -705,7 +705,7 @@ class TestCommon(unittest.TestCase):
                 f(1, 2)
             self.assertEqual(len(w), 1)
             w, = w
-            self.assertEqual(w.message.message, msg)
+            self.assertEqual(w.message.args, (msg,))
             self.assertEqual(w.category, VistrailsDeprecation)
             self.assertTrue(canon_path(w.filename),
                             canon_path(__file__))

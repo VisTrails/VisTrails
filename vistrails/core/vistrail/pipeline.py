@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -40,7 +40,7 @@ from __future__ import division
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.data_structures.graph import Graph
+from vistrails.core.data_structures.graph import Graph, GraphContainsCycles
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
@@ -51,7 +51,6 @@ from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.plugin_data import PluginData
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
-import vistrails.core.vistrail.action
 from vistrails.core.utils import InvalidPipeline
 
 import copy
@@ -442,7 +441,7 @@ class Pipeline(DBWorkflow):
             if self.graph.in_degree(old_conn.destinationId) < 1:
                 connected_input_ports = \
                     self.modules[old_conn.destinationId].connected_input_ports
-                connected_input_ports.discard(conn.destination.name)
+                connected_input_ports.discard(old_conn.destination.name)
 
         if old_id in self._connection_signatures:
             del self._connection_signatures[old_id]
@@ -604,8 +603,8 @@ class Pipeline(DBWorkflow):
                 for _fun in _mod.functions:
                     for _par in _fun.parameters:
                         if (_par.vtType == type and _par.real_id == oId and
-                            _fun.vtType == parentType and 
-                            _fun.real_id == parentId):
+                                _fun.vtType == parentType and
+                                _fun.real_id == parentId):
                             mid = _mod.id
                             break
             if mid is not None:
@@ -630,8 +629,8 @@ class Pipeline(DBWorkflow):
         else:
             oldname = None
             for aname,(t,o,pt,pid,mid) in self.aliases.iteritems():
-                if (t == type and o == oId and pt == parentType and 
-                    pid == parentId):
+                if (t == type and o == oId and pt == parentType and
+                        pid == parentId):
                     oldname = aname
                     break
             if oldname:
@@ -677,7 +676,7 @@ class Pipeline(DBWorkflow):
             pass
         else:
             if what == 'parameter':
-                #FIXME: check if a change parameter action needs to be generated
+                # FIXME: check if a change parameter action needs to be generated
                 parameter = self.db_get_object(what, oId)
                 parameter.strValue = str(value)
             else:
@@ -853,6 +852,12 @@ class Pipeline(DBWorkflow):
         except InvalidPipeline, e:
             exceptions.update(e.get_exception_set())
 
+        # check for cycles
+        try:
+            self.graph.dfs(raise_if_cyclic=True)
+        except GraphContainsCycles, e:
+            exceptions.add(e)
+
         # do this before we check connection specs because it is
         # possible that a subpipeline invalidates the module, meaning
         # we shouldn't check the connection specs
@@ -871,7 +876,9 @@ class Pipeline(DBWorkflow):
                     try:
                         desc = module.module_descriptor
                         if long(module.internal_version) != long(desc.version):
-                            exceptions.add(MissingModuleVersion(desc.package, desc.name, desc.namespace, desc.version, desc.package_version, module.id))
+                            exceptions.add(MissingModuleVersion(
+                                desc.package, desc.name, desc.namespace,
+                                desc.version, desc.package_version, module.id))
                     except Exception:
                         pass
         try:
@@ -1116,14 +1123,12 @@ class Pipeline(DBWorkflow):
         affects downstream. This slightly increases performance.
 
         """
+        from vistrails.core.modules.basic_modules import List, Variant
+
+        # TODO: module_ids is currently ignored, this is potentially suboptimal
         result = []
-        is_upstream = module_ids
+        # Might raise GraphContainsCycles
         for module_id in self.graph.vertices_topological_sort():
-            if is_upstream:
-                if module_id in module_ids:
-                    is_upstream = False
-                else:
-                    continue
             module = self.get_module_by_id(module_id)
             module.list_depth = 0
             ports = []
@@ -1131,7 +1136,6 @@ class Pipeline(DBWorkflow):
                 prev_depth = self.get_module_by_id(module_from_id).list_depth
                 conn = self.get_connection_by_id(conn_id)
                 source_depth = 0
-                from vistrails.core.modules.basic_modules import List, Variant
                 if conn.source.spec:
                     source_depth = conn.source.spec.depth
                     src_descs = conn.source.spec.descriptors()
@@ -1166,7 +1170,6 @@ class Pipeline(DBWorkflow):
             module.iterated_ports = ports
         return result
 
-
     ##########################################################################
     # Debugging
 
@@ -1185,7 +1188,8 @@ class Pipeline(DBWorkflow):
                 print "module %d in self but not in other" % m_id
                 return
             if m <> other.modules[m_id]:
-                print "module %s in self doesn't match module %s in other" % (m,  other.modules[m_id])
+                print "module %s in self doesn't match module %s in other" % (
+                    m, other.modules[m_id])
                 return
         for m_id, m in other.modules.iteritems():
             if not m_id in self.modules:
@@ -1509,7 +1513,7 @@ class TestPipeline(unittest.TestCase):
         import vistrails.core.db.action
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
-        v = XMLFileLocator( \
+        v = XMLFileLocator(
             vistrails.core.system.vistrails_root_directory() +
             '/tests/resources/test_alias.xml').load()
 

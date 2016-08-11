@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -339,7 +339,6 @@ class PortSpec(DBPortSpec):
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
         registry = get_module_registry()
-        entries = []
         def canonicalize(sig_item):
             if isinstance(sig_item, tuple):
                 # assert len(sig_item) == 2

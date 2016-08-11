@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -47,6 +47,7 @@ from vistrails.core import debug
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
+from vistrails.core.reportusage import record_usage
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.db.domain import DBPackage
 
@@ -105,6 +106,8 @@ class Package(DBPackage):
             return ("Package '%s' has unmet dependencies:\n  %s" %
                     (self.package.name,
                      '\n  '.join([dep_string(d) for d in self.dependencies])))
+
+    _warned_contextmenu_notboth = False
 
     def __init__(self, *args, **kwargs):
         if 'load_configuration' in kwargs:
@@ -318,7 +321,7 @@ class Package(DBPackage):
                     if self._imports_are_good: # only warn first time
                         self._imports_are_good = False
                         debug.warning(
-                            "In package '%s', Please use the 'vistrails.' "
+                            "In package '%s', please use the 'vistrails.' "
                             "prefix when importing vistrails packages (%s)" %
                             (self.identifier or self.codepath, name))
                     fixed = pkg
@@ -411,6 +414,7 @@ class Package(DBPackage):
 
         self.set_properties()
         self.do_load_configuration()
+        record_usage(loaded_package='%s %s' % (self.identifier, self.version))
 
     def initialize(self):
         if not self._loaded:
@@ -564,17 +568,31 @@ class Package(DBPackage):
                 return self._abs_pkg_upgrades[key][latest_version]
         return None
 
-    def has_contextMenuName(self):
-        return hasattr(self._init_module, 'contextMenuName')
+    def has_context_menu(self):
+        if hasattr(self._init_module, 'context_menu'):
+            return True
+        name = hasattr(self._init_module, 'contextMenuName')
+        callback = hasattr(self._init_module, 'callContextMenu')
+        if name and callback:
+            return True
+        elif name or callback:
+            if not self._warned_contextmenu_notboth:
+                debug.warning(
+                        "In package '%s', only one of contextMenuName and "
+                        "callContextMenu is provided; the context menu will "
+                        "not be shown" % self.identifier)
+                self._warned_contextmenu_notboth = True
+        return False
 
-    def contextMenuName(self, signature):
-        return self._init_module.contextMenuName(signature)
-    
-    def has_callContextMenu(self):
-        return hasattr(self._init_module, 'callContextMenu')
-
-    def callContextMenu(self, signature):
-        return self._init_module.callContextMenu(signature)
+    def context_menu(self, signature):
+        if hasattr(self._init_module, 'context_menu'):
+            return self._init_module.context_menu(signature)
+        elif hasattr(self._init_module, 'contextMenuName'):
+            if signature is None:
+                signature = self.name
+            def callMenu():
+                self._init_module.callContextMenu(signature)
+            return [(self._init_module.contextMenuName(signature), callMenu)]
 
     def loadVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
