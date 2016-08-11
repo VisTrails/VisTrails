@@ -682,16 +682,24 @@ def unserialize(str, obj_type):
 ##############################################################################
 # Vistrail I/O
 
-def open_vistrail_from_xml(filename):
-    """open_vistrail_from_xml(filename) -> Vistrail"""
+def open_vistrail_from_xml(filename, target_version=None):
+    """open_vistrail_from_xml reads a Vistrail stored as xml and updates
+    it to the provided target_version
+        :param str filename:
+        :param str target_version: what version to translate to
+        :return vistrails.db.domain.DBVistrail
+    """
+
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
+    if target_version is None:
+        target_version = get_current_version()
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
         if vistrail is None:
             raise VistrailsDBException("Couldn't read vistrail from XML")
-        vistrail = translate_vistrail(vistrail, version)
+        vistrail = translate_vistrail(vistrail, version, target_version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
@@ -768,11 +776,12 @@ def open_vistrail_bundle_from_zip_xml(filename):
         raise VistrailsDBException("vt file does not contain vistrail")
     vistrail.db_log_filename = log_fname
 
-    # call package hooks
-    from vistrails.core.packagemanager import get_package_manager
-    pm = get_package_manager()
-    for package in pm.enabled_package_list():
-        package.loadVistrailFileHook(vistrail, vt_save_dir)
+    #FIXME do not like this here, this is core logic
+    # # call package hooks
+    # from vistrails.core.packagemanager import get_package_manager
+    # pm = get_package_manager()
+    # for package in pm.enabled_package_list():
+    #     package.loadVistrailFileHook(vistrail, vt_save_dir)
 
     save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
                              abstractions=abstraction_files, 

@@ -33,20 +33,23 @@
 ##
 ###############################################################################
 from vistrails.db.versions.v2_0_0.domain import DBVistrail, \
-    DBWorkflow, DBLog, DBRegistry, DBStartup, DBAction, IdScope
+    DBWorkflow, DBLog, DBRegistry, DBStartup, DBAction, IdScope, DBMashuptrail
 
 import unittest
 
 # 1. we probably have to worry about groups, right? or not?
 # 2. what to do about ids that span log and vistrail??
 
-def translateVistrail(_vistrail):
+def translateVistrail(_vistrail, external_data=None):
     """ Translate old annotation based vistrail variables to new
         DBVistrailVariable class """
 
     id_scope = IdScope()
 
-    id_remap = {}
+    if external_data is not None and "id_remap" in external_data:
+        id_remap = external_data["id_remap"]
+    else:
+        id_remap = {}
     old_class = _vistrail.__class__
     _vistrail.__class__ = DBVistrail
     vistrail = DBVistrail.do_copy(_vistrail, True, id_scope, id_remap)
@@ -62,9 +65,10 @@ def translateVistrail(_vistrail):
             vistrail.db_delete_actionAnnotation(ann)
             ann.db_value = "%s" % id_remap[(DBAction.vtType, long(ann.db_value))]
             vistrail.db_add_actionAnnotation(ann)
+    vistrail.db_version = '2.0.0'
     return vistrail
 
-def translateWorkflow(_workflow):
+def translateWorkflow(_workflow, external_data=None):
     id_scope = IdScope()
     id_remap = {}
     old_class = _workflow.__class__
@@ -73,9 +77,10 @@ def translateWorkflow(_workflow):
         workflow = DBWorkflow.do_copy(_workflow, True, id_scope, id_remap)
     finally:
         _workflow.__class__ = old_class
+    workflow.db_version = '2.0.0'
     return workflow
     
-def translateLog(_log):
+def translateLog(_log, external_data=None):
     id_scope = IdScope()
     id_remap = {}
     old_class = _log.__class__
@@ -84,9 +89,10 @@ def translateLog(_log):
         log = DBLog.do_copy(_log, True, id_scope, id_remap)
     finally:
         _log.__class__ = old_class
+    log.db_version = '2.0.0'
     return log
 
-def translateRegistry(_registry):
+def translateRegistry(_registry, external_data=None):
     id_scope = IdScope()
     id_remap = {}
     old_class = _registry.__class__
@@ -95,9 +101,22 @@ def translateRegistry(_registry):
         registry = DBRegistry.do_copy(_registry, True, id_scope, id_remap)
     finally:
         _registry.__class__ = old_class
+    registry.db_version = '2.0.0'
     return registry
 
-def translateStartup(_startup):
+def translateMashup(_mashup, external_data=None):
+    id_scope = IdScope()
+    id_remap = {}
+    old_class = _mashup.__class__
+    _mashup.__class__ = DBMashuptrail
+    try:
+        mashup = DBRegistry.do_copy(_mashup, True, id_scope, id_remap)
+    finally:
+        _mashup.__class__ = old_class
+    mashup.db_version = '2.0.0'
+    return mashup
+
+def translateStartup(_startup, external_data=None):
     startup = DBStartup()
     translate_dict = {}
     startup = DBStartup.update_version(_startup, translate_dict, startup)
