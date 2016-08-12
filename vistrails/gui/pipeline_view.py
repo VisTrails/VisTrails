@@ -2369,7 +2369,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 ("Package '%s' is missing (or module '%s' is not present " +
                 "in that package)") % (e._identifier, e._name))
             self.clear()
-            self.controller.change_selected_version(0)
+            self.controller.change_selected_version(Vistrail.ROOT_VERSION)
         finally:
             self.skip_update = False
             self.update_connections()

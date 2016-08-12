@@ -180,7 +180,7 @@ class QueryController(object):
     def reset_search(self):
         self.search = None
         self.search_pipeline = None
-        self.query_view.pipeline_view.controller.change_selected_version(0)
+        self.query_view.pipeline_view.controller.change_selected_version(Vistrail.ROOT_VERSION)
         self.query_view.pipeline_view.scene().setupScene(
             self.query_view.pipeline_view.controller.current_pipeline)
         self.query_view.set_to_search_mode()

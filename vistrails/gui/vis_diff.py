@@ -44,6 +44,7 @@ from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import TestVisTrailsGUI
@@ -1336,7 +1337,7 @@ class TestDiffView(TestVisTrailsGUI):
             vistrails.core.system.vistrails_root_directory(),
             'tests', 'resources', 'terminator.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
-        view.controller.change_selected_version(0)
+        view.controller.change_selected_version(Vistrail.ROOT_VERSION)
         # get tags
         v1 = view.controller.vistrail.get_version_id('Volume Rendering HW')
         v2 = view.controller.vistrail.get_version_id('Volume Rendering SW')
