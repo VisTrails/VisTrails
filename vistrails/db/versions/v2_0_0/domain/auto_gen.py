@@ -1409,10 +1409,18 @@ class DBAdd(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
-                cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
-            if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_objectId') and (fkey_type, self._db_objectId) in id_remap:
+                cp._db_objectId = id_remap[(fkey_type, self._db_objectId)]
+            if self._db_parentObjType in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_parentObjType]
+            else:
+                fkey_type = self._db_parentObjType
+            if hasattr(self, 'db_parentObjId') and (fkey_type, self._db_parentObjId) in id_remap:
+                cp._db_parentObjId = id_remap[(fkey_type, self._db_parentObjId)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -2048,8 +2056,12 @@ class DBOpmArtifactIdCause(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_artifact', self._db_id)]
+            if 'opm_artifact' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_artifact']
+            else:
+                fkey_type = 'opm_artifact'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -2114,8 +2126,12 @@ class DBRefProvEntity(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
+            if 'prov_entity' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_entity']
+            else:
+                fkey_type = 'prov_entity'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -2510,10 +2526,18 @@ class DBGroupExec(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
-                cp._db_module_id = id_remap[('module', self._db_module_id)]
-            if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
-                cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_module_id') and (fkey_type, self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[(fkey_type, self._db_module_id)]
+            if 'machine' in id_scope.remap:
+                fkey_type = id_scope.remap['machine']
+            else:
+                fkey_type = 'machine'
+            if hasattr(self, 'db_machine_id') and (fkey_type, self._db_machine_id) in id_remap:
+                cp._db_machine_id = id_remap[(fkey_type, self._db_machine_id)]
 
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
@@ -2888,8 +2912,12 @@ class DBOpmAgentId(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_id') and ('opm_agent', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_agent', self._db_id)]
+            if 'opm_agent' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_agent']
+            else:
+                fkey_type = 'opm_agent'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -4785,8 +4813,12 @@ class DBPort(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_moduleId') and ('module', self._db_moduleId) in id_remap:
-                cp._db_moduleId = id_remap[('module', self._db_moduleId)]
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_moduleId') and (fkey_type, self._db_moduleId) in id_remap:
+                cp._db_moduleId = id_remap[(fkey_type, self._db_moduleId)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -5210,8 +5242,12 @@ class DBPEFunction(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
-                cp._db_module_id = id_remap[('module', self._db_module_id)]
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_module_id') and (fkey_type, self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[(fkey_type, self._db_module_id)]
 
         # recreate indices and set flags
         cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
@@ -5476,8 +5512,12 @@ class DBWorkflow(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
-                cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vistrail_id') and (fkey_type, self._db_vistrail_id) in id_remap:
+                cp._db_vistrail_id = id_remap[(fkey_type, self._db_vistrail_id)]
 
         # recreate indices and set flags
         cp.db_modules_id_index = dict((v.db_id, v) for v in cp._db_modules)
@@ -5994,8 +6034,12 @@ class DBMashupAction(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_prevId') and ('mashup_action', self._db_prevId) in id_remap:
-                cp._db_prevId = id_remap[('mashup_action', self._db_prevId)]
+            if 'mashup_action' in id_scope.remap:
+                fkey_type = id_scope.remap['mashup_action']
+            else:
+                fkey_type = 'mashup_action'
+            if hasattr(self, 'db_prevId') and (fkey_type, self._db_prevId) in id_remap:
+                cp._db_prevId = id_remap[(fkey_type, self._db_prevId)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -6295,12 +6339,24 @@ class DBChange(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_oldObjId') and (self._db_what, self._db_oldObjId) in id_remap:
-                cp._db_oldObjId = id_remap[(self._db_what, self._db_oldObjId)]
-            if hasattr(self, 'db_newObjId') and (self._db_what, self._db_newObjId) in id_remap:
-                cp._db_newObjId = id_remap[(self._db_what, self._db_newObjId)]
-            if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_oldObjId') and (fkey_type, self._db_oldObjId) in id_remap:
+                cp._db_oldObjId = id_remap[(fkey_type, self._db_oldObjId)]
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_newObjId') and (fkey_type, self._db_newObjId) in id_remap:
+                cp._db_newObjId = id_remap[(fkey_type, self._db_newObjId)]
+            if self._db_parentObjType in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_parentObjType]
+            else:
+                fkey_type = self._db_parentObjType
+            if hasattr(self, 'db_parentObjId') and (fkey_type, self._db_parentObjId) in id_remap:
+                cp._db_parentObjId = id_remap[(fkey_type, self._db_parentObjId)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -7292,8 +7348,12 @@ class DBAction(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_prevId') and ('action', self._db_prevId) in id_remap:
-                cp._db_prevId = id_remap[('action', self._db_prevId)]
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_prevId') and (fkey_type, self._db_prevId) in id_remap:
+                cp._db_prevId = id_remap[(fkey_type, self._db_prevId)]
 
         # recreate indices and set flags
         cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
@@ -7750,8 +7810,12 @@ class DBOpmProcessIdEffect(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_process', self._db_id)]
+            if 'opm_process' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_process']
+            else:
+                fkey_type = 'opm_process'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -7816,8 +7880,12 @@ class DBRefProvPlan(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
+            if 'prov_entity' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_entity']
+            else:
+                fkey_type = 'prov_entity'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -8058,8 +8126,12 @@ class DBRefProvAgent(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_prov_ref') and ('prov_agent', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_agent', self._db_prov_ref)]
+            if 'prov_agent' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_agent']
+            else:
+                fkey_type = 'prov_agent'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -8711,8 +8783,12 @@ class DBLog(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
-                cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vistrail_id') and (fkey_type, self._db_vistrail_id) in id_remap:
+                cp._db_vistrail_id = id_remap[(fkey_type, self._db_vistrail_id)]
 
         # recreate indices and set flags
         cp.db_workflow_execs_id_index = dict((v.db_id, v) for v in cp._db_workflow_execs)
@@ -9201,8 +9277,12 @@ class DBOpmProcessIdCause(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_process', self._db_id)]
+            if 'opm_process' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_process']
+            else:
+                fkey_type = 'opm_process'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -10401,8 +10481,12 @@ class DBActionAnnotation(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('action', self._db_action_id)]
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_action_id') and (fkey_type, self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[(fkey_type, self._db_action_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -10968,8 +11052,12 @@ class DBOpmArtifactIdEffect(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_artifact', self._db_id)]
+            if 'opm_artifact' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_artifact']
+            else:
+                fkey_type = 'opm_artifact'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -11804,10 +11892,18 @@ class DBDelete(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
-                cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
-            if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_objectId') and (fkey_type, self._db_objectId) in id_remap:
+                cp._db_objectId = id_remap[(fkey_type, self._db_objectId)]
+            if self._db_parentObjType in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_parentObjType]
+            else:
+                fkey_type = self._db_parentObjType
+            if hasattr(self, 'db_parentObjId') and (fkey_type, self._db_parentObjId) in id_remap:
+                cp._db_parentObjId = id_remap[(fkey_type, self._db_parentObjId)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -12507,8 +12603,12 @@ class DBModuleDescriptor(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_base_descriptor_id') and ('module_descriptor', self._db_base_descriptor_id) in id_remap:
-                cp._db_base_descriptor_id = id_remap[('module_descriptor', self._db_base_descriptor_id)]
+            if 'module_descriptor' in id_scope.remap:
+                fkey_type = id_scope.remap['module_descriptor']
+            else:
+                fkey_type = 'module_descriptor'
+            if hasattr(self, 'db_base_descriptor_id') and (fkey_type, self._db_base_descriptor_id) in id_remap:
+                cp._db_base_descriptor_id = id_remap[(fkey_type, self._db_base_descriptor_id)]
 
         # recreate indices and set flags
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
@@ -12767,8 +12867,12 @@ class DBTag(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_id') and ('action', self._db_id) in id_remap:
-                cp._db_id = id_remap[('action', self._db_id)]
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -13552,8 +13656,12 @@ class DBOpmAccountId(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_id') and ('opm_account', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_account', self._db_id)]
+            if 'opm_account' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_account']
+            else:
+                fkey_type = 'opm_account'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -14272,8 +14380,12 @@ class DBMashup(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_vtid') and ('vistrail', self._db_vtid) in id_remap:
-                cp._db_vtid = id_remap[('vistrail', self._db_vtid)]
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vtid') and (fkey_type, self._db_vtid) in id_remap:
+                cp._db_vtid = id_remap[(fkey_type, self._db_vtid)]
 
         # recreate indices and set flags
         cp.db_aliases_id_index = dict((v.db_id, v) for v in cp._db_aliases)
@@ -14550,8 +14662,12 @@ class DBMachine(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_vistrailId') and ('vistrail', self._db_vistrailId) in id_remap:
-                cp._db_vistrailId = id_remap[('vistrail', self._db_vistrailId)]
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vistrailId') and (fkey_type, self._db_vistrailId) in id_remap:
+                cp._db_vistrailId = id_remap[(fkey_type, self._db_vistrailId)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -14880,8 +14996,12 @@ class DBRefProvActivity(object):
 
         # set new ids
         if new_ids:
-            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
+            if 'prov_activity' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_activity']
+            else:
+                fkey_type = 'prov_activity'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -16093,8 +16213,12 @@ class DBRegistry(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_root_descriptor_id') and ('module_descriptor', self._db_root_descriptor_id) in id_remap:
-                cp._db_root_descriptor_id = id_remap[('module_descriptor', self._db_root_descriptor_id)]
+            if 'module_descriptor' in id_scope.remap:
+                fkey_type = id_scope.remap['module_descriptor']
+            else:
+                fkey_type = 'module_descriptor'
+            if hasattr(self, 'db_root_descriptor_id') and (fkey_type, self._db_root_descriptor_id) in id_remap:
+                cp._db_root_descriptor_id = id_remap[(fkey_type, self._db_root_descriptor_id)]
 
         # recreate indices and set flags
         cp.db_packages_id_index = dict((v.db_id, v) for v in cp._db_packages)
@@ -17047,8 +17171,12 @@ class DBParameterExploration(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('action', self._db_action_id)]
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_action_id') and (fkey_type, self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[(fkey_type, self._db_action_id)]
 
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
@@ -17307,8 +17435,12 @@ class DBMashupActionAnnotation(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_action_id') and ('mashup_action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('mashup_action', self._db_action_id)]
+            if 'mashup_action' in id_scope.remap:
+                fkey_type = id_scope.remap['mashup_action']
+            else:
+                fkey_type = 'mashup_action'
+            if hasattr(self, 'db_action_id') and (fkey_type, self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[(fkey_type, self._db_action_id)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -17781,10 +17913,18 @@ class DBModuleExec(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
-            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
-                cp._db_module_id = id_remap[('module', self._db_module_id)]
-            if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
-                cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_module_id') and (fkey_type, self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[(fkey_type, self._db_module_id)]
+            if 'machine' in id_scope.remap:
+                fkey_type = id_scope.remap['machine']
+            else:
+                fkey_type = 'machine'
+            if hasattr(self, 'db_machine_id') and (fkey_type, self._db_machine_id) in id_remap:
+                cp._db_machine_id = id_remap[(fkey_type, self._db_machine_id)]
 
         # recreate indices and set flags
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)

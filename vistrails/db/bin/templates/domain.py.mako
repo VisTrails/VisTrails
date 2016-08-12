@@ -179,10 +179,14 @@ class ${obj.getClassName()}(object):
                 ref_obj = field.getReferencedObject()
                 lookup_str = "'%s'" % ref_obj.getRegularName()
             %> \\
+            if ${lookup_str} in id_scope.remap:
+                fkey_type = id_scope.remap[${lookup_str}]
+            else:
+                fkey_type = ${lookup_str}
             if hasattr(self, '${field.getFieldName()}') and \
-                    (${lookup_str}, self.${field.getPrivateName()}) in id_remap:
+                    (fkey_type, self.${field.getPrivateName()}) in id_remap:
                 cp.${field.getPrivateName()} = \
-                         id_remap[(${lookup_str}, \
+                         id_remap[(fkey_type, \
                                         self.${field.getPrivateName()})]
             % endfor
             % endif
