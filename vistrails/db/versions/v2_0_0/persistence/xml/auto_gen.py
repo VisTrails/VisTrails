@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -4074,7 +4074,7 @@ class DBControlParameterXMLDAOBase(XMLDAO):
         
         # read attributes
         data = node.get('id', None)
-        id = self.convertFromStr(data, 'long')
+        id = self.convertFromStr(data, 'str')
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
         data = node.get('value', None)
@@ -4091,7 +4091,7 @@ class DBControlParameterXMLDAOBase(XMLDAO):
             node = ElementTree.Element('controlParameter')
         
         # set attributes
-        node.set('id',self.convertToStr(controlParameter.db_id, 'long'))
+        node.set('id',self.convertToStr(controlParameter.db_id, 'str'))
         node.set('name',self.convertToStr(controlParameter.db_name, 'str'))
         node.set('value',self.convertToStr(controlParameter.db_value, 'str'))
         

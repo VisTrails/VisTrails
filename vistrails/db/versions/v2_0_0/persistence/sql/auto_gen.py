@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -4715,7 +4715,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
-            id = self.convertFromDB(row[0], 'long', 'int')
+            id = self.convertFromDB(row[0], 'str', 'char(36)')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             value = self.convertFromDB(row[2], 'str', 'mediumtext')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
@@ -4744,7 +4744,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
     def process_sql_columns(self, data, global_props):
         res = {}
         for row in data:
-            id = self.convertFromDB(row[0], 'long', 'int')
+            id = self.convertFromDB(row[0], 'str', 'char(36)')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             value = self.convertFromDB(row[2], 'str', 'mediumtext')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
@@ -4791,12 +4791,12 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
             whereMap['id'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
-                self.convertToDB(obj.db_id, 'long', 'int')
+                self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
@@ -4831,12 +4831,12 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
             whereMap['id'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
-                self.convertToDB(obj.db_id, 'long', 'int')
+                self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
@@ -4874,7 +4874,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
             whereMap['id'] = keyStr
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)

@@ -1,6 +1,6 @@
 --#############################################################################
 --
--- Copyright (C) 2014-2015, New York University.
+-- Copyright (C) 2014-2016, New York University.
 -- Copyright (C) 2011-2014, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah.
 -- All rights reserved.
@@ -327,7 +327,7 @@ CREATE TABLE action_annotation(
 ) engine=InnoDB;
 
 CREATE TABLE control_parameter(
-    id int,
+    id char(36),
     name varchar(255),
     value mediumtext,
     parent_type char(32),
