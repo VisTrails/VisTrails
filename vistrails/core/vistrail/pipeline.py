@@ -477,10 +477,14 @@ class Pipeline(DBWorkflow):
             source_name = c.source.name
             output_ports = self.modules[c.sourceId].connected_output_ports
             output_ports[source_name] -= 1
-                
+            if not output_ports[source_name]:
+                del output_ports[source_name]
+
             dest_name = c.destination.name
             input_ports = self.modules[c.destinationId].connected_input_ports
             input_ports[dest_name] -= 1
+            if not input_ports[dest_name]:
+                del input_ports[dest_name]
 
         if id in self._connection_signatures:
             del self._connection_signatures[id]
@@ -545,11 +549,15 @@ class Pipeline(DBWorkflow):
             source_name = c.source.name
             output_ports = self.modules[c.sourceId].connected_output_ports
             output_ports[source_name] -= 1
-                
+            if not output_ports[source_name]:
+                del output_ports[source_name]
+
             dest_name = c.destination.name
             input_ports = self.modules[c.destinationId].connected_input_ports
             input_ports[dest_name] -= 1
-            
+            if not input_ports[dest_name]:
+                del input_ports[dest_name]
+
         self.db_delete_object(port_id, Port.vtType, parent_type, parent_id)
 
     def change_port(self, old_port_id, port, parent_type, parent_id):
