@@ -174,7 +174,7 @@ def record_vistrail(what, vistrail):
                             nb_abstractions += 1
         usage_report.note(dict(use_vistrail=what,
                                nb_versions=len(vistrail.actionMap),
-                               nb_tags=len(vistrail.tags),
+                               nb_tags=len(vistrail.get_tagMap()),
                                nb_notes=nb_notes,
                                nb_paramexplorations=nb_paramexplorations,
                                nb_upgrades=nb_upgrades,
