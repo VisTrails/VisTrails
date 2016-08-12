@@ -285,7 +285,7 @@ class Vistrail(DBVistrail):
         """
         if self.has_tag_str(version):
             return self.get_tag_str(version).action_id
-        if version in self.actionMap:
+        if version in self.actionMap or version == -1: # -1 is no version
             return version
         raise KeyError("Cannot find version %s" % version)
 
