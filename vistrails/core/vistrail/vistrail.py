@@ -255,6 +255,8 @@ class Vistrail(DBVistrail):
         tag_map = self.get_tagMap()
         action_map = self.actionMap
         count = 0
+        if version == -1:
+            return None
         while True:
             if version in tag_map or version == Vistrail.ROOT_VERSION:
                 if version in tag_map:

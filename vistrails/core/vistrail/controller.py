@@ -4289,7 +4289,7 @@ class VistrailController(object):
             # Find the closest upstream pipeline to the current one
             cv = self._current_full_graph.inverse_immutable().closest_vertex
             closest = cv(version, self._pipelines)
-            if use_current:
+            if use_current and self.current_version != -1:
                 cost_to_closest_version = self.version_switch_cost(version,
                                                                    closest)
                 # Now we have to decide between the closest pipeline
