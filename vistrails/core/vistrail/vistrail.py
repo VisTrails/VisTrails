@@ -1281,8 +1281,9 @@ class TestVistrail(unittest.TestCase):
                        data=p)
         action = Action(id=v1.idScope.getNewId(Action.vtType),
                         operations=[add_op])
-        v1.add_action(action, 0)
+        v1.add_action(action, Vistrail.ROOT_VERSION)
         workflow = v1.getPipeline(action.id)
+        # FIXME why is this just accessed as a list?
         p2 = workflow.plugin_datas[0]
         assert plugin_data_str == p2.data
 
