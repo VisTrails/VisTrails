@@ -144,7 +144,7 @@ CREATE TABLE port(
 
 CREATE TABLE pe_function(
     id char(36),
-    module_id int,
+    module_id char(36),
     port_name varchar(255),
     is_alias int,
     parent_type char(32),

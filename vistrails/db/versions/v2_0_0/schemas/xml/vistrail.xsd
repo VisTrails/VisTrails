@@ -188,7 +188,7 @@
         <xs:element name="parameter" ref="peParameter" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:string"/>
-      <xs:attribute name="moduleId" type="xs:int"/>
+      <xs:attribute name="moduleId" type="xs:string"/>
       <xs:attribute name="port_name" type="xs:string"/>
       <xs:attribute name="is_alias" type="xs:int"/>
     </xs:complexType>
