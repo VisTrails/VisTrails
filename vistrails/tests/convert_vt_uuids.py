@@ -48,6 +48,7 @@ ElementTree = get_elementtree_library()
 
 def run(fname, new_fname=None):
 
+    isbundle = False
     if fname.endswith('.xml'):
         # no bundle, straightforward
         tree = ElementTree.parse(fname)
@@ -56,6 +57,7 @@ def run(fname, new_fname=None):
         vistrail = vtdbio.open_vistrail_from_xml(fname, version)
     elif fname.endswith('.vt'):
         # have bundle
+        isbundle = True
         with zipfile.ZipFile(fname) as zf:
             vistrail_f = BytesIO(zf.read("vistrail"))
             tree = ElementTree.parse(vistrail_f)
@@ -67,6 +69,8 @@ def run(fname, new_fname=None):
         try:
             (bundle, save_dir) = vtdbio.open_vistrail_bundle_from_zip_xml(fname)
             vistrail = bundle.vistrail
+            # have to load from the bundle
+            log = vtdbio.open_log_from_xml(vistrail.db_log_filename, True)
         finally:
             vistrails.db.versions.currentVersion = current_version
 
@@ -79,14 +83,22 @@ def run(fname, new_fname=None):
     # may need to watch through translations...?
     # otherwise, could just set currentVersion to 1.0.4 and skip version checks
     vistrail = vistrails.db.versions.translate_vistrail(vistrail, version, '1.0.4')
+    log = vistrails.db.versions.translate_log(log, version, '1.0.4')
 
     external_data = {"id_remap": {}}
     new_vistrail = uuid_translate.translateVistrail(vistrail, external_data)
+    new_log = uuid_translate.translateLog(log, external_data)
 
     for k,v in external_data["id_remap"].iteritems():
         print k, '->', v
 
-    vtdbio.save_vistrail_to_xml(new_vistrail, new_fname)
+    if isbundle:
+        # don't want to merge, grab whole log from log obj in memory
+        new_vistrail.db_log_filename = None
+        bundle = vtdbio.SaveBundle('vistrail', new_vistrail, new_log)
+        vtdbio.save_vistrail_bundle_to_zip_xml(bundle, new_fname)
+    else:
+        vtdbio.save_vistrail_to_xml(new_vistrail, new_fname)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
