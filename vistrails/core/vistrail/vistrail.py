@@ -1199,17 +1199,17 @@ class TestVistrail(unittest.TestCase):
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy.xml').load()
+                           '/tests/resources/dummy-uuid.xml').load()
         #testing nodes in different branches
-        v1 = 36
-        v2 = 41
+        v1 = v.get_version_id("int chain") # 36
+        v2 = v.get_version_id("float chain") # 41
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
         
         #testing nodes in the same branch
-        v1 = 15
-        v2 = 36
+        v1 = "61b3df67-2e13-40fd-a776-3676ec1f71f2" #15 -- 14 down
+        v2 = v.get_version_id("int chain") # 36
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
@@ -1221,11 +1221,11 @@ class TestVistrail(unittest.TestCase):
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy.xml').load()
+                           '/tests/resources/dummy-uuid.xml').load()
         #testing diff
-        v1 = 17
-        v2 = 27
-        v3 = 22
+        v1 = "86c60887-b1c0-424e-b481-27b8979aab29" # 17 -- 16 down
+        v2 = "1adc47dd-9ba7-40c9-aada-b7543e92ece1" # 27 -- 26 down
+        v3 = "0dff5a48-6bcd-43e7-948e-71045f40a971" # 22 -- 21 down
         v.get_pipeline_diff(v1,v2)
         v.get_pipeline_diff(v1,v3)
         v.get_pipeline_diff_with_connections(v1,v2)

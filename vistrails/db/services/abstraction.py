@@ -35,10 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.db.domain import DBWorkflow
-from vistrails.db.services.action_chain import getActionChain, getCurrentOperationDict, \
-    getCurrentOperations
-
 def getNewObjId(operation):
     if operation.vtType == 'change':
         return operation.db_newObjId

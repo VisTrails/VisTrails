@@ -35,6 +35,7 @@
 ###############################################################################
 
 from __future__ import division
+from collections import OrderedDict
 from vistrails.db.domain import DBVistrail
 
 def getActionChain(obj, version, start=DBVistrail.ROOT_VERSION):
@@ -150,9 +151,9 @@ def get_operation_diff(actions, ops, ops_lookup):
     return (add_ops, add_ops_lookup, del_ops, del_ops_lookup)
 
 
-def getCurrentOperationDict(actions, currentOperations=None):
+def get_current_operation_dict(actions, currentOperations=None):
     if currentOperations is None:
-        currentOperations = {}
+        currentOperations = OrderedDict()
 
     # note that this operation assumes unique ids for each operation's data
     # any add adds to the dict, delete removes from the dict, and
