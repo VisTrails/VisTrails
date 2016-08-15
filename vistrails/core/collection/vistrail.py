@@ -257,7 +257,7 @@ class VistrailEntity(Entity):
             is_new = True
             # FIXME add new workflow entity for this version
             if version_id not in self.vistrail.actionMap:
-                raise LookupError("Version %d does not occur in vistrail." %
+                raise LookupError("Version %s does not occur in vistrail." %
                                   version_id)
             action = self.vistrail.actionMap[version_id]
             try:
