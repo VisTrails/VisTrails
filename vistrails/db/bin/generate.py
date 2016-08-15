@@ -38,13 +38,12 @@
 """auto-generates code given specs"""
 
 # requires mako python package (easy_install Mako) and 
-# uses emacs via subprocess call for python indentation
-# the emacs call is slow because it checks all of the indentation
 
 from __future__ import division
 
 from mako.template import Template
 
+import autopep8
 import os
 import re
 import shutil
@@ -147,9 +146,8 @@ def preprocess_template(in_fname, out_fname=None):
     in_file.close()
 
 def indent_python(fname):
-    subprocess.Popen(["emacs", "-batch", fname, "-f", "mark-whole-buffer",
-                      "-f", "indent-region", "-f", "save-buffer", "-kill"],
-                     stdout=subprocess.PIPE).communicate()
+    autopep8.fix_file(fname, options=autopep8.parse_args([fname, '-i']))
+
 
 def run_template(template_fname, objects, version, version_string, output_file,
                  indent=False):
