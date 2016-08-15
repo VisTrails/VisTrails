@@ -134,6 +134,7 @@ class Pipeline(DBWorkflow):
             self._subpipeline_signatures = Bidict()
             self._module_signatures = Bidict()
             self._connection_signatures = Bidict()
+            self._connection_depths = {}
         else:
             self.is_valid = other.is_valid
             self.aliases = Bidict([(k,copy.copy(v))
@@ -476,10 +477,14 @@ class Pipeline(DBWorkflow):
             source_name = c.source.name
             output_ports = self.modules[c.sourceId].connected_output_ports
             output_ports[source_name] -= 1
-                
+            if not output_ports[source_name]:
+                del output_ports[source_name]
+
             dest_name = c.destination.name
             input_ports = self.modules[c.destinationId].connected_input_ports
             input_ports[dest_name] -= 1
+            if not input_ports[dest_name]:
+                del input_ports[dest_name]
 
         if id in self._connection_signatures:
             del self._connection_signatures[id]
@@ -544,11 +549,15 @@ class Pipeline(DBWorkflow):
             source_name = c.source.name
             output_ports = self.modules[c.sourceId].connected_output_ports
             output_ports[source_name] -= 1
-                
+            if not output_ports[source_name]:
+                del output_ports[source_name]
+
             dest_name = c.destination.name
             input_ports = self.modules[c.destinationId].connected_input_ports
             input_ports[dest_name] -= 1
-            
+            if not input_ports[dest_name]:
+                del input_ports[dest_name]
+
         self.db_delete_object(port_id, Port.vtType, parent_type, parent_id)
 
     def change_port(self, old_port_id, port, parent_type, parent_id):
@@ -1112,6 +1121,40 @@ class Pipeline(DBWorkflow):
             if module.is_valid and module.is_abstraction():
                 module.check_latest_version()
 
+    def connection_depth(self, conn):
+        """Calculates depth difference between source and destination
+        Positive means we need to loop the destination
+        Negative means we need to wrap source in lists
+
+        Variant and List needs special case
+
+        """
+        from vistrails.core.modules.basic_modules import List, Variant
+        source_depth = 0
+        if conn.source.spec:
+            source_depth = conn.source.spec.depth
+            src_descs = conn.source.spec.descriptors()
+            # Lists have depth 1 if dest has depth>1 or is a list
+            if len(src_descs) == 1 and src_descs[0].module == List:
+                source_depth += 1
+        dest_depth = 0
+        if conn.destination.spec:
+            dest_depth = conn.destination.spec.depth
+            dest_descs = conn.destination.spec.descriptors()
+            # Lists have depth 1
+            if len(dest_descs) == 1 and dest_descs[0].module == List:
+                dest_depth += 1
+            # special case: if src is List and dst is Variant
+            # we should treat the Variant as having depth 0
+            if conn.source.spec:
+                if len(src_descs)==1 and src_descs[0].module == List and \
+                   len(dest_descs)==1 and dest_descs[0].module == Variant:
+                    source_depth -= 1
+                if len(src_descs)==1 and src_descs[0].module == Variant and \
+                   len(dest_descs)==1 and dest_descs[0].module == List:
+                    dest_depth -= 1
+        return source_depth - dest_depth
+
     def mark_list_depth(self, module_ids=None):
         """mark_list_depth() -> list
 
@@ -1129,6 +1172,7 @@ class Pipeline(DBWorkflow):
 
         # TODO: module_ids is currently ignored, this is potentially suboptimal
         result = []
+        self._connection_depths = {}
         # Might raise GraphContainsCycles
         for module_id in self.graph.vertices_topological_sort():
             module = self.get_module_by_id(module_id)
@@ -1137,30 +1181,9 @@ class Pipeline(DBWorkflow):
             for module_from_id, conn_id in self.graph.edges_to(module_id):
                 prev_depth = self.get_module_by_id(module_from_id).list_depth
                 conn = self.get_connection_by_id(conn_id)
-                source_depth = 0
-                if conn.source.spec:
-                    source_depth = conn.source.spec.depth
-                    src_descs = conn.source.spec.descriptors()
-                    # Lists have depth 1 if dest has depth>1 or is a list
-                    if len(src_descs) == 1 and src_descs[0].module == List:
-                        source_depth += 1
-                dest_depth = 0
-                if conn.destination.spec:
-                    dest_depth = conn.destination.spec.depth
-                    dest_descs = conn.destination.spec.descriptors()
-                    # Lists have depth 1
-                    if len(dest_descs) == 1 and dest_descs[0].module == List:
-                        dest_depth += 1
-                    # special case: if src is List and dst is Variant
-                    # we should treat the Variant as having depth 0
-                    if conn.source.spec:
-                        if len(src_descs)==1 and src_descs[0].module == List and \
-                           len(dest_descs)==1 and dest_descs[0].module == Variant:
-                            source_depth -= 1
-                        if len(src_descs)==1 and src_descs[0].module == Variant and \
-                           len(dest_descs)==1 and dest_descs[0].module == List:
-                            dest_depth -= 1
-                depth = prev_depth + source_depth - dest_depth
+                conn_depth = self.connection_depth(conn)
+                self._connection_depths[conn.id] = conn_depth
+                depth = prev_depth + conn_depth
                 if depth > 0 and conn.destination.spec.name not in ports:
                     ports.append(conn.destination.spec.name)
                 # if dest depth is greater the input will be wrapped in a
@@ -1171,6 +1194,7 @@ class Pipeline(DBWorkflow):
             result.append((module_id, module.list_depth))
             module.iterated_ports = ports
         return result
+
 
     ##########################################################################
     # Debugging

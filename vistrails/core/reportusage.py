@@ -174,7 +174,7 @@ def record_vistrail(what, vistrail):
                             nb_abstractions += 1
         usage_report.note(dict(use_vistrail=what,
                                nb_versions=len(vistrail.actionMap),
-                               nb_tags=len(vistrail.tags),
+                               nb_tags=len(vistrail.get_tagMap()),
                                nb_notes=nb_notes,
                                nb_paramexplorations=nb_paramexplorations,
                                nb_upgrades=nb_upgrades,
@@ -265,7 +265,7 @@ def get_server_news():
                 '304 File is up to date, no data returned',
                 response=resp)
     except requests.RequestException, e:
-        if not e.response or e.response.code != 304:
+        if not e.response or e.response.status_code != 304:
             debug.warning("Can't download server news", e)
     else:
         try:

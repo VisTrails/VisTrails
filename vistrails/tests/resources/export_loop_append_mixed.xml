@@ -1,0 +1,34 @@
+<workflow id="0" name="untitled" version="1.0.4" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/workflow.xsd">
+  <connection id="33">
+    <port id="67" moduleId="18" moduleName="PythonSource" name="i" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
+    <port id="66" moduleId="19" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+  </connection>
+  <connection id="34">
+    <port id="69" moduleId="18" moduleName="PythonSource" name="i" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
+    <port id="68" moduleId="20" moduleName="PythonSource" name="o" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+  </connection>
+  <module cache="1" id="18" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="55" x="51.0052103462" y="-121.198537095" />
+    <function id="13" name="source" pos="0">
+      <parameter alias="" id="75" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="assert%28len%28i%29%20%3D%3D%204%29%0A" />
+    </function>
+    <portSpec depth="1" id="19" maxConns="-1" minConns="0" name="i" optional="0" sortKey="0" type="input">
+      <portSpecItem default="" entryType="" id="5" label="" module="Integer" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+  <module cache="1" id="19" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="29" x="-136.810867294" y="48.4691745037" />
+    <function id="14" name="value" pos="0">
+      <parameter alias="" id="34" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="5" />
+    </function>
+  </module>
+  <module cache="1" id="20" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="30" x="104.189132706" y="53.4691745037" />
+    <function id="15" name="source" pos="0">
+      <parameter alias="" id="35" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="o%20%3D%20%5B1%2C2%2C3%5D" />
+    </function>
+    <portSpec depth="1" id="20" maxConns="-1" minConns="0" name="o" optional="0" sortKey="0" type="output">
+      <portSpecItem default="" entryType="" id="6" label="" module="Integer" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+</workflow>
