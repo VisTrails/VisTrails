@@ -37,10 +37,11 @@ from __future__ import division
 
 from vistrails.db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
     DBModule, DBConnection, DBPort, DBFunction, DBParameter, DBGroup, DBVistrail
-from vistrails.db.services.action_chain import getActionChain, getCurrentOperationDict, \
+from vistrails.db.services.action_chain import getActionChain, get_current_operation_dict, \
     getCurrentOperations, simplify_ops, get_reduced_operations, get_operation_diff
 from vistrails.db import VistrailsDBException
 
+from collections import OrderedDict
 import copy
 import datetime
 import getpass
@@ -52,7 +53,7 @@ from itertools import chain
 def update_id_scope(vistrail):
     if hasattr(vistrail, 'update_id_scope'):
         vistrail.update_id_scope()
-    else:
+    elif hasattr(vistrail, 'idScope'):
         for action in vistrail.db_actions:
             vistrail.idScope.updateBeginId('action', action.db_id+1)
             if action.db_session is not None:
@@ -69,6 +70,9 @@ def update_id_scope(vistrail):
                     vistrail.db_add_object(operation.db_data)
             for annotation in action.db_annotations:
                 vistrail.idScope.updateBeginId('annotation', annotation.db_id+1)
+    else:
+        # cannot do anything for now
+        pass
 
 def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
@@ -119,7 +123,7 @@ def performAdds(addOps, workflow):
             continue
         # print "operation %s: %s %s" % (operation.db_id, operation.vtType,
         #                                operation.db_what)
-        # print "    to:  %s %s" % (operation.db_parentObjType, 
+        # print "    to:  %s %s" % (operation.db_parentObjType,
         #                           operation.db_parentObjId)
         workflow.db_add_object(operation.db_data,
                                operation.db_parentObjType,
@@ -595,7 +599,7 @@ def find_data(what, id, op_dict):
 
 def invertOperations(op_dict, adds, deletes, do_copy=False):
     inverse_ops = []
-    for op in reversed(deletes):
+    for op in reversed(deletes.values()):
         if op is None:
             continue
         data = find_data(op.db_what, getOldObjId(op), op_dict)
@@ -609,7 +613,7 @@ def invertOperations(op_dict, adds, deletes, do_copy=False):
                        data=data
                        )
         inverse_ops.append(inv_op)
-    for op in reversed(adds):
+    for op in reversed(adds.values()):
         if op is None:
             continue
         inv_op = DBDelete(id=-1,
@@ -623,7 +627,7 @@ def invertOperations(op_dict, adds, deletes, do_copy=False):
 
 def normalOperations(adds, deletes, do_copy=False):
     new_ops = []
-    for op in deletes:
+    for op in deletes.itervalues():
         if op is None:
             continue
         new_op = DBDelete(id=-1,
@@ -633,7 +637,7 @@ def normalOperations(adds, deletes, do_copy=False):
                           parentObjType=op.db_parentObjType,
                           )
         new_ops.append(new_op)
-    for op in adds:
+    for op in adds.itervalues():
         if op is None:
             continue
         data = op.db_data
@@ -651,17 +655,17 @@ def normalOperations(adds, deletes, do_copy=False):
 def getPathAsAction(vistrail, v1, v2, do_copy=False):
     shared_root = getSharedRoot(vistrail, [v1, v2])
     shared_action_chain = getActionChain(vistrail, shared_root)
-    shared_op_tuple = get_reduced_operations(shared_action_chain)
+    shared_ops = get_reduced_operations(shared_action_chain)
     v1_actions = getActionChain(vistrail, v1, shared_root)
     v2_actions = getActionChain(vistrail, v2, shared_root)
-    (v1_add_ops, v1_add_ops_lookup, v1_del_ops, v1_del_ops_lookup) = \
-        get_operation_diff(v1_actions, *shared_op_tuple)
-    (v2_add_ops, v2_add_ops_lookup, v2_del_ops, v2_del_ops_lookup) = \
-        get_operation_diff(v2_actions, *shared_op_tuple)
+    (v1_add_ops, v1_del_ops) = \
+        get_operation_diff(v1_actions, shared_ops)
+    (v2_add_ops, v2_del_ops) = \
+        get_operation_diff(v2_actions, shared_ops)
 
     # need to invert one of them (v1)
     v1_inverse_ops = \
-        invertOperations(shared_op_tuple[1], v1_add_ops, v1_del_ops, do_copy)
+        invertOperations(shared_ops, v1_add_ops, v1_del_ops, do_copy)
 
 
     # need to normalize ops of the other (v2)
@@ -708,7 +712,7 @@ def addAndFixActions(startDict, actions):
 
 def fixActions(vistrail, v, actions):
     startingChain = getActionChain(vistrail, v)
-    startingDict = getCurrentOperationDict(startingChain)
+    startingDict = get_current_operation_dict(startingChain)
     addAndFixActions(startingDict, actions)
     
 ################################################################################
@@ -730,8 +734,8 @@ def getSharedRoot(vistrail, versions):
     return DBVistrail.ROOT_VERSION
 
 def getOperationDiff(actions, operationDict):
-    addDict = {}
-    deleteDict = {}
+    addDict = OrderedDict()
+    deleteDict = OrderedDict()
     for action in actions:
 #         print 'action: %d' % action.db_id
         for operation in action.db_operations:
@@ -771,7 +775,7 @@ def getOperationDiff(actions, operationDict):
 
 def updateOperationDict(operationDict, deleteOps, addOps):
     for operation in deleteOps:
-        if operationDict.has_key((operation.db_what, getOldObjId(operation))):
+        if (operation.db_what, getOldObjId(operation)) in operationDict:
             del operationDict[(operation.db_what, getOldObjId(operation))]
         else:
             msg = "Illegal operation: " + operation
@@ -792,7 +796,7 @@ def getObjects(actions):
 def getVersionDifferences(vistrail, versions):
     sharedRoot = getSharedRoot(vistrail, versions)
     sharedActionChain = getActionChain(vistrail, sharedRoot)
-    sharedOperationDict = getCurrentOperationDict(sharedActionChain)
+    sharedOperationDict = get_current_operation_dict(sharedActionChain)
 
     vOnlySorted = []
     for v in versions:
@@ -800,17 +804,13 @@ def getVersionDifferences(vistrail, versions):
         (vAddDict, vDeleteDict) = getOperationDiff(vActions, 
                                                    sharedOperationDict)
         vOnlyAdds = vAddDict.values()
-        vOnlyAdds.sort(key=lambda x: x.db_id)
         vOnlyDeletes = vDeleteDict.values()
-        vOnlyDeletes.sort(key=lambda x: x.db_id)
         vOpDict = copy.copy(sharedOperationDict)
         updateOperationDict(vOpDict, vOnlyDeletes, vOnlyAdds)
         vOps = vOpDict.values()
-        vOps.sort(key=lambda x: x.db_id)
         vOnlySorted.append((vOnlyAdds, vOnlyDeletes, vOps))
 
     sharedOps = sharedOperationDict.values()
-    sharedOps.sort(key=lambda x: x.db_id)
 
     return (sharedOps, vOnlySorted)
 
