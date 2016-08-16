@@ -227,13 +227,16 @@ def write_workflow_to_python(pipeline):
                     continue
                 # Creates a variable with the value
                 name = make_unique(port, all_vars)
-                default = iports[port].defaults
+                default = []
+                for spec_item in iports[port].port_spec_items:
+                    item_module = spec_item.descriptor.module
+                    default.append(item_module.translate_to_python(spec_item.default))
                 if len(default) == 1:
                     default = default[0]
-                print("Default: %s: var %s, value %r" % (
+                print("Default: %s: var %s, value %s" % (
                       port, name, default))
                 text.append("# DEFAULT %s %s" % (port, name))
-                text.append('%s = %s' % (name, default))
+                text.append('%s = %r' % (name, default))
                 code.set_input(port, name)
 
         # merge connections
