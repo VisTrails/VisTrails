@@ -6183,7 +6183,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+        columns = ['id', 'vtid', 'vttype', 'vtparent_id', 'vtparent_type', 'vtpos', 'vtmid', 'pos', 'type', 'val',
                    'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = global_props
@@ -6196,9 +6196,9 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             vtid = self.convertFromDB(row[1], 'str', 'char(36)')
-            vttype = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            vtparent_type = self.convertFromDB(row[3], 'str', 'char(32)')
-            vtparent_id = self.convertFromDB(row[4], 'long', 'int')
+            vttype = self.convertFromDB(row[2], 'str', 'char(32)')
+            vtparent_id = self.convertFromDB(row[3], 'str', 'char(32)')
+            vtparent_type = self.convertFromDB(row[4], 'string', 'char(32)')
             vtpos = self.convertFromDB(row[5], 'long', 'int')
             vtmid = self.convertFromDB(row[6], 'str', 'char(36)')
             pos = self.convertFromDB(row[7], 'long', 'int')
@@ -6217,8 +6217,8 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
 
             mashup_component = DBMashupComponent(vtid=vtid,
                                                  vttype=vttype,
-                                                 vtparent_type=vtparent_type,
                                                  vtparent_id=vtparent_id,
+                                                 vtparent_type=vtparent_type,
                                                  vtpos=vtpos,
                                                  vtmid=vtmid,
                                                  pos=pos,
@@ -6240,7 +6240,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+        columns = ['id', 'vtid', 'vttype', 'vtparent_id', 'vtparent_type', 'vtpos', 'vtmid', 'pos', 'type', 'val',
                    'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = global_props
@@ -6252,9 +6252,9 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             vtid = self.convertFromDB(row[1], 'str', 'char(36)')
-            vttype = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            vtparent_type = self.convertFromDB(row[3], 'str', 'char(32)')
-            vtparent_id = self.convertFromDB(row[4], 'long', 'int')
+            vttype = self.convertFromDB(row[2], 'str', 'char(32)')
+            vtparent_id = self.convertFromDB(row[3], 'str', 'char(32)')
+            vtparent_type = self.convertFromDB(row[4], 'string', 'char(32)')
             vtpos = self.convertFromDB(row[5], 'long', 'int')
             vtmid = self.convertFromDB(row[6], 'str', 'char(36)')
             pos = self.convertFromDB(row[7], 'long', 'int')
@@ -6273,8 +6273,8 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
 
             mashup_component = DBMashupComponent(vtid=vtid,
                                                  vttype=vttype,
-                                                 vtparent_type=vtparent_type,
                                                  vtparent_id=vtparent_id,
+                                                 vtparent_type=vtparent_type,
                                                  vtpos=vtpos,
                                                  vtmid=vtmid,
                                                  pos=pos,
@@ -6303,7 +6303,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+        columns = ['id', 'vtid', 'vttype', 'vtparent_id', 'vtparent_type', 'vtpos', 'vtmid', 'pos', 'type', 'val',
                    'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = {}
@@ -6320,13 +6320,13 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vtid, 'str', 'char(36)')
         if hasattr(obj, 'db_vttype') and obj.db_vttype is not None:
             columnMap['vttype'] = \
-                self.convertToDB(obj.db_vttype, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vtparent_type') and obj.db_vtparent_type is not None:
-            columnMap['vtparent_type'] = \
-                self.convertToDB(obj.db_vtparent_type, 'str', 'char(32)')
+                self.convertToDB(obj.db_vttype, 'str', 'char(32)')
         if hasattr(obj, 'db_vtparent_id') and obj.db_vtparent_id is not None:
             columnMap['vtparent_id'] = \
-                self.convertToDB(obj.db_vtparent_id, 'long', 'int')
+                self.convertToDB(obj.db_vtparent_id, 'str', 'char(32)')
+        if hasattr(obj, 'db_vtparent_type') and obj.db_vtparent_type is not None:
+            columnMap['vtparent_type'] = \
+                self.convertToDB(obj.db_vtparent_type, 'string', 'char(32)')
         if hasattr(obj, 'db_vtpos') and obj.db_vtpos is not None:
             columnMap['vtpos'] = \
                 self.convertToDB(obj.db_vtpos, 'long', 'int')
@@ -6383,7 +6383,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+        columns = ['id', 'vtid', 'vttype', 'vtparent_id', 'vtparent_type', 'vtpos', 'vtmid', 'pos', 'type', 'val',
                    'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = {}
@@ -6400,13 +6400,13 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vtid, 'str', 'char(36)')
         if hasattr(obj, 'db_vttype') and obj.db_vttype is not None:
             columnMap['vttype'] = \
-                self.convertToDB(obj.db_vttype, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vtparent_type') and obj.db_vtparent_type is not None:
-            columnMap['vtparent_type'] = \
-                self.convertToDB(obj.db_vtparent_type, 'str', 'char(32)')
+                self.convertToDB(obj.db_vttype, 'str', 'char(32)')
         if hasattr(obj, 'db_vtparent_id') and obj.db_vtparent_id is not None:
             columnMap['vtparent_id'] = \
-                self.convertToDB(obj.db_vtparent_id, 'long', 'int')
+                self.convertToDB(obj.db_vtparent_id, 'str', 'char(32)')
+        if hasattr(obj, 'db_vtparent_type') and obj.db_vtparent_type is not None:
+            columnMap['vtparent_type'] = \
+                self.convertToDB(obj.db_vtparent_type, 'string', 'char(32)')
         if hasattr(obj, 'db_vtpos') and obj.db_vtpos is not None:
             columnMap['vtpos'] = \
                 self.convertToDB(obj.db_vtpos, 'long', 'int')
@@ -6500,7 +6500,7 @@ class DBMashupSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            version = self.convertFromDB(row[2], 'long', 'int')
+            version = self.convertFromDB(row[2], 'str', 'char(36)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
             vtid = self.convertFromDB(row[4], 'str', 'char(36)')
             layout = self.convertFromDB(row[5], 'str', 'mediumtext')
@@ -6538,7 +6538,7 @@ class DBMashupSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            version = self.convertFromDB(row[2], 'long', 'int')
+            version = self.convertFromDB(row[2], 'str', 'char(36)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
             vtid = self.convertFromDB(row[4], 'str', 'char(36)')
             layout = self.convertFromDB(row[5], 'str', 'mediumtext')
@@ -6588,7 +6588,7 @@ class DBMashupSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
         if hasattr(obj, 'db_version') and obj.db_version is not None:
             columnMap['version'] = \
-                self.convertToDB(obj.db_version, 'long', 'int')
+                self.convertToDB(obj.db_version, 'str', 'char(36)')
         if hasattr(obj, 'db_type') and obj.db_type is not None:
             columnMap['type'] = \
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
@@ -6641,7 +6641,7 @@ class DBMashupSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
         if hasattr(obj, 'db_version') and obj.db_version is not None:
             columnMap['version'] = \
-                self.convertToDB(obj.db_version, 'long', 'int')
+                self.convertToDB(obj.db_version, 'str', 'char(36)')
         if hasattr(obj, 'db_type') and obj.db_type is not None:
             columnMap['type'] = \
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')

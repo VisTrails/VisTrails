@@ -16039,12 +16039,12 @@ class DBMashupComponent(object):
 
     vtType = 'mashup_component'
 
-    def __init__(self, id=None, vtid=None, vttype=None, vtparent_type=None, vtparent_id=None, vtpos=None, vtmid=None, pos=None, type=None, val=None, minVal=None, maxVal=None, stepSize=None, strvaluelist=None, widget=None, seq=None, parent=None):
+    def __init__(self, id=None, vtid=None, vttype=None, vtparent_id=None, vtparent_type=None, vtpos=None, vtmid=None, pos=None, type=None, val=None, minVal=None, maxVal=None, stepSize=None, strvaluelist=None, widget=None, seq=None, parent=None):
         self._db_id = id
         self._db_vtid = vtid
         self._db_vttype = vttype
-        self._db_vtparent_type = vtparent_type
         self._db_vtparent_id = vtparent_id
+        self._db_vtparent_type = vtparent_type
         self._db_vtpos = vtpos
         self._db_vtmid = vtmid
         self._db_pos = pos
@@ -16067,8 +16067,8 @@ class DBMashupComponent(object):
         cp = DBMashupComponent(id=self._db_id,
                                vtid=self._db_vtid,
                                vttype=self._db_vttype,
-                               vtparent_type=self._db_vtparent_type,
                                vtparent_id=self._db_vtparent_id,
+                               vtparent_type=self._db_vtparent_type,
                                vtpos=self._db_vtpos,
                                vtmid=self._db_vtmid,
                                pos=self._db_pos,
@@ -16090,6 +16090,25 @@ class DBMashupComponent(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
+            if self._db_vttype in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_vttype]
+            else:
+                fkey_type = self._db_vttype
+            if hasattr(self, 'db_vtid') and (fkey_type, self._db_vtid) in id_remap:
+                cp._db_vtid = id_remap[(fkey_type, self._db_vtid)]
+            if self._db_vtparent_type in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_vtparent_type]
+            else:
+                fkey_type = self._db_vtparent_type
+            if hasattr(self, 'db_vtparent_id') and (fkey_type, self._db_vtparent_id) in id_remap:
+                cp._db_vtparent_id = id_remap[
+                    (fkey_type, self._db_vtparent_id)]
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_vtmid') and (fkey_type, self._db_vtmid) in id_remap:
+                cp._db_vtmid = id_remap[(fkey_type, self._db_vtmid)]
 
         # recreate indices and set flags
         if not new_ids:
@@ -16119,16 +16138,16 @@ class DBMashupComponent(object):
             new_obj.db_vttype = res
         elif hasattr(old_obj, 'db_vttype') and old_obj.db_vttype is not None:
             new_obj.db_vttype = old_obj.db_vttype
-        if 'vtparent_type' in class_dict:
-            res = class_dict['vtparent_type'](old_obj, trans_dict)
-            new_obj.db_vtparent_type = res
-        elif hasattr(old_obj, 'db_vtparent_type') and old_obj.db_vtparent_type is not None:
-            new_obj.db_vtparent_type = old_obj.db_vtparent_type
         if 'vtparent_id' in class_dict:
             res = class_dict['vtparent_id'](old_obj, trans_dict)
             new_obj.db_vtparent_id = res
         elif hasattr(old_obj, 'db_vtparent_id') and old_obj.db_vtparent_id is not None:
             new_obj.db_vtparent_id = old_obj.db_vtparent_id
+        if 'vtparent_type' in class_dict:
+            res = class_dict['vtparent_type'](old_obj, trans_dict)
+            new_obj.db_vtparent_type = res
+        elif hasattr(old_obj, 'db_vtparent_type') and old_obj.db_vtparent_type is not None:
+            new_obj.db_vtparent_type = old_obj.db_vtparent_type
         if 'vtpos' in class_dict:
             res = class_dict['vtpos'](old_obj, trans_dict)
             new_obj.db_vtpos = res
@@ -16256,23 +16275,6 @@ class DBMashupComponent(object):
     def db_delete_vttype(self, vttype):
         self._db_vttype = None
 
-    def __get_db_vtparent_type(self):
-        return self._db_vtparent_type
-
-    def __set_db_vtparent_type(self, vtparent_type):
-        self._db_vtparent_type = vtparent_type
-        self.is_dirty = True
-    db_vtparent_type = property(__get_db_vtparent_type, __set_db_vtparent_type)
-
-    def db_add_vtparent_type(self, vtparent_type):
-        self._db_vtparent_type = vtparent_type
-
-    def db_change_vtparent_type(self, vtparent_type):
-        self._db_vtparent_type = vtparent_type
-
-    def db_delete_vtparent_type(self, vtparent_type):
-        self._db_vtparent_type = None
-
     def __get_db_vtparent_id(self):
         return self._db_vtparent_id
 
@@ -16289,6 +16291,23 @@ class DBMashupComponent(object):
 
     def db_delete_vtparent_id(self, vtparent_id):
         self._db_vtparent_id = None
+
+    def __get_db_vtparent_type(self):
+        return self._db_vtparent_type
+
+    def __set_db_vtparent_type(self, vtparent_type):
+        self._db_vtparent_type = vtparent_type
+        self.is_dirty = True
+    db_vtparent_type = property(__get_db_vtparent_type, __set_db_vtparent_type)
+
+    def db_add_vtparent_type(self, vtparent_type):
+        self._db_vtparent_type = vtparent_type
+
+    def db_change_vtparent_type(self, vtparent_type):
+        self._db_vtparent_type = vtparent_type
+
+    def db_delete_vtparent_type(self, vtparent_type):
+        self._db_vtparent_type = None
 
     def __get_db_vtpos(self):
         return self._db_vtpos
@@ -16548,6 +16567,12 @@ class DBMashup(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_version') and (fkey_type, self._db_version) in id_remap:
+                cp._db_version = id_remap[(fkey_type, self._db_version)]
             if 'vistrail' in id_scope.remap:
                 fkey_type = id_scope.remap['vistrail']
             else:
@@ -18216,6 +18241,12 @@ class DBMashuptrail(object):
             else:
                 id_remap[(self.vtType, self._db_id)] = new_id
             cp._db_id = new_id
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_vtVersion') and (fkey_type, self._db_vtVersion) in id_remap:
+                cp._db_vtVersion = id_remap[(fkey_type, self._db_vtVersion)]
 
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)

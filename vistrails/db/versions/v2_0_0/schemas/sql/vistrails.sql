@@ -407,9 +407,9 @@ CREATE TABLE port_spec_item(
 CREATE TABLE mashup_component(
     id char(36),
     vtid char(36),
-    vttype varchar(255),
+    vttype char(32),
+    vtparent_id char(32),
     vtparent_type char(32),
-    vtparent_id int,
     vtpos int,
     vtmid char(36),
     pos int,
@@ -430,7 +430,7 @@ CREATE TABLE mashup_component(
 CREATE TABLE mashup(
     id char(36),
     name varchar(255),
-    version int,
+    version char(36),
     type varchar(255),
     vtid char(36),
     layout mediumtext,

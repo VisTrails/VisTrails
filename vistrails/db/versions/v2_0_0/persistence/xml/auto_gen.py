@@ -4939,10 +4939,10 @@ class DBMashupComponentXMLDAOBase(XMLDAO):
         vtid = self.convertFromStr(data, 'str')
         data = node.get('vttype', None)
         vttype = self.convertFromStr(data, 'str')
-        data = node.get('vtparent_type', None)
-        vtparent_type = self.convertFromStr(data, 'str')
         data = node.get('vtparent_id', None)
-        vtparent_id = self.convertFromStr(data, 'long')
+        vtparent_id = self.convertFromStr(data, 'str')
+        data = node.get('vtparent_type', None)
+        vtparent_type = self.convertFromStr(data, 'string')
         data = node.get('vtpos', None)
         vtpos = self.convertFromStr(data, 'long')
         data = node.get('vtmid', None)
@@ -4971,8 +4971,8 @@ class DBMashupComponentXMLDAOBase(XMLDAO):
         obj = DBMashupComponent(id=id,
                                 vtid=vtid,
                                 vttype=vttype,
-                                vtparent_type=vtparent_type,
                                 vtparent_id=vtparent_id,
+                                vtparent_type=vtparent_type,
                                 vtpos=vtpos,
                                 vtmid=vtmid,
                                 pos=pos,
@@ -4997,10 +4997,10 @@ class DBMashupComponentXMLDAOBase(XMLDAO):
         node.set('vtid', self.convertToStr(mashup_component.db_vtid, 'str'))
         node.set('vttype', self.convertToStr(
             mashup_component.db_vttype, 'str'))
-        node.set('vtparent_type', self.convertToStr(
-            mashup_component.db_vtparent_type, 'str'))
         node.set('vtparent_id', self.convertToStr(
-            mashup_component.db_vtparent_id, 'long'))
+            mashup_component.db_vtparent_id, 'str'))
+        node.set('vtparent_type', self.convertToStr(
+            mashup_component.db_vtparent_type, 'string'))
         node.set('vtpos', self.convertToStr(mashup_component.db_vtpos, 'long'))
         node.set('vtmid', self.convertToStr(mashup_component.db_vtmid, 'str'))
         node.set('pos', self.convertToStr(mashup_component.db_pos, 'long'))
@@ -5045,7 +5045,7 @@ class DBMashupXMLDAOBase(XMLDAO):
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
         data = node.get('version', None)
-        version = self.convertFromStr(data, 'long')
+        version = self.convertFromStr(data, 'str')
         data = node.get('type', None)
         type = self.convertFromStr(data, 'str')
         data = node.get('vtid', None)
@@ -5096,7 +5096,7 @@ class DBMashupXMLDAOBase(XMLDAO):
         # set attributes
         node.set('id', self.convertToStr(mashup.db_id, 'str'))
         node.set('name', self.convertToStr(mashup.db_name, 'str'))
-        node.set('version', self.convertToStr(mashup.db_version, 'long'))
+        node.set('version', self.convertToStr(mashup.db_version, 'str'))
         node.set('type', self.convertToStr(mashup.db_type, 'str'))
         node.set('vtid', self.convertToStr(mashup.db_vtid, 'str'))
         node.set('has_seq', self.convertToStr(mashup.db_has_seq, 'int'))
