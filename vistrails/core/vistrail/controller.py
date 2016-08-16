@@ -4434,21 +4434,74 @@ class TestTerseGraph(unittest.TestCase):
         vistrail = locator.load()
         return VistrailController(vistrail, locator)
 
+    def get_upgrade1_remap(self):
+        return {0: Vistrail.ROOT_VERSION,
+                 1: '44ad759c-0aeb-420b-9826-2419ed596201',
+                 2: 'f5a7dffe-4f0a-46fa-885a-d22b6feca5d4',
+                 3: '23e7d194-a8be-4f7d-8e6c-9910d35b1b27',
+                 4: 'a19b616a-08be-4960-8feb-945e52d62b94',
+                 5: '5f820fa0-d21e-4b5c-a947-7e8dd82312b3',
+                 6: '490019eb-6c1f-45aa-b18a-b34d3c39fe13',
+                 7: 'ab80852c-dedf-4d38-b0cd-de4b89a66d28',
+                 8: 'aecb267e-91e9-4b08-b616-5f92b71a6a6b',
+                 9: 'cb546121-5dcd-468a-a2a4-6e42cb3f8a55',
+                 10: '6a5e6ab5-8dba-4e03-befb-80cfeac2dedf',
+                 11: '2cdf6b2a-6dd8-4acd-905a-0bcb3e75acee',
+                 12: 'c04408eb-edf2-4a1d-b484-cc3a763371fb',
+                 13: 'e9433ecf-2f33-4076-ad61-af864cd31bec',
+                 14: '724e3663-7c1b-4a94-93c9-b5095ba19b7b',
+                 15: '6c7765d8-7fdd-4e14-8bc3-063074214566',
+                 16: 'e411a6c0-3d35-44a0-b198-b978117db69e'}
+
+    def get_upgrade2_remap(self):
+        return {0: Vistrail.ROOT_VERSION,
+                1: '01d6d027-cbb4-45bf-97aa-6f75a06e60f8',
+                2: '0a9b5718-5d65-4c1a-8350-0a0f3747e84f',
+                3: '442bc8be-5f14-427f-b19e-2423ef7feb41',
+                4: '906bee30-c6ff-4026-9cb9-02dceb6dd614',
+                5: '64739ee2-1458-4d80-98bc-af51612c0836',
+                6: '2db6e609-0261-44aa-b864-8816b7708106',
+                7: 'c84edea1-1e8e-45ad-b9a7-923e4f220d34',
+                8: '8d998a11-4b77-45e8-be08-4c1613d6d61e',
+                9: 'af6387d9-43f1-4fed-96a4-4975f21be906',
+                10: 'aac1f7fd-0393-4f5c-b5d5-1a89ecee0645',
+                11: '5154ab79-c4b2-4e40-bc9a-4ee73f69b77b',
+                12: '13f69b97-955f-4901-b31b-9a7ff76bf676',
+                13: '106bc209-a9d5-464c-8b8f-75fcd4cb929c',
+                14: 'e3bf7d82-c77e-4c08-9b6c-89e1ab3a3013',
+                15: '58149806-9c04-435d-810a-8fd11d23ce5c',
+                16: 'a62f8ba3-db06-4be4-bff4-bf907f23c08d',
+                17: 'c8c060be-dae4-44dd-bd2f-84b613370525'}
+
+
+    def remap_expected(self, expected, remap):
+        expected_remap = {}
+        for k, elist in expected.iteritems():
+            expected_remap[remap[k]] = list(sorted((remap[e[0]], e[1]) for e in elist))
+        return expected_remap
+
+    def sorted_items(self, items):
+        return [(k, list(sorted(v))) for k, v in items]
+
     def test_workflow1_upgrades(self):
         """Computes the tersed version tree, with upgrades"""
-        controller = self.get_workflow('upgrades1.xml')
+        controller = self.get_workflow('upgrades1-uuid.xml')
         controller.recompute_terse_graph(True)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(1L, (False, False)), (5L, (False, False)), (16L, (True, False))],
             1L: [(3L, (True, False))],
             3L: [(4L, (False, False))],
             5L: [(8L, (True, False)), (10L, (True, False))],
             10L: [(11L, (False, False)), (13L, (True, False))],
             4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
-        })
-        controller.expand_all_versions_below(0)
+        }
+
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+            self.remap_expected(expected, self.get_upgrade1_remap()).items())
+        controller.expand_all_versions_below(Vistrail.ROOT_VERSION)
         controller.recompute_terse_graph(True)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, True))],
             1L: [(2L, (False, True))],
             2L: [(3L, (False, False))],
@@ -4462,46 +4515,58 @@ class TestTerseGraph(unittest.TestCase):
             14L: [(15L, (False, False))],
             15L: [(16L, (False, False))],
             4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
-        })
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+            self.remap_expected(expected, self.get_upgrade1_remap()).items())
 
     def test_workflow1_no_upgrades(self):
         """Computes the tersed version tree, without upgrades"""
-        controller = self.get_workflow('upgrades1.xml')
+        controller = self.get_workflow('upgrades1-uuid.xml')
         controller.recompute_terse_graph(False)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
             1L: [(3L, (False, False))],
             3L: [(4L, (False, False))],
             5L: [(8L, (False, False)), (9L, (False, False))],
             9L: [(11L, (False, False)), (13L, (False, False))],
             4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
-        })
-        controller.expand_all_versions_below(0)
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+            self.remap_expected(expected, self.get_upgrade1_remap()).items())
+        controller.expand_all_versions_below(Vistrail.ROOT_VERSION)
         controller.recompute_terse_graph(False)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
             1L: [(3L, (False, False))],
             3L: [(4L, (False, False))],
             5L: [(8L, (False, False)), (9L, (False, False))],
             9L: [(11L, (False, False)), (13L, (False, False))],
             4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
-        })
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+            self.remap_expected(expected, self.get_upgrade1_remap()).items())
 
     def test_workflow2_upgrades(self):
         """Computes the tersed version tree, with upgrades"""
-        controller = self.get_workflow('upgrades2.xml')
+        controller = self.get_workflow('upgrades2-uuid.xml')
         controller.recompute_terse_graph(True)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(3L, (True, False)), (9L, (True, False)), (12L, (False, False))],
             3L: [(7L, (True, False)), (6L, (True, False))],
             9L: [(10L, (False, False)), (11L, (False, False))],
             12L: [(13L, (False, False)), (15L, (False, False))],
             13L: [(14L, (False, False)), (17L, (True, False))],
             7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
-        })
-        controller.expand_all_versions_below(0)
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+                         self.remap_expected(expected, self.get_upgrade2_remap()).items())
+        controller.expand_all_versions_below(Vistrail.ROOT_VERSION)
         controller.recompute_terse_graph(True)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, False)))],
             1L: [(2L, (False, False))],
             2L: [(3L, (False, False))],
@@ -4514,22 +4579,28 @@ class TestTerseGraph(unittest.TestCase):
             13L: [(14L, (False, False)), (16L, (False, True))],
             16L: [(17L, (False, False))],
             7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
-        })
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+                         self.remap_expected(expected, self.get_upgrade2_remap()).items())
 
     def test_workflow2_no_upgrades(self):
         """Computes the tersed version tree, without upgrades"""
-        controller = self.get_workflow('upgrades2.xml')
+        controller = self.get_workflow('upgrades2-uuid.xml')
         controller.recompute_terse_graph(False)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(2L, (True, False)), (9L, (True, False)), (13L, (True, False))],
             2L: [(4L, (False, False)), (6L, (True, False))],
             9L: [(10L, (False, False))],
             13L: [(14L, (False, False)), (17L, (False, False))],
             4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
-        })
-        controller.expand_all_versions_below(0)
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+                         self.remap_expected(expected, self.get_upgrade2_remap()).items())
+        controller.expand_all_versions_below(Vistrail.ROOT_VERSION)
         controller.recompute_terse_graph(False)
-        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+        expected = {
             0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, True)))],
             1L: [(2L, (False, False))],
             2L: [(4L, (False, False)), (5L, (False, True))],
@@ -4539,4 +4610,8 @@ class TestTerseGraph(unittest.TestCase):
             12L: [(13L, (False, False))],
             13L: [(14L, (False, False)), (17L, (False, False))],
             4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
-        })
+        }
+        self.assertItemsEqual(
+            self.sorted_items(controller._current_terse_graph.adjacency_list.items()),
+                         self.remap_expected(expected, self.get_upgrade2_remap()).items())
+
