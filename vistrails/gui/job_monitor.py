@@ -695,11 +695,6 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def execute(self):
         """ Shows and executes this pipeline
         """
-        try:
-            int(self.workflow.version)
-        except ValueError:
-            # this is not a pipeline id
-            return
         self.goto().execute()
 
     def pause(self):
@@ -828,7 +823,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         get_vistrails_persistent_configuration().jobAutorun = True
         QJobView.instance().set_refresh()
         cls.filename = (vistrails.core.system.vistrails_root_directory() +
-                        '/tests/resources/jobs.vt')
+                        '/tests/resources/jobs-uuid.vt')
 
         pm = vistrails.core.packagemanager.get_package_manager()
         if pm.has_package('org.vistrails.vistrails.myjobs'):
@@ -925,10 +920,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         api.select_version('SuspendOnce', c)
 
         pe = c.vistrail.get_named_paramexp('SuspendOnce')
-        try:
-            c.executeParameterExploration(pe)
-        except:
-            self.fail("Parameter Exploration with Job failed")
+        c.executeParameterExploration(pe)
 
         # Check that we have 2 jobs
         self.assertEqual(len(c.jobMonitor.workflows.keys()), 2)
@@ -936,10 +928,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
             wf = c.jobMonitor.workflows[i]
             self.assertFalse(wf.completed())
 
-        try:
-            c.executeParameterExploration(pe)
-        except:
-            self.fail("Parameter Exploration with Job failed")
+        c.executeParameterExploration(pe)
 
         # Check that the 2 jobs has completed
         for i in c.jobMonitor.workflows.keys():

@@ -268,7 +268,7 @@ class Vistrail(DBVistrail):
                     count_str = " + " + str(count)
                 return name + count_str
             if version not in action_map:
-                raise Exception("Cannot locate name for version %s" % \
+                raise KeyError("Cannot locate name for version %s" % \
                                 str(version))
             version = action_map[version].parent
             count += 1
