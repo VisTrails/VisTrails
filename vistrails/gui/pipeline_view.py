@@ -3841,7 +3841,7 @@ class TestPipelineView(vistrails.gui.utils.TestVisTrailsGUI):
 #         assert src.name == 'value_as_string'
 #         dst = r.module_destination_ports(True, basic_pkg, 'File', '')[1]
 #         assert dst.name == 'name'
-        vistrails.api.add_connection(m1.id, src, m2.id, dst)
-        vistrails.api.add_connection(m2.id, src, m3.id, dst)
-        vistrails.api.create_group([0, 1, 2], [0, 1])
+        c1 = vistrails.api.add_connection(m1.id, src, m2.id, dst)
+        c2 = vistrails.api.add_connection(m2.id, src, m3.id, dst)
+        vistrails.api.create_group([m1.id, m2.id, m3.id], [c1.id, c2.id])
 
