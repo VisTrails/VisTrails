@@ -428,12 +428,13 @@ def generate_api_code(module):
         ns = desc.namespace
         parts = ''
         for part in ns.split('|'):
-            if re.match('[_A-Za-z][_a-zA-Z0-9]*', part):
+            if re.match('^[_A-Za-z][_a-zA-Z0-9]*$', part):
                 parts += '.' + part
             else:
-                parts += "['" + part + "']"
+                parts = "['%s|%s']" % (desc.namespace, instance[1:])
+                instance = ''
+                break
         instance = parts + instance
-
     function_ports = [p.name for p in module.functions]
     used_ports = set(function_ports)
     used_ports.update(module.connected_input_ports)
