@@ -1,7 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2016, New York University.
-## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2011-2012, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -16,7 +15,7 @@
 ##  - Redistributions in binary form must reproduce the above copyright
 ##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the New York University nor the names of its
+##  - Neither the name of the University of Utah nor the names of its
 ##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
@@ -34,12 +33,31 @@
 ##
 ###############################################################################
 
-from __future__ import division
-
-from auto_gen import *
-from mashup import DBMashuptrail
-from registry import DBRegistry
-from workflow import DBWorkflow
-from vistrail import DBVistrail
-from log import DBLog
+from auto_gen import DBMashuptrail as _DBMashuptrail
 from id_scope import IdScope
+
+
+class DBMashuptrail(_DBMashuptrail):
+    def __init__(self, *args, **kwargs):
+        _DBMashuptrail.__init__(self, *args, **kwargs)
+        self.id_scope = IdScope(1L)
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBMashuptrail()
+        new_obj = _DBMashuptrail.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        return new_obj
+
+    def update_id_scope(self):
+        for action in self.db_actions:
+            self.id_scope.updateBeginId('mashup_action', action.db_id+1)
+            for alias in action.db_mashup.db_aliases:
+                self.id_scope.updateBeginId('mashup_alias', alias.db_id+1)
+                self.id_scope.updateBeginId('mashup_component', alias.db_component.db_id+1)
+        for annotation in self.db_annotations:
+            self.id_scope.updateBeginId('annotation', annotation.db_id+1)
+        for aannotation in self.db_actionAnnotations:
+            self.id_scope.updateBeginId('mashup_actionAnnotation', aannotation.db_id+1)
+

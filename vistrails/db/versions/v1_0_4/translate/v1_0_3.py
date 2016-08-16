@@ -184,7 +184,7 @@ def translateMashup(_mashup):
     global id_scope
     translate_dict = {}
     mashup = DBMashuptrail()
-    id_scope = mashup.idScope
+    id_scope = mashup.id_scope
     mashup = DBMashuptrail.update_version(_mashup, translate_dict, mashup)
     mashup.db_version = '1.0.4'
     return mashup
