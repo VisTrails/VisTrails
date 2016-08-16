@@ -40,7 +40,7 @@ from id_scope import IdScope
 class DBRegistry(_DBRegistry):
     def __init__(self, *args, **kwargs):
 	_DBRegistry.__init__(self, *args, **kwargs)
-        self.idScope = IdScope()
+        self.id_scope = IdScope()
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -52,12 +52,12 @@ class DBRegistry(_DBRegistry):
     
     def update_id_scope(self):
         for package in self.db_packages:
-            self.idScope.updateBeginId(DBPackage.vtType, package.db_id+1)
+            self.id_scope.updateBeginId(DBPackage.vtType, package.db_id+1)
             for descriptor in package.db_module_descriptors:
-                self.idScope.updateBeginId(DBModuleDescriptor.vtType,
+                self.id_scope.updateBeginId(DBModuleDescriptor.vtType,
                                            descriptor.db_id+1)
                 for port_spec in descriptor.db_portSpecs:
-                    self.idScope.updateBeginId(DBPortSpec.vtType, 
+                    self.id_scope.updateBeginId(DBPortSpec.vtType,
                                                port_spec.db_id+1)
 
 

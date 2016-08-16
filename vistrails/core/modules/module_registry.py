@@ -913,7 +913,7 @@ class ModuleRegistry(DBRegistry):
             if self._current_package.identifier == identifier:
                 package = self._current_package
             else:
-                package_id = self.idScope.getNewId(Package.vtType)
+                package_id = self.id_scope.getNewId(Package.vtType)
                 package = Package(id=package_id,
                                   codepath="",
                                   load_configuration=False,
@@ -926,7 +926,7 @@ class ModuleRegistry(DBRegistry):
             package = self.package_versions[(identifier, package_version)]
 
         # create descriptor
-        descriptor_id = self.idScope.getNewId(ModuleDescriptor.vtType)
+        descriptor_id = self.id_scope.getNewId(ModuleDescriptor.vtType)
         descriptor = ModuleDescriptor(id=descriptor_id,
                                       module=module,
                                       package=identifier,
@@ -1409,7 +1409,7 @@ class ModuleRegistry(DBRegistry):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
-        spec_id = self.idScope.getNewId(PortSpec.vtType)
+        spec_id = self.id_scope.getNewId(PortSpec.vtType)
 
         # convert values of defaults and values if necessary
         if defaults is not None or values is not None:
@@ -1491,7 +1491,7 @@ class ModuleRegistry(DBRegistry):
 
         # don't know how many port spec items are created until after...
         for psi in spec.port_spec_items:
-            psi.id = self.idScope.getNewId(PortSpecItem.vtType)
+            psi.id = self.id_scope.getNewId(PortSpecItem.vtType)
         return spec
 
     def add_port_spec(self, descriptor, spec):
@@ -1615,7 +1615,7 @@ class ModuleRegistry(DBRegistry):
                           docstring, shape, min_conns, max_conns, depth)
 
     def create_package(self, codepath, load_configuration=True, prefix=None):
-        package_id = self.idScope.getNewId(Package.vtType)
+        package_id = self.id_scope.getNewId(Package.vtType)
         package = Package(id=package_id,
                           codepath=codepath,
                           load_configuration=load_configuration)
