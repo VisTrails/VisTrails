@@ -35,14 +35,8 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.db.domain import DBWorkflowExec
-
-def update_id_scope(log):
-    if hasattr(log, 'update_id_scope'):
-        log.update_id_scope()
+def update_id_scope(mashup):
+    if hasattr(mashup, 'update_id_scope'):
+        mashup.update_id_scope()
     else:
         pass
-
-def update_ids(log):
-    for workflow_exec in log.db_workflow_execs:
-        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
