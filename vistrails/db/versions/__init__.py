@@ -168,6 +168,10 @@ def translate_startup(startup, version=None, target_version=None):
     return translate_object(startup, 'translateStartup', version,
                             target_version)
 
+def translate_mashup(mashup, version=None, target_version=None):
+    return translate_object(mashup, 'translateMashup', version,
+                            target_version)
+
 def get_version_name(version_no):
     return 'v' + version_no.replace('.', '_')
 

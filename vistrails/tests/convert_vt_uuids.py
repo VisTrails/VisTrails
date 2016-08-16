@@ -82,23 +82,29 @@ def run(fname, new_fname=None):
     # make translation to 1.0.5, then rest manually
     # may need to watch through translations...?
     # otherwise, could just set currentVersion to 1.0.4 and skip version checks
-    vistrail = vistrails.db.versions.translate_vistrail(vistrail, version, '1.0.4')
-    log = vistrails.db.versions.translate_log(log, version, '1.0.4')
 
+    vistrail = vistrails.db.versions.translate_vistrail(vistrail, version, '1.0.4')
     external_data = {"id_remap": {}}
     new_vistrail = uuid_translate.translateVistrail(vistrail, external_data)
-    new_log = uuid_translate.translateLog(log, external_data)
-
-    for k,v in external_data["id_remap"].iteritems():
-        print k, '->', v
 
     if isbundle:
         # don't want to merge, grab whole log from log obj in memory
+        log = vistrails.db.versions.translate_log(log, version, '1.0.4')
+        mashups = [vistrails.db.versions.translate_mashup(m, version, '1.0.4')
+                   for m in bundle.mashups]
+
+        new_log = uuid_translate.translateLog(log, external_data)
+        new_mashups = [uuid_translate.translateMashup(m, external_data)
+                       for m in mashups]
         new_vistrail.db_log_filename = None
-        bundle = vtdbio.SaveBundle('vistrail', new_vistrail, new_log)
+        bundle = vtdbio.SaveBundle('vistrail', new_vistrail, new_log,
+                                   mashups=new_mashups)
         vtdbio.save_vistrail_bundle_to_zip_xml(bundle, new_fname)
     else:
         vtdbio.save_vistrail_to_xml(new_vistrail, new_fname)
+
+    for k, v in external_data["id_remap"].iteritems():
+        print k, '->', v
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
