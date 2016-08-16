@@ -57,7 +57,8 @@ def replace_method(source, method, code):
             if isinstance(node.parent, redbaron.CallArgumentNode) and node.parent.target == node:
                 continue
             if node.parent and node.parent.type == 'atomtrailers':
-                node.parent.value = code
+                atomtrailers = node.parent
+                atomtrailers.parent[atomtrailers.index_on_parent] = code
 
 
 def make_unique(name, all_vars, more_vars=set()):
