@@ -428,12 +428,13 @@ def generate_api_code(module):
         ns = desc.namespace
         parts = ''
         for part in ns.split('|'):
-            if re.match('[_A-Za-z][_a-zA-Z0-9]*', part):
+            if re.match('^[_A-Za-z][_a-zA-Z0-9]*$', part):
                 parts += '.' + part
             else:
-                parts += "['" + part + "']"
+                parts = "['%s|%s']" % (desc.namespace, instance[1:])
+                instance = ''
+                break
         instance = parts + instance
-
     function_ports = [p.name for p in module.functions]
     used_ports = set(function_ports)
     used_ports.update(module.connected_input_ports)
@@ -448,7 +449,7 @@ def generate_api_code(module):
     kwargs = {}
     for port_name in used_ports:
         kwargs[port_name] = port_name
-    kwargs = ', '.join('%s=%s' % (key, value) for key, value in kwargs.iteritems())
+    args = ['%s=%s' % (key, value) for key, value in kwargs.iteritems()]
     outputs = tuple(module.connected_output_ports)
     if len(outputs) == 0:
         result_str = ''
@@ -456,11 +457,14 @@ def generate_api_code(module):
         result_str = outputs[0] + ' = '
     else:
         result_str = ', '.join(outputs) + ' = '
-    code += "%s%s%s(%r, %s)" % (result_str,
-                                pkg_name,
-                                instance,
-                                outputs[0] if len(outputs)==1 else outputs,
-                                kwargs)
+    outputs = outputs[0] if len(outputs)==1 else outputs
+    outputs = '%r' % (outputs,)
+    if outputs:
+        args.insert(0, outputs)
+    code += "%s%s%s(%s)" % (result_str,
+                            pkg_name,
+                            instance,
+                            ', '.join(args))
     return Script(code, 'variables', 'variables'), preludes
 
 

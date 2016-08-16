@@ -243,7 +243,8 @@ class Script(BaseScript):
         for node in self.source.find_all('AssignmentNode'):
             if node.target:
                 v = node.target.value
-                if v in self.internal_vars:
+                # skip if already found or also used as input
+                if v in self.internal_vars or v in self.inputs.values():
                     continue
                 print("Found internal var %s" % v)
                 if v in all_vars:
@@ -255,13 +256,7 @@ class Script(BaseScript):
                     all_vars.add(v)
                     self.internal_vars.add(v)
 
-        # We might have renamed an input or output port -- update mappings
-        for port, var in list(self.inputs.iteritems()):
-            if var in renames:
-                self.inputs[port] = renames[var]
-                # If there is an output with the same name, update that too
-                if renames[var] in self.outputs.values():
-                    self.outputs[port] = renames[var]
+        # We might have renamed an output port -- update mappings
         for port, var in list(self.outputs.iteritems()):
             if var in renames:
                 self.outputs[port] = renames[var]
@@ -269,7 +264,8 @@ class Script(BaseScript):
         inputs_back = dict((var, port)
                            for port, var in self.inputs.iteritems())
         for port, var in list(self.outputs.iteritems()):
-            if var in all_vars and var not in self.internal_vars:
+            # skip inputs with same name
+            if var in all_vars and var not in self.internal_vars and var not in self.inputs.values():
                 self.outputs[port] = renames[var] = make_unique(var, all_vars)
                 print("Output port %s collides (%s -> %s)" % (port, var,
                                                               renames[var]))
