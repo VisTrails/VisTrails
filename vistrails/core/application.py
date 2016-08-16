@@ -253,7 +253,7 @@ class VistrailsApplicationInterface(object):
                     return False
                 elif not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
-                    #_vnode and _vtag will be set when a .vtl file is open and
+                    #_vnode will be set when a .vtl file is open and
                     # it can be either a FileLocator or a DBLocator
                     
                 elif usedb:
@@ -274,11 +274,6 @@ class VistrailsApplicationInterface(object):
                         if hasattr(locator, '_vnode') and \
                                 locator._vnode is not None:
                             version = locator._vnode
-                        if hasattr(locator,'_vtag'):
-                            # if a tag is set, it should be used instead of the
-                            # version number
-                            if locator._vtag != '':
-                                version = locator._vtag
                     execute = self.temp_configuration.check('execute')
                     mashuptrail = None
                     mashupversion = None

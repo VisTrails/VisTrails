@@ -720,7 +720,9 @@ class FileLocator(CoreLocator):
                     f = open(fname,'wb')
                     f.write(vtcontent)
                     f.close()
-                return FileLocator(fname, version_node=version, version_tag=tag,
+                if not version and tag:
+                    version = tag
+                return FileLocator(fname, version_node=version,
                                    mashuptrail=mashuptrail,
                                    mashupVersion=mashupVersion,
                                    parameterExploration=parameterExploration)
@@ -731,7 +733,7 @@ class FileLocator(CoreLocator):
             return DBLocator(host, port, database,
                              user, passwd, None, obj_id=vt_id,
                              obj_type='vistrail',connection_id=None,
-                             version_node=version, version_tag=tag,
+                             version_node=version,
                              mashuptrail=mashuptrail,
                              mashupVersion=mashupVersion,
                              parameterExploration=parameterExploration)
@@ -745,7 +747,7 @@ class FileLocator(CoreLocator):
             #check for magic strings
             if "@examples" in vtname:
                 vtname=vtname.replace("@examples", vistrails_examples_directory())
-            return FileLocator(vtname, version_node=version, version_tag=tag,
+            return FileLocator(vtname, version_node=version,
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
