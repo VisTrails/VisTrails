@@ -173,32 +173,6 @@ class vtkRendererOutput(OutputModule):
         from .vtkcell import vtkRendererToSpreadsheet
         _output_modes.append(vtkRendererToSpreadsheet)
 
-    @classmethod
-    def to_python_script(cls, module):
-        """ Show first value (vtkRenderer) in new window
-        """
-        code = ''
-        preludes = []
-        preludes.append(Prelude('import vtk'))
-
-        # Create the graphics structure. The renderer renders into the render
-        # window. The render window interactor captures mouse events and will
-        # perform appropriate camera or actor manipulation depending on the
-        # nature of the events.
-        code += 'renWin = vtk.vtkRenderWindow()\n'
-        code += 'for value_item in value:\n'
-        code += '    renWin.AddRenderer(value_item)\n'
-        code += 'iren = vtk.vtkRenderWindowInteractor()\n'
-        code += 'iren.SetRenderWindow(renWin)\n'
-        code += 'renWin.SetSize(1024, 768)\n'
-        # This allows the interactor to initalize itself. It has to be
-        # called before an event loop.
-        code += 'iren.Initialize()\n'
-        code += 'renWin.Render()\n'
-        # Start the event loop.
-        code += 'iren.Start()'
-        return Script(code, 'variables', 'variables'), preludes
-
 _modules.append(vtkRendererOutput)
 
 
