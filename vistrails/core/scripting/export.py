@@ -86,6 +86,14 @@ def write_workflow_to_python(pipeline):
     # Processes the preludes and writes the beginning of the file
     #
     print("Writing preludes")
+    # remove duplicates
+    dedup_preludes = []
+    dedup_prelude_set = set()
+    for p_code, prelude in [(unicode(p), p) for p in preludes]:
+        if p_code not in dedup_prelude_set:
+            dedup_prelude_set.add(p_code)
+            dedup_preludes.append(prelude)
+    preludes = dedup_preludes
     # Adds all imported modules to the list of symbols
     for prelude in preludes:
         all_vars.update(prelude.imported_pkgs)
@@ -93,17 +101,10 @@ def write_workflow_to_python(pipeline):
     prelude_renames = {}
     for prelude in preludes:
         prelude_renames.update(prelude.avoid_collisions(all_vars))
-    # remove duplicates
-    final_preludes = []
-    final_prelude_set = set()
-    for prelude in [unicode(p) for p in preludes]:
-        if prelude not in final_prelude_set:
-            final_prelude_set.add(prelude)
-            final_preludes.append(prelude)
 
     # Writes the preludes
-    for prelude in final_preludes:
-        text.append(prelude)
+    for prelude in preludes:
+        text.append(unicode(prelude))
     if preludes:
         text.append('')
     #    text.append('# PRELUDE ENDS -- pipeline code follows\n\n')
