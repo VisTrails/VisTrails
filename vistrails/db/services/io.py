@@ -59,6 +59,7 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
 import vistrails.db.services.log
+import vistrails.db.services.mashup
 import vistrails.db.services.opm
 import vistrails.db.services.prov
 import vistrails.db.services.registry
@@ -138,7 +139,7 @@ class SaveBundle(object):
 
     def get_db_objs(self):
         """Gets a list containing only the DB* objects in the bundle"""
-        return [obj for obj in self.__dict__.itervalues() if obj is not None and not isinstance(obj, (list, basestring))]
+        return self.mashups + [obj for obj in self.__dict__.itervalues() if obj is not None and not isinstance(obj, (list, basestring))]
 
     def get_primary_obj(self):
         """get_primary_obj() -> DB*
@@ -967,7 +968,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     for obj in save_bundle.mashups:
         #print "  ", obj
         try:
-            xml_fname = os.path.join(mashup_dir, str(obj.id))
+            xml_fname = os.path.join(mashup_dir, str(obj.db_id))
             save_mashuptrail_to_xml(obj, xml_fname)
             saved_mashups.append(obj)
         except Exception, e:
@@ -1287,6 +1288,7 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
         version = get_current_version()
     if not log.db_version:
         log.db_version = get_current_version()
+    print "SAVING LOG:", version, log.db_version
     log = translate_log(log, log.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1661,9 +1663,7 @@ def open_mashuptrail_from_xml(filename):
         mashuptrail = daoList.open_from_xml(filename, DBMashuptrail.vtType, tree)
         if old_version == "0.1.0":
             mashuptrail.db_version = version
-        Mashuptrail.convert(mashuptrail)
-        mashuptrail.currentVersion = mashuptrail.getLatestVersion()
-        mashuptrail.updateIdScope()
+        vistrails.db.services.mashup.update_id_scope(mashuptrail)
     except VistrailsDBException, e:
         msg = "There was a problem when reading mashups from the xml file: "
         msg += str(e)

@@ -101,6 +101,7 @@ class CoreLocator(object):
         from vistrails.core.vistrail.vistrail import Vistrail
         from vistrails.core.vistrail.pipeline import Pipeline
         from vistrails.core.log.log import Log
+        from vistrails.core.mashup.mashup_trail import Mashuptrail
         from vistrails.core.modules.module_registry import ModuleRegistry
         from vistrails.core.log.opm_graph import OpmGraph
         
@@ -108,6 +109,7 @@ class CoreLocator(object):
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
                      ModuleRegistry.vtType: ModuleRegistry,
+                     Mashuptrail.vtType: Mashuptrail,
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
 

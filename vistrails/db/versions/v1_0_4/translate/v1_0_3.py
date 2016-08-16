@@ -36,19 +36,13 @@
 from __future__ import division
 
 from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, \
-                                      DBWorkflow, DBLog, DBRegistry, \
-                                      DBAdd, DBChange, DBDelete, \
-                                      DBPortSpec, DBPortSpecItem, \
-                                      DBParameterExploration, \
-                                      DBPEParameter, DBPEFunction, \
-                                      IdScope, DBAbstraction, \
-                                      DBModule, DBGroup, DBAnnotation, \
-                                      DBActionAnnotation, DBStartup, \
-                                      DBConfigKey, DBConfigBool, DBConfigStr, \
-                                      DBConfigInt, DBConfigFloat, \
-                                      DBConfiguration, DBStartupPackage, \
-                                      DBLoopIteration, DBLoopExec, \
-                                      DBModuleExec, DBGroupExec
+    DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBPortSpec, \
+    DBPortSpecItem, DBParameterExploration, DBPEParameter, DBPEFunction, \
+    IdScope, DBAbstraction, DBModule, DBGroup, DBAnnotation, \
+    DBActionAnnotation, DBStartup, DBConfigKey, DBConfigBool, DBConfigStr, \
+    DBConfigInt, DBConfigFloat, DBConfiguration, DBStartupPackage, \
+    DBLoopIteration, DBLoopExec, DBModuleExec, DBGroupExec, \
+    DBMashuptrail
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
@@ -185,6 +179,16 @@ def translateRegistry(_registry):
     registry = DBRegistry.update_version(_registry, translate_dict, registry)
     registry.db_version = '1.0.4'
     return registry
+
+def translateMashup(_mashup):
+    global id_scope
+    translate_dict = {}
+    mashup = DBMashuptrail()
+    id_scope = mashup.idScope
+    mashup = DBMashuptrail.update_version(_mashup, translate_dict, mashup)
+    mashup.db_version = '1.0.4'
+    return mashup
+
 
 def translateStartup(_startup):
     # format is {<old_name>: <new_name>} or
