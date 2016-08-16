@@ -945,7 +945,7 @@ class Vistrail(DBVistrail):
         Set the prune flag for the version
 
         """
-        if version != 0:
+        if version != self.ROOT_VERSION:
             self.set_prune(version, str(True))
 
     def showVersion(self, version):
@@ -953,7 +953,7 @@ class Vistrail(DBVistrail):
         Set the prune flag for the version
 
         """
-        if version != 0:
+        if version != self.ROOT_VERSION:
             self.set_prune(version, str(False))
 
     def expandVersion(self, version):
@@ -961,7 +961,7 @@ class Vistrail(DBVistrail):
         Set the expand flag for the version
         
         """
-        if version!=0: # not root
+        if version != self.ROOT_VERSION: # not root
             self.actionMap[version].expand = 1
 
     def collapseVersion(self, version):
@@ -969,7 +969,7 @@ class Vistrail(DBVistrail):
         Reset the expand flag for the version
         
         """
-        if version!=0:
+        if version != self.ROOT_VERSION:
             self.actionMap[version].expand = 0
 
     def setSavedQueries(self, savedQueries):
