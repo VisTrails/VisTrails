@@ -206,6 +206,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
             if len(module.functions)>0:
                 mLabel = [module.name]
                 moduleItem = None
+                port_dict = dict((p.name, p) for p in module.destinationPorts())
                 for fId in xrange(len(module.functions)):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
@@ -218,7 +219,8 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                             moduleItem = QAliasParameterTreeWidgetItem(None,
                                                                   self, mLabel)
                     #v = ', '.join([p.strValue for p in function.params])
-                    label = ['%s'%function.name]
+                    port_spec = port_dict[function.name]
+                    label = ['%s' % (port_spec.union or function.name)]
                     
                     pList = [InstanceObject(type=function.params[pId].type,
                                            identifier=function.params[pId].identifier,

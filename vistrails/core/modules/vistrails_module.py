@@ -198,6 +198,22 @@ class DummyModuleLogging(object):
 _dummy_logging = DummyModuleLogging()
 
 ################################################################################
+# DummyInterpreter
+
+class DummyInterpreter(object):
+    # This makes filePool work even if no interpreter is used
+    _file_pool = None
+
+    @property
+    def filePool(self):
+        if not self._file_pool:
+            from vistrails.core.modules.module_utils import FilePool
+            self._file_pool = FilePool()
+        return self._file_pool
+
+_dummy_interpreter = DummyInterpreter()
+
+################################################################################
 # Module
 
 class Module(object):
@@ -278,7 +294,9 @@ class Module(object):
         self.was_suspended = False
         self.is_while = False
         self.list_depth = 0
+        self.registry = None
         self.logging = _dummy_logging
+        self.interpreter = _dummy_interpreter
 
         # isMethod stores whether a certain input port is a method.
         # If so, isMethod maps the port to the order in which it is
@@ -390,7 +408,6 @@ class Module(object):
             for connector in copy.copy(self.inputPorts[port_name]):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(port_name, connector)
-
 
     def useJobCache(self):
         """Checks if this is a job cache
@@ -585,7 +602,7 @@ class Module(object):
             self.had_error, self.was_suspended = False, True
             raise
         except ModuleError, me:
-            if hasattr(me.module, 'interpreter'):
+            if not isinstance(me.module.interpreter, DummyInterpreter):
                 if me.errorTrace is None:
                     me.errorTrace = traceback.format_exc()
                 raise

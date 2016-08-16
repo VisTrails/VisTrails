@@ -653,9 +653,25 @@ class ModuleClass(type):
     def __init__(self, descriptor):
         self.descriptor = descriptor
 
-    def __call__(self, *args, **kwargs):
-        raise TypeError("Don't use module_class(....), call "
-                        "vistrail.add_module(module_class, ...) instead")
+    def __call__(self, outputs, **kwargs):
+        """ executes a module directly
+
+            outputs: A string or list with name(s) of outputs to set
+        """
+        from vistrails.core.modules.vistrails_module import ModuleConnector
+        from vistrails.core.modules.basic_modules import create_constant
+
+        if isinstance(outputs, basestring):
+            outputs = (outputs,)
+        instance = self.descriptor.module()
+        for port, value in kwargs.iteritems():
+            mc = ModuleConnector(create_constant(value), 'value')
+            instance.set_input_port(port, mc)
+        for port in outputs:
+            instance.enable_output_port(port)
+        instance.compute()
+        result = [instance.get_output(port) for port in outputs]
+        return result[0] if len(result) == 1 else result
 
     def __repr__(self):
         return "<Module class %r from %s>" % (self.descriptor.name,

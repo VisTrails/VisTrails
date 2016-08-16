@@ -33,10 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+from __future__ import division, absolute_import
 
 import copy
 import re
+import urllib
 import os.path
 
 import vtk
@@ -50,20 +51,21 @@ from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
+from vistrails.core.scripting import Script, Prelude
 from vistrails.core.system import systemType, current_dot_vistrails
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.wrapper.pythonclass import gen_class_module
+from vistrails.core.wrapper.specs import SpecList, ClassSpec
 from vistrails.core.vistrail.port import Port
 
 from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
-from identifiers import identifier, version as package_version
+from .identifiers import identifier, version as package_version
 
-from .vtk_wrapper import vtk_classes
 from . import hasher
 
 
@@ -124,7 +126,7 @@ class vtkRendererToFile(ImageFileMode):
                       'jpg': vtk.vtkJPEGWriter,
                       'tif': vtk.vtkTIFFWriter,
                       'pnm': vtk.vtkPNMWriter}
-        r = output_module.get_input("value")[0].vtkInstance
+        r = output_module.get_input("value")[0]
         w = configuration["width"]
         h = configuration["height"]
         img_format = self.get_format(configuration)
@@ -145,7 +147,7 @@ class vtkRendererToIPythonMode(IPythonMode):
     def compute_output(self, output_module, configuration):
         from IPython.core.display import display, Image
 
-        r = output_module.get_input('value')[0].vtkInstance
+        r = output_module.get_input('value')[0]
         width = configuration['width']
         height = configuration['height']
 
@@ -196,11 +198,13 @@ def initialize():
     if not os.path.exists(spec_name):
         from .vtk_wrapper.parse import parse
         parse(spec_name)
-    vtk_classes.initialize(spec_name)
-    _modules.extend([gen_class_module(spec, vtk_classes, klasses,
-                                      translations=vtk_classes.specs.get_translations(),
+    specs = SpecList.read_from_xml(spec_name, ClassSpec)
+    #vtk_classes.initialize(spec_name)
+    _modules.extend([gen_class_module(spec, vtk, klasses,
+                                      patches=specs.patches,
+                                      translations=specs.translations,
                                       signature=hasher.vtk_hasher)
-                     for spec in vtk_classes.specs.module_specs])
+                     for spec in specs.module_specs])
 
 ################# UPGRADES ###################################################
 
@@ -208,15 +212,18 @@ _remap = None
 _controller = None
 _pipeline = None
 
+
 def _get_controller():
     global _controller
     return _controller
+
 
 def _get_pipeline():
     global _pipeline
     return _pipeline
 
 module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
+
 
 def base_name(name):
     """Returns name without overload index.
@@ -226,27 +233,30 @@ def base_name(name):
         return name[:i]
     return name
 
+
+def create_function(module, *argv, **kwargs):
+    reg = get_module_registry()
+    controller = _get_controller()
+    # create function using the current module version and identifier
+    # FIXME: This should really be handled by the upgrade code somehow
+    new_desc = reg.get_descriptor_by_name(module.package,
+                                          module.name,
+                                          module.namespace)
+    old_identifier = module.package
+    module.package = identifier
+    old_package_version = module.version
+    module.version = new_desc.package_version
+    new_function = controller.create_function(module, *argv, **kwargs)
+    module.package = old_identifier
+    module.version = old_package_version
+    return new_function
+
+
 def build_remap(module_name=None):
     global _remap, _controller
 
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
-
-    def create_function(module, *argv, **kwargs):
-        controller = _get_controller()
-        # create function using the current module version and identifier
-        # FIXME: This should really be handled by the upgrade code somehow
-        new_desc = reg.get_descriptor_by_name(module.package,
-                                              module.name,
-                                              module.namespace)
-        old_identifier = module.package
-        module.package = identifier
-        old_package_version = module.version
-        module.version = new_desc.package_version
-        new_function = controller.create_function(module, *argv, **kwargs)
-        module.package = old_identifier
-        module.version = old_package_version
-        return new_function
 
     def get_port_specs(descriptor, port_type):
         ports = {}
@@ -472,9 +482,15 @@ def build_remap(module_name=None):
                     if c in ports:
                         dest_port = c
                         break
+            output_port_spec = get_output_port_spec(new_module, 'StructuredGrid')
+            src_port = Port(name=output_port_spec.name,
+                            type='source',
+                            spec=output_port_spec,
+                            moduleId=new_module.id,
+                            moduleName=new_module.name)
             conn = create_new_connection(controller,
                                          new_module,
-                                         'StructuredGrid',
+                                         src_port,
                                          module1,
                                          dest_port)
             return [('add', conn)]
@@ -649,6 +665,18 @@ def build_remap(module_name=None):
         for desc in pkg.descriptor_list:
             process_module(desc)
 
+
+def remove_vtk_instance(controller):
+    def remap(old_func, new_module):
+        src = old_func.params[0].strValue
+        code = urllib.unquote(src)
+        new_code = code.replace('.vtkInstance', '')
+        src = urllib.quote(new_code)
+        new_function = create_function(new_module, 'Handler', [src])
+        return [('add', new_function, 'module', new_module.id)]
+    return remap
+
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
 
@@ -657,6 +685,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='vtkInteractionHandler')
         remap.add_remap('src_port_remap', 'self', 'Instance')
+        _remap.add_module_remap(remap)
+        remap = UpgradeModuleRemap(None, '1.0.2', '1.0.3',
+                                   module_name='vtkInteractionHandler')
+        remap.add_remap('function_remap', 'Handler', remove_vtk_instance(controller))
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKCell')
@@ -676,11 +708,19 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
     except ImportError:
         # Manually upgrade to 1.0.1
-        if _remap.get_module_remaps(module_name):
+        # Handle module name remap
+        old_name = module_name
+        for on, nn in module_name_remap.iteritems():
+            if old_name == nn:
+                old_name = on
+        if _remap.get_module_remaps(old_name):
             module_remap = copy.copy(_remap)
-            module_remap.add_module_remap(
-                    UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
-                                       module_name=module_name))
+            remap = module_remap.get_module_upgrade(module_name, '1.0.0')
+            if remap is None:
+                # Manually upgrade to 1.0.1
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                           module_name=module_name))
         else:
             module_remap = _remap
     else:
@@ -689,7 +729,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 'VTKCell', 'vtkRendererOutput',
                 '1.0.1', 'AddRenderer',
                 start_version='1.0.0')
-        if _remap.get_module_remaps(module_name):
+        # Handle module name remap
+        old_name = module_name
+        for on, nn in module_name_remap.iteritems():
+            if old_name == nn:
+                old_name = on
+        if _remap.get_module_remaps(old_name):
             remap = module_remap.get_module_upgrade(module_name, '1.0.0')
             if remap is None:
                 # Manually upgrade to 1.0.1
@@ -702,6 +747,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 # Manually upgrade to 1.0.2
                 module_remap.add_module_remap(
                         UpgradeModuleRemap('1.0.1', '1.0.2', '1.0.2',
+                                           module_name=module_name))
+            remap = module_remap.get_module_upgrade(module_name, '1.0.2')
+            # Only difference with 1.0.3 is the removal of ".vtkInstance" from source module code
+            if remap is None:
+                # Manually upgrade to 1.0.3
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.2', '1.0.3', '1.0.3',
                                            module_name=module_name))
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

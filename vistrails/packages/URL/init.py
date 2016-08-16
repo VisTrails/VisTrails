@@ -48,7 +48,6 @@ from __future__ import division
 
 from datetime import datetime
 import email.utils
-import hashlib
 import os
 import re
 import urllib
@@ -68,6 +67,7 @@ import vistrails.core.modules.basic_modules
 from vistrails.core.modules.basic_modules import PathObject
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.scripting import Script, Prelude
 from vistrails.core.system import current_dot_vistrails, strptime
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 import vistrails.gui.repository
@@ -79,7 +79,6 @@ from vistrails.core.repository.poster.streaminghttp import register_openers
 from .identifiers import identifier
 from .http_directory import download_directory
 from .https_if_available import build_opener
-
 
 package_directory = None
 
@@ -411,6 +410,26 @@ class DownloadFile(Module):
         DL = downloaders.get(scheme, Downloader)
         return DL(url, self, insecure).execute()
 
+    @classmethod
+    def to_python_script_disabled(cls, module):
+        """ create script for downloading a file
+        """
+        # FIXME: Only HTTP supported right now
+        code = ''
+        preludes = []
+
+        preludes.append(Prelude('from vistrails.core.modules.basic_modules import PathObject'))
+        preludes.append(Prelude('import requests'))
+        preludes.append(Prelude('import tempfile'))
+
+        code += '_, path = tempfile.mkstemp()\n'
+        code += 'r = requests.get(url, stream=True)\n'
+        code += "with open(path, 'wb') as f:\n"
+        code += '    for chunk in r:\n'
+        code += '        f.write(chunk)\n'
+        code += 'file = PathObject(path)'
+
+        return (Script(code, 'variables', 'variables'), preludes)
 
 class HTTPDirectory(Module):
     """Downloads a whole directory recursively from a URL
@@ -674,13 +693,52 @@ def initialize(*args, **keywords):
 
     # Migrate files to new naming scheme: max 100 characters, with a hash if
     # it's too long
+    handled = set()
+
+    def move(old, new):
+        if os.path.exists(new):
+            os.remove(new)
+            handled.add(new)
+        os.rename(old, new)
+        handled.add(old)
+
+        old += '.etag'
+        new += '.etag'
+        if os.path.exists(new):
+            os.remove(new)
+            handled.add(new)
+        if os.path.exists(old):
+            os.rename(old, new)
+            handled.add(old)
+
     renamed = 0
-    for filename in list(os.listdir(package_directory)):
-        if len(filename) > MAX_CACHE_FILENAME:
-            new_name = cache_filename(filename)
-            os.rename(os.path.join(package_directory, filename),
-                      os.path.join(package_directory, new_name))
-            renamed += 1
+    for old_name in sorted(os.listdir(package_directory)):
+        old_filename = os.path.join(package_directory, old_name)
+        if old_filename in handled:
+            continue
+        if len(old_name) > MAX_CACHE_FILENAME:
+            hasher = sha_hash()
+            hasher.update(old_name)
+            new_name = (old_name[:MAX_CACHE_FILENAME - 41] +
+                        '_' + hasher.hexdigest())
+            new_filename = os.path.join(package_directory, new_name)
+            if os.path.exists(new_filename):
+                oldtime = os.path.getmtime(old_filename)
+                newtime = os.path.getmtime(new_filename)
+                if oldtime > newtime:
+                    move(old_filename, new_filename)
+                    renamed += 1
+                else:
+                    os.remove(old_filename)
+                    handled.add(old_filename)
+                    if os.path.exists(old_filename + '.etag'):
+                        os.remove(old_filename + '.etag')
+                        handled.add(old_filename + '.etag')
+            else:
+                move(old_filename, new_filename)
+                renamed += 1
+        else:
+            handled.add(old_filename + '.etag')
     if renamed:
         debug.warning("Renamed %d downloaded cache files" % renamed)
 

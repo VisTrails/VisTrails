@@ -48,13 +48,13 @@ type information, and organizes them.
 # Copyright (c) 2004-2007, Enthought, Inc.
 # License: BSD Style.
 
-from __future__ import division
+from __future__ import division, absolute_import
 
 import re
 
 # Local imports (these are relative imports for a good reason).
-import class_tree
-import vtk_module as vtk
+from . import class_tree
+from . import vtk_module as vtk
 
 
 class VTKMethodParser:

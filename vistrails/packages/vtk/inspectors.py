@@ -43,7 +43,6 @@ from vistrails.core.modules.basic_modules import Module, Float, Integer
 from vistrails.core.modules.config import ModuleSettings
 import vtk
 from .hasher import vtk_hasher
-from .vtk_wrapper.wrapper import VTKInstanceWrapper
 
 class vtkBaseInspector(Module):
 
@@ -54,13 +53,14 @@ class vtkBaseInspector(Module):
             if hasattr(vtk_object, function):
                 retValues = getattr(vtk_object, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    output  = VTKInstanceWrapper(retValues, mid)
+                    output  = retValues
+                    output.module_id = mid
                     self.set_output(function, output)
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            result[i] = VTKInstanceWrapper(result[i], mid)
+                            result[i].module_id = mid
                     self.set_output(function, type(retValues)(result))
                 else:
                     self.set_output(function, retValues)
@@ -85,8 +85,6 @@ class vtkDataSetInspector(vtkBaseInspector):
         port_object = None
         if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
-            if hasattr(ic, "vtkInstance"):
-                ic = ic.vtkInstance
             producer = ic.GetProducer()
             try:
                 port_object = producer.GetOutput()
@@ -95,8 +93,6 @@ class vtkDataSetInspector(vtkBaseInspector):
                                   "expected a module that supports GetOutput")
         elif self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
-            if hasattr(port_object, "vtkInstance"):
-                port_object = port_object.vtkInstance
         if port_object:
             self.auto_set_results(port_object)
 
@@ -118,8 +114,6 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
         vtk_object = None
         if self.has_input("SetInput"):
             vtk_object = self.get_input("SetInput")
-            if hasattr(vtk_object, "vtkInstance"):
-                vtk_object = vtk_object.vtkInstance
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -135,8 +129,6 @@ class vtkDataArrayInspector(vtkBaseInspector):
         vtk_object = None
         if self.has_input("SetInput"):
             vtk_object = self.get_input("SetInput")
-            if hasattr(vtk_object, "vtkInstance"):
-                vtk_object = vtk_object.vtkInstance
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -162,8 +154,6 @@ class vtkPolyDataInspector(vtkDataSetInspector):
         vtk_object = None
         if self.has_input("SetInputConnection0"):
             port_object = self.get_input("SetInputConnection0")
-            if hasattr(port_object, "vtkInstance"):
-                port_object = port_object.vtkInstance
             producer = port_object.GetProducer()
             try:
                 vtk_object = producer.GetOutput()
@@ -172,8 +162,6 @@ class vtkPolyDataInspector(vtkDataSetInspector):
                                   "expected a module that supports GetOutput")
         elif self.has_input("SetInput"):
             vtk_object = self.get_input("SetInput")
-            if hasattr(vtk_object, "vtkInstance"):
-                vtk_object = vtk_object.vtkInstance
         if vtk_object:
             self.auto_set_results(vtk_object)
 

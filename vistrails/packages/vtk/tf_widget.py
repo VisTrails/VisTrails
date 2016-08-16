@@ -41,7 +41,7 @@ from __future__ import division
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.basic_modules import Constant
-from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.scripting import Script, Prelude
 from vistrails.core.system import get_elementtree_library
 from vistrails.core.utils.color import ColorByName
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
@@ -155,6 +155,13 @@ class TransferFunction(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        """ Return string used to create self
+
+            This requires TransgferFunction to be imported
+        """
+        return 'tf_widget.TransferFunction.parse(%r)' % self.serialize()
 
     def serialize(self, node=None):
         """serialize(node: ElementTree.Element) -> str
@@ -705,7 +712,6 @@ class vtkScaledTransferFunction(Module):
         ['vtkColorTransferFunction', 'vtkColorTransferFunction']]
 
     def compute(self):
-        reg = get_module_registry()
         tf = self.get_input('TransferFunction')
         new_tf = copy.copy(tf)
         if self.has_input('Input'):
@@ -725,6 +731,34 @@ class vtkScaledTransferFunction(Module):
         
         self.set_output('vtkPicewiseFunction', of)
         self.set_output('vtkColorTransferFunction', cf)
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ Show first value (vtkRenderer) in new window
+        """
+        code = ''
+        preludes = []
+        preludes.append(Prelude('from vistrails.packages.vtk import tf_widget'))
+
+        code += 'tf = TransferFunction\n'
+        #if self.has_input('Input'):
+        #    port = self.get_input('Input')
+        #    algo = port.GetProducer()
+        #    output = algo.GetOutput(port.GetIndex())
+        #    (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
+        if 'Dataset' in module.connected_input_ports:
+            code += 'tf._min_range, tf._max_range = Dataset.GetScalarRange()\n'
+        else:
+            code += "tf._min_range, tf._max_range = Range\n"
+        if 'vtkPicewiseFunction' in module.connected_output_ports or \
+           'vtkColorTransferFunction' in module.connected_output_ports:
+            code += 'of, cf = tf.get_vtk_transfer_functions()\n'
+        if 'vtkPicewiseFunction' in module.connected_output_ports:
+            code += 'vtkPicewiseFunction = of\n'
+        if 'vtkColorTransferFunction' in module.connected_output_ports:
+            code += 'vtkColorTransferFunction = cf\n'
+
+        return Script(code, 'variables', 'variables'), preludes
 
 class TransferFunctionConstant(Constant):
     default_value = default_tf

@@ -415,6 +415,14 @@ class InstanceObject(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
+    def __repr__(self):
+        """ Return string used to create self
+
+            This requires InstanceObject to be imported
+        """
+        items = ', '.join([('%s=%r' % (k, v)) for (k, v) in sorted(self.__dict__.items())])
+        return "__import__('vistrails.core.utils').core.utils.InstanceObject(%s)" % items
+
     def __str__(self):
         pre = "(%s " % self.__class__.__name__
         items = [('%s: %s' % (k, str(v)))

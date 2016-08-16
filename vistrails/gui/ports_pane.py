@@ -313,7 +313,7 @@ class PortItem(QtGui.QTreeWidgetItem):
                                  'gui/resources/images/connection.png'))
 
     def __init__(self, port_spec, is_connected, is_optional, is_visible,
-                 is_editable=False, parent=None):
+                 is_editable=False, parent=None, union_items=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         # self.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
         self.setFlags(QtCore.Qt.ItemIsEnabled)
@@ -324,8 +324,9 @@ class PortItem(QtGui.QTreeWidgetItem):
         self.is_visible = is_visible
         self.is_editable = is_editable
         self.is_unset = False
+        self.union_items = union_items
         self.build_item(port_spec, is_connected, is_optional, is_visible,
-                        is_editable)
+                        is_editable, union_items)
 
     def visible(self):
         return not self.is_optional or self.is_visible
@@ -333,9 +334,9 @@ class PortItem(QtGui.QTreeWidgetItem):
     def set_visible(self, visible):
         self.is_visible = visible
         if visible:
-            self.setIcon(0, PortItem.eye_open_icon)
+            self.setIcon(1, PortItem.eye_open_icon)
         else:
-            self.setIcon(0, PortItem.eye_closed_icon)
+            self.setIcon(1, PortItem.eye_closed_icon)
 
     def set_editable(self, edit):
         self.is_editable = edit
@@ -350,9 +351,11 @@ class PortItem(QtGui.QTreeWidgetItem):
     def get_connected(self):
         return self.connected_checkbox
 
-    def is_constant(self):
-        return (self.port_spec.is_valid and 
-                get_module_registry().is_constant(self.port_spec))
+    def is_constant(self, port_spec=None):
+        if port_spec is None:
+            port_spec = self.port_spec
+        return (port_spec.is_valid and
+                get_module_registry().is_constant(port_spec))
 
     def calcUnset(self):
         self.is_unset = self.is_constant() and \
@@ -364,7 +367,7 @@ class PortItem(QtGui.QTreeWidgetItem):
             font.setWeight(QtGui.QFont.Bold)
             self.setFont(3, font)
 
-    def build_item(self, port_spec, is_connected, is_optional, is_visible, is_editable):
+    def build_item(self, port_spec, is_connected, is_optional, is_visible, is_editable, union_items):
         if not is_optional:
             self.setIcon(1, PortItem.eye_disabled_icon)
         elif is_visible:
@@ -374,7 +377,7 @@ class PortItem(QtGui.QTreeWidgetItem):
 
         if is_connected:
             self.setIcon(2, PortItem.conn_icon)
-        self.setText(3, port_spec.name)
+        self.setText(3, port_spec.union if union_items else port_spec.name)
 
         if self.is_constant():
             if len(self.port_spec.port_spec_items)>0:
@@ -470,7 +473,7 @@ class PortsList(QtGui.QTreeWidget):
             reg = get_module_registry()
             descriptor = module.module_descriptor
             if self.port_type == 'input':
-                self.setColumnHidden(0,not get_vistrails_configuration(
+                self.setColumnHidden(0, not get_vistrails_configuration(
                                         ).check('showInlineParameterWidgets'))
                 port_specs = module.destinationPorts()
                 connected_ports = module.connected_input_ports
@@ -482,18 +485,34 @@ class PortsList(QtGui.QTreeWidget):
             else:
                 raise TypeError("Unknown port type: '%s'" % self.port_type)
             
-            for port_spec in sorted(port_specs, key=lambda x: x.name):
-                connected = port_spec.name in connected_ports and \
-                    connected_ports[port_spec.name] > 0
+            # Create common portitem for union ports
+            ps_groups = {'': []}
+            for port_spec in port_specs:
+                if port_spec.union not in ps_groups:
+                    ps_groups[port_spec.union] = []
+                ps_groups[port_spec.union].append(port_spec)
+            non_unions = ps_groups.pop('')
+            ps_groups = ps_groups.values() + [[ps] for ps in non_unions]
+            for port_specs in sorted(ps_groups, key=lambda x: x[0].union or x[0].name):
+                first_port_spec = port_specs[0]
+                connected = True in [port_spec.name in connected_ports and \
+                    connected_ports[port_spec.name] > 0 for port_spec in port_specs]
+                visible = True in [port_spec.name in visible_ports
+                                   for port_spec in port_specs]
+                editable = True in [port_spec.name in module.editable_input_ports
+                                    for port_spec in port_specs]
                 item = PortItem(port_spec,
                                 connected,
-                                port_spec.optional,
-                                port_spec.name in visible_ports,
-                                port_spec.name in module.editable_input_ports)
+                                first_port_spec.optional,
+                                visible,
+                                editable,
+                                union_items=port_specs if len(port_specs) > 1 else None)
                 self.addTopLevelItem(item)
-                self.port_spec_items[port_spec.name] = (port_spec, item)
+                for port_spec in port_specs:
+                    self.port_spec_items[port_spec.name] = (port_spec, item)
 
             if self.port_type == 'input':
+                # add functions to port items
                 for function in module.functions:
                     if not function.is_valid:
                         continue
@@ -603,9 +622,35 @@ class PortsList(QtGui.QTreeWidget):
             if item.is_constant() and len(item.port_spec.port_spec_items)>0:
                 item.set_editable(not item.is_editable)
                 if item.is_editable:
-                    editable_ports.add(item.port_spec.name)
+                    if item.union_items:
+                        candidates = [ps for ps in item.union_items
+                                      if item.is_constant(ps)]
+                        if len(candidates) == 0:
+                            return
+                        elif len(candidates) == 1:
+                            port_spec = candidates[0]
+                        else:
+                            port_spec = self.select_type(candidates,
+                                                    'Show on module as type:')
+                        if not port_spec:
+                            try:
+                                item.set_editable(False)
+                            except:
+                                # item may have been deleted on focus change
+                                pass
+                            return
+                    else:
+                        port_spec = item.port_spec
+                    editable_ports.add(port_spec.name)
                 else:
-                    editable_ports.discard(item.port_spec.name)
+                    if item.union_items:
+                        # iterate items
+                        for port_spec in item.union_items:
+                            if port_spec.name in editable_ports:
+                                break
+                    else:
+                        port_spec = item.port_spec
+                    editable_ports.discard(port_spec.name)
                 self.controller.flush_delayed_actions()
                 self.controller.add_annotation((self.module.INLINE_WIDGET_ANNOTATION,
                                                 ','.join(editable_ports)),
@@ -616,20 +661,44 @@ class PortsList(QtGui.QTreeWidget):
             if item.is_optional and not item.is_connected:
                 item.set_visible(not item.is_visible)
                 if item.is_visible:
-                    visible_ports.add(item.port_spec.name)
+                    if item.union_items:
+                        # show all of them
+                        for port_spec in item.union_items:
+                            visible_ports.add(port_spec.name)
+                    else:
+                        visible_ports.add(item.port_spec.name)
                 else:
-                    visible_ports.discard(item.port_spec.name)
+                    if item.union_items:
+                        for port_spec in item.union_items:
+                            visible_ports.discard(port_spec.name)
+                    else:
+                        visible_ports.discard(item.port_spec.name)
                 self.controller.flush_delayed_actions()
                 self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 3:
-            if item.isExpanded():
+            if not item.union_items and item.isExpanded():
                 item.setExpanded(False)
-            elif item.childCount() > 0:
+            elif not item.union_items and item.childCount() > 0:
                 item.setExpanded(True)
-            elif item.childCount() == 0 and item.is_constant():
+            elif (not item.union_items and item.childCount() == 0 and
+                  item.is_constant()):
                 self.do_add_method(item.port_spec, item)
-        
+            elif item.union_items:
+                # union port always ask to add new port when clicked
+                candidates = [ps for ps in item.union_items
+                              if item.is_constant(ps)]
+                if len(candidates) == 0:
+                    return
+                elif len(candidates) == 1:
+                    port_spec = candidates[0]
+                else:
+                    port_spec = self.select_type(candidates, 'Add as:')
+                if not port_spec:
+                    return
+                self.do_add_method(port_spec, item)
+
+
     def set_controller(self, controller):
         self.controller = controller
 
@@ -710,6 +779,26 @@ class PortsList(QtGui.QTreeWidget):
         item = self.itemAt(event.pos())
         if item:
             item.contextMenuEvent(event, self)
+
+    def select_type(self, port_specs, text):
+        """ Prompts user to select a specific type in a union type
+        """
+        selected_port_spec = [None]
+        def add_selector(ps):
+            def triggered(*args, **kwargs):
+                selected_port_spec[0] = ps
+            return triggered
+        menu = QtGui.QMenu(self)
+        for port_spec in port_specs:
+            type_name = port_spec.type_name()
+            label = text + ' ' + type_name
+            act = QtGui.QAction(label, self)
+            act.setStatusTip(label)
+            act.triggered.connect(add_selector(port_spec))
+            menu.addAction(act)
+        menu.exec_(QtGui.QCursor.pos())
+        return selected_port_spec[0]
+
 
 class QPortsPane(QtGui.QWidget, QToolWindowInterface):
     def __init__(self, port_type, parent=None, flags=QtCore.Qt.Widget):
