@@ -1511,22 +1511,26 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         from vistrails import api
         view = api.open_vistrail_from_file(
                 vistrails.core.system.vistrails_root_directory() +
-                '/tests/resources/chained_upgrade.xml')
+                '/tests/resources/chained-upgrade-uuid.xml')
         # Trigger upgrade
         api.select_version('myTuple')
         view.execute()
         # Assert new upgrade was created from the latest action
-        # 1 = original
-        # 2 = old upgrade
-        # 3 = new upgrade (should be the upgrade of 2)
+        # 93732fd5-e4ea-4ffa-a7f2-f9922140177d = original
+        # 0f28eae9-cca1-4f0c-aa0a-27dbac0a7380 = old upgrade
+        # ??? = new upgrade (should be the upgrade of old_upgrade)
         vistrail = api.get_current_vistrail()
+        latest_action_id = vistrail.actions[-1].id
         for a in vistrail.action_annotations:
             if a.key == Vistrail.UPGRADE_ANNOTATION:
-                self.assertIn(a.action_id, [1,2])
-                if a.action_id == 1:
-                    self.assertEqual(int(a.value), 2)
-                if a.action_id == 2:
-                    self.assertEqual(int(a.value), 3)
+                self.assertIn(a.action_id,
+                              ['93732fd5-e4ea-4ffa-a7f2-f9922140177d',
+                              '0f28eae9-cca1-4f0c-aa0a-27dbac0a7380'])
+                if a.action_id == '93732fd5-e4ea-4ffa-a7f2-f9922140177d':
+                    self.assertEqual(a.value,
+                                     '0f28eae9-cca1-4f0c-aa0a-27dbac0a7380')
+                if a.action_id == '0f28eae9-cca1-4f0c-aa0a-27dbac0a7380':
+                    self.assertEqual(a.value, latest_action_id)
 
     def test_broken_upgrade(self):
         # When upgrade is broken the controller should try to upgrade
@@ -1534,16 +1538,18 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         from vistrails import api
         view = api.open_vistrail_from_file(
                 vistrails.core.system.vistrails_root_directory() +
-                '/tests/resources/broken_upgrade.xml')
+                '/tests/resources/broken-upgrade-uuid.xml')
         # Trigger upgrade
         api.select_version('myTuple')
         view.execute()
         # Assert new upgrade was created from the first action
-        # 1 = original
-        # 2 = broken
-        # 3 = new (should be the upgrade of 1)
+        # 32e5de16-420d-4381-a3fc-f942ddabfd4c = original
+        # 2b1866c8-0b49-4885-a64a-393206e51de3 = broken
+        # 3 = new (should be the upgrade of original)
         vistrail = api.get_current_vistrail()
+        latest_action_id = vistrail.actions[-1].id
         for a in vistrail.action_annotations:
             if a.key == Vistrail.UPGRADE_ANNOTATION:
-                self.assertEqual(a.action_id, 1)
-                self.assertEqual(int(a.value), 3)
+                self.assertEqual(a.action_id,
+                                 '32e5de16-420d-4381-a3fc-f942ddabfd4c')
+                self.assertEqual(a.value, latest_action_id)
