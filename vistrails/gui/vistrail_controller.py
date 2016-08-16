@@ -1435,7 +1435,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller = VistrailController(Vistrail(), None, 
                                         pipeline_view=DummyView(),
                                         auto_save=False)
-        controller.change_selected_version(0L)
+        controller.change_selected_version(Vistrail.ROOT_VERSION)
         module = controller.add_module(0.0,0.0, 
                         vistrails.core.system.get_vistrails_basic_pkg_id(), 
                         'ConcatenateString')
