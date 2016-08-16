@@ -1545,7 +1545,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # Assert new upgrade was created from the first action
         # 32e5de16-420d-4381-a3fc-f942ddabfd4c = original
         # 2b1866c8-0b49-4885-a64a-393206e51de3 = broken
-        # 3 = new (should be the upgrade of original)
+        # ??? = new (should be the upgrade of original)
         vistrail = api.get_current_vistrail()
         latest_action_id = vistrail.actions[-1].id
         for a in vistrail.action_annotations:
