@@ -7,7 +7,7 @@
 
 # This builds the scalar tree
 def guarded_SimpleScalarTree(self, original):
-    original
+    original()
     self.BuildTree()
 
 # The behavior for vtkWriter subclasses is to call Write()
@@ -33,7 +33,7 @@ def guarded_SetFileName(self, original):
     import os
     if not os.path.isfile(self.GetFileName()):
         raise Exception('File does not exist')
-    original
+    original()
 
 def SetRenderWindow(self, input):
     import vtk
@@ -105,7 +105,7 @@ def _cleanup(self):
 # from fix_classes
 def SetLookupTable(self, original):
     self.UserControlledLookupTableOn()
-    original
+    original()
 
 #basic:Color translation
 def basic_Color_input(input, output):

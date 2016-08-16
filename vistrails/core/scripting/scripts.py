@@ -42,6 +42,24 @@ def rename_variables(source, renames):
             counts[v] = counts.get(v, 0) + 1
     return counts
 
+
+def replace_method(source, method, code):
+    """ Replace a method "method()" with code in redbaron source
+
+    """
+    get_redbaron()
+    for node in source.find_all('NameNode'):
+        if node.value == method:
+            # Skip if this is an attribute (followed by dot)
+            if isinstance(node.previous, redbaron.DotNode):
+                continue
+            # Skif if this is a call argument name
+            if isinstance(node.parent, redbaron.CallArgumentNode) and node.parent.target == node:
+                continue
+            if node.parent and node.parent.type == 'atomtrailers':
+                node.parent.value = code
+
+
 def make_unique(name, all_vars, more_vars=set()):
     """Makes a variable name unique.
 

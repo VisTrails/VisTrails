@@ -41,12 +41,12 @@ import importlib
 import re
 
 from itertools import izip
-from redbaron import RedBaron
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.scripting import Script, Prelude
-from vistrails.core.scripting.scripts import rename_variables, reserved
+from vistrails.core.scripting.scripts import rename_variables, reserved,\
+    get_redbaron, replace_method
 
 from .common import convert_port, convert_port_script, get_input_spec,\
                     get_output_spec, get_patches
@@ -133,6 +133,7 @@ class BaseClassModule(Module):
             return 'output = instance.%s(%s)' % (method_name, p)
         patch_name = patches.pop()
         vars, patch = self._patches[patch_name]
+        script = get_redbaron().RedBaron(patch)
         vars = copy.copy(vars)
         prelude = ''
         tail = ''
@@ -165,7 +166,7 @@ class BaseClassModule(Module):
             # add inner patches
             rest = self.call_patched(instance, method_name, params, patches,
                                      variables)
-            d['original'] = rest
+            replace_method(script, 'original', rest)
             vars.remove('original')
         elif patches:
             # no original call is required but more patches exist,
@@ -174,7 +175,6 @@ class BaseClassModule(Module):
                                             patches, variables)
         if vars:
             raise Exception('Unknown variables in patch: %s' % vars)
-        script = RedBaron(patch)
         rename_variables(script, d)
         return prelude + script.dumps() + tail
 
@@ -517,6 +517,7 @@ class BaseClassModule(Module):
             return script
         patch_name = patches.pop()
         vars, patch = cls._patches[patch_name]
+        script = get_redbaron().RedBaron(patch)
         vars = copy.copy(vars)
         prelude = ''
         tail = ''
@@ -556,7 +557,7 @@ class BaseClassModule(Module):
             rest = cls.call_patched_script(instance, method_name, params,
                                            patches, output, input_tuple,
                                            prepend_params)
-            d['original'] = rest
+            replace_method(script, 'original', rest)
             vars.remove('original')
         elif patches:
             # no original call is required but more patches exist,
@@ -566,7 +567,6 @@ class BaseClassModule(Module):
                                                   input_tuple, prepend_params)
         if vars:
             raise Exception('Unknown variables in patch: %s' % vars)
-        script = RedBaron(patch)
         rename_variables(script, d)
         return prelude + script.dumps() + tail
 
