@@ -347,7 +347,7 @@ def make_spec(name, Estimator, namespace, supervised=False, base=None):
             base = 'SupervisedEstimator'
         else:
             base = 'UnsupervisedEstimator'
-    module_spec = ModuleSpec(name=name,
+    module_spec = ModuleSpec(module_name=name,
                              superklass=base,
                              docstring=Estimator.__doc__,
                              namespace=namespace,
