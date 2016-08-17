@@ -339,10 +339,11 @@ class InputPortSpec(PortSpec):
     _parent = None
 
     prop_attrs = {
-        "entry_types": (None, True, True), # custom entry type (like enum)
-        "values": (None, True, True),      # values for enums
-        "labels": (None, True, True),      # custom labels on enum values
-        "defaults": (None, True, True),    # default value list
+        "entry_types": (None, True, True),  # custom entry type (like enum)
+        "values": (None, True, True),       # values for enums
+        "labels": (None, True, True),       # custom labels on enum values
+        "defaults": (None, True, True),     # default value list
+        "union": ''                         # union port name
         }
 
     attrs = {}
