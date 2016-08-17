@@ -225,42 +225,11 @@ class VistrailController(object):
             return LogController(self.log)
         else:
             return DummyLogController
-
-    @property
-    def locator(self):
-        return self.bundle.locator
-
-    @locator.setter
-    def locator(self, locator):
-        self.bundle.locator = locator
-
-    @property
-    def vistrail(self):
-        return self.bundle.vistrail
-
-    @vistrail.setter
-    def vistrail(self, vistrail):
-        self.bundle.change_object(vistrail)
-
-    @property
-    def log(self):
-        return self.bundle.log
-
-    @log.setter
-    def log(self, log):
-        self.bundle.change_object(log)
-
-    @property
-    def job_monitor(self):
-        return self.bundle.job_monitor
-
-    @job_monitor.setter
-    def job_monitor(self, monitor):
-        self.bundle.change_object(monitor)
-
-    # FIXME have abstractions, thumbs affect bundle via some custom list obj?
-
-    def set_vistrail(self, vistrail, locator, abstractions=None,
+        
+    def get_locator(self):
+        return self.locator
+    
+    def set_vistrail(self, vistrail, locator, abstractions=None, 
                      thumbnails=None, mashups=None, id_scope=None,
                      set_log_on_vt=True, bundle=None):
         jobs = None
@@ -2763,7 +2732,7 @@ class VistrailController(object):
         """
         self.flush_delayed_actions()
         if self.current_pipeline:
-            locator = self.locator
+            locator = self.get_locator()
             if locator:
                 locator.clean_temporaries()
                 if self._auto_save:
@@ -3880,7 +3849,7 @@ class VistrailController(object):
 
     def write_temporary(self):
         if self.vistrail and self.changed:
-            locator = self.locator
+            locator = self.get_locator()
             if locator:
                 locator.save_temporary(self.vistrail)
 
@@ -3949,30 +3918,6 @@ class VistrailController(object):
                 # FIXME is this the way the abstraction bundle mapping does it?
                 bundle.add_object(BundleObj(abs_fname, 'abstraction', abs_unique_name))
 
-    def write_bundle(self, locator, version=None, export=False):
-        if locator == self.locator and not self.bundle.has_changes():
-            return False
-
-        # update abstractions in vistrail
-        # FIXME could we add abstractions as in-memory bundle objs?
-        # probably need to redo abstractions so that each version is a uuid
-        # helps with the issues of multiple locations and modifications
-
-        # add thumbnails from cache
-        # FIXME again could we add thumbnails as file ref objs?
-        # potential issues:
-        #  - only pull those thumbnails that are tagged
-        #  - thumbnails start out in cache (different location than bundle)
-
-        # load other data...
-
-        # FIXME fix logs
-
-        # FIXME fix subworkflows...
-
-        locator.save(self.bundle)
-
-
     def write_vistrail(self, locator, version=None, export=False):
         """write_vistrail(locator, version) -> Boolean
         Creates a VistrailBundle and saves it to locator
@@ -4023,8 +3968,6 @@ class VistrailController(object):
                                          tags_only=thumb_cache.conf.tagsOnly):
                 bundle.add_object(thumb, 'thumbnail')
 
-        # FIXME these should be stored directly in the bundle
-        # bundle needs to track these
         #mashups
         for mashup in self._mashups:
             bundle.add_object(mashup)
@@ -4069,7 +4012,7 @@ class VistrailController(object):
                         log.id_scope.getNewId(DBWorkflowExec.vtType)
                     log.db_add_workflow_exec(workflow_exec)
         # Always add log because it may already exist in the save folder
-        # bundle.add_object(log)
+        bundle.add_object(log)
 
         # Call package hooks
         try:
@@ -4081,7 +4024,7 @@ class VistrailController(object):
             debug.critical("Could not call package hooks", str(e))
 
         if self.locator != locator:
-            old_locator = self.locator
+            old_locator = self.get_locator()
             if not export:
                 self.locator = locator
 
