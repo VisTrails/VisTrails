@@ -145,3 +145,14 @@ def add_notebook(reg, filename):
                    package_version=identifiers.version)
     for name, signature, kwargs in vistrails_inputs:
         reg.add_input_port(module_class, name, signature, **kwargs)
+
+
+def menu_items():
+    return [("Reload Notebooks", reload_notebooks)]
+
+
+def context_menu(name):
+    if name is None:
+        return [("Reload Notebooks", reload_notebooks)]
+    else:
+        return None
