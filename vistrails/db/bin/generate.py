@@ -200,6 +200,7 @@ def dirStructure(baseDir):
     dirs['sqlPersistence'] = os.path.join(dirs['persistence'], 'sql')
     dirs['xmlSchema'] = os.path.join(dirs['schemas'], 'xml')
     dirs['sqlSchema'] = os.path.join(dirs['schemas'], 'sql')
+    dirs['tests'] = os.path.join(dirs['base'], 'tests')
     return dirs
 
 def makeAllDirs(dirs):
@@ -233,6 +234,7 @@ def main(argv=None):
                     's': ('generate sql schema and persistence classes', False),
                     'x': ('generate xml schema and persistence classes', False),
                     'c': ('generate sqlalchemy classes', False),
+                    't': ('generate test classes', False),
                     'v:': ('vistrail version tag', True, 'version'),
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}
@@ -388,6 +390,14 @@ def main(argv=None):
                      os.path.join(versionDirs['sqlPersistence'], 'alchemy.py'),
                      False)
 
+    if options['t']:
+        print "generating test objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        run_template('templates/test.py.mako', objects, version, versionName,
+                     os.path.join(versionDirs['tests'], 'auto_gen.py'),
+                     True)
 
     if not options['n']:
         domainFile = os.path.join(baseDirs['persistence'], '__init__.py')

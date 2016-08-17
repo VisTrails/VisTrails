@@ -1412,11 +1412,16 @@ class TestDBIO(unittest.TestCase):
             
     pass
 
+from vistrails.db.versions.v1_0_5.tests.auto_gen import \
+    DBVistrailTest, DBWorkflowTest, DBLogTest, DBRegistryTest, DBGroupTest, \
+    DBActionAnnotationTest
+
 # helper function for translation tests
 def get_alternate_tests(version):
     from vistrails.db.versions import get_version_path
     def test_actionAnnotations(vt1, vt2, test_class, alternate_tests):
         vt1_action_annotations = {}
+        for a in vt1.db_actionAnnotations:
         for a in vt1.db_actionAnnotations:
             a_t = (a.db_key, a.db_action_id)
             if a_t in vt1_action_annotations:
@@ -1429,7 +1434,7 @@ def get_alternate_tests(version):
                 raise AssertionError("Action annotation %s not matched" % 
                                      unicode(a_t))
             a1 = vt1_action_annotations[a_t]
-            a1.deep_eq_test(a2, test_class, alternate_tests)
+            DBActionAnnotationTest.deep_eq_test(a1, a2, test_class, alternate_tests)
             del vt1_action_annotations[a_t]
         if len(vt1_action_annotations) > 0:
             a_t = vt1_action_annotations.iterkeys().next()
@@ -1450,7 +1455,7 @@ def get_alternate_tests(version):
                 old_tests[field] = alternate_tests[field_t]
             alternate_tests[field_t] = None
         try:
-            g1.deep_eq_test(g2, test_class, alternate_tests)
+            DBGroupTest.deep_eq_test(g1, g2, test_class, alternate_tests)
         finally:
             alternate_tests[('DBGroup', 'db_workflow')] = self_func
             for field in sql_only_fields:
@@ -1520,7 +1525,7 @@ class TestXMLFile(object):
         try:
             save_vistrail_to_xml(vt1, fname, self.get_version())
             vt2 = open_vistrail_from_xml(fname)
-            vt1.deep_eq_test(vt2, self, get_alternate_tests(self.get_version()))
+            DBVistrailTest.deep_eq_test(vt1, vt2, self, get_alternate_tests(self.get_version()))
         finally:
             os.unlink(fname)
             bundle.cleanup()
@@ -1574,7 +1579,7 @@ class TestSQLDatabase(object):
                                         save_wfs=False).db_id
             vt1.db_id = vt_id
             vt2 = open_vistrail_from_db(self.conn, vt_id)
-            vt1.deep_eq_test(vt2, self, 
+            DBVistrailTest.deep_eq_test(vt1, vt2, self,
                              get_alternate_tests(self.get_config()["version"]))
         finally:
             bundle.cleanup()
@@ -1669,7 +1674,7 @@ class TestTranslations(unittest.TestCase):
             vt1 = bundle.vistrail
             vt2 = translate_vistrail(vt1, currentVersion, version)
             vt2 = translate_vistrail(vt2, version, currentVersion)
-            vt1.deep_eq_test(vt2, self, get_alternate_tests(version))
+            DBVistrailTest.deep_eq_test(vt1, vt2, self, get_alternate_tests(version))
         finally:
             if bundle is not None:
                 bundle.cleanup()
@@ -1687,7 +1692,7 @@ class TestTranslations(unittest.TestCase):
             wf1.db_version = '1.0.5'
             wf2 = translate_workflow(wf1, currentVersion, version)
             wf2 = translate_workflow(wf2, version, currentVersion)
-            wf1.deep_eq_test(wf2, self, get_alternate_tests(version))
+            DBWorkflowTest.deep_eq_test(wf1, wf2, self, get_alternate_tests(version))
         finally:
             if bundle is not None:
                 bundle.cleanup()
@@ -1701,7 +1706,7 @@ class TestTranslations(unittest.TestCase):
             log1.db_version = '1.0.5'
             log2 = translate_log(log1, currentVersion, version)
             log2 = translate_log(log2, version, currentVersion)
-            log1.deep_eq_test(log2, self, get_alternate_tests(version))
+            DBLogTest.deep_eq_test(log1, log2, self, get_alternate_tests(version))
         finally:
             if bundle is not None:
                 bundle.cleanup()
@@ -1716,7 +1721,7 @@ class TestTranslations(unittest.TestCase):
             reg1 = open_registry_from_xml(fname)
             reg2 = translate_registry(reg1, currentVersion, version)
             reg2 = translate_registry(reg2, version, currentVersion)
-            reg1.deep_eq_test(reg2, self, get_alternate_tests(version))
+            DBRegistryTest.deep_eq_test(reg1, reg2, self, get_alternate_tests(version))
         finally:
             os.unlink(fname)
 
