@@ -415,9 +415,9 @@ def resolve_overloaded_name(name, ix, signatures):
     # solution is to check whether the current function has
     # overloads and change the names appropriately.
     if len(signatures) == 1:
-        return name
+        return name, ''
     else:
-        return name + '_' + str(ix+1)
+        return name + '_' + str(ix+1), name
 
 type_map_dict = {'int': "basic:Integer",
                  'long': "basic:Integer",
@@ -532,7 +532,7 @@ def get_get_ports(cls, get_list):
                 continue
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
-                n = resolve_overloaded_name(name[3:], ix, signatures)
+                n, union = resolve_overloaded_name(name[3:], ix, signatures)
                 port_spec = OutputPortSpec(name=n,
                                            arg=name,
                                            port_type=port_type,
@@ -652,7 +652,7 @@ def get_get_set_ports(cls, get_set_dict):
                                    show_port=True)
                 input_ports.append(ps)
             else:
-                n = resolve_overloaded_name(name, ix, setter_sig)
+                n, union = resolve_overloaded_name(name, ix, setter_sig)
                 port_types = get_port_types(setter[1])
                 if is_type_allowed(port_types):
                     if len(setter[1]) == 1:
@@ -669,7 +669,8 @@ def get_get_set_ports(cls, get_set_dict):
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=docstring,
-                                       depth=1)
+                                       depth=1,
+                                       union=union)
                     input_ports.append(ps)
 
     return input_ports, output_ports
@@ -839,7 +840,7 @@ def get_other_ports(cls, other_list):
                         result is None):
                     continue
                 if is_type_allowed(port_types):
-                    n = resolve_overloaded_name(name, ix, signatures)
+                    n, union = resolve_overloaded_name(name, ix, signatures)
                     if n.startswith('Set'):
                         n = n[3:]
                     show_port = False
@@ -857,16 +858,18 @@ def get_other_ports(cls, other_list):
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=docstring,
-                                       depth=1)
+                                       depth=1,
+                                       union=union)
                     input_ports.append(ps)
                 elif result == None or port_types == []:
-                    n = resolve_overloaded_name(name, ix, signatures)
+                    n, union = resolve_overloaded_name(name, ix, signatures)
                     ps = InputPortSpec(name=n,
                                        arg=name,
                                        port_type='basic:Boolean',
                                        method_type='nullary',
                                        docstring=get_doc(cls, name),
-                                       depth=1)
+                                       depth=1,
+                                       union=union)
                     input_ports.append(ps)
     return input_ports, []
 
