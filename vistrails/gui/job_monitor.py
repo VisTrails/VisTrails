@@ -436,7 +436,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
     """
     def __init__(self, controller, parent=None):
         self.controller = controller
-        self.jobMonitor = controller.jobMonitor
+        self.jobMonitor = controller.job_monitor
         self.jobMonitor.setCallback(self)
         self.locator = controller.vistrail.locator
         QtGui.QTreeWidgetItem.__init__(self, parent,
