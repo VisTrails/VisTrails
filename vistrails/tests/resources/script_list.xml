@@ -1,0 +1,31 @@
+<workflow id="0" name="untitled" version="1.0.4" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/workflow.xsd">
+  <connection id="0">
+    <port id="0" moduleId="0" moduleName="List" name="value" signature="(org.vistrails.vistrails.basic:List)" type="source" />
+    <port id="1" moduleId="2" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+  </connection>
+  <connection id="1">
+    <port id="2" moduleId="1" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+    <port id="3" moduleId="0" moduleName="List" name="item0" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+  </connection>
+  <module cache="1" id="0" name="List" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="0" x="8.0" y="-7.0" />
+    <function id="0" name="value" pos="0">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="[1, 2]" />
+    </function>
+    <function id="2" name="tail" pos="1">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="[4, 5]" />
+    </function>
+    <portSpec depth="0" id="0" maxConns="-1" minConns="0" name="item0" optional="0" sortKey="-1" type="input">
+      <portSpecItem default="" entryType="" id="0" label="" module="Variant" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+  <module cache="1" id="1" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="1" x="-61.0" y="177.0" />
+    <function id="1" name="value" pos="0">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="3" />
+    </function>
+  </module>
+  <module cache="1" id="2" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="4" x="-13.0" y="-81.0" />
+  </module>
+</workflow>

@@ -104,11 +104,12 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
     specific qgraphicsitem type.
     
     """
-    def __init__(self, port, x, y, ghosted=False, parent=None):
+    def __init__(self, port, x, y, ghosted=False, parent=None, union_group=None):
         """ QAbstractGraphicsPortItem(port: PortSpec,
                                       x: float,
                                       y: float,
                                       ghosted: bool,
+                                      union: [PortSpec],
                                       parent: QGraphicsItem)
                                       -> QAbstractGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
@@ -121,6 +122,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.controller = None
         self.port = port
+        self.union_group = union_group
         self.dragging = False
         self.tmp_connection_item = None
 
@@ -266,7 +268,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         tooltip = ""
         if (self.port is not None and self.port.is_valid and
             hasattr(self.port, 'toolTip')):
-            tooltip = self.port.toolTip()
+            tooltip = self.port.toolTip(self.union_group)
         for vistrail_var in self.vistrail_vars.itervalues():
             tooltip += '\nConnected to vistrail var "%s"' % vistrail_var
         self.setToolTip(tooltip)
@@ -378,30 +380,39 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         if self.dragging:
             if not self.tmp_connection_item:
                 z_val = max(self.controller.current_pipeline.modules) + 1
-                self.tmp_connection_item = QGraphicsTmpConnItem(self, z_val,
-                                                                True)
+                self.tmp_connection_item = \
+                    QGraphicsTmpConnItem(self,
+                                         self.union_group or [self],
+                                         z_val,
+                                         True)
                 self.scene().addItem(self.tmp_connection_item)
             self.tmp_connection_item.setCurrentPos(event.scenePos())
-            snapPort = None
+            snapPortItem = None
+            snapPorts = None
             snapModule = self.scene().findModuleUnder(event.scenePos())
             converters = []
             if snapModule and snapModule != self.parentItem():
                 if self.port.type == 'output':
                     portMatch = self.scene().findPortMatch(
-                        [self], snapModule.inputPorts.values(),
+                        [self], set(snapModule.inputPorts.values()),
                         fixed_out_pos=event.scenePos(),
                         allow_conversion=True, out_converters=converters)
                     if portMatch[1] is not None:
-                        snapPort = portMatch[1]
+                        snapPortItem = portMatch[1]
+                        snapPorts = portMatch[2]
                 elif self.port.type == 'input':
                     portMatch = self.scene().findPortMatch(
                         snapModule.outputPorts.values(), [self],
                         fixed_in_pos=event.scenePos(),
                         allow_conversion=True, out_converters=converters)
                     if portMatch[0] is not None:
-                        snapPort = portMatch[0]
-            self.tmp_connection_item.setSnapPort(snapPort)
-            if snapPort:
+                        snapPortItem = portMatch[0]
+                        snapPorts = portMatch[0].port
+                        # select matching ports in input union
+                        self.tmp_connection_item.setStartPort(portMatch[1],
+                                                              portMatch[2])
+            self.tmp_connection_item.setSnapPort(snapPortItem, snapPorts)
+            if snapPortItem:
                 tooltip = self.tmp_connection_item.snapPortItem.toolTip()
                 if converters:
                     tooltip = ('<strong>conversion required</strong><br/>\n'
@@ -409,7 +420,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                 QtGui.QToolTip.showText(event.screenPos(), tooltip)
             else:
                 QtGui.QToolTip.hideText()
-            self.tmp_connection_item.setConverting(snapPort and converters)
+            self.tmp_connection_item.setConverting(snapPortItem and converters)
         QtGui.QAbstractGraphicsShapeItem.mouseMoveEvent(self, event)
         
     def findSnappedPort(self, pos):
@@ -773,12 +784,14 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                 self.controller.invalidate_version_tree()
         
 class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
-    def __init__(self, startPortItem, zValue=1, alwaysDraw=False, parent=None):
+    def __init__(self, startPortItem, startPorts, zValue=1, alwaysDraw=False, parent=None):
         QtGui.QGraphicsLineItem.__init__(self, parent)
         self.startPortItem = startPortItem
+        self.startPorts = startPorts
         self.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
         self.setZValue(zValue)
         self.snapPortItem = None
+        self.snapPort = None
         self.alwaysDraw = alwaysDraw
         self.currentPos = None
 
@@ -796,12 +809,14 @@ class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
                 return
         self.disconnect()
 
-    def setStartPort(self, port):
-        self.startPortItem = port
+    def setStartPort(self, portItem, ports=None):
+        self.startPortItem = portItem
+        self.startPorts = ports
         self.updateLine()
 
-    def setSnapPort(self, port):
-        self.snapPortItem = port
+    def setSnapPort(self, portItem, ports=None):
+        self.snapPortItem = portItem
+        self.snapPorts = ports
         self.updateLine()
 
     def setCurrentPos(self, pos):
@@ -1067,6 +1082,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.description = ''
         self.inputPorts = {}
         self.outputPorts = {}
+        self.union_ports = {}
+        self.to_union = {}
+        self.port_groups = []
         self.controller = None
         self.module = None
         self.ghosted = False
@@ -1471,6 +1489,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.id = module.id
         self.setZValue(float(self.id))
         self.module = module
+        self.union_ports = module.unionPorts() if module.is_valid else {}
+
+        # reverse map
+        self.to_union = dict((p.name, self.union_ports[union])
+                             for union, p_list in self.union_ports.items()
+                             for p in p_list)
         self.center = copy.copy(module.center)
         if '__desc__' in module.db_annotations_key_index:
             self.label = module.get_annotation_by_key('__desc__').value.strip()
@@ -1514,9 +1538,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     if not p.optional:
                         inputPorts.append(p)
                     elif p.name in module.visible_input_ports:
-                        visibleOptionalInputPorts.append(p)
+                        # add all in union if one is marked as visible
+                        for up in self.to_union.get(p.name, [p]):
+                            if up not in visibleOptionalInputPorts:
+                                visibleOptionalInputPorts.append(up)
                     else:
-                        self.optionalInputPorts.append(p)
+                        # Make sure it was not added with union
+                        if p.name not in visibleOptionalInputPorts:
+                            self.optionalInputPorts.append(p)
                 inputPorts += visibleOptionalInputPorts
 
                 for p in module.sourcePorts():
@@ -1530,12 +1559,25 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             except ModuleRegistryException, e:
                 error = e
 
+        # group unions while keeping order
+        pos_to_name = {}
+        name_to_ports = {}
+        for port_spec in inputPorts:
+            name = port_spec.union or port_spec.name
+            if name not in pos_to_name.itervalues():
+                pos = (max(pos_to_name) + 1) if pos_to_name else 0
+                pos_to_name[pos] = name
+                name_to_ports[name] = []
+            name_to_ports[name].append(port_spec)
+
+        self.port_groups = [name_to_ports[name]
+                            for _, name in sorted(pos_to_name.iteritems())]
         # Local dictionary lookups are faster than global ones..
         t = CurrentTheme
         (mpm0, mpm1, mpm2, mpm3) = t.MODULE_PORT_MARGIN
 
         # Adjust the width to fit all ports
-        maxPortCount = max(len(inputPorts), len(outputPorts))
+        maxPortCount = max(len(self.port_groups), len(outputPorts))
         minWidth = (mpm0 +
                     t.PORT_WIDTH*maxPortCount +
                     t.MODULE_PORT_SPACE*(maxPortCount-1) +
@@ -1552,8 +1594,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         # Update input ports
         [x, y] = self.nextInputPortPos
-        for port in inputPorts:
-            self.inputPorts[port] = self.createPortItem(port, x, y)
+        for ports in self.port_groups:
+            item = self.createPortItem(ports[0], x, y,
+                                       ports if len(ports)>1 else [])
+            for port in ports:
+                self.inputPorts[port] = item
             x += t.PORT_WIDTH + t.MODULE_PORT_SPACE
         self.nextInputPortPos = [x,y]
 
@@ -1647,7 +1692,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         module_shape.append(module_shape[0])
         return module_shape
 
-    def createPortItem(self, port, x, y):
+    def createPortItem(self, port, x, y, union_group=None):
         """ createPortItem(port: Port, x: int, y: int) -> QGraphicsPortItem
         Create a item from the port spec
         
@@ -1665,9 +1710,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # portShape = QGraphicsPortDiamondItem(x, y, self.ghosted, self, 
         #                                      port.optional, port.min_conns,
         #                                      port.max_conns)
-    
+        if not union_group and port.union and port.union in self.union_ports:
+            union_group = self.union_ports[port.union]
         port_klass = QGraphicsPortRectItem
         kwargs = {}
+        if union_group:
+            kwargs['union_group'] = union_group
         shape = port.shape()
         if shape is not None:
             if isinstance(shape, basestring):
@@ -1762,8 +1810,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             for p in optional_ports:
                 if registry.port_and_port_spec_match(port, p):
                     item = self.createPortItem(p, *next_pos)
-                    visible_ports.add(port.name)
-                    port_dict[p] = item
+                    for union_port in self.to_union.get(port.name, [port]):
+                        visible_ports.add(union_port.name)
+                        port_dict[union_port] = item
                     next_pos[0] = next_op(next_pos[0], 
                                           (CurrentTheme.PORT_WIDTH +
                                            CurrentTheme.MODULE_PORT_SPACE))
@@ -2186,6 +2235,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self.unselect_all()
+
         self.clearItems()
         
     def remove_module(self, m_id):
@@ -2472,9 +2522,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         this case, we extend the optional 'out_converters' list with the
         possible Converters' ModuleDescriptors.
         """
-
         reg = get_module_registry()
-        result = (None, None)
+        result = (None, None, None)
         min_dis = None
         selected_convs = None
         for o_item in output_ports:
@@ -2483,25 +2532,52 @@ class QPipelineScene(QInteractiveGraphicsScene):
             for i_item in input_ports:
                 if i_item.invalid:
                     continue
+                # Check all union types
+                # add all matches to iports
+                # check without converters first
+                for iport in i_item.union_group or [i_item.port]:
+                    if reg.ports_can_connect(o_item.port, iport):
+                        if fixed_out_pos is not None:
+                            out_pos = fixed_out_pos
+                        else:
+                            out_pos = o_item.getPosition()
+                        if fixed_in_pos is not None:
+                            in_pos = fixed_in_pos
+                        else:
+                            in_pos = i_item.getPosition()
+                        vector = (out_pos - in_pos)
+                        dis = (vector.x()-x_trans)*(vector.x()-x_trans) + \
+                            vector.y()*vector.y()
+                        if (result[0] is not None and result[0] == o_item and
+                                                      result[1] == i_item):
+                            # additional match in same union
+                            result[2].append(iport)
+                        elif result[1] is None or dis < min_dis:
+                            min_dis = dis
+                            result = (o_item, i_item, [iport])
+                if result[0] == o_item and result[1] == i_item:
+                    continue
                 convs = []
-                if reg.ports_can_connect(o_item.port, i_item.port,
-                                         allow_conversion=True,
-                                         out_converters=convs):
-                    if fixed_out_pos is not None:
-                        out_pos = fixed_out_pos
-                    else:
-                        out_pos = o_item.getPosition()
-                    if fixed_in_pos is not None:
-                        in_pos = fixed_in_pos
-                    else:
-                        in_pos = i_item.getPosition()
-                    vector = (out_pos - in_pos)
-                    dis = (vector.x()-x_trans)*(vector.x()-x_trans) + \
-                        vector.y()*vector.y()
-                    if result[0] is None or dis < min_dis:
-                        min_dis = dis
-                        result = (o_item, i_item)
-                        selected_convs = convs
+                # this selects only the first match in a union
+                for iport in i_item.union_group or [i_item.port]:
+                    if reg.ports_can_connect(o_item.port, iport,
+                                             allow_conversion=True,
+                                             out_converters=convs):
+                        if fixed_out_pos is not None:
+                            out_pos = fixed_out_pos
+                        else:
+                            out_pos = o_item.getPosition()
+                        if fixed_in_pos is not None:
+                            in_pos = fixed_in_pos
+                        else:
+                            in_pos = i_item.getPosition()
+                        vector = (out_pos - in_pos)
+                        dis = (vector.x()-x_trans)*(vector.x()-x_trans) + \
+                            vector.y()*vector.y()
+                        if result[0] is None or dis < min_dis:
+                            min_dis = dis
+                            result = (o_item, i_item, [iport])
+                            selected_convs = convs
         if selected_convs and out_converters is not None:
             out_converters.extend(selected_convs)
         return result
@@ -2510,21 +2586,25 @@ class QPipelineScene(QInteractiveGraphicsScene):
                             where_mult, order_f):
         near_ports = self.findPortsNear(pos, where_mult)
         if len(near_ports) > 0:
-            (src_item, dst_item) = \
+            (src_item, dst_item, dst_ports) = \
                 self.findPortMatch(*order_f([near_ports,tmp_module_ports]),
                                     x_trans=-50)
             if src_item is not None:
                 if tmp_connection_item is None:
-                    tmp_connection_item = QGraphicsTmpConnItem(dst_item, 1000)
+                    tmp_connection_item = QGraphicsTmpConnItem(dst_item, dst_ports, 1000)
                     self.addItem(tmp_connection_item)
                 # We are assuming the first view is the real pipeline view
                 v = self.views()[0]
-                tmp_connection_item.setStartPort(dst_item)
+                tmp_connection_item.setStartPort(dst_item, dst_ports)
                 tmp_connection_item.setSnapPort(src_item)
-                tooltip = "%s %s\n  -> %s %s" % (src_item.port.name, 
-                                              src_item.port.short_sigstring,
-                                              dst_item.port.name, 
-                                              dst_item.port.short_sigstring)
+                dst_type_str = ' or '.join([('List of ' * dst_port.depth +
+                                             dst_port.short_sigstring)
+                                            for dst_port in dst_ports])
+                tooltip = "%s %s\n  -> %s %s" % (src_item.port.name,
+                                                 'List of ' * src_item.port.depth +
+                                                 src_item.port.short_sigstring,
+                                                 dst_port.union or dst_port.name,
+                                                 dst_type_str)
                 QtGui.QToolTip.showText(v.mapToGlobal(
                         v.mapFromScene((dst_item.getPosition() + 
                                         src_item.getPosition())/2.0)),
@@ -2540,13 +2620,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def updateTmpInputConnection(self, pos):
         self.tmp_input_conn = \
             self.updateTmpConnection(pos, self.tmp_input_conn, 
-                                     self.tmp_module_item.inputPorts.values(), 
+                                     set(self.tmp_module_item.inputPorts.values()),
                                      -1, lambda x: x)
             
     def updateTmpOutputConnection(self, pos):
         self.tmp_output_conn = \
             self.updateTmpConnection(pos, self.tmp_output_conn, 
-                                     self.tmp_module_item.outputPorts.values(), 
+                                     set(self.tmp_module_item.outputPorts.values()),
                                      1, reversed)
 
     def dragEnterEvent(self, event):
@@ -2597,9 +2677,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 if snapModule is not None:
                     tmp_port = QAbstractGraphicsPortItem(None, 0, 0)
                     tmp_port.port = data.variableData[0]
-                    (_, nearest_port) = \
-                        self.findPortMatch([tmp_port], \
-                                               snapModule.inputPorts.values(), \
+                    (_, nearest_port, iport) = \
+                        self.findPortMatch([tmp_port],
+                                               set(snapModule.inputPorts.values()),
                                                fixed_out_pos=event.scenePos())
                     del tmp_port
                 # Unhighlight previous nearest port
@@ -2644,12 +2724,40 @@ class QPipelineScene(QInteractiveGraphicsScene):
 
     def createConnectionFromTmp(self, tmp_connection_item, module, 
                                 start_is_src=False):
+        def select_type(ports):
+            selected_port_spec = [None]
+            def add_selector(ps):
+                def triggered(*args, **kwargs):
+                    selected_port_spec[0] = ps
+                return triggered
+            menu = QtGui.QMenu(self.parent())
+            for port_spec in ports:
+                type_name = port_spec.type_name()
+                label = 'Select destination port type: ' + type_name
+                act = QtGui.QAction(label, self.parent())
+                act.setStatusTip(label)
+                act.triggered.connect(add_selector(port_spec))
+                menu.addAction(act)
+            menu.exec_(QtGui.QCursor.pos())
+            return selected_port_spec[0]
         if start_is_src:
             src_port_item = tmp_connection_item.startPortItem
             dst_port_item = tmp_connection_item.snapPortItem
+            if len(tmp_connection_item.snapPorts) > 1:
+                dst_port = select_type(tmp_connection_item.snapPorts)
+                if not dst_port:
+                    return
+            else:
+                dst_port = tmp_connection_item.snapPorts[0]
         else:
             src_port_item = tmp_connection_item.snapPortItem
             dst_port_item = tmp_connection_item.startPortItem
+            if len(tmp_connection_item.startPorts) > 1:
+                dst_port = select_type(tmp_connection_item.startPorts)
+                if not dst_port:
+                    return
+            else:
+                dst_port = tmp_connection_item.startPorts[0]
 
         if src_port_item.parentItem().id < 0 or start_is_src:
             src_module_id = module.id
@@ -2667,17 +2775,17 @@ class QPipelineScene(QInteractiveGraphicsScene):
 
         reg = get_module_registry()
 
-        if reg.ports_can_connect(src_port_item.port, dst_port_item.port):
+        if reg.ports_can_connect(src_port_item.port, dst_port):
             # Direct connection
             conn = self.controller.add_connection(src_module_id,
                                                   src_port_item.port,
                                                   dst_module_id,
-                                                  dst_port_item.port)
+                                                  dst_port)
             self.addConnection(conn)
         else:
             # Add a converter module
             converters = reg.get_converters(src_port_item.port.descriptors(),
-                                            dst_port_item.port.descriptors())
+                                            dst_port.descriptors())
             converter = choose_converter(converters)
             if converter is None:
                 return
@@ -2698,7 +2806,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             conn2 = self.controller.create_connection(
                     mod, 'out_value',
                     self.controller.current_pipeline.modules[dst_module_id],
-                    dst_port_item.port)
+                    dst_port)
             operations = [('add', mod), ('add', conn1), ('add', conn2)]
 
             action = create_action(operations)

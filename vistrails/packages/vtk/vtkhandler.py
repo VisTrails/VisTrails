@@ -37,11 +37,14 @@
 from __future__ import division
 
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
+from vistrails.core.scripting import Script, Prelude
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib
 
 ################################################################################
+
+
 class HandlerConfigurationWidget(SourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
         """ HandlerConfigurationWidget(module: Module,
@@ -57,7 +60,6 @@ class HandlerConfigurationWidget(SourceConfigurationWidget):
                                            portName='Handler')
 
 
-
 class vtkInteractionHandler(NotCacheable, Module):
     """
     vtkInteractionHandler allow users to insert callback code for interacting
@@ -69,7 +71,7 @@ class vtkInteractionHandler(NotCacheable, Module):
 
     _input_ports = [('Observer', 'vtkInteractorObserver'),
                     ('Handler', 'basic:String', True),
-                    ('SharedData', 'basic:Variant')]
+                    ('SharedData', 'basic:Variant', {'depth': 1})]
 
     _output_ports =[('Instance', 'vtkInteractionHandler')]
 
@@ -160,12 +162,12 @@ class vtkInteractionHandler(NotCacheable, Module):
         """        
         self.observer = self.force_get_input('Observer')
         self.handler = self.force_get_input('Handler', '')
-        self.shareddata = self.force_get_input_list('SharedData')
-        if len(self.shareddata)==1:
+        self.shareddata = self.force_get_input('SharedData') or []
+        if len(self.shareddata) == 1:
             self.shareddata = self.shareddata[0]
         if self.observer:
             source = urllib.unquote(self.handler)
-            observer = self.observer.vtkInstance
+            observer = self.observer
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
                 f = f.replace('Event', 'Handler')
@@ -173,8 +175,8 @@ class vtkInteractionHandler(NotCacheable, Module):
                            '\tobserver.AddObserver("%s", ' % e +
                            'self.eventHandler)\n')
             exec(source)
-            if hasattr(self.observer.vtkInstance, 'PlaceWidget'):
-                self.observer.vtkInstance.PlaceWidget()
+            if hasattr(self.observer, 'PlaceWidget'):
+                self.observer.PlaceWidget()
         self.set_output('Instance', self)
 
     def eventHandler(self, obj, event):
@@ -199,7 +201,7 @@ class vtkInteractionHandler(NotCacheable, Module):
         # Remove all observers
         if self.observer:
             for e in vtkInteractionHandler.vtkEvents:
-                self.observer.vtkInstance.RemoveObservers(e)
+                self.observer.RemoveObservers(e)
         Module.clear(self)
 
     def repaintCells(self):
@@ -212,6 +214,42 @@ class vtkInteractionHandler(NotCacheable, Module):
         from vistrails.packages.spreadsheet.spreadsheet_event \
              import RepaintCurrentSheetEvent
         spreadsheetController.postEventToSpreadsheet(RepaintCurrentSheetEvent())
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ create script for IHandler
+        """
+        code = ''
+        preludes = []
+        if 'Observer' in module.connected_input_ports:
+            # Add event code
+            source = None
+            for f in module.functions:
+                if f.name == 'Handler':
+                    source = urllib.unquote(str(f.parameters[0].strValue))
+                    code += source + '\n'
+
+            if 'SharedData' in module.connected_input_ports:
+                code += 'sd = SharedData[0] if len(SharedData)==1 else SharedData\n'
+            else:
+                code += 'sd = None\n'
+
+            # Add eventHandler
+            code += "def eventHandler(obj, event):\n"
+            code += "     f = event[0].lower() + event[1:]\n"
+            code += "     f = f.replace('Event', 'Handler')\n"
+            code += "     if f in locals():\n"
+            code += "         locals(f)(obj, sd)\n"
+
+            for e in vtkInteractionHandler.vtkEvents:
+                f = e[0].lower() + e[1:]
+                f = f.replace('Event', 'Handler')
+                if source and f in source:
+                    code += "Observer.AddObserver('%s', eventHandler)\n" % e
+
+            code += "if hasattr(Observer, 'PlaceWidget'):\n"
+            code += "    Observer.PlaceWidget()\n"
+        return Script(code, 'variables', {'Instance':'Observer'}), preludes
 
 
 _modules = [vtkInteractionHandler]

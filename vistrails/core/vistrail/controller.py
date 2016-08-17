@@ -36,6 +36,7 @@
 from __future__ import division
 
 import copy
+import io
 from itertools import izip
 import os
 import uuid
@@ -95,6 +96,7 @@ from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
+from vistrails.core.scripting.export import write_workflow_to_python
 from vistrails.core.utils import any
 
 
@@ -4038,6 +4040,21 @@ class VistrailController(object):
                 pipeline.add_connection(connection)
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
             locator.save_as(save_bundle, version)
+
+    def write_workflow_to_python(self, filename):
+        if not self.current_pipeline:
+            return
+        # Need a valid pipeline
+        self.validate(self.current_pipeline)
+
+        with io.open(filename, 'w', encoding='utf-8', newline='\n') as f:
+            for l in write_workflow_to_python(self.current_pipeline):
+                f.write(l)
+                f.write(u'\n')
+
+    def import_python_script(self, filename):
+        from vistrails.core.scripting.import_ import read_workflow_from_python
+        read_workflow_from_python(self, filename)
 
     def write_log(self, locator):
         if self.log:
