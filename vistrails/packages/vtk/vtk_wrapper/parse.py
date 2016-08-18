@@ -34,10 +34,12 @@
 ##
 ###############################################################################
 
-from __future__ import division
+from __future__ import division, absolute_import
+
+import os.path
+import re
 
 from itertools import izip, chain
-import re
 
 import vtk
 
@@ -132,6 +134,7 @@ disallowed_modules = set(
         'vtkMPIGroup'
     ])
 
+
 def create_module(base_cls_name, node):
     """create_module(base_cls_name: String, node: TreeNode) -> [ModuleSpec]
 
@@ -159,11 +162,13 @@ def create_module(base_cls_name, node):
 
     obsolete_list = obsolete_class_list()
 
+    cls = node.klass
+
     def is_abstract():
         """is_abstract tries to instantiate the class. If it's
         abstract, this will raise."""
         # Consider obsolete classes abstract
-        if node.klass in obsolete_list:
+        if cls in obsolete_list:
             return True
         try:
             getattr(vtk, node.name)()
@@ -172,7 +177,7 @@ def create_module(base_cls_name, node):
         return False
 
     try:
-        node.klass.__doc__.decode('latin-1')
+        cls.__doc__.decode('latin-1')
     except UnicodeDecodeError:
         print "ERROR decoding docstring", node.name
         raise
@@ -180,28 +185,72 @@ def create_module(base_cls_name, node):
     input_ports, output_ports = get_ports(node.klass)
     output_ports = list(output_ports) # drop generator
 
-    cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
-                 (not issubclass(node.klass, vtk.vtkAbstractMapper))) or \
-                issubclass(node.klass, vtk.vtkScalarTree)
+    cacheable = (issubclass(cls, vtk.vtkAlgorithm) and
+                 (not issubclass(cls, vtk.vtkAbstractMapper))) or \
+                issubclass(cls, vtk.vtkScalarTree)
 
-    is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
-    tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
+    is_algorithm = issubclass(cls, vtk.vtkAlgorithm)
+    tempfile = '_set_tempfile' if issubclass(cls, vtk.vtkWriter) else None
     callback = '_set_callback' if is_algorithm else None
     methods_last = hasattr(node.klass, 'SetRenderWindow')
 
     module_spec = ClassSpec(module_name=node.name,
                             superklass=base_cls_name,
-                            code_ref=node.name,
+                            code_ref="vtk." + node.name,
                             docstring=node.klass.__doc__.decode('latin-1'),
                             callback=callback,
                             tempfile=tempfile,
                             cacheable=cacheable,
                             input_port_specs=input_ports,
                             output_port_specs=output_ports,
-                            compute='Update',
-                            cleanup='_cleanup',
+                            compute='Update' if hasattr(cls, 'Update') else None,
                             methods_last=methods_last,
                             abstract=is_abstract())
+
+    # Add method patches
+    if cls == vtk.vtkAlgorithm:
+        # Patches Update method with callback
+        module_spec.add_patch('_set_callback', '_set_callback')
+    if cls == vtk.vtkScalarTree:
+        module_spec.add_patch('Update', 'guarded_SimpleScalarTree')
+    if cls == vtk.vtkWriter:
+        module_spec.add_patch('Update', 'guarded_Writer')
+        module_spec.add_patch('_set_tempfile', '_set_tempfile')
+    if hasattr(cls, 'SetFileName') and cls.__name__.endswith('Reader'):
+        # Data readers may fail when using non-C locale
+        # So we set it to C before reading and restore it afterwards
+        module_spec.initialize = '_initialize'
+        module_spec.add_patch('_initialize', '_initialize')
+        module_spec.cleanup = '_cleanup'
+        module_spec.add_patch('_cleanup', '_cleanup')
+        # This checks for the presence of file in VTK readers
+        # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
+        # it has other ways of specifying files, like SetFilePrefix for
+        # multiple files
+        skip = [vtk.vtkBYUReader,
+                vtk.vtkImageReader,
+                vtk.vtkDICOMImageReader,
+                vtk.vtkTIFFReader]
+        # vtkPLOT3DReader does not exist from version 6.0.0
+        if not any(issubclass(cls, x) for x in skip):
+            module_spec.add_patch('Update', 'guarded_SetFileName')
+    if hasattr(cls, 'SetRenderWindow'):
+        module_spec.add_patch('vtkRenderer', 'SetRenderWindow')
+    if cls == vtk.vtkVolumeProperty:
+        module_spec.add_patch('SetTransferFunction', 'TransferFunction')
+    if cls == vtk.vtkDataSet:
+        module_spec.add_patch('PointData', 'PointData')
+        module_spec.add_patch('CellData', 'CellData')
+    if cls == vtk.vtkCell:
+        module_spec.add_patch('PointIds', 'PointIds')
+    if cls == vtk.vtkImageImport:
+        module_spec.add_patch('CopyImportString', 'CopyImportVoidPointer')
+    if cls == vtk.vtkMultiBlockPLOT3DReader:
+        module_spec.add_patch('FirstBlock', 'GetFirstBlock')
+
+    # Add ".vtkInstance" so that PythonSources that still uses this works
+    module_spec.initialize = '_initialize'
+    module_spec.add_patch('_initialize', 'vtkInstanceDeprecation')
 
     module_specs = [module_spec]
     for child in node.children:
@@ -366,9 +415,9 @@ def resolve_overloaded_name(name, ix, signatures):
     # solution is to check whether the current function has
     # overloads and change the names appropriately.
     if len(signatures) == 1:
-        return name
+        return name, ''
     else:
-        return name + '_' + str(ix+1)
+        return name + '_' + str(ix+1), name
 
 type_map_dict = {'int': "basic:Integer",
                  'long': "basic:Integer",
@@ -483,7 +532,7 @@ def get_get_ports(cls, get_list):
                 continue
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
-                n = resolve_overloaded_name(name[3:], ix, signatures)
+                n, union = resolve_overloaded_name(name[3:], ix, signatures)
                 port_spec = OutputPortSpec(name=n,
                                            arg=name,
                                            port_type=port_type,
@@ -603,7 +652,7 @@ def get_get_set_ports(cls, get_set_dict):
                                    show_port=True)
                 input_ports.append(ps)
             else:
-                n = resolve_overloaded_name(name, ix, setter_sig)
+                n, union = resolve_overloaded_name(name, ix, setter_sig)
                 port_types = get_port_types(setter[1])
                 if is_type_allowed(port_types):
                     if len(setter[1]) == 1:
@@ -620,7 +669,8 @@ def get_get_set_ports(cls, get_set_dict):
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=docstring,
-                                       depth=1)
+                                       depth=1,
+                                       union=union)
                     input_ports.append(ps)
 
     return input_ports, output_ports
@@ -790,7 +840,7 @@ def get_other_ports(cls, other_list):
                         result is None):
                     continue
                 if is_type_allowed(port_types):
-                    n = resolve_overloaded_name(name, ix, signatures)
+                    n, union = resolve_overloaded_name(name, ix, signatures)
                     if n.startswith('Set'):
                         n = n[3:]
                     show_port = False
@@ -808,16 +858,18 @@ def get_other_ports(cls, other_list):
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=docstring,
-                                       depth=1)
+                                       depth=1,
+                                       union=union)
                     input_ports.append(ps)
                 elif result == None or port_types == []:
-                    n = resolve_overloaded_name(name, ix, signatures)
+                    n, union = resolve_overloaded_name(name, ix, signatures)
                     ps = InputPortSpec(name=n,
                                        arg=name,
                                        port_type='basic:Boolean',
                                        method_type='nullary',
                                        docstring=get_doc(cls, name),
-                                       depth=1)
+                                       depth=1,
+                                       union=union)
                     input_ports.append(ps)
     return input_ports, []
 
@@ -931,25 +983,16 @@ def parse(filename="vtk_raw.xml"):
                     continue
                 specs_list.extend(create_module("vtkObjectBase", child))
 
-    # Translate File and Color ports
-    translations = {
-        'basic:Color':
-            "def input_t(value):\n"
-            "    return value.tuple\n"
-            "def output_t(value):\n" # Assumes receiving hex string, which is probably wrong
-            "    from vistrails.core.utils import InstanceObject\n"
-            "    return InstanceObject(tuple=value)",
-        'basic:File':
-            "def input_t(value):\n"
-            "    return value.name\n"
-            "def output_t(value):\n"
-            "    from vistrails.core.modules.basic_modules import PathObject\n"
-            "    return PathObject(value)"}
+    # Set up port translations as {type: (input_patch, output_patch)}
+    translations = {'basic:Color': ('basic_Color_input', 'basic_Color_output'),
+                    'basic:File': ('basic_File_input', 'basic_File_output')}
 
+    patch_name = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                               'vtk_patch.py'))
 
     specs = SpecList(specs_list, translations=translations)
-    specs.write_to_xml(filename)
-
+    specs.write_to_xml(filename, patch_name)
+    # write patch file
 
 if __name__ == '__main__':
     parse()

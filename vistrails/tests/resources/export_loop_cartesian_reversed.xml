@@ -1,0 +1,46 @@
+<workflow id="0" name="untitled" version="1.0.4" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/workflow.xsd">
+  <connection id="53">
+    <port id="106" moduleId="27" moduleName="ConcatenateString" name="value" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    <port id="107" moduleId="28" moduleName="PythonSource" name="s1" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="54">
+    <port id="108" moduleId="29" moduleName="PythonSource" name="s2" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    <port id="109" moduleId="27" moduleName="ConcatenateString" name="str2" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="55">
+    <port id="110" moduleId="29" moduleName="PythonSource" name="s1" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    <port id="111" moduleId="27" moduleName="ConcatenateString" name="str1" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+  </connection>
+  <module cache="1" id="27" name="ConcatenateString" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="38" x="-102.0" y="83.0" />
+    <annotation id="63" key="__loop_type__" value="[&quot;cartesian&quot;, &quot;str2&quot;, &quot;str1&quot;]" />
+    <controlParameter id="6" name="loop_type" value="[&quot;cartesian&quot;, &quot;str2&quot;, &quot;str1&quot;]" />
+  </module>
+  <module cache="1" id="28" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="39" x="-103.523510972" y="-20.8652037618" />
+    <function id="24" name="source" pos="0">
+      <parameter alias="" id="65" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="result%20%3D%20%27%27.join%28s1%29%0Aassert%28result%20%3D%3D%20expected%29%0A" />
+    </function>
+    <function id="25" name="expected" pos="1">
+      <parameter alias="" id="63" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="A1B1C1A2B2C2A3B3C3" />
+    </function>
+    <portSpec depth="0" id="38" maxConns="-1" minConns="0" name="expected" optional="0" sortKey="1" type="input">
+      <portSpecItem default="" entryType="" id="5" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+    <portSpec depth="1" id="37" maxConns="-1" minConns="0" name="s1" optional="0" sortKey="0" type="input">
+      <portSpecItem default="" entryType="" id="4" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+  <module cache="1" id="29" name="PythonSource" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1">
+    <location id="40" x="-89.0" y="191.0" />
+    <function id="26" name="source" pos="0">
+      <parameter alias="" id="64" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="s1%20%3D%20%5B%27A%27%2C%20%27B%27%2C%20%27C%27%5D%0As2%20%3D%20%5B%271%27%2C%20%272%27%2C%20%273%27%5D" />
+    </function>
+    <portSpec depth="1" id="40" maxConns="-1" minConns="0" name="s2" optional="0" sortKey="1" type="output">
+      <portSpecItem default="" entryType="" id="7" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+    <portSpec depth="1" id="39" maxConns="-1" minConns="0" name="s1" optional="0" sortKey="0" type="output">
+      <portSpecItem default="" entryType="" id="6" label="" module="String" namespace="" package="org.vistrails.vistrails.basic" pos="0" values="" />
+    </portSpec>
+  </module>
+</workflow>

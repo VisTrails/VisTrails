@@ -50,6 +50,7 @@ from vistrails.core.configuration import ConfigField, \
 from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
     ModuleError
+from vistrails.core.scripting import Script, Prelude
 
 from .spreadsheet_base import StandardSheetReference, \
     StandardSingleCellSheetReference
@@ -168,6 +169,15 @@ class CellLocation(Module):
                     set_row_col(address[:-1], address[-1])
 
         self.set_output('value', loc)
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ Does nothing right now
+        """
+        code = 'value = None'
+        preludes = []
+
+        return Script(code, {}, 'variables'), preludes
 
 
 class SpreadsheetCell(NotCacheable, Module):

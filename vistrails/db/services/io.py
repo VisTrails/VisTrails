@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division, with_statement
 
-from datetime import datetime
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
 from vistrails.core.system import get_elementtree_library, strftime
@@ -46,10 +45,12 @@ from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
 
 import vistrails.core.requirements
 
+from datetime import datetime
 import os.path
 import shutil
 import tempfile
 import copy
+import warnings
 import zipfile
 
 from vistrails.db import VistrailsDBException
@@ -976,7 +977,15 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
 
-    z = zipfile.ZipFile(tmp_zip_file, 'w')
+    try:
+        import zlib
+    except ImportError:
+        warnings.warn("zlib unavailable, cannot compress %s" % filename,
+                      UserWarning)
+        compression = zipfile.ZIP_STORED
+    else:
+        compression = zipfile.ZIP_DEFLATED
+    z = zipfile.ZipFile(tmp_zip_file, 'w', compression)
     try:
         with Chdir(vt_save_dir):
             # zip current directory

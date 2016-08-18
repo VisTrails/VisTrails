@@ -36,18 +36,85 @@
 
 from __future__ import division
 
+import re
 
-def convert_port(port, value, translations):
+from vistrails.core.scripting.scripts import reserved,\
+    get_redbaron
+
+from vistrails.core.scripting.scripts import rename_variables
+
+
+def convert_port(port, value, patches, translations, port_type):
     """ translate port values between vistrail and native types
     port - PortSpec
     value - port value
-    translations - dict(port_type: translator_function)
+    patches - dict(patch_name: patch_code)
+    port_type - 'input' or 'output'
     """
     port_types = port.get_port_type()
-    if not isinstance(port_types, list):
-        return translations[port_types](value) if port_types in translations else value
-    return [(translations[p](value) if p in translations else value)
-            for p, v in zip(port_types, value)]
+    if isinstance(port_types, list):
+        return value
+    if port_types not in translations:
+        return value
+    patch_name = translations[port_types][0 if port_type == 'input' else 1]
+    if patch_name not in patches:
+        return value
+    _, patch = patches[patch_name]
+    script = get_redbaron().RedBaron(patch)
+    rename_variables(script, dict(input='value', output='output'))
+    code = script.dumps()
+    output = None
+    locals_ = locals()
+    exec code + '\n' in locals_, locals_
+    if locals_.get('output') is not None:
+        output = locals_['output']
+    return output
+
+
+def get_patches(cls, method_name):
+    """ Get all named patches in self and superclass for a method_name
+    """
+    klasses = iter(cls.__mro__)
+    base = cls
+    patches = []
+    while base and hasattr(base, '_module_spec'):
+        spec = base._module_spec
+        if spec.patches and method_name in spec.patches:
+            for patch in spec.patches[method_name]:
+                if patch not in patches:
+                    patches.insert(0, patch)
+        base = klasses.next()
+    return patches
+
+
+def convert_port_script(code, port, port_name, patches, translations, port_type, new_variable=None):
+    """ create port translation code between vistrail and native types
+    code - string
+    port - PortSpec
+    patches - dict(patch_name: patch_code)
+    port_type - 'input' or 'output'
+    """
+    port_types = port.get_port_type()
+    if isinstance(port_types, list):
+        return port_name
+    if port_types not in translations:
+        return port_name
+    patch_name = translations[port_types][0 if port_type == 'input' else 1]
+    if patch_name not in patches:
+        return port_name
+    _, patch = patches[patch_name]
+    if port_type == 'input':
+        # make sure we do not mutate input
+        new_name = port_name + '_inner'
+    elif new_variable:
+        # create new variable to store translated value
+        new_name = new_variable
+    else:
+        new_name = port_name
+    script = get_redbaron().RedBaron(patch)
+    rename_variables(script, dict(input=port_name, output=new_name))
+    code.append(script.dumps())
+    return new_name
 
 
 def get_input_spec(cls, name):
@@ -61,6 +128,7 @@ def get_input_spec(cls, name):
         base = klasses.next()
     return None
 
+
 def get_output_spec(cls, name):
     """ Get named output spec from self or superclass
     """
@@ -71,3 +139,39 @@ def get_output_spec(cls, name):
             return base._output_spec_table[name]
         base = klasses.next()
     return None
+
+def python_name(name, names={}):
+    """ Creates valid python identifier from string
+
+    """
+    if name in names:
+        return names[name]
+    original_name = name
+    # a default remapping for some basic characters
+    mapping = {'+': 'Plus',
+               '-': 'Minus',
+               '=': 'Equal'}
+    for key, value in mapping.iteritems():
+        name.replace(key, value)
+    # strip invalid chars
+    name = re.sub('[^0-9a-zA-Z_]', '', name)
+    # This function is used for instances and variables, transform to lowercase
+    name = re.sub('(?!^)(?<=[a-z])([A-Z]+)', r'_\1', name).lower()
+    base_name = name
+    i = 0
+    while name in names.itervalues() or name in reserved:
+        i += 1
+        name = base_name + '_%d' % i
+    names[original_name] = name
+    return name
+
+def unique_name(name, names):
+    """ Creates unique string and corresponding valid python identifier from string
+
+    """
+    i = 1
+    base_name = name
+    while name in names:
+        name = '%s_%d' % (base_name, i)
+    python_name(name, names)
+    return names[name]

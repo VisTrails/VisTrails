@@ -42,7 +42,7 @@ from vistrails.core import debug
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.4'
+currentVersion = '1.0.5'
 
 def getVersionDAO(version=None):
     if version is None:
@@ -85,9 +85,11 @@ def translate_object(obj, method_name, version=None, target_version=None):
         '1.0.1': '1.0.2',
         '1.0.2': '1.0.3',
         '1.0.3': '1.0.4',
+        '1.0.4': '1.0.5',
         }
 
     rev_version_map = {
+        '1.0.5': '1.0.4',
         '1.0.4': '1.0.3',
         '1.0.3': '1.0.2',
         '1.0.2': '1.0.1',

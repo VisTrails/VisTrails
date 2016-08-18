@@ -1,0 +1,4 @@
+<specs>
+  <translation input="basic_Color_input" output="basic_Color_output" type="basic:Color" />
+  <translation input="basic_Path_input" output="basic_Path_output" type="basic:Path" />
+</specs>

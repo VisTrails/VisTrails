@@ -762,12 +762,17 @@ class TestUsersGuideVTL(unittest.TestCase):
     @unittest.skipIf(not os.path.isdir(vtl_path), 'Could not find vtl dir')
     def test_vtl_files(self):
         from vistrails.tests.utils import run_file
+        from vistrails.core.packagemanager import get_package_manager
+        # SUDSWebServices needs to be loaded before .vt file is loaded
+        pm = get_package_manager()
+        if not pm.has_package('org.vistrails.vistrails.sudswebservices'):
+            pm.late_enable_package('SUDSWebServices')
+
         for root, dirs, file_names in os.walk(self.vtl_path):
             for file_name in sorted(file_names):
                 if file_name.endswith('.vtl'):
                     # update available packages
-                    from vistrails.core.packagemanager import get_package_manager
-                    get_package_manager().build_available_package_names_list()
+                    pm.build_available_package_names_list()
                     f = os.path.join(root, file_name)
                     locator = FileLocator(f)
                     version = locator._vnode

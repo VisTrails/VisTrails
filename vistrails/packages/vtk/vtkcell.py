@@ -45,6 +45,7 @@ import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
+from vistrails.core.scripting import Script, Prelude
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -58,7 +59,18 @@ from identifiers import identifier as vtk_pkg_identifier
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration):
-        d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
+        print output_module.inputPorts['value'][0]()
+        # FIXME: This assumes a single renderer on each connection
+        # This is necessary while we need moduleId
+        # Handle the case where it is still a list (e.g. when used in script)
+        d0 = [(c(), c.obj) for c in output_module.inputPorts['value']]
+        d = dict()
+        for k, v in d0:
+            if isinstance(k, list):
+                for c in k:
+                    d[c] = v
+            else:
+                d[k] = v
         for ren, m in d.iteritems():
             ren.module_id = m.moduleInfo['moduleId']
         renderers = output_module.force_get_input('value') or []
@@ -106,6 +118,37 @@ class VTKCell(SpreadsheetCell):
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+
+    @classmethod
+    def to_python_script(cls, module):
+        """ Show first value (vtkRenderer) in new window
+        """
+        code = ''
+        preludes = []
+        preludes.append(Prelude('import vtk'))
+
+        # Create the graphics structure. The renderer renders into the render
+        # window. The render window interactor captures mouse events and will
+        # perform appropriate camera or actor manipulation depending on the
+        # nature of the events.
+        code += 'renWin = vtk.vtkRenderWindow()\n'
+        code += 'for renderer_item in AddRenderer:\n'
+        code += '    renWin.AddRenderer(renderer_item)\n'
+        code += 'iren = vtk.vtkRenderWindowInteractor()\n'
+        code += 'iren.SetRenderWindow(renWin)\n'
+        code += 'renWin.SetSize(1024, 768)\n'
+        # This allows the interactor to initalize itself. It has to be
+        # called before an event loop.
+        code += 'iren.Initialize()\n'
+        # observer is passed as iHandler!
+        if "InteractionHandler" in module.connected_input_ports:
+            code += 'for iHandler in InteractionHandler:\n'
+            code += '    iHandler.SetInteractor(iren)\n'
+        code += 'renWin.Render()\n'
+        # Start the event loop.
+        code += 'iren.Start()'
+        return Script(code, 'variables', 'variables'), preludes
+
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -233,7 +276,7 @@ class QVTKWidget(QCellWidget):
         renWin = self.GetRenderWindow()
         for iHandler in self.iHandlers:
             if iHandler.observer:
-                iHandler.observer.vtkInstance.SetInteractor(None)
+                iHandler.observer.SetInteractor(None)
             iHandler.clear()
 
         # Remove old renderers first
@@ -245,40 +288,32 @@ class QVTKWidget(QCellWidget):
 
         (renderers, renderView, self.iHandlers, iStyle, picker) = inputPorts
         if renderView:
-            renderView.vtkInstance.SetRenderWindow(renWin)
-            renderView.vtkInstance.ResetCamera()
+            renderView.SetRenderWindow(renWin)
+            renderView.ResetCamera()
             self.addObserversToInteractorStyle()
-            renderers = [renderView.vtkInstance.GetRenderer()]
+            renderers = [renderView.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False
         if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
         j = 0
         for renderer in renderers:
-            if renderView==None:
-                vtkInstance = renderer
-                # Check deprecated vtkInstance
-                if hasattr(renderer, 'vtkInstance'):
-                    vtkInstance = renderer.vtkInstance
-                    # Old scripts may call this without setting module_id
-                    if hasattr(renderer, 'module_id'):
-                        self.renderer_maps[id(vtkInstance)] = renderer.module_id
-                renWin.AddRenderer(vtkInstance)
-            else:
-                vtkInstance = renderer
-            if hasattr(vtkInstance, 'IsActiveCameraCreated'):
+            if renderView is None:
+                # Old scripts may call this without setting module_id
+                if hasattr(renderer, 'module_id'):
+                    self.renderer_maps[id(renderer)] = renderer.module_id
+                renWin.AddRenderer(renderer)
+            if hasattr(renderer, 'IsActiveCameraCreated'):
                 if self.usecameras:
-                    vtkInstance.SetActiveCamera(cameralist[j])
+                    renderer.SetActiveCamera(cameralist[j])
                     j = j + 1
-                if not vtkInstance.IsActiveCameraCreated():
-                    vtkInstance.ResetCamera()
+                if not renderer.IsActiveCameraCreated():
+                    renderer.ResetCamera()
                 else:
-                    vtkInstance.ResetCameraClippingRange()
+                    renderer.ResetCameraClippingRange()
             
         iren = renWin.GetInteractor()
         if picker:
-            if hasattr(picker, 'vtkInstance'):
-                picker = picker.vtkInstance
             iren.SetPicker(picker)
 
         # Update interactor style
@@ -288,21 +323,13 @@ class QVTKWidget(QCellWidget):
                 iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
                 iStyleInstance = iStyle
-                # Check deprecated vtkInstance
-                if hasattr(iStyleInstance, 'vtkInstance'):
-                    iStyleInstance = iStyleInstance.vtkInstance
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
         for i in xrange(len(self.iHandlers)):
             iHandler = self.iHandlers[i]
-            if hasattr(iHandler, 'vtkInstance'):
-                iHandler = iHandler.vtkInstance
-                self.iHandler[i] = iHandler
             if iHandler.observer:
                 observer = iHandler.observer
-                if hasattr(observer, 'vtkInstance'):
-                    observer = observer.vtkInstance
                 observer.SetInteractor(iren)
         renWin.Render()
 

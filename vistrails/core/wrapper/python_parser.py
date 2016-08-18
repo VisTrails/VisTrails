@@ -552,14 +552,12 @@ class PythonParser(object):
                                 break
                         break
 
+            union = ''
             if len(port_types) > 1:
-                # create alternate specs
+                # create alternate specs as a union port
+                union = arg
                 port_type, depth = ports[0]
-                if depth > 0:
-                    method_name = arg + self.alt_suffixes['basic:List']
-                else:
-                    # an unknown port will get default name
-                    method_name = arg + self.alt_suffixes.get(port_type, '')
+                method_name = arg + self.alt_suffixes.get(port_type, '') + ('List' * depth)
 
                 used_names = [method_name]
                 for port in ports[1:]:
@@ -610,6 +608,7 @@ class PythonParser(object):
                 sort_key=arg_pos,
                 depth=depth,
                 docstring=fdocstring,
+                union=union,
                 alternate_specs=alt_specs)
             if klass:
                 input_spec.method_type = 'argument'
@@ -1045,16 +1044,6 @@ class PythonParser(object):
         input_specs = self.parse_arguments(arg_dict, parameters, method=method,
                                            is_operation=is_operation,
                                            output_type=custom_output_type)
-
-        if is_operation:
-            # add base type input port for chaining operations
-            input_specs.append(self.function_spec.InputSpecType(
-                name='operation',
-                arg='operation',
-                arg_pos=-5, # is operation type
-                port_type=custom_output_type or self.default_type,
-                depth=1,
-                show_port=True))
 
         for op_name, op_type in operations.items():
             # operations that will be applied to the result of this function

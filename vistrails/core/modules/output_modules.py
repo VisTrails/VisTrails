@@ -519,9 +519,8 @@ class FileMode(OutputMode):
             if dirname is None:
                 dirname = ''
             if not os.path.isabs(dirname):
-                vt_output_dir = getattr(get_vistrails_temp_configuration(),
-                                        'outputDirectory',
-                                        None)
+                vt_output_dir = get_vistrails_temp_configuration().check(
+                                                            'outputDirectory')
                 if vt_output_dir:
                     dirname = os.path.join(vt_output_dir, dirname)
 

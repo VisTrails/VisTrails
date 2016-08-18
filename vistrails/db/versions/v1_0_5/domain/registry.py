@@ -36,35 +36,31 @@
 
 from __future__ import division
 
-import vtk
+from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+    DBPortSpec
+from id_scope import IdScope
 
-################################################################################
-# Some fixed classes that solve a few VTK API issues
+class DBRegistry(_DBRegistry):
+    def __init__(self, *args, **kwargs):
+        _DBRegistry.__init__(self, *args, **kwargs)
+        self.idScope = IdScope()
 
-# This dictionary stores the patched class to vtk class mapping.
-# This would be naturally better stored as an attribute directly on the
-# patched class. VTK, however, doesn't like class attributes.
-description = {}
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBRegistry()
+        new_obj = _DBRegistry.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        return new_obj
+    
+    def update_id_scope(self):
+        for package in self.db_packages:
+            self.idScope.updateBeginId(DBPackage.vtType, package.db_id+1)
+            for descriptor in package.db_module_descriptors:
+                self.idScope.updateBeginId(DBModuleDescriptor.vtType,
+                                           descriptor.db_id+1)
+                for port_spec in descriptor.db_portSpecs:
+                    self.idScope.updateBeginId(DBPortSpec.vtType, 
+                                               port_spec.db_id+1)
 
-# http://www.vtk.org/doc/nightly/html/classvtkImagePlaneWidget.html
-# SetUserControlledLookupTable needs to be set before calling
-# SetLookupTable.  VTK should do it automatically, so let's fix it
 
-
-# This fix seems to break on VTK versions larger than 5.0.3. It might also
-# be because of an interaction with python 2.6, but I haven't checked that.
-class vtkImagePlaneWidget_fixed(vtk.vtkImagePlaneWidget):
-    def SetLookupTable(self, lookup_table):
-        self.UserControlledLookupTableOn()
-        vtk.vtkImagePlaneWidget.SetLookupTable(self, lookup_table)
-v = vtk.vtkVersion()
-version = [v.GetVTKMajorVersion(),
-           v.GetVTKMinorVersion(),
-           v.GetVTKBuildVersion()]
-if version < [5, 0, 4]:
-    description[vtkImagePlaneWidget_fixed] = vtk.vtkImagePlaneWidget
-else:
-    description[id(vtkImagePlaneWidget_fixed)] = vtk.vtkImagePlaneWidget
-
-# Set docstring to wrap it correctly
-vtkImagePlaneWidget_fixed.SetLookupTable.__doc__ = vtk.vtkImagePlaneWidget.SetLookupTable.__doc__

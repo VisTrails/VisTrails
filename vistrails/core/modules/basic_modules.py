@@ -48,6 +48,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
+from vistrails.core.scripting import Script
 
 from abc import ABCMeta
 from ast import literal_eval
@@ -187,6 +188,36 @@ class Constant(Module):
         elif query_method == '!=':
             return (value_a != value_b)
         return False
+
+    @classmethod
+    def to_python_script(cls, module):
+        for f in module.functions:
+            if f.name == 'value':
+                assert len(f.parameters) == 1
+                value = f.parameters[0].strValue
+                code = u"value = %r" % cls.translate_to_python(value)
+                return Script(code, inputs={}, outputs={'value': u'value'})
+        raise ValueError("Constant module has no value set")
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if (isinstance(node, redbaron.AssignmentNode) and
+                isinstance(node.target, redbaron.NameNode)):
+            # Python code
+            value = node.value.dumps()
+            # Live object
+            value = literal_eval(value)
+            # Serialized
+            value = cls.translate_to_string(value)
+            return pos, (cls,
+                         {'value': ('const', value)},
+                         {'value': ('var', node.target.value)})
+
+        return None
 
 def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
@@ -788,6 +819,27 @@ class StandardOutput(NotCacheable, Module):
         else:
             print v
 
+    @staticmethod
+    def to_python_script(module):
+        return Script("print value", 'variables', {})
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if isinstance(node, redbaron.PrintNode) and len(node.value) == 1:
+            value, = node.value
+            # Useless parens
+            if isinstance(value, redbaron.AssociativeParenthesisNode):
+                value = value.value
+            if isinstance(value, redbaron.NameNode):
+                return pos, (cls, {'value': ('var', value.value)}, {})
+            elif isinstance(value, redbaron.StringNode):
+                return pos, (cls, {'value': ('const', value.value)}, {})
+        return None
+
 ##############################################################################
 
 # Tuple will be reasonably magic right now. We'll integrate it better
@@ -814,6 +866,13 @@ class Tuple(Module):
                         for p in self.input_ports_order])
         self.values = values
         self.set_output("value", values)
+
+    @classmethod
+    def to_python_script(cls, module):
+        input_ports_order = [p.name for p in module.input_port_specs]
+        code = 'value = ' + str(tuple(input_ports_order)).replace("'", '')
+        return Script(code, inputs='variables', outputs='variables')
+
 
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
@@ -843,6 +902,14 @@ class Untuple(Module):
         for p, value in izip(self.output_ports_order, values):
             self.set_output(p, value)
 
+    @classmethod
+    def to_python_script(cls, module):
+        output_ports_order = [p.name for p in module.output_port_specs]
+        code = str(tuple(output_ports_order)).replace("'", ''
+                                            ).replace('(', ''
+                                            ).replace(')', '') + '= value'
+        return Script(code, inputs='variables', outputs='variables')
+
 ##############################################################################
 
 class ConcatenateString(Module):
@@ -854,7 +921,7 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
-    _input_ports = [IPort("str%d" % i, "String")
+    _input_ports = [IPort("str%d" % i, "String", default='')
                     for i in xrange(1, 1 + fieldCount)]
     _output_ports = [OPort("value", "String")]
 
@@ -862,6 +929,13 @@ class ConcatenateString(Module):
         result = "".join(self.force_get_input('str%d' % i, '')
                          for i in xrange(1, 1 + self.fieldCount))
         self.set_output('value', result)
+
+    @classmethod
+    def to_python_script(cls, module):
+        code = 'value = ' + ' + '.join(
+                         ["str%d" % i for i in xrange(1, 1 + cls.fieldCount)
+                          if "str%d" % i in module.connected_input_ports])
+        return Script(code, inputs='variables', outputs='variables')
 
 ##############################################################################
 
@@ -954,6 +1028,92 @@ class List(Constant):
         if not got_value:
             self.get_input('value')
         self.set_output('value', head + middle + items + tail)
+
+    @staticmethod
+    def to_python_script(module):
+        set_ports = set(f.name for f in module.functions)
+        set_ports.update(
+                port
+                for port, nb in module.connected_input_ports.iteritems()
+                if nb > 0)
+        inputs = {}
+        add = []
+        if 'head' in set_ports:
+            inputs['head'] = u'head'  # TODO : depth=1 here...
+            add.append(u'[head]')
+        if 'value' in set_ports:
+            inputs['value'] = u'middle'
+            add.append(u'middle')
+        items = [p.name for p in module.input_port_specs]
+        if items:
+            add_items = u'[%s]' % ', '.join((u'i_%s' % i) for i in items)
+            inputs.update((i, u'i_%s' % i) for i in items)
+            add.append(add_items)
+        if 'tail' in set_ports:
+            inputs['tail'] = u'tail'
+            add.append(u'tail')
+        if add:
+            code = u'value = %s' % u' + '.join(add)
+        else:
+            code = u'[]'
+        return Script(code, inputs=inputs, outputs={'value': u'value'})
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+        from vistrails.core.scripting import import_
+
+        node = script[pos]
+
+        if not isinstance(node, redbaron.AssignmentNode):
+            return None
+        output = node.target.value
+
+        items = []
+        def add(item):
+            if (isinstance(item, redbaron.BinaryOperatorNode) and
+                    item.value == '+'):
+                add(item.first)
+                add(item.second)
+            elif isinstance(item, (redbaron.NameNode, redbaron.ListNode)):
+                items.append(item)
+            else:
+                raise import_.Mismatch
+        add(node.value)
+
+        inputs = {}
+        portspecs = []
+        variant = 'org.vistrails.vistrails.basic:Variant'
+
+        if (items and isinstance(items[0], redbaron.ListNode) and
+                len(items[0].value) == 1):
+            v = items.pop(0).value[0]
+            if isinstance(v, redbaron.NameNode):
+                inputs['head'] = 'var', v.value
+            else:
+                inputs['head'] = 'const', v.dumps()
+        if items and isinstance(items[0], redbaron.NameNode):
+            v = items.pop(0)
+            inputs['value'] = 'var', v.value
+        if items and isinstance(items[0], redbaron.ListNode):
+            for i, v in enumerate(items.pop(0).value):
+                name = 'item%d' % i
+                portspecs.append(('input', name, variant))
+                if isinstance(v, redbaron.NameNode):
+                    inputs[name] = 'var', v.value
+                else:
+                    inputs[name] = 'const', v.value
+        if items and isinstance(items[0], redbaron.NameNode):
+            v = items.pop(0)
+            inputs['value'] = 'var', v.value
+
+        if items:
+            return None
+
+        return pos, (cls,
+                     inputs,
+                     {'value': ('var', output)},
+                     portspecs)
 
 ##############################################################################
 # Dictionary
@@ -1080,6 +1240,14 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     def compute(self):
         s = urllib.unquote(str(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
+
+    @staticmethod
+    def to_python_script(module):
+        for f in module.functions:
+            if f.name == 'source':
+                code = urllib.unquote(str(f.parameters[0].strValue))
+                return Script(code, inputs='variables', outputs='variables')
+        return ''
 
 ##############################################################################
 
@@ -1358,6 +1526,7 @@ def initialize(*args, **kwargs):
     _modules.extend(vistrails.core.modules.sub_module._modules)
     _modules.extend(vistrails.core.wrapper.pythonclass._modules)
 
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
     reg = get_module_registry()
@@ -1387,7 +1556,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         return ops
 
     module_remap = {'FileSink':
-    [(None, '1.6', None,
+                        [(None, '1.6', None,
                           {'dst_port_remap':
                                {'overrideFile': 'overwrite',
                                 'outputName': outputName_remap},

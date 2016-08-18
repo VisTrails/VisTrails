@@ -33,7 +33,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 from __future__ import division
 
-from vistrails.db.versions.v1_0_4.persistence import *
+from vistrails.db.versions.v1_0_5.persistence import *
