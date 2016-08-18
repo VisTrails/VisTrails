@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -39,7 +39,7 @@
 This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
-This package supports matplotlib < v1.4
+This package supports matplotlib >= v1.4
 
 """
 
@@ -70,5 +70,5 @@ def package_requirements():
     require_python_module('matplotlib', mpl_dict)
     require_python_module('pylab', mpl_dict)
     import matplotlib
-    if LooseVersion(matplotlib.__version__) >= LooseVersion('1.4'):
-        raise MissingRequirement('matplotlib<1.4')
+    if LooseVersion(matplotlib.__version__) < LooseVersion('1.4'):
+        raise MissingRequirement('matplotlib>=1.4')

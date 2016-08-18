@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -33,42 +33,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 """Matplotlib package for VisTrails.
 
 This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
-This package supports matplotlib < v1.4
-
 """
 
 from __future__ import division
 
-from distutils.version import LooseVersion
-from identifiers import *
-
-def package_dependencies():
-    import vistrails.core.packagemanager
-    manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
-        return ['org.vistrails.vistrails.spreadsheet']
-    else:
-        return []
-
-def package_requirements():
-    from vistrails.core.requirements import require_python_module, MissingRequirement
-    require_python_module('numpy', {
-            'pip': 'numpy',
-            'linux-debian': 'python-numpy',
-            'linux-ubuntu': 'python-numpy',
-            'linux-fedora': 'numpy'})
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    require_python_module('matplotlib', mpl_dict)
-    require_python_module('pylab', mpl_dict)
-    import matplotlib
-    if LooseVersion(matplotlib.__version__) >= LooseVersion('1.4'):
-        raise MissingRequirement('matplotlib<1.4')
+identifier = 'org.vistrails.vistrails.matplotlib'
+name = 'matplotlib'
+version = '1.1.0'
+old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
+                   'org.vistrails.matplotlib.new']

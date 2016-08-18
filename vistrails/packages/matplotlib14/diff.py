@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -34,41 +34,41 @@
 ##
 ###############################################################################
 
-"""Matplotlib package for VisTrails.
-
-This package wrap Matplotlib to provide a plotting tool for
-VisTrails. We are going to use the 'Qt4Agg' backend of the library.
-
-This package supports matplotlib < v1.4
-
-"""
-
 from __future__ import division
 
-from distutils.version import LooseVersion
-from identifiers import *
+import sys
 
-def package_dependencies():
-    import vistrails.core.packagemanager
-    manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
-        return ['org.vistrails.vistrails.spreadsheet']
+from vistrails.core.wrapper.diff import compute_diff, apply_diff, compute_upgrade
+
+from mpl_specs import MPLFunctionSpec
+
+
+def run_compute():
+    compute_diff(MPLFunctionSpec, "mpl_artists_raw.xml",
+                 "mpl_artists.xml", "mpl_artists_diff.xml")
+    compute_diff(MPLFunctionSpec, "mpl_plots_raw.xml",
+                 "mpl_plots.xml", "mpl_plots_diff.xml")
+
+
+def run_apply():
+    apply_diff(MPLFunctionSpec, "mpl_artists_raw.xml", "mpl_artists_diff.xml", "mpl_artists.xml")
+    apply_diff(MPLFunctionSpec, "mpl_plots_raw.xml", "mpl_plots_diff.xml", "mpl_plots.xml")
+
+
+def usage():
+    print "Usage: %s %s [apply|compute|upgrade spec1 spec2|spec1, spec2)]" % (sys.executable, sys.argv[0])
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        usage()
+    elif sys.argv[1] == "apply":
+        run_apply()
+    elif sys.argv[1] == "compute":
+        run_compute()
+    elif sys.argv[1] == "upgrade":
+        compute_upgrade(MPLFunctionSpec, sys.argv[2], sys.argv[3])
+    elif len(sys.argv) == 3:
+        compute_diff(MPLFunctionSpec, sys.argv[1], sys.argv[2], show_docstring=False)
     else:
-        return []
-
-def package_requirements():
-    from vistrails.core.requirements import require_python_module, MissingRequirement
-    require_python_module('numpy', {
-            'pip': 'numpy',
-            'linux-debian': 'python-numpy',
-            'linux-ubuntu': 'python-numpy',
-            'linux-fedora': 'numpy'})
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    require_python_module('matplotlib', mpl_dict)
-    require_python_module('pylab', mpl_dict)
-    import matplotlib
-    if LooseVersion(matplotlib.__version__) >= LooseVersion('1.4'):
-        raise MissingRequirement('matplotlib<1.4')
+        usage()

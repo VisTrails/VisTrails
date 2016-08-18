@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -34,41 +35,51 @@
 ##
 ###############################################################################
 
-"""Matplotlib package for VisTrails.
-
-This package wrap Matplotlib to provide a plotting tool for
-VisTrails. We are going to use the 'Qt4Agg' backend of the library.
-
-This package supports matplotlib < v1.4
-
-"""
-
 from __future__ import division
 
-from distutils.version import LooseVersion
-from identifiers import *
+import os
+import shutil
 
-def package_dependencies():
-    import vistrails.core.packagemanager
-    manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
-        return ['org.vistrails.vistrails.spreadsheet']
+from parse import run as run_parse
+from diff import compute_diff, apply_diff
+from generate import run as run_generate
+from mpl_specs import MPLFunctionSpec
+
+_bases = ["artists", "plots"]
+
+def backup():
+    if not os.path.exists("backup"):
+        os.mkdir("backup")
+    backup_files = ["mpl_%s_raw.xml", "mpl_%s.xml", "mpl_%s_diff.xml"]
+    for base in _bases:
+        for fname_base in backup_files:
+            fname = fname_base % base
+            shutil.copy(fname, "backup")
+
+def run(which="all"):
+    backup()
+    if which == "all":
+        bases = _bases
     else:
-        return []
+        bases = [which]
+    for base in bases:
+        compute_diff(MPLFunctionSpec,
+                     "mpl_%s_raw.xml" % base,
+                     "mpl_%s.xml" % base, 
+                     "mpl_%s_diff.xml" % base)
+        run_parse(base)
+        apply_diff(MPLFunctionSpec,
+                   "mpl_%s_raw.xml" % base,
+                   "mpl_%s_diff.xml" % base,
+                   "mpl_%s.xml" % base)
+        run_generate(base)
 
-def package_requirements():
-    from vistrails.core.requirements import require_python_module, MissingRequirement
-    require_python_module('numpy', {
-            'pip': 'numpy',
-            'linux-debian': 'python-numpy',
-            'linux-ubuntu': 'python-numpy',
-            'linux-fedora': 'numpy'})
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    require_python_module('matplotlib', mpl_dict)
-    require_python_module('pylab', mpl_dict)
-    import matplotlib
-    if LooseVersion(matplotlib.__version__) >= LooseVersion('1.4'):
-        raise MissingRequirement('matplotlib<1.4')
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'backup':
+            backup()
+        else:
+            run(sys.argv[1])
+    else:
+        run()
