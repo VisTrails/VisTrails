@@ -5409,7 +5409,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
                    'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = global_props
-        orderBy = 'name'
+        orderBy = 'uuid'
 
         dbCommand = self.createSQLSelect(
             table, columns, whereMap, orderBy, lock)
@@ -5426,17 +5426,17 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            vistrailVariable = DBVistrailVariable(uuid=uuid,
+            vistrailVariable = DBVistrailVariable(name=name,
                                                   package=package,
                                                   module=module,
                                                   namespace=namespace,
                                                   value=value,
-                                                  name=name)
+                                                  uuid=uuid)
             vistrailVariable.db_vistrail = vistrail
             vistrailVariable.db_entity_id = entity_id
             vistrailVariable.db_entity_type = entity_type
             vistrailVariable.is_dirty = False
-            res[('vistrailVariable', name)] = vistrailVariable
+            res[('vistrailVariable', uuid)] = vistrailVariable
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
@@ -5444,7 +5444,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
                    'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = global_props
-        orderBy = 'name'
+        orderBy = 'uuid'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
     def process_sql_columns(self, data, global_props):
@@ -5460,17 +5460,17 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            vistrailVariable = DBVistrailVariable(uuid=uuid,
+            vistrailVariable = DBVistrailVariable(name=name,
                                                   package=package,
                                                   module=module,
                                                   namespace=namespace,
                                                   value=value,
-                                                  name=name)
+                                                  uuid=uuid)
             vistrailVariable.db_vistrail = vistrail
             vistrailVariable.db_entity_id = entity_id
             vistrailVariable.db_entity_type = entity_type
             vistrailVariable.is_dirty = False
-            res[('vistrailVariable', name)] = vistrailVariable
+            res[('vistrailVariable', uuid)] = vistrailVariable
         return res
 
     def from_sql_fast(self, obj, all_objects):
@@ -5486,9 +5486,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
-        if obj.db_name is not None:
-            keyStr = self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            whereMap['name'] = keyStr
+        if obj.db_uuid is not None:
+            keyStr = self.convertToDB(obj.db_uuid, 'str', 'char(36)')
+            whereMap['uuid'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
@@ -5533,9 +5533,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
-        if obj.db_name is not None:
-            keyStr = self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            whereMap['name'] = keyStr
+        if obj.db_uuid is not None:
+            keyStr = self.convertToDB(obj.db_uuid, 'str', 'char(36)')
+            whereMap['uuid'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
@@ -5582,9 +5582,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
-        if obj.db_name is not None:
-            keyStr = self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            whereMap['name'] = keyStr
+        if obj.db_uuid is not None:
+            keyStr = self.convertToDB(obj.db_uuid, 'str', 'char(36)')
+            whereMap['uuid'] = keyStr
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 

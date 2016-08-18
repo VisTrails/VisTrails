@@ -3614,7 +3614,7 @@ class DBVistrail(object):
 
     vtType = 'vistrail'
 
-    def __init__(self, id=None, entity_type=None, version=None, name=None, last_modified=None, actions=None, tags=None, annotations=None, controlParameters=None, vistrailVariables=None, parameter_explorations=None, actionAnnotations=None):
+    def __init__(self, id=None, entity_type=None, version=None, name=None, last_modified=None, actions=None, annotations=None, controlParameters=None, vistrailVariables=None, parameter_explorations=None, actionAnnotations=None):
         self._db_id = id
         self._db_entity_type = entity_type
         self._db_version = version
@@ -3628,16 +3628,6 @@ class DBVistrail(object):
             self._db_actions = actions
             for v in self._db_actions:
                 self.db_actions_id_index[v.db_id] = v
-        self.db_deleted_tags = []
-        self.db_tags_id_index = {}
-        self.db_tags_name_index = {}
-        if tags is None:
-            self._db_tags = []
-        else:
-            self._db_tags = tags
-            for v in self._db_tags:
-                self.db_tags_id_index[v.db_id] = v
-                self.db_tags_name_index[v.db_name] = v
         self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         self.db_annotations_key_index = {}
@@ -3659,15 +3649,15 @@ class DBVistrail(object):
                 self.db_controlParameters_id_index[v.db_id] = v
                 self.db_controlParameters_name_index[v.db_name] = v
         self.db_deleted_vistrailVariables = []
-        self.db_vistrailVariables_name_index = {}
         self.db_vistrailVariables_uuid_index = {}
+        self.db_vistrailVariables_name_index = {}
         if vistrailVariables is None:
             self._db_vistrailVariables = []
         else:
             self._db_vistrailVariables = vistrailVariables
             for v in self._db_vistrailVariables:
-                self.db_vistrailVariables_name_index[v.db_name] = v
                 self.db_vistrailVariables_uuid_index[v.db_uuid] = v
+                self.db_vistrailVariables_name_index[v.db_name] = v
         self.db_deleted_parameter_explorations = []
         self.db_parameter_explorations_id_index = {}
         if parameter_explorations is None:
@@ -3706,11 +3696,6 @@ class DBVistrail(object):
         else:
             cp._db_actions = [v.do_copy(new_ids, id_scope, id_remap)
                               for v in self._db_actions]
-        if self._db_tags is None:
-            cp._db_tags = []
-        else:
-            cp._db_tags = [v.do_copy(new_ids, id_scope, id_remap)
-                           for v in self._db_tags]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
@@ -3750,8 +3735,6 @@ class DBVistrail(object):
 
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
-        cp.db_tags_id_index = dict((v.db_id, v) for v in cp._db_tags)
-        cp.db_tags_name_index = dict((v.db_name, v) for v in cp._db_tags)
         cp.db_annotations_id_index = dict(
             (v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict(
@@ -3760,10 +3743,10 @@ class DBVistrail(object):
             (v.db_id, v) for v in cp._db_controlParameters)
         cp.db_controlParameters_name_index = dict(
             (v.db_name, v) for v in cp._db_controlParameters)
-        cp.db_vistrailVariables_name_index = dict(
-            (v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_vistrailVariables_uuid_index = dict(
             (v.db_uuid, v) for v in cp._db_vistrailVariables)
+        cp.db_vistrailVariables_name_index = dict(
+            (v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_parameter_explorations_id_index = dict(
             (v.db_id, v) for v in cp._db_parameter_explorations)
         cp.db_actionAnnotations_id_index = dict(
@@ -3820,17 +3803,6 @@ class DBVistrail(object):
             for obj in old_obj.db_deleted_actions:
                 n_obj = DBAction.update_version(obj, trans_dict)
                 new_obj.db_deleted_actions.append(n_obj)
-        if 'tags' in class_dict:
-            res = class_dict['tags'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_tag(obj)
-        elif hasattr(old_obj, 'db_tags') and old_obj.db_tags is not None:
-            for obj in old_obj.db_tags:
-                new_obj.db_add_tag(DBTag.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_tags') and hasattr(new_obj, 'db_deleted_tags'):
-            for obj in old_obj.db_deleted_tags:
-                n_obj = DBTag.update_version(obj, trans_dict)
-                new_obj.db_deleted_tags.append(n_obj)
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
@@ -3906,14 +3878,6 @@ class DBVistrail(object):
         for child in to_del:
             self.db_delete_action(child)
         to_del = []
-        for child in self.db_tags:
-            children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_tag(child)
-        to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
                 (self.vtType, self.db_id), orphan, for_action))
@@ -3959,7 +3923,6 @@ class DBVistrail(object):
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_actions)
-        children.extend(self.db_deleted_tags)
         children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_controlParameters)
         children.extend(self.db_deleted_vistrailVariables)
@@ -3967,7 +3930,6 @@ class DBVistrail(object):
         children.extend(self.db_deleted_actionAnnotations)
         if remove:
             self.db_deleted_actions = []
-            self.db_deleted_tags = []
             self.db_deleted_annotations = []
             self.db_deleted_controlParameters = []
             self.db_deleted_vistrailVariables = []
@@ -3979,9 +3941,6 @@ class DBVistrail(object):
         if self.is_dirty:
             return True
         for child in self._db_actions:
-            if child.has_changes():
-                return True
-        for child in self._db_tags:
             if child.has_changes():
                 return True
         for child in self._db_annotations:
@@ -4136,65 +4095,6 @@ class DBVistrail(object):
     def db_has_action_with_id(self, key):
         return key in self.db_actions_id_index
 
-    def __get_db_tags(self):
-        return self._db_tags
-
-    def __set_db_tags(self, tags):
-        self._db_tags = tags
-        self.is_dirty = True
-    db_tags = property(__get_db_tags, __set_db_tags)
-
-    def db_get_tags(self):
-        return self._db_tags
-
-    def db_add_tag(self, tag):
-        self.is_dirty = True
-        self._db_tags.append(tag)
-        self.db_tags_id_index[tag.db_id] = tag
-        self.db_tags_name_index[tag.db_name] = tag
-
-    def db_change_tag(self, tag):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_tags)):
-            if self._db_tags[i].db_id == tag.db_id:
-                self._db_tags[i] = tag
-                found = True
-                break
-        if not found:
-            self._db_tags.append(tag)
-        self.db_tags_id_index[tag.db_id] = tag
-        self.db_tags_name_index[tag.db_name] = tag
-
-    def db_delete_tag(self, tag):
-        self.is_dirty = True
-        for i in xrange(len(self._db_tags)):
-            if self._db_tags[i].db_id == tag.db_id:
-                if not self._db_tags[i].is_new:
-                    self.db_deleted_tags.append(self._db_tags[i])
-                del self._db_tags[i]
-                break
-        del self.db_tags_id_index[tag.db_id]
-        del self.db_tags_name_index[tag.db_name]
-
-    def db_get_tag(self, key):
-        for i in xrange(len(self._db_tags)):
-            if self._db_tags[i].db_id == key:
-                return self._db_tags[i]
-        return None
-
-    def db_get_tag_by_id(self, key):
-        return self.db_tags_id_index[key]
-
-    def db_has_tag_with_id(self, key):
-        return key in self.db_tags_id_index
-
-    def db_get_tag_by_name(self, key):
-        return self.db_tags_name_index[key]
-
-    def db_has_tag_with_name(self, key):
-        return key in self.db_tags_name_index
-
     def __get_db_annotations(self):
         return self._db_annotations
 
@@ -4334,55 +4234,55 @@ class DBVistrail(object):
     def db_add_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[
-            vistrailVariable.db_name] = vistrailVariable
         self.db_vistrailVariables_uuid_index[
             vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[
+            vistrailVariable.db_name] = vistrailVariable
 
     def db_change_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         found = False
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
+            if self._db_vistrailVariables[i].db_uuid == vistrailVariable.db_uuid:
                 self._db_vistrailVariables[i] = vistrailVariable
                 found = True
                 break
         if not found:
             self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[
-            vistrailVariable.db_name] = vistrailVariable
         self.db_vistrailVariables_uuid_index[
             vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[
+            vistrailVariable.db_name] = vistrailVariable
 
     def db_delete_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
+            if self._db_vistrailVariables[i].db_uuid == vistrailVariable.db_uuid:
                 if not self._db_vistrailVariables[i].is_new:
                     self.db_deleted_vistrailVariables.append(
                         self._db_vistrailVariables[i])
                 del self._db_vistrailVariables[i]
                 break
-        del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
         del self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid]
+        del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
 
     def db_get_vistrailVariable(self, key):
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == key:
+            if self._db_vistrailVariables[i].db_uuid == key:
                 return self._db_vistrailVariables[i]
         return None
-
-    def db_get_vistrailVariable_by_name(self, key):
-        return self.db_vistrailVariables_name_index[key]
-
-    def db_has_vistrailVariable_with_name(self, key):
-        return key in self.db_vistrailVariables_name_index
 
     def db_get_vistrailVariable_by_uuid(self, key):
         return self.db_vistrailVariables_uuid_index[key]
 
     def db_has_vistrailVariable_with_uuid(self, key):
         return key in self.db_vistrailVariables_uuid_index
+
+    def db_get_vistrailVariable_by_name(self, key):
+        return self.db_vistrailVariables_name_index[key]
+
+    def db_has_vistrailVariable_with_name(self, key):
+        return key in self.db_vistrailVariables_name_index
 
     def __get_db_parameter_explorations(self):
         return self._db_parameter_explorations
@@ -13927,12 +13827,12 @@ class DBVistrailVariable(object):
         if new_ids:
             type_key = id_scope.remap[
                 self.vtType] if self.vtType in id_scope.remap else self.vtType
-            if (type_key, self._db_name) in id_remap:
-                cp._db_name = id_remap[(type_key, self._db_name)]
+            if (type_key, self._db_uuid) in id_remap:
+                cp._db_uuid = id_remap[(type_key, self._db_uuid)]
             else:
                 new_id = id_scope.getNewId(self.vtType)
-                id_remap[(type_key, self._db_name)] = new_id
-                cp._db_name = new_id
+                id_remap[(type_key, self._db_uuid)] = new_id
+                cp._db_uuid = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -14096,7 +13996,7 @@ class DBVistrailVariable(object):
         self._db_value = None
 
     def getPrimaryKey(self):
-        return self._db_name
+        return self._db_uuid
 
 
 class DBOpmOverlaps(object):
@@ -14842,117 +14742,6 @@ class DBModuleDescriptor(object):
 
     def db_has_portSpec_with_name(self, key):
         return key in self.db_portSpecs_name_index
-
-    def getPrimaryKey(self):
-        return self._db_id
-
-
-class DBTag(object):
-
-    vtType = 'tag'
-
-    def __init__(self, id=None, name=None):
-        self._db_id = id
-        self._db_name = name
-        self.is_dirty = True
-        self.is_new = True
-
-    def __copy__(self):
-        return DBTag.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBTag(id=self._db_id,
-                   name=self._db_name)
-
-        # set new ids
-        if new_ids:
-            type_key = id_scope.remap[
-                self.vtType] if self.vtType in id_scope.remap else self.vtType
-            if (type_key, self._db_id) in id_remap:
-                cp._db_id = id_remap[(type_key, self._db_id)]
-            else:
-                new_id = id_scope.getNewId(self.vtType)
-                id_remap[(type_key, self._db_id)] = new_id
-                cp._db_id = new_id
-            if 'action' in id_scope.remap:
-                fkey_type = id_scope.remap['action']
-            else:
-                fkey_type = 'action'
-            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
-                cp._db_id = id_remap[(fkey_type, self._db_id)]
-
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBTag()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'name' in class_dict:
-            res = class_dict['name'](old_obj, trans_dict)
-            new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
-            new_obj.db_name = old_obj.db_name
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None, None), orphan=False, for_action=False):
-        return [(self, parent[0], parent[1])]
-
-    def db_deleted_children(self, remove=False):
-        children = []
-        return children
-
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        return False
-
-    def __get_db_id(self):
-        return self._db_id
-
-    def __set_db_id(self, id):
-        self._db_id = id
-        self.is_dirty = True
-    db_id = property(__get_db_id, __set_db_id)
-
-    def db_add_id(self, id):
-        self._db_id = id
-
-    def db_change_id(self, id):
-        self._db_id = id
-
-    def db_delete_id(self, id):
-        self._db_id = None
-
-    def __get_db_name(self):
-        return self._db_name
-
-    def __set_db_name(self, name):
-        self._db_name = name
-        self.is_dirty = True
-    db_name = property(__get_db_name, __set_db_name)
-
-    def db_add_name(self, name):
-        self._db_name = name
-
-    def db_change_name(self, name):
-        self._db_name = name
-
-    def db_delete_name(self, name):
-        self._db_name = None
 
     def getPrimaryKey(self):
         return self._db_id

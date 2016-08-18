@@ -1265,7 +1265,6 @@ class DBVistrailXMLDAOBase(XMLDAO):
         name = self.convertFromStr(data, 'str')
 
         actions = []
-        tags = []
         annotations = []
         controlParameters = []
         vistrailVariables = []
@@ -1281,9 +1280,6 @@ class DBVistrailXMLDAOBase(XMLDAO):
             if child_tag == 'action':
                 _data = self.getDao('action').fromXML(child)
                 actions.append(_data)
-            elif child_tag == 'tag':
-                _data = self.getDao('tag').fromXML(child)
-                tags.append(_data)
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
@@ -1308,7 +1304,6 @@ class DBVistrailXMLDAOBase(XMLDAO):
                          version=version,
                          name=name,
                          actions=actions,
-                         tags=tags,
                          annotations=annotations,
                          controlParameters=controlParameters,
                          vistrailVariables=vistrailVariables,
@@ -1332,11 +1327,6 @@ class DBVistrailXMLDAOBase(XMLDAO):
             if (actions is not None) and (actions != ""):
                 childNode = ElementTree.SubElement(node, 'action')
                 self.getDao('action').toXML(action, childNode)
-        tags = vistrail.db_tags
-        for tag in tags:
-            if (tags is not None) and (tags != ""):
-                childNode = ElementTree.SubElement(node, 'tag')
-                self.getDao('tag').toXML(tag, childNode)
         annotations = vistrail.db_annotations
         for annotation in annotations:
             if (annotations is not None) and (annotations != ""):
@@ -4579,44 +4569,6 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
         return node
 
 
-class DBTagXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'tag':
-            return None
-
-        # read attributes
-        data = node.get('id', None)
-        id = self.convertFromStr(data, 'str')
-        data = node.get('name', None)
-        name = self.convertFromStr(data, 'str')
-
-        obj = DBTag(id=id,
-                    name=name)
-        obj.is_dirty = False
-        return obj
-
-    def toXML(self, tag, node=None):
-        if node is None:
-            node = ElementTree.Element('tag')
-
-        # set attributes
-        node.set('id', self.convertToStr(tag.db_id, 'str'))
-        node.set('name', self.convertToStr(tag.db_name, 'str'))
-
-        return node
-
-
 class DBOpmRoleXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -6647,8 +6599,6 @@ class XMLDAOListBase(dict):
             self['opm_was_triggered_by'] = DBOpmWasTriggeredByXMLDAOBase(self)
         if 'module_descriptor' not in self:
             self['module_descriptor'] = DBModuleDescriptorXMLDAOBase(self)
-        if 'tag' not in self:
-            self['tag'] = DBTagXMLDAOBase(self)
         if 'opm_role' not in self:
             self['opm_role'] = DBOpmRoleXMLDAOBase(self)
         if 'prov_document' not in self:

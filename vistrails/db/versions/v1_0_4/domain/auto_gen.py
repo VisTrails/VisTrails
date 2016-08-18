@@ -3659,15 +3659,15 @@ class DBVistrail(object):
                 self.db_controlParameters_id_index[v.db_id] = v
                 self.db_controlParameters_name_index[v.db_name] = v
         self.db_deleted_vistrailVariables = []
-        self.db_vistrailVariables_name_index = {}
         self.db_vistrailVariables_uuid_index = {}
+        self.db_vistrailVariables_name_index = {}
         if vistrailVariables is None:
             self._db_vistrailVariables = []
         else:
             self._db_vistrailVariables = vistrailVariables
             for v in self._db_vistrailVariables:
-                self.db_vistrailVariables_name_index[v.db_name] = v
                 self.db_vistrailVariables_uuid_index[v.db_uuid] = v
+                self.db_vistrailVariables_name_index[v.db_name] = v
         self.db_deleted_parameter_explorations = []
         self.db_parameter_explorations_id_index = {}
         if parameter_explorations is None:
@@ -3760,10 +3760,10 @@ class DBVistrail(object):
             (v.db_id, v) for v in cp._db_controlParameters)
         cp.db_controlParameters_name_index = dict(
             (v.db_name, v) for v in cp._db_controlParameters)
-        cp.db_vistrailVariables_name_index = dict(
-            (v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_vistrailVariables_uuid_index = dict(
             (v.db_uuid, v) for v in cp._db_vistrailVariables)
+        cp.db_vistrailVariables_name_index = dict(
+            (v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_parameter_explorations_id_index = dict(
             (v.db_id, v) for v in cp._db_parameter_explorations)
         cp.db_actionAnnotations_id_index = dict(
@@ -4334,55 +4334,55 @@ class DBVistrail(object):
     def db_add_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[
-            vistrailVariable.db_name] = vistrailVariable
         self.db_vistrailVariables_uuid_index[
             vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[
+            vistrailVariable.db_name] = vistrailVariable
 
     def db_change_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         found = False
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
+            if self._db_vistrailVariables[i].db_uuid == vistrailVariable.db_uuid:
                 self._db_vistrailVariables[i] = vistrailVariable
                 found = True
                 break
         if not found:
             self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[
-            vistrailVariable.db_name] = vistrailVariable
         self.db_vistrailVariables_uuid_index[
             vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[
+            vistrailVariable.db_name] = vistrailVariable
 
     def db_delete_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
+            if self._db_vistrailVariables[i].db_uuid == vistrailVariable.db_uuid:
                 if not self._db_vistrailVariables[i].is_new:
                     self.db_deleted_vistrailVariables.append(
                         self._db_vistrailVariables[i])
                 del self._db_vistrailVariables[i]
                 break
-        del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
         del self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid]
+        del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
 
     def db_get_vistrailVariable(self, key):
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == key:
+            if self._db_vistrailVariables[i].db_uuid == key:
                 return self._db_vistrailVariables[i]
         return None
-
-    def db_get_vistrailVariable_by_name(self, key):
-        return self.db_vistrailVariables_name_index[key]
-
-    def db_has_vistrailVariable_with_name(self, key):
-        return key in self.db_vistrailVariables_name_index
 
     def db_get_vistrailVariable_by_uuid(self, key):
         return self.db_vistrailVariables_uuid_index[key]
 
     def db_has_vistrailVariable_with_uuid(self, key):
         return key in self.db_vistrailVariables_uuid_index
+
+    def db_get_vistrailVariable_by_name(self, key):
+        return self.db_vistrailVariables_name_index[key]
+
+    def db_has_vistrailVariable_with_name(self, key):
+        return key in self.db_vistrailVariables_name_index
 
     def __get_db_parameter_explorations(self):
         return self._db_parameter_explorations
@@ -13914,12 +13914,12 @@ class DBVistrailVariable(object):
         if new_ids:
             type_key = id_scope.remap[
                 self.vtType] if self.vtType in id_scope.remap else self.vtType
-            if (type_key, self._db_name) in id_remap:
-                cp._db_name = id_remap[(type_key, self._db_name)]
+            if (type_key, self._db_uuid) in id_remap:
+                cp._db_uuid = id_remap[(type_key, self._db_uuid)]
             else:
                 new_id = id_scope.getNewId(self.vtType)
-                id_remap[(type_key, self._db_name)] = new_id
-                cp._db_name = new_id
+                id_remap[(type_key, self._db_uuid)] = new_id
+                cp._db_uuid = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -14083,7 +14083,7 @@ class DBVistrailVariable(object):
         self._db_value = None
 
     def getPrimaryKey(self):
-        return self._db_name
+        return self._db_uuid
 
 
 class DBOpmOverlaps(object):

@@ -109,7 +109,7 @@ CREATE TABLE parameter(
 ) engine=InnoDB;
 
 CREATE TABLE vistrail(
-    id char(36) not null auto_increment primary key,
+    id char(36),
     entity_type char(16),
     version char(16),
     name varchar(255),
@@ -154,7 +154,7 @@ CREATE TABLE pe_function(
 ) engine=InnoDB;
 
 CREATE TABLE workflow(
-    id char(36) not null auto_increment primary key,
+    id char(36),
     entity_id char(36),
     entity_type char(16),
     name varchar(255),
@@ -187,7 +187,7 @@ CREATE TABLE change_tbl(
 ) engine=InnoDB;
 
 CREATE TABLE package(
-    id char(36) not null auto_increment primary key,
+    id char(36),
     name varchar(255),
     identifier varchar(1023),
     codepath varchar(1023),
@@ -244,7 +244,7 @@ CREATE TABLE port_spec(
 ) engine=InnoDB;
 
 CREATE TABLE log_tbl(
-    id char(36) not null auto_increment primary key,
+    id char(36),
     entity_type char(16),
     version char(16),
     name varchar(255),
@@ -381,14 +381,6 @@ CREATE TABLE module_descriptor(
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE tag(
-    id char(36),
-    name varchar(255),
-    parent_id char(36),
-    entity_id char(36),
-    entity_type char(16)
-) engine=InnoDB;
-
 CREATE TABLE port_spec_item(
     id char(36),
     pos int,
@@ -479,7 +471,7 @@ CREATE TABLE abstraction(
 ) engine=InnoDB;
 
 CREATE TABLE mashuptrail(
-    id int not null auto_increment primary key,
+    id int,
     name varchar(255),
     version char(16),
     vt_version char(36),
@@ -488,7 +480,7 @@ CREATE TABLE mashuptrail(
 ) engine=InnoDB;
 
 CREATE TABLE registry(
-    id char(36) not null auto_increment primary key,
+    id char(36),
     entity_type char(16),
     version char(16),
     root_descriptor_id char(36),

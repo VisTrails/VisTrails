@@ -41,7 +41,6 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="action" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element ref="tag" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="controlParameter" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="vistrailVariable" minOccurs="0" maxOccurs="unbounded"/>
@@ -68,12 +67,6 @@
       <xs:attribute name="date" type="xs:dateTime"/>
       <xs:attribute name="session" type="xs:string"/>
       <xs:attribute name="user" type="xs:string"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="tag">
-    <xs:complexType>
-      <xs:attribute name="id" type="xs:string"/>
-      <xs:attribute name="name" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="annotation">

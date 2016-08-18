@@ -1171,9 +1171,6 @@ class DBVistrailSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -1216,9 +1213,6 @@ class DBVistrailSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -1229,8 +1223,6 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_actions:
-            child.db_vistrail = obj.db_id
-        for child in obj.db_tags:
             child.db_vistrail = obj.db_id
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
@@ -1511,7 +1503,7 @@ class DBPortSQLDAOBase(SQLDAO):
             parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            parent = self.convertFromDB(row[9], 'long', 'long')
+            parent = self.convertFromDB(row[9], 'str', 'str')
 
             port = DBPort(type=type,
                           moduleId=moduleId,
@@ -1547,7 +1539,7 @@ class DBPortSQLDAOBase(SQLDAO):
             parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            parent = self.convertFromDB(row[9], 'long', 'long')
+            parent = self.convertFromDB(row[9], 'str', 'str')
 
             port = DBPort(type=type,
                           moduleId=moduleId,
@@ -1615,7 +1607,7 @@ class DBPortSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_parent') and obj.db_parent is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_parent, 'long', 'long')
+                self.convertToDB(obj.db_parent, 'str', 'str')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -1665,7 +1657,7 @@ class DBPortSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_parent') and obj.db_parent is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_parent, 'long', 'long')
+                self.convertToDB(obj.db_parent, 'str', 'str')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -1910,7 +1902,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             version = self.convertFromDB(row[4], 'str', 'char(16)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[6], 'str', 'char(36)')
-            group = self.convertFromDB(row[7], 'long', 'char(36)')
+            group = self.convertFromDB(row[7], 'str', 'char(36)')
 
             workflow = DBWorkflow(entity_type=entity_type,
                                   name=name,
@@ -1945,7 +1937,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             version = self.convertFromDB(row[4], 'str', 'char(16)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[6], 'str', 'char(36)')
-            group = self.convertFromDB(row[7], 'long', 'char(36)')
+            group = self.convertFromDB(row[7], 'str', 'char(36)')
 
             workflow = DBWorkflow(entity_type=entity_type,
                                   name=name,
@@ -1999,7 +1991,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrail_id, 'str', 'char(36)')
         if hasattr(obj, 'db_group') and obj.db_group is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_group, 'long', 'char(36)')
+                self.convertToDB(obj.db_group, 'str', 'char(36)')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -2007,9 +1999,6 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -2052,7 +2041,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrail_id, 'str', 'char(36)')
         if hasattr(obj, 'db_group') and obj.db_group is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_group, 'long', 'char(36)')
+                self.convertToDB(obj.db_group, 'str', 'char(36)')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -2062,9 +2051,6 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -2502,7 +2488,7 @@ class DBPackageSQLDAOBase(SQLDAO):
             load_configuration = self.convertFromDB(row[4], 'int', 'int')
             version = self.convertFromDB(row[5], 'str', 'varchar(255)')
             description = self.convertFromDB(row[6], 'str', 'varchar(1023)')
-            registry = self.convertFromDB(row[7], 'long', 'char(36)')
+            registry = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[8], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
 
@@ -2538,7 +2524,7 @@ class DBPackageSQLDAOBase(SQLDAO):
             load_configuration = self.convertFromDB(row[4], 'int', 'int')
             version = self.convertFromDB(row[5], 'str', 'varchar(255)')
             description = self.convertFromDB(row[6], 'str', 'varchar(1023)')
-            registry = self.convertFromDB(row[7], 'long', 'char(36)')
+            registry = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[8], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
 
@@ -2596,7 +2582,7 @@ class DBPackageSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_description, 'str', 'varchar(1023)')
         if hasattr(obj, 'db_registry') and obj.db_registry is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_registry, 'long', 'char(36)')
+                self.convertToDB(obj.db_registry, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
@@ -2610,9 +2596,6 @@ class DBPackageSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
 
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2649,7 +2632,7 @@ class DBPackageSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_description, 'str', 'varchar(1023)')
         if hasattr(obj, 'db_registry') and obj.db_registry is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_registry, 'long', 'char(36)')
+                self.convertToDB(obj.db_registry, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
@@ -2665,9 +2648,6 @@ class DBPackageSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
@@ -3562,9 +3542,6 @@ class DBLogSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -3611,9 +3588,6 @@ class DBLogSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -5413,7 +5387,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
                    'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = global_props
-        orderBy = 'name'
+        orderBy = 'uuid'
 
         dbCommand = self.createSQLSelect(
             table, columns, whereMap, orderBy, lock)
@@ -5426,21 +5400,21 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             module = self.convertFromDB(row[3], 'str', 'varchar(255)')
             namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
             value = self.convertFromDB(row[5], 'str', 'varchar(8191)')
-            vistrail = self.convertFromDB(row[6], 'long', 'char(36)')
+            vistrail = self.convertFromDB(row[6], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            vistrailVariable = DBVistrailVariable(uuid=uuid,
+            vistrailVariable = DBVistrailVariable(name=name,
                                                   package=package,
                                                   module=module,
                                                   namespace=namespace,
                                                   value=value,
-                                                  name=name)
+                                                  uuid=uuid)
             vistrailVariable.db_vistrail = vistrail
             vistrailVariable.db_entity_id = entity_id
             vistrailVariable.db_entity_type = entity_type
             vistrailVariable.is_dirty = False
-            res[('vistrailVariable', name)] = vistrailVariable
+            res[('vistrailVariable', uuid)] = vistrailVariable
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
@@ -5448,7 +5422,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
                    'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = global_props
-        orderBy = 'name'
+        orderBy = 'uuid'
         return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
 
     def process_sql_columns(self, data, global_props):
@@ -5460,21 +5434,21 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             module = self.convertFromDB(row[3], 'str', 'varchar(255)')
             namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
             value = self.convertFromDB(row[5], 'str', 'varchar(8191)')
-            vistrail = self.convertFromDB(row[6], 'long', 'char(36)')
+            vistrail = self.convertFromDB(row[6], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            vistrailVariable = DBVistrailVariable(uuid=uuid,
+            vistrailVariable = DBVistrailVariable(name=name,
                                                   package=package,
                                                   module=module,
                                                   namespace=namespace,
                                                   value=value,
-                                                  name=name)
+                                                  uuid=uuid)
             vistrailVariable.db_vistrail = vistrail
             vistrailVariable.db_entity_id = entity_id
             vistrailVariable.db_entity_type = entity_type
             vistrailVariable.is_dirty = False
-            res[('vistrailVariable', name)] = vistrailVariable
+            res[('vistrailVariable', uuid)] = vistrailVariable
         return res
 
     def from_sql_fast(self, obj, all_objects):
@@ -5490,9 +5464,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
-        if obj.db_name is not None:
-            keyStr = self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            whereMap['name'] = keyStr
+        if obj.db_uuid is not None:
+            keyStr = self.convertToDB(obj.db_uuid, 'str', 'char(36)')
+            whereMap['uuid'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
@@ -5514,7 +5488,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_value, 'str', 'varchar(8191)')
         if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'long', 'char(36)')
+                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
@@ -5537,9 +5511,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
-        if obj.db_name is not None:
-            keyStr = self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            whereMap['name'] = keyStr
+        if obj.db_uuid is not None:
+            keyStr = self.convertToDB(obj.db_uuid, 'str', 'char(36)')
+            whereMap['uuid'] = keyStr
         columnMap = {}
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
@@ -5561,7 +5535,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_value, 'str', 'varchar(8191)')
         if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'long', 'char(36)')
+                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
@@ -5586,9 +5560,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
-        if obj.db_name is not None:
-            keyStr = self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            whereMap['name'] = keyStr
+        if obj.db_uuid is not None:
+            keyStr = self.convertToDB(obj.db_uuid, 'str', 'char(36)')
+            whereMap['uuid'] = keyStr
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
@@ -5790,156 +5764,6 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_descriptor'
-        whereMap = {}
-        whereMap.update(global_props)
-        if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
-            whereMap['id'] = keyStr
-        dbCommand = self.createSQLDelete(table, whereMap)
-        self.executeSQL(db, dbCommand, False)
-
-
-class DBTagSQLDAOBase(SQLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-        self.table = 'tag'
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
-        table = 'tag'
-        whereMap = global_props
-        orderBy = 'id'
-
-        dbCommand = self.createSQLSelect(
-            table, columns, whereMap, orderBy, lock)
-        data = self.executeSQL(db, dbCommand, True)
-        res = {}
-        for row in data:
-            id = self.convertFromDB(row[0], 'str', 'char(36)')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[2], 'long', 'char(36)')
-            entity_id = self.convertFromDB(row[3], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
-
-            tag = DBTag(name=name,
-                        id=id)
-            tag.db_vistrail = vistrail
-            tag.db_entity_id = entity_id
-            tag.db_entity_type = entity_type
-            tag.is_dirty = False
-            res[('tag', id)] = tag
-        return res
-
-    def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
-        table = 'tag'
-        whereMap = global_props
-        orderBy = 'id'
-        return self.createSQLSelect(table, columns, whereMap, orderBy, lock)
-
-    def process_sql_columns(self, data, global_props):
-        res = {}
-        for row in data:
-            id = self.convertFromDB(row[0], 'str', 'char(36)')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[2], 'long', 'char(36)')
-            entity_id = self.convertFromDB(row[3], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
-
-            tag = DBTag(name=name,
-                        id=id)
-            tag.db_vistrail = vistrail
-            tag.db_entity_id = entity_id
-            tag.db_entity_type = entity_type
-            tag.is_dirty = False
-            res[('tag', id)] = tag
-        return res
-
-    def from_sql_fast(self, obj, all_objects):
-        if ('vistrail', obj.db_vistrail) in all_objects:
-            p = all_objects[('vistrail', obj.db_vistrail)]
-            p.db_add_tag(obj)
-
-    def set_sql_columns(self, db, obj, global_props, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return
-        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
-        table = 'tag'
-        whereMap = {}
-        whereMap.update(global_props)
-        if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
-            whereMap['id'] = keyStr
-        columnMap = {}
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            columnMap['id'] = \
-                self.convertToDB(obj.db_id, 'str', 'char(36)')
-        if hasattr(obj, 'db_name') and obj.db_name is not None:
-            columnMap['name'] = \
-                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
-            columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'long', 'char(36)')
-        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
-            columnMap['entity_id'] = \
-                self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
-        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            columnMap['entity_type'] = \
-                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        columnMap.update(global_props)
-
-        if obj.is_new or do_copy:
-            dbCommand = self.createSQLInsert(table, columnMap)
-        else:
-            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-        lastId = self.executeSQL(db, dbCommand, False)
-
-    def set_sql_command(self, db, obj, global_props, do_copy=True):
-        if not do_copy and not obj.is_dirty:
-            return None
-        columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
-        table = 'tag'
-        whereMap = {}
-        whereMap.update(global_props)
-        if obj.db_id is not None:
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
-            whereMap['id'] = keyStr
-        columnMap = {}
-        if hasattr(obj, 'db_id') and obj.db_id is not None:
-            columnMap['id'] = \
-                self.convertToDB(obj.db_id, 'str', 'char(36)')
-        if hasattr(obj, 'db_name') and obj.db_name is not None:
-            columnMap['name'] = \
-                self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
-            columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'long', 'char(36)')
-        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
-            columnMap['entity_id'] = \
-                self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
-        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            columnMap['entity_type'] = \
-                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        columnMap.update(global_props)
-
-        if obj.is_new or do_copy:
-            dbCommand = self.createSQLInsert(table, columnMap)
-        else:
-            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-        return dbCommand
-
-    def set_sql_process(self, obj, global_props, lastId):
-        pass
-
-    def to_sql_fast(self, obj, do_copy=True):
-        pass
-
-    def delete_sql_column(self, db, obj, global_props):
-        table = 'tag'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -7420,9 +7244,6 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'int')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             global_props['entity_id'] = self.convertToDB(
                 obj.db_id, 'str', 'int')
@@ -7466,9 +7287,6 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'int')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             global_props['entity_id'] = self.convertToDB(
                 obj.db_id, 'str', 'int')
@@ -7606,9 +7424,6 @@ class DBRegistrySQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -7655,9 +7470,6 @@ class DBRegistrySQLDAOBase(SQLDAO):
         return dbCommand
 
     def set_sql_process(self, obj, global_props, lastId):
-        if obj.db_id is None:
-            obj.db_id = lastId
-            keyStr = self.convertToDB(obj.db_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(
                 obj.db_entity_type, 'str', 'char(16)')
@@ -7916,7 +7728,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
             user = self.convertFromDB(row[4], 'str', 'varchar(255)')
             dims = self.convertFromDB(row[5], 'str', 'varchar(255)')
             layout = self.convertFromDB(row[6], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[7], 'long', 'char(36)')
+            vistrail = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[8], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
 
@@ -7952,7 +7764,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
             user = self.convertFromDB(row[4], 'str', 'varchar(255)')
             dims = self.convertFromDB(row[5], 'str', 'varchar(255)')
             layout = self.convertFromDB(row[6], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[7], 'long', 'char(36)')
+            vistrail = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[8], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
 
@@ -8010,7 +7822,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_layout, 'str', 'varchar(255)')
         if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'long', 'char(36)')
+                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
@@ -8060,7 +7872,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_layout, 'str', 'varchar(255)')
         if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'long', 'char(36)')
+                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
@@ -8598,8 +8410,6 @@ class SQLDAOListBase(dict):
             self['vistrailVariable'] = DBVistrailVariableSQLDAOBase(self)
         if 'module_descriptor' not in self:
             self['module_descriptor'] = DBModuleDescriptorSQLDAOBase(self)
-        if 'tag' not in self:
-            self['tag'] = DBTagSQLDAOBase(self)
         if 'portSpecItem' not in self:
             self['portSpecItem'] = DBPortSpecItemSQLDAOBase(self)
         if 'mashup_component' not in self:

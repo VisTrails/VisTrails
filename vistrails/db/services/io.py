@@ -325,8 +325,8 @@ def get_db_object_version(db_connection, obj_id, obj_type):
 
     try:
         c = db_connection.cursor()
-        print "GET DB OBJ VERSION:", command % (translate_to_tbl_name(obj_type), obj_id)
-        c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
+        c.execute(command % (translate_to_tbl_name(obj_type),
+                             db_connection.escape(obj_id, get_db_lib().converters.conversions)))
         version = c.fetchall()[0][0]
         c.close()
     except get_db_lib().Error, e:
@@ -2012,6 +2012,8 @@ def get_alternate_tests(version):
     alternate_dict = {None:
                       {('DBVistrail', 'db_entity_type'): None,
                        ('DBVistrail', 'db_last_modified'): None,
+                       #FIXME add session upgrade logic
+                       ('DBAction', 'db_session'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
                       ('1.0.3', '1.0.4'):
                       {('DBPortSpec', 'db_depth'): None},
@@ -2186,7 +2188,8 @@ class TestSQLDatabase(TranslationMixin):
             vt3 = save_vistrail_to_db(vt2, self.conn, True, self.get_version(), save_wfs=False,
                                       do_translate=False)
             # HACK because db will assign vt3 id 1 (instead of 0)
-            external_data["id_remap"][('vistrail', 1)] = external_data["id_remap"][('vistrail', 0)]
+            if ('vistrail', 0) in external_data["id_remap"]:
+                external_data["id_remap"][('vistrail', 1)] = external_data["id_remap"][('vistrail', 0)]
             print "VT3 version", vt3.db_version, vt3.db_id
             vt_id = vt3.db_id
             for vv in vt3.db_vistrailVariables:
@@ -2249,11 +2252,11 @@ class TestMySQLDatabase(TestSQLDatabase):
 # class TestMySQLDatabase_v1_0_3(TestMySQLDatabase, unittest.TestCase):
 #     db_version = '1.0.3'
 
-class TestMySQLDatabase_v1_0_4(TestMySQLDatabase, unittest.TestCase):
-    db_version = '1.0.4'
+# class TestMySQLDatabase_v1_0_4(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '1.0.4'
 
-# class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
-#     db_version = '2.0.0'
+class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
+    db_version = '2.0.0'
 
 # class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
 #     db_fname = None

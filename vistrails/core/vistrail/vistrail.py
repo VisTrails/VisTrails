@@ -165,7 +165,6 @@ class Vistrail(DBVistrail):
 
     id = DBVistrail.db_id
     actions = DBVistrail.db_actions # This is now read-write
-    tags = DBVistrail.db_tags # This is now read-write
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
     vistrail_variables = DBVistrail.db_vistrailVariables

@@ -1,45 +1,51 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2012, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
 from vistrails.core.system import get_elementtree_library
 
 from vistrails.db import VistrailsDBException
-from vistrails.db.versions.v1_0_2 import version as my_version
-from vistrails.db.versions.v1_0_2.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
-    DBRegistry
+from vistrails.db.versions.v2_0_0 import version as my_version
+from vistrails.db.versions.v2_0_0.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
+    DBRegistry, DBMashuptrail
+
+root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
+                DBLog.vtType, DBRegistry.vtType, DBMashuptrail.vtType])
 
 ElementTree = get_elementtree_library()
 
@@ -105,7 +111,7 @@ class DAOList(dict):
             global_props = {}
         if id is not None:
             global_props['id'] = id
-        # print global_props
+        #  global_props
         res_objects = self['sql'][vtType].get_sql_columns(db_connection, 
                                                           global_props,
                                                           lock)
@@ -131,10 +137,7 @@ class DAOList(dict):
         
         # generate SELECT statements
         for dao_type, dao in self['sql'].iteritems():
-            if (dao_type == DBVistrail.vtType or
-                dao_type == DBWorkflow.vtType or
-                dao_type == DBLog.vtType or
-                dao_type == DBRegistry.vtType):
+            if dao_type in root_set:
                 continue
 
             daoList.append([dao_type, dao, None])
@@ -218,10 +221,7 @@ class DAOList(dict):
         
             # generate SELECT statements for children
             for dao_type, dao in self['sql'].iteritems():
-                if (dao_type == DBVistrail.vtType or
-                    dao_type == DBWorkflow.vtType or
-                    dao_type == DBLog.vtType or
-                    dao_type == DBRegistry.vtType):
+                if dao_type in root_set:
                     continue
     
                 daoList.append([id, dao_type, dao, None])
@@ -270,7 +270,9 @@ class DAOList(dict):
         if do_copy == 'with_ids':
             do_copy = True
         elif do_copy and obj.db_id is not None:
-            obj.db_id = None
+            # FIXME do this elsewhere, with uuids, not really a db issue
+            # obj.db_id = None
+            pass
 
         children = obj.db_children()
         children.reverse()
@@ -313,6 +315,10 @@ class DAOList(dict):
                 writtenChildren.append(child)
             self['sql'][child.vtType].to_sql_fast(child, do_copy)
 
+        # Debug version of Execute all insert/update statements
+        #results = [self['sql'][children[0][0].vtType].executeSQL(
+        #                      db_connection, c, False) for c in dbCommandList]
+
         # Execute all insert/update statements
         results = self['sql'][children[0][0].vtType].executeSQLGroup(
                                                     db_connection,
@@ -348,7 +354,9 @@ class DAOList(dict):
         writtenChildren = []
         for obj in objList:
             if do_copy and obj.db_id is not None:
-                obj.db_id = None
+                # FIXME do this elsewhere, with uuids, not really a db issue
+                # obj.db_id = None
+                pass
 
             children = obj.db_children()
             children.reverse()
@@ -432,8 +440,6 @@ class DAOList(dict):
                                         new_props)
 
     def delete_from_db(self, db_connection, type, obj_id):
-        root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
-                        DBLog.vtType, DBRegistry.vtType])
         if type not in root_set:
             raise VistrailsDBException("Cannot delete entity of type '%s'" \
                                            % type)
