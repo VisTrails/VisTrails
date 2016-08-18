@@ -37,27 +37,27 @@ from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
     DBPortSpec
 from id_scope import IdScope
 
+import copy
+
 class DBRegistry(_DBRegistry):
     def __init__(self, *args, **kwargs):
-	_DBRegistry.__init__(self, *args, **kwargs)
+        _DBRegistry.__init__(self, *args, **kwargs)
         self.id_scope = IdScope()
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = _DBRegistry.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = DBRegistry
+        cp.id_scope = copy.copy(self.id_scope)
+        return cp
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
         if new_obj is None:
             new_obj = DBRegistry()
         new_obj = _DBRegistry.update_version(old_obj, trans_dict, new_obj)
-        new_obj.update_id_scope()
         return new_obj
     
     def update_id_scope(self):
-        for package in self.db_packages:
-            self.id_scope.updateBeginId(DBPackage.vtType, package.db_id+1)
-            for descriptor in package.db_module_descriptors:
-                self.id_scope.updateBeginId(DBModuleDescriptor.vtType,
-                                           descriptor.db_id+1)
-                for port_spec in descriptor.db_portSpecs:
-                    self.id_scope.updateBeginId(DBPortSpec.vtType,
-                                               port_spec.db_id+1)
+        pass
 
 

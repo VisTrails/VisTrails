@@ -54,7 +54,7 @@ def run(fname, new_fname=None):
         tree = ElementTree.parse(fname)
         version = vtdbio.get_version_for_xml(tree.getroot())
         # disable translation by passing current version
-        vistrail = vtdbio.open_vistrail_from_xml(fname, version)
+        vistrail = vtdbio.open_vistrail_from_xml(fname, False)
     elif fname.endswith('.vt'):
         # have bundle
         isbundle = True

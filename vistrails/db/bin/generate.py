@@ -148,7 +148,6 @@ def preprocess_template(in_fname, out_fname=None):
 def indent_python(fname):
     autopep8.fix_file(fname, options=autopep8.parse_args([fname, '-i']))
 
-
 def run_template(template_fname, objects, version, version_string, output_file,
                  indent=False):
     [prefix, suffix] = os.path.basename(template_fname).split('.', 1)
@@ -199,6 +198,7 @@ def dirStructure(baseDir):
     dirs['sqlPersistence'] = os.path.join(dirs['persistence'], 'sql')
     dirs['xmlSchema'] = os.path.join(dirs['schemas'], 'xml')
     dirs['sqlSchema'] = os.path.join(dirs['schemas'], 'sql')
+    dirs['tests'] = os.path.join(dirs['base'], 'tests')
     return dirs
 
 def makeAllDirs(dirs):
@@ -231,6 +231,7 @@ def main(argv=None):
                     'p': ('generate python domain classes', False),
                     's': ('generate sql schema and persistence classes', False),
                     'x': ('generate xml schema and persistence classes', False),
+                    't': ('generate test classes', False),
                     'v:': ('vistrail version tag', True, 'version'),
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}
@@ -372,6 +373,15 @@ def main(argv=None):
         run_template('templates/sql.py.mako', sql_objects,
                      version, versionName,
                      os.path.join(versionDirs['sqlPersistence'], 'auto_gen.py'),
+                     True)
+
+    if options['t']:
+        print "generating test objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        run_template('templates/test.py.mako', objects, version, versionName,
+                     os.path.join(versionDirs['tests'], 'auto_gen.py'),
                      True)
 
     if not options['n']:

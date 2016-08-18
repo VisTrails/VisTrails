@@ -358,12 +358,14 @@ class DBConfigKey(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_name)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_name) in id_remap:
+                cp._db_name = id_remap[(type_key, self._db_name)]
             else:
-                id_remap[(self.vtType, self._db_name)] = new_id
-            cp._db_name = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_name)] = new_id
+                cp._db_name = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -512,12 +514,14 @@ class DBMashupAlias(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -717,12 +721,14 @@ class DBGroup(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
@@ -1606,12 +1612,14 @@ class DBAdd(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if self._db_what in id_scope.remap:
                 fkey_type = id_scope.remap[self._db_what]
             else:
@@ -2515,12 +2523,14 @@ class DBVtConnection(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -2731,12 +2741,14 @@ class DBOpmAccount(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -2876,12 +2888,14 @@ class DBGroupExec(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'module' in id_scope.remap:
                 fkey_type = id_scope.remap['module']
             else:
@@ -3422,12 +3436,14 @@ class DBParameter(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -3723,12 +3739,14 @@ class DBVistrail(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
@@ -4966,12 +4984,14 @@ class DBModule(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
@@ -5553,12 +5573,14 @@ class DBPort(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'module' in id_scope.remap:
                 fkey_type = id_scope.remap['module']
             else:
@@ -6038,12 +6060,14 @@ class DBPEFunction(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'module' in id_scope.remap:
                 fkey_type = id_scope.remap['module']
             else:
@@ -6344,12 +6368,14 @@ class DBWorkflow(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'vistrail' in id_scope.remap:
                 fkey_type = id_scope.remap['vistrail']
             else:
@@ -6951,12 +6977,14 @@ class DBMashupAction(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'mashup_action' in id_scope.remap:
                 fkey_type = id_scope.remap['mashup_action']
             else:
@@ -7294,12 +7322,14 @@ class DBChange(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if self._db_what in id_scope.remap:
                 fkey_type = id_scope.remap[self._db_what]
             else:
@@ -7639,12 +7669,14 @@ class DBPackage(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_module_descriptors_id_index = dict(
@@ -7966,12 +7998,14 @@ class DBLoopExec(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_loop_iterations_id_index = dict(
@@ -8186,12 +8220,14 @@ class DBConnection(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_ports_id_index = dict((v.db_id, v) for v in cp._db_ports)
@@ -8456,12 +8492,14 @@ class DBAction(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'action' in id_scope.remap:
                 fkey_type = id_scope.remap['action']
             else:
@@ -9444,12 +9482,14 @@ class DBPortSpec(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_portSpecItems_id_index = dict(
@@ -9889,12 +9929,14 @@ class DBOpmArtifact(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -10084,12 +10126,14 @@ class DBLog(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'vistrail' in id_scope.remap:
                 fkey_type = id_scope.remap['vistrail']
             else:
@@ -10385,12 +10429,14 @@ class DBLoopIteration(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict(
@@ -10888,12 +10934,14 @@ class DBPEParameter(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -11116,12 +11164,14 @@ class DBWorkflowExec(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if self._db_parent_type in id_scope.remap:
                 fkey_type = id_scope.remap[self._db_parent_type]
             else:
@@ -11702,12 +11752,14 @@ class DBLocation(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -11842,12 +11894,14 @@ class DBFunction(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_parameters_id_index = dict(
@@ -12055,12 +12109,14 @@ class DBActionAnnotation(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'action' in id_scope.remap:
                 fkey_type = id_scope.remap['action']
             else:
@@ -12271,12 +12327,14 @@ class DBProvActivity(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -13437,12 +13495,14 @@ class DBControlParameter(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -13562,12 +13622,14 @@ class DBPluginData(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -13671,12 +13733,14 @@ class DBDelete(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if self._db_what in id_scope.remap:
                 fkey_type = id_scope.remap[self._db_what]
             else:
@@ -13861,12 +13925,14 @@ class DBVistrailVariable(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_name)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_name) in id_remap:
+                cp._db_name = id_remap[(type_key, self._db_name)]
             else:
-                id_remap[(self.vtType, self._db_name)] = new_id
-            cp._db_name = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_name)] = new_id
+                cp._db_name = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -14484,12 +14550,14 @@ class DBModuleDescriptor(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'module_descriptor' in id_scope.remap:
                 fkey_type = id_scope.remap['module_descriptor']
             else:
@@ -14798,12 +14866,14 @@ class DBTag(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'action' in id_scope.remap:
                 fkey_type = id_scope.remap['action']
             else:
@@ -15797,12 +15867,14 @@ class DBPortSpecItem(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -16084,12 +16156,14 @@ class DBMashupComponent(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if self._db_vttype in id_scope.remap:
                 fkey_type = id_scope.remap[self._db_vttype]
             else:
@@ -16561,12 +16635,14 @@ class DBMashup(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'action' in id_scope.remap:
                 fkey_type = id_scope.remap['action']
             else:
@@ -16895,12 +16971,14 @@ class DBMachine(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'vistrail' in id_scope.remap:
                 fkey_type = id_scope.remap['vistrail']
             else:
@@ -17161,12 +17239,14 @@ class DBOther(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -17420,12 +17500,14 @@ class DBAbstraction(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
@@ -17945,12 +18027,14 @@ class DBProvAgent(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -18235,12 +18319,14 @@ class DBMashuptrail(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'action' in id_scope.remap:
                 fkey_type = id_scope.remap['action']
             else:
@@ -18714,12 +18800,14 @@ class DBRegistry(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'module_descriptor' in id_scope.remap:
                 fkey_type = id_scope.remap['module_descriptor']
             else:
@@ -19016,12 +19104,14 @@ class DBOpmAgent(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -19198,12 +19288,14 @@ class DBProvEntity(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -19565,12 +19657,14 @@ class DBAnnotation(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -19829,12 +19923,14 @@ class DBParameterExploration(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'action' in id_scope.remap:
                 fkey_type = id_scope.remap['action']
             else:
@@ -20135,12 +20231,14 @@ class DBMashupActionAnnotation(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'mashup_action' in id_scope.remap:
                 fkey_type = id_scope.remap['mashup_action']
             else:
@@ -20344,12 +20442,14 @@ class DBOpmProcess(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
 
         # recreate indices and set flags
         if not new_ids:
@@ -20679,12 +20779,14 @@ class DBModuleExec(object):
 
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
+            type_key = id_scope.remap[
+                self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self._db_id) in id_remap:
+                cp._db_id = id_remap[(type_key, self._db_id)]
             else:
-                id_remap[(self.vtType, self._db_id)] = new_id
-            cp._db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self._db_id)] = new_id
+                cp._db_id = new_id
             if 'module' in id_scope.remap:
                 fkey_type = id_scope.remap['module']
             else:

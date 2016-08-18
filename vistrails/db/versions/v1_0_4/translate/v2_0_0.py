@@ -35,72 +35,163 @@
 from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBAbstraction, \
     DBGroup, DBModule, DBActionAnnotation, DBAnnotation, DBLoopExec, \
-    DBModuleExec, DBGroupExec, IdScope
+    DBModuleExec, DBGroupExec, IdScope, DBAction
 
+import copy
 import unittest
 
-def translateVistrail(_vistrail):
-    """ Translate old annotation based vistrail variables to new
-        DBVistrailVariable class """
+def check_id_types(vistrail):
+    def getOldObjId(operation):
+        if operation.vtType == 'change':
+            return operation.db_oldObjId
+        return operation.db_objectId
 
-    id_scope = IdScope(remap={DBAdd.vtType: 'operation',
-                              DBChange.vtType: 'operation',
-                              DBDelete.vtType: 'operation',
-                              DBAbstraction.vtType: DBModule.vtType,
-                              DBGroup.vtType: DBModule.vtType,
-                              DBActionAnnotation.vtType: \
-                              DBAnnotation.vtType})
-    
-    id_scope.setBeginId('action', 1)
+    def getNewObjId(operation):
+        if operation.vtType == 'change':
+            return operation.db_newObjId
+        return operation.db_objectId
 
-    id_remap = {}
-    old_class = _vistrail.__class__
-    _vistrail.__class__ = DBVistrail
-    try:
-        vistrail = DBVistrail.do_copy(_vistrail, True, id_scope, id_remap)
-    finally:
-        _vistrail.__class__ = old_class
-    vistrail.idScope = id_scope
+    for action in vistrail.db_actions:
+        if not isinstance(action.db_id, ( int, long )):
+            print "ACTION:", action.db_id
+        if not isinstance(action.db_session, (int, long)):
+            print "SESSION", action.db_session
+        for operation in action.db_operations:
+            if not isinstance(operation.db_id, (int, long)):
+                print "OPERATION", operation.vtType, operation.db_id
+            if operation.vtType == 'add' or operation.vtType == 'change':
+                # update ids of data
+                if not isinstance(getNewObjId(operation), (int, long)):
+                    print "OPDATA", operation.db_what, getNewObjId(operation)
+        for annotation in action.db_annotations:
+            if not isinstance(annotation.db_id, (int, long)):
+                print "ANNOTATION", annotation.db_id
+
+    for annotation in vistrail.db_annotations:
+        if not isinstance(annotation.db_id, (int, long)):
+            print "ANNOTATION", annotation.db_id
+    for annotation in vistrail.db_actionAnnotations:
+        if not isinstance(annotation.db_id, (int, long)):
+            print "ANNOTATION", annotation.db_id
+    for paramexp in vistrail.db_parameter_explorations:
+        if not isinstance(paramexp.db_id, (int, long)):
+            print "ANNOTATION", paramexp.db_id
+
+def translateVistrail(_vistrail, external_data=None):
+    if external_data is not None and "id_remap" in external_data:
+        id_remap = external_data["id_remap"]
+    else:
+        id_remap = {}
+    if external_data is not None and "group_remaps" in external_data:
+        group_remaps = external_data["group_remaps"]
+    else:
+        group_remaps = {}
+    if external_data is not None and "translate_dict" in external_data:
+        translate_dict = copy.copy(external_data["translate_dict"])
+    else:
+        translate_dict = {}
+
+    def update_workflow(old_obj, trans_dict):
+        if old_obj.db_id in group_remaps:
+            group_remap = group_remaps[old_obj.db_id]
+        else:
+            group_remap = {}
+
+        group_data = {"translate_dict": trans_dict,
+                      "id_remap": group_remap}
+        workflow = translateWorkflow(old_obj.db_workflow, group_data)
+        group_remaps[old_obj.db_id] = group_data["id_remap"]
+        return workflow
+
+    if 'DBGroup' not in translate_dict:
+        translate_dict['DBGroup'] = {'workflow': update_workflow}
+
+    root_action_t = (DBAction.vtType, "00000000-0000-0000-0000-000000000000")
+    if root_action_t not in id_remap:
+        id_remap[root_action_t] = 0
+
+    vistrail = DBVistrail()
+    id_scope = vistrail.idScope
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail, False)
+    # FIXME have to eventually expand the inner workflows and update their ids
+    vistrail = vistrail.do_copy(True, id_scope, id_remap)
+
+    # remap upgrade annotations
+    for ann in vistrail.db_actionAnnotations[:]:
+        if ann.db_key == "__upgrade__": # vistrails.core.vistrail.vistrail.Vistrail.UPDATE_ANNOTATION
+            vistrail.db_delete_actionAnnotation(ann)
+            ann.db_value = "%d" % id_remap[(DBAction.vtType, ann.db_value)]
+            vistrail.db_add_actionAnnotation(ann)
+
+    vistrail.db_version = '1.0.4'
     return vistrail
 
-def translateWorkflow(_workflow):
-    # do we need to do this with negative numbers (see self.tmp_id)?
-    id_scope = IdScope(remap={DBAbstraction.vtType: DBModule.vtType,
-                              DBGroup.vtType: DBModule.vtType})
-    id_remap = {}
-    old_class = _workflow.__class__
-    _workflow.__class__ = DBWorkflow
-    try:
-        workflow = DBWorkflow.do_copy(_workflow, True, id_scope, id_remap)
-    finally:
-        _workflow.__class__ = old_class
-    workflow.id_scope = id_scope
+def translateWorkflow(_workflow, external_data=None):
+    if external_data is not None and "id_remap" in external_data:
+        id_remap = external_data["id_remap"]
+    else:
+        id_remap = {}
+    if external_data is not None and "group_remaps" in external_data:
+        group_remaps = external_data["group_remaps"]
+    else:
+        group_remaps = {}
+    if external_data is not None and "translate_dict" in external_data:
+        translate_dict = external_data["translate_dict"]
+    else:
+        translate_dict = {}
+
+    def update_workflow(old_obj, trans_dict):
+        if old_obj.db_id in group_remaps:
+            group_remap = group_remaps[old_obj.db_id]
+        else:
+            group_remap = {}
+
+        group_data = {"translate_dict": trans_dict,
+                      "id_remap": group_remap}
+        workflow = translateWorkflow(old_obj.db_workflow, group_data)
+        group_remaps[old_obj.db_id] = group_data["id_remap"]
+        return workflow
+
+    if 'DBGroup' not in translate_dict:
+        translate_dict['DBGroup'] = {'workflow': update_workflow}
+
+    workflow = DBWorkflow()
+    id_scope = IdScope(remap={DBAbstraction.vtType: DBModule.vtType, DBGroup.vtType: DBModule.vtType})
+    workflow = DBWorkflow.update_version(_workflow, translate_dict, workflow)
+    workflow = workflow.do_copy(True, id_scope, id_remap)
+    workflow.db_version = '1.0.4'
     return workflow
-    
-def translateLog(_log):
-    id_scope = IdScope(1,
-                       {DBLoopExec.vtType: 'item_exec',
-                        DBModuleExec.vtType: 'item_exec',
-                        DBGroupExec.vtType: 'item_exec',
-                        DBAbstraction.vtType: DBModule.vtType,
-                        DBGroup.vtType: DBModule.vtType})
-    id_remap = {}
-    old_class = _log.__class__
-    _log.__class__ = DBLog
-    try:
-        log = DBLog.do_copy(_log, True, id_scope, id_remap)
-    finally:
-        _log.__class__ = old_class
-    log.idScope = id_scope
+
+def translateLog(_log, external_data=None):
+    if external_data is not None and "id_remap" in external_data:
+        id_remap = external_data["id_remap"]
+    else:
+        id_remap = {}
+    if external_data is not None and "translate_dict" in external_data:
+        translate_dict = external_data["translate_dict"]
+    else:
+        translate_dict = {}
+
+    log = DBLog()
+    id_scope = log.id_scope
+    log = DBLog.update_version(_log, translate_dict, log)
+    log = log.do_copy(True, id_scope, id_remap)
+    log.db_version = '1.0.4'
     return log
 
-def translateRegistry(_registry):
-    id_scope = IdScope()
-    id_remap = {}
-    old_class = _registry.__class__
-    _registry.__class__ = DBRegistry
-    try:
-        registry = DBRegistry.do_copy(_registry, True, id_scope, id_remap)
-    finally:
-        _registry.__class__ = old_class
+def translateRegistry(_registry, external_data=None):
+    if external_data is not None and "id_remap" in external_data:
+        id_remap = external_data["id_remap"]
+    else:
+        id_remap = {}
+    if external_data is not None and "translate_dict" in external_data:
+        translate_dict = external_data["translate_dict"]
+    else:
+        translate_dict = {}
+
+    registry = DBRegistry()
+    id_scope = registry.idScope
+    registry = DBRegistry.update_version(_registry, translate_dict, registry, False)
+    registry = registry.do_copy(True, id_scope, id_remap)
+    registry.db_version = '1.0.4'
     return registry
