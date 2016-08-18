@@ -434,12 +434,12 @@
       <sql table="vistrail_variable"/>
     </layout>
 
-    <property name="name" type="str" primaryKey="true">
+    <property name="name" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql column="name" type="varchar(255)"/>
     </property>
 
-    <property name="uuid" type="str">
+    <property name="uuid" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql column="uuid" type="char(36)"/>
     </property>
@@ -2036,7 +2036,7 @@
     </property>
 
     <property ref="true" object="vistrailVariable" type="list" mapping="one-to-many"
-	      index="uuid">
+	      index="name">
       <xml nodeType="xs:element"/>
     </property>
 
