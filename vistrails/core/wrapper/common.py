@@ -36,7 +36,10 @@
 
 from __future__ import division
 
-from redbaron import RedBaron
+import re
+
+from vistrails.core.scripting.scripts import reserved,\
+    get_redbaron
 
 from vistrails.core.scripting.scripts import rename_variables
 
@@ -57,7 +60,7 @@ def convert_port(port, value, patches, translations, port_type):
     if patch_name not in patches:
         return value
     _, patch = patches[patch_name]
-    script = RedBaron(patch)
+    script = get_redbaron().RedBaron(patch)
     rename_variables(script, dict(input='value', output='output'))
     code = script.dumps()
     output = None
@@ -108,7 +111,7 @@ def convert_port_script(code, port, port_name, patches, translations, port_type,
         new_name = new_variable
     else:
         new_name = port_name
-    script = RedBaron(patch)
+    script = get_redbaron().RedBaron(patch)
     rename_variables(script, dict(input=port_name, output=new_name))
     code.append(script.dumps())
     return new_name
@@ -136,3 +139,39 @@ def get_output_spec(cls, name):
             return base._output_spec_table[name]
         base = klasses.next()
     return None
+
+def python_name(name, names={}):
+    """ Creates valid python identifier from string
+
+    """
+    if name in names:
+        return names[name]
+    original_name = name
+    # a default remapping for some basic characters
+    mapping = {'+': 'Plus',
+               '-': 'Minus',
+               '=': 'Equal'}
+    for key, value in mapping.iteritems():
+        name.replace(key, value)
+    # strip invalid chars
+    name = re.sub('[^0-9a-zA-Z_]', '', name)
+    # This function is used for instances and variables, transform to lowercase
+    name = re.sub('(?!^)(?<=[a-z])([A-Z]+)', r'_\1', name).lower()
+    base_name = name
+    i = 0
+    while name in names.itervalues() or name in reserved:
+        i += 1
+        name = base_name + '_%d' % i
+    names[original_name] = name
+    return name
+
+def unique_name(name, names):
+    """ Creates unique string and corresponding valid python identifier from string
+
+    """
+    i = 1
+    base_name = name
+    while name in names:
+        name = '%s_%d' % (base_name, i)
+    python_name(name, names)
+    return names[name]

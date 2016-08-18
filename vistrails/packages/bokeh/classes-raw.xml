@@ -1,12 +1,4 @@
 <specs>
-  <translation signature="basic:Color">def input_t(value):
-    return '#%02X%02X%02X' % tuple([int(c*255) for c in value.tuple])
-def output_t(value):
-    from vistrails.core.utils import InstanceObject
-    return InstanceObject(tuple=tuple([float(ord(c))/255.0 for c in value.replace('#', '').decode('hex')]))</translation>
-  <translation signature="basic:Path">def input_t(value):
-    return value.name
-def output_t(value):
-    from vistrails.core.modules.basic_modules import PathObject
-    return PathObject(tuple=value)</translation>
+  <translation input="basic_Color_input" output="basic_Color_output" type="basic:Color" />
+  <translation input="basic_Path_input" output="basic_Path_output" type="basic:Path" />
 </specs>

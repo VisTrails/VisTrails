@@ -1045,16 +1045,6 @@ class PythonParser(object):
                                            is_operation=is_operation,
                                            output_type=custom_output_type)
 
-        if is_operation:
-            # add base type input port for chaining operations
-            input_specs.append(self.function_spec.InputSpecType(
-                name='operation',
-                arg='operation',
-                arg_pos=-5, # is operation type
-                port_type=custom_output_type or self.default_type,
-                depth=1,
-                show_port=True))
-
         for op_name, op_type in operations.items():
             # operations that will be applied to the result of this function
             input_specs.append(self.function_spec.InputSpecType(

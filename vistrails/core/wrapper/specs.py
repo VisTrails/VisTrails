@@ -521,7 +521,7 @@ class ModuleSpec(SpecObject):
     def all_input_port_specs(self):
         """ appends alternate specs as normal specs
         """
-        input_specs = list(self.input_port_specs)
+        input_specs = list()
         for ispec in self.input_port_specs:
             input_specs.append(ispec)
             for aspec in ispec.alternate_specs:

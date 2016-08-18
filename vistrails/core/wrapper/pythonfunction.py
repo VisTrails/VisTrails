@@ -38,7 +38,8 @@ import importlib
 
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from .common import convert_port
+from vistrails.core.scripting import Script, Prelude
+from .common import convert_port, convert_port_script, python_name, unique_name
 
 IN_KWARG = -1
 ARGV = -2
@@ -47,7 +48,7 @@ SELF = -4
 OPERATION = -5
 
 
-def gen_function_module(spec, lib=None, klasses=None, translations={},
+def gen_function_module(spec, lib=None, klasses=None, patches={}, translations={},
                         **module_settings):
     """Create a module from a python function specification
 
@@ -88,7 +89,7 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
         for port in spec.all_input_port_specs():
             if self.has_input(port.name):
                 value = self.get_input(port.name)
-                value = convert_port(port, value, self._translations['input'])
+                value = convert_port(port, value, self._patches, self._translations, 'input')
                 if IN_KWARG == port.arg_pos:
                     kwargs[port.arg] = value
                 elif ARGV == port.arg_pos:
@@ -144,7 +145,6 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
 
 
         try:
-            print args, kwargs
             result = function(*args, **kwargs)
         except Exception, e:
             raise ModuleError(self, e.message)
@@ -170,7 +170,6 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
                         # it is a class method
                         function = getattr(result, op)
                     try:
-                        print op, op_args, op_kwargs
                         function(*op_args, **op_kwargs)
                     except Exception, e:
                         raise ModuleError(self, e.message)
@@ -195,12 +194,213 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
             if name in outputs and outputs[name] is not None:
                 outputs[name] = convert_port(port,
                                              outputs[name],
-                                             self._translations['output'])
+                                             self._patches,
+                                             self._translations,
+                                             'output')
         # set outputs
         for key, value in outputs.iteritems():
             self.set_output(key, value)
 
+    def to_python_script(cls, module):
+        """ Create a script from the module specification
+        """
+        code = []
+        preludes = []
+
+        def strip_preludes(script):
+            no_preludes = []
+            for s in script.split('\n'):
+                if s.startswith('import ') or s.startswith('from '):
+                    preludes.append(Prelude(s))
+                else:
+                    no_preludes.append(s)
+            return '\n'.join(no_preludes)
+
+        input_map = {}
+        output_map = {}
+
+        used_inputs = set(module.connected_input_ports)
+        used_inputs.update(set([f.name for f in module.functions]))
+        used_outputs = set(module.connected_output_ports)
+
+        # read inputs, convert, and translate to args
+        # list of arg variables or string
+        args = []
+        # dict of kwarg variables, or comma-separated string
+        kwargs = {}
+        # it may be necessary to create kwargs variable
+        def kwargs_string():
+            kwarg_string = ', '.join(['%s=%s' % (key, value) for key, value in kwargs.iteritems()])
+            _, kwargs = unique_name('kwargs', input_map)
+            code.append('%s = dict(%s)' % (kwargs, kwarg_string))
+        def add_kwarg(key, value):
+            if isinstance(kwargs, basestring):
+                code.append('%s[%s] = %s' % (kwargs, key, value))
+            else:
+                kwargs[key] = value
+        def add_kwargs(varname):
+            if not isinstance(kwargs, basestring):
+                kwargs_string()
+            code.append('%s.update(%s)' % (kwargs, varname))
+
+        instance = None
+        ops = []
+        print "all specs", [p.name for p in spec.all_input_port_specs()]
+        for port in spec.all_input_port_specs():
+            if port.name in used_inputs:
+                input_map[port.name] = python_name(port.name, input_map)
+                value = convert_port_script(code, port, input_map[port.name],
+                                            cls._patches, cls._translations,
+                                            'input')
+                print "do input", port.name, value
+                if IN_KWARG == port.arg_pos:
+                    add_kwarg(port.arg, value)
+                elif ARGV == port.arg_pos:
+                    args = value
+                elif KWARG == port.arg_pos:
+                    add_kwargs(value)
+                elif SELF == port.arg_pos:
+                    instance = value
+                elif OPERATION == port.arg_pos:
+                    ops.append(value)
+                else:
+                    # make room for arg
+                    while len(args) <= port.arg_pos:
+                        args.append(None)
+                    args[port.arg_pos] = value
+
+        if 'operation' == spec.method_type:
+            # Set module info on self output and quit
+            # FIXME: using spec.name assumes same package
+            # FIXME: serialize kwargs?
+            # NOTE: tempfile/callback not supported on operations
+
+            if not args:
+                args = '[]'
+            elif not isinstance(args, basestring):
+                args = '[' + ', '.join(args) + ']'
+            if not kwargs:
+                kwargs = '{}'
+            elif not isinstance(kwargs, basestring):
+                kwargs = 'dict(' + ', '.join(['%s=%s' % (key, value)
+                                          for key, value in kwargs.iteritems()]) + ')'
+            ops.append("[('%s', %s, %s)]" % (spec.code_ref, args, kwargs))
+
+            for name in used_outputs:
+                name = python_name(name, output_map)
+                code.append('%s = %s' % (name, ' + '.join(ops)))
+            code = '\n'.join(code)
+            return Script(code, input_map, output_map), preludes
+
+        # Optional function for creating temporary files
+        if spec.tempfile:
+            #getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
+            preludes.append(Prelude('import tempfile'))
+            code.append(strip_preludes(cls.call_patched_script(instance,
+                                                               spec.tempfile,
+                                                               ['tempfile.mkstemp'])))
+            add_kwarg(spec.tempfile, spec.tempfile)
+
+        if 'method' == spec.method_type:
+            function = '%s.%s' % (instance, spec.code_ref)
+        elif 'function' == spec.method_type:
+            # full paths are imported directly
+            m, f = spec.code_ref.rsplit('.', 1)
+            preludes.append(Prelude('import ' + m))
+            function = spec.code_ref
+
+        arg_list = []
+        if args:
+            if isinstance(args, basestring):
+                arg_list.append('*' + args)
+            else:
+                arg_list.append(', '.join(args))
+        if kwargs:
+            if isinstance(kwargs, basestring):
+                arg_list.append('*' + args)
+            else:
+                arg_list.append(', '.join(['%s=%s' % (key, value)
+                                           for key, value in kwargs.iteritems()]))
+
+        function_call = "%s(%s)" % (function, ', '.join(arg_list))
+
+        outputs_list = [p.name for p in module.sourcePorts() if p.name in used_outputs]
+
+        print "out_)type", spec.output_type
+        result_var = unique_name('result', output_map)
+        # compute shape of output
+        if spec.output_type is None or spec.output_type == 'object':
+            # single object
+            print "outputs_list", outputs_list, used_outputs
+            for name in outputs_list:
+                instance = python_name(name, output_map)
+                function_call = '%s = %s' % (instance, function_call)
+        elif spec.output_type == 'list':
+            for name in outputs_list:
+                python_name(name, output_map)
+            function_call = '%s = %s' % (', '.join([output_map[name] for name in outputs_list]),
+                                         function_call)
+        elif spec.output_type == 'dict':
+            # translate from args to names
+            function_call = '%s = %s' % (result_var, function_call)
+            for name in outputs_list:
+                python_name(name, output_map)
+                for ispec in spec.all_input_port_specs():
+                    if ispec.name == name:
+                        arg = ispec.arg
+                function_call += '\n%s = %s.%s' % (output_map[name], result_var, arg)
+        elif spec.output_type == 'self':
+            # return result as only output
+            for name in outputs_list:
+                instance = python_name(name, output_map)
+                function_call = '%s = %s' % (instance, function_call)
+        elif ops:
+            instance = result_var
+            function_call = '%s = %s' % (result_var, function_call)
+
+        code.append(function_call)
+
+        # apply operations
+        # the function must return a class instance for this to work
+        op_name = unique_name('op', output_map)
+        op_args_name = unique_name('op_args', output_map)
+        op_kwargs_name = unique_name('op_kwargs', output_map)
+        m_name = unique_name('m', output_map)
+        c_name = unique_name('c', output_map)
+        n_name = unique_name('n', output_map)
+        function_name = unique_name('function', output_map)
+        for op in ops:
+            preludes.append(Prelude('import importlib'))
+            code.append('for %s, %s, %s in %s:' % (op_name, op_args_name, op_kwargs_name, op))
+            code.append("    if '.' in %s:" % op_name)
+            # Run as a function with obj as first argument
+            code.append("        %s, %s, %s = %s.rsplit('.', 2)" % (m_name, c_name, n_name, op_name))
+            code.append("        %s = getattr(getattr(importlib.import_module(%s), %s), %s)" % (function_name, m_name, c_name, n_name))
+            code.append("        %s[0] = %s" % (op_args_name, instance))
+            code.append("    else:")
+            # it is a class method
+            code.append("        %s = getattr(%s, %s)" % (function_name, instance, op_name))
+            code.append("    %s(*%s, **%s)" % (function_name, op_args_name, op_kwargs_name))
+
+        # convert values to vistrail types
+        for port in spec.output_port_specs:
+            name = port.name
+            if name in used_outputs:
+                print "outcon", spec.module_name, name, used_outputs
+                output_map[name] = python_name(name, output_map)
+                convert_port_script(code,
+                                    port,
+                                    output_map[name],
+                                    cls._patches,
+                                    cls._translations,
+                                   'output')
+
+        code = '\n'.join(code)
+        return Script(code, input_map, output_map), preludes
+
+
     d = {'compute': compute,
+         'to_python_script': classmethod(to_python_script),
          '__module__': __name__,
          '_settings': _settings,
          '__doc__': spec.docstring,
@@ -208,6 +408,7 @@ def gen_function_module(spec, lib=None, klasses=None, translations={},
          'is_cacheable': lambda self:spec.cacheable,
          '_input_ports': input_ports,
          '_output_ports': output_ports,
+         '_patches': patches,
          '_translations': translations}
 
     superklass = klasses.get(spec.superklass, Module) if klasses else Module

@@ -45,39 +45,13 @@ from itertools import izip
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.scripting import Script, Prelude
-from vistrails.core.scripting.scripts import rename_variables, reserved,\
+from vistrails.core.scripting.scripts import rename_variables,\
     get_redbaron, replace_method
 
 from .common import convert_port, convert_port_script, get_input_spec,\
-                    get_output_spec, get_patches
+                    get_output_spec, get_patches, python_name
 
 METHOD_TYPES = ['method', 'nullary', 'OnOff', 'SetXToY']
-
-
-def python_name(name, names={}):
-    """ Creates unique valid python identifier from string
-
-    """
-    if name in names:
-        return names[name]
-    original_name = name
-    # a default remapping for some basic characters
-    mapping = {'+': 'Plus',
-               '-': 'Minus',
-               '=': 'Equal'}
-    for key, value in mapping.iteritems():
-        name.replace(key, value)
-    # strip invalid chars
-    name = re.sub('[^0-9a-zA-Z_]', '', name)
-    # This function is used for instances and variables, transform to lowercase
-    name = re.sub('(?!^)(?<=[a-z])([A-Z]+)', r'_\1', name).lower()
-    base_name = name
-    i = 0
-    while name in names.itervalues() or name in reserved:
-        i += 1
-        name = base_name + '_%d' % i
-    names[original_name] = name
-    return name
 
 
 class BaseClassModule(Module):
@@ -1068,7 +1042,7 @@ class BaseClassModule(Module):
 
 
 def gen_class_module(spec, lib=None, modules=None, patches={}, translations={},
-                     operations={}, **module_settings):
+                     **module_settings):
     """Create a module from a python class specification
 
     Parameters
@@ -1078,7 +1052,7 @@ def gen_class_module(spec, lib=None, modules=None, patches={}, translations={},
     module : pythonmodule
         The module to load classes from
     modules : dict of name:module
-    operations : supported operation dict of {name: type}
+
     """
     if modules is None:
         modules = {}

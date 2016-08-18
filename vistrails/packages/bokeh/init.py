@@ -63,12 +63,16 @@ _modules.append(Glyph)
 
 class_spec_name = os.path.join(this_dir,'classes.xml')
 class_list = SpecList.read_from_xml(class_spec_name, ClassSpec)
-_modules.extend([gen_class_module(spec) for spec in class_list.module_specs])
+_modules.extend([gen_class_module(spec,
+                                  patches=class_list.patches,
+                                  translations=class_list.translations,
+) for spec in class_list.module_specs])
 
 func_spec_name = os.path.join(this_dir,'functions.xml')
 func_list = SpecList.read_from_xml(func_spec_name, FunctionSpec)
 _modules.extend([gen_function_module(spec,
-                                     translations=func_list.get_translations())
+                                     patches=func_list.patches,
+                                     translations=func_list.translations)
                  for spec in func_list.module_specs])
 
 from vistrails.packages.spreadsheet.widgets.webview.webview import WebViewCellWidget
@@ -100,7 +104,7 @@ class bokehToBrowserMode(OutputMode):
     def compute_output(self, output_module, configuration):
         plot = output_module.get_input('plot')
         from bokeh.plotting import show, output_file
-        po = output_module.interpreter._file_pool.create_file(suffix='.html')
+        po = output_module.interpreter.filePool.create_file(suffix='.html')
         output_file(po.name, mode='inline')
         kwargs = {}
         if configuration['browser']:
@@ -140,7 +144,7 @@ class BokehOutput(OutputModule):
                 from bokeh.resources import INLINE
                 from bokeh.embed import file_html
                 html = file_html(plot, INLINE, "my plot")
-                po = output_module.interpreter._file_pool.create_file(suffix='.html')
+                po = output_module.interpreter.filePool.create_file(suffix='.html')
                 with open(po.name, 'w') as f:
                     f.write(html)
                 self.display_and_wait(output_module, configuration,

@@ -71,12 +71,12 @@ key_to_type = [['file', 'basic:File'],
                ['str', 'basic:String']]
 
 # append type to the name of alternate ports
-alt_suffixes = {'basic:Integer': '(int)',
-                'basic:Float': '(float)',
-                'basic:String': '(str)',
-                'basic:Boolean': '(bool)',
-                'basic:List': '(list)',
-                'basic:Dictionary': '(dict)'}
+alt_suffixes = {'basic:Integer': '_int',
+                'basic:Float': '_float',
+                'basic:String': '_str',
+                'basic:Boolean': '_bool',
+                'basic:List': '_list',
+                'basic:Dictionary': '_dict'}
 
 
 def parse_bokeh_property(prop):
@@ -166,24 +166,11 @@ def parse_fig_method(f):
     return bokeh_property_parser(marker)
 
 
-# Bokeh uses css colors, so we translate them to hex strings
-# outputs are probably not used
-# this must define input_t and output_t translator functions
-# This does not work on subclasses, they need to be defined explicitly
-translations = {
-    'basic:Color':
-        "def input_t(value):\n"
-        "    return '#%02X%02X%02X' % tuple([int(c*255) for c in value.tuple])\n"
-        "def output_t(value):\n" # Assumes receiving hex string, which is probably wrong
-        "    from vistrails.core.utils import InstanceObject\n"
-        "    return InstanceObject(tuple=tuple([float(ord(c))/255.0 for c in value.replace('#', '').decode('hex')]))",
-    'basic:Path':
-        "def input_t(value):\n"
-        "    return value.name\n"
-        "def output_t(value):\n"
-        "    from vistrails.core.modules.basic_modules import PathObject\n"
-        "    return PathObject(tuple=value)"}
+translations = {'basic:Color': ('basic_Color_input', 'basic_Color_output'),
+                'basic:Path': ('basic_Path_input', 'basic_Path_output')}
 
+patch_name = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                           'patch.py'))
 
 def parser():
     """ Wraps Figure class, figure function, figure methods, and charts
@@ -285,10 +272,11 @@ def parser():
                                            output_type='plotting|Figure')
             functions.append(figure)
 
-    class_list = SpecList(classes, translations)
+
+    class_list = SpecList(classes, translations=translations)
     class_list.write_to_xml(raw_class_spec_name)
     apply_diff(ClassSpec, raw_class_spec_name, class_spec_diff, class_spec_name)
-    fun_list = SpecList(functions, translations)
+    fun_list = SpecList(functions, translations=translations)
     fun_list.write_to_xml(raw_fun_spec_name)
     apply_diff(FunctionSpec, raw_fun_spec_name, fun_spec_diff, fun_spec_name)
     return class_list, fun_list
