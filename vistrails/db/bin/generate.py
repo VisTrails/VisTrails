@@ -232,6 +232,8 @@ def main(argv=None):
                     's': ('generate sql schema and persistence classes', False),
                     'x': ('generate xml schema and persistence classes', False),
                     't': ('generate test classes', False),
+                    'j:': ('generate object children', False, 'object'),
+                    'f:': ('generate foreign key refs', False, 'object'),
                     'v:': ('vistrail version tag', True, 'version'),
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}
@@ -391,6 +393,26 @@ def main(argv=None):
         f.write('from vistrails.db.versions.%s.persistence import *\n' % \
                     versionName)
         f.close()
-            
+
+    if options['j']:
+        obj = options['j']
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        for o in objects:
+            if o.getName() == obj:
+                for name in sorted(o.getChildObjs(True)):
+                    print name
+
+    if options['f']:
+        obj = options['f']
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        for o in objects:
+            if o.getName() == obj:
+                for name in sorted(o.getForeignKeyRefs(True)):
+                    print name
+
 if __name__ == '__main__':
     main()
