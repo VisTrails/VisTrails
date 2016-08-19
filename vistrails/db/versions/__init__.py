@@ -203,6 +203,10 @@ def translate_startup(startup, version=None, target_version=None, external_data=
     return translate_object(startup, 'translateStartup', version,
                             target_version, external_data)
 
+def translate_bundle(bundle, version=None, target_version=None, external_data=None):
+    return translate_object(bundle, 'translateBundle', version, target_version,
+                            external_data)
+
 def get_full_version_str(version_str):
     while len(version_str.split('.')) < 3:
         version_str = version_str + '.0'

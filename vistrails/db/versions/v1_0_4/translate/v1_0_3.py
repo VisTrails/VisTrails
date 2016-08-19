@@ -42,11 +42,12 @@ from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, 
     DBActionAnnotation, DBStartup, DBConfigKey, DBConfigBool, DBConfigStr, \
     DBConfigInt, DBConfigFloat, DBConfiguration, DBStartupPackage, \
     DBLoopIteration, DBLoopExec, DBModuleExec, DBGroupExec, \
-    DBMashuptrail
+    DBMashuptrail, DBMachine, DBWorkflowExec, SaveBundle
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
 from itertools import izip
+import copy
 import os
 import shutil
 import string
@@ -87,6 +88,7 @@ def translateWorkflow(_workflow):
 
 def translateLog(_log):
     id_scope = _log.id_scope
+
     def update_loop_execs(old_obj, translate_dict):
         if len(old_obj.db_loop_execs) == 0:
             return []
@@ -429,6 +431,25 @@ def translateStartup(_startup):
 
     startup.db_version = '1.0.4'
     return startup
+
+def translateBundle(_bundle):
+    bundle = SaveBundle(_bundle.bundle_type)
+    if _bundle.vistrail is not None:
+        bundle.vistrail = translateVistrail(_bundle.vistrail)
+    if _bundle.workflow is not None:
+        bundle.workflow = translateWorkflow(_bundle.workflow)
+    if _bundle.log is not None:
+        bundle.log = translateLog(_bundle.log)
+    if _bundle.registry is not None:
+        bundle.registry = translateRegistry(_bundle.registry)
+    for _mashup in _bundle.mashups:
+        bundle.mashups.append(translateMashup(_mashup))
+    bundle.thumbnails = copy.copy(_bundle.thumbnails)
+    bundle.opm_graph = _bundle.opm_graph
+    # FIXME translate abstractions?
+    for a in _bundle.abstractions:
+        bundle.abstractions.append(a)
+    return bundle
 
 class TestTranslate(unittest.TestCase):
     def test_startup_update(self):

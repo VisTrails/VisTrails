@@ -42,3 +42,4 @@ from workflow import DBWorkflow
 from vistrail import DBVistrail
 from log import DBLog
 from id_scope import IdScope
+from bundle import SaveBundle

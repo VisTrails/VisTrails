@@ -35,7 +35,7 @@
 from vistrails.db.versions.v2_0_0.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBStartup, DBMashuptrail, DBAction, \
     DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, DBActionAnnotation, \
-    DBModule, DBAnnotation, IdScope
+    DBModule, DBAnnotation, IdScope, SaveBundle
 
 import copy
 import unittest
@@ -184,3 +184,101 @@ def translateStartup(_startup, external_data=None):
 
     startup.db_version = '2.0.0'
     return startup
+
+def translateBundle(_bundle, external_data=None):
+    if external_data is not None and "translate_dict" in external_data:
+        translate_dict = external_data["translate_dict"]
+    else:
+        translate_dict = {}
+
+    def remove_non_unique(extdata, non_unique):
+        new_remap = {}
+        for ((t, k1), k2) in extdata["id_remap"].iteritems():
+            if t not in non_unique:
+                # check for idscope remap here...
+                new_remap[(t, k1)] = k2
+        extdata["id_remap"] = new_remap
+
+    def copy_extdata(extdata):
+        return {k: copy.copy(v) for k,v in extdata.iteritems()}
+
+    def update_extdata(extdata, updates):
+        for k,v in updates.iteritems():
+            if k in extdata:
+                extdata[k].update(v)
+            else:
+                extdata[k] = v
+
+    bundle_contents = {}
+
+    if external_data is not None and "vistrail_extdata" in external_data:
+        vistrail_extdata = external_data["vistrail_extdata"]
+    else:
+        vistrail_extdata = None
+    if external_data is not None and "workflow_extdata" in external_data:
+        workflow_extdata = external_data["workflow_extdata"]
+    else:
+        workflow_extdata = None
+    if _bundle.vistrail is not None:
+        if vistrail_extdata is None:
+            vistrail_extdata = {"id_remap": {}, "group_remaps": {}}
+        _vistrail = _bundle.vistrail
+        vistrail = translateVistrail(_vistrail, vistrail_extdata)
+        bundle_contents['vistrail'] = vistrail
+
+    if _bundle.workflow is not None:
+        if workflow_extdata is None:
+            workflow_extdata = {"id_remap": {}, "group_remaps": {}}
+        if vistrail_extdata is not None:
+            vt_extdata = copy_extdata(vistrail_extdata)
+            remove_non_unique(vt_extdata, set()) # nothing for wf
+            #FIXME allow vistrail to clobber workflow ids?
+            # if materialization is direct, this should be better
+            update_extdata(workflow_extdata, vt_extdata)
+
+        _workflow = _bundle.workflow
+        workflow = translateWorkflow(_workflow, workflow_extdata)
+        bundle_contents['workflow'] = workflow
+
+    abstractions = []
+    for _abstraction in _bundle.abstractions:
+        # convert abstractions
+        # should just be able to run vistrail translation...
+        pass
+
+    for mashup in _bundle.mashups:
+        # convert mashups
+        pass
+
+    # FIXME abstractions and mashups may affect log
+    if _bundle.log is not None:
+        if external_data is not None and "log_extdata" in external_data:
+            log_extdata = external_data["log_extdata"]
+        else:
+            log_extdata = {"id_remap": {}, "group_remaps": {}}
+        if vistrail_extdata is not None:
+            vt_extdata = copy_extdata(vistrail_extdata)
+            remove_non_unique(vt_extdata, set([DBAnnotation.vtType]))
+            update_extdata(log_extdata, vt_extdata)
+        elif workflow_extdata is not None:
+            wf_extdata = copy_extdata(workflow_extdata)
+            remove_non_unique(wf_extdata, set())
+            update_extdata(log_extdata, wf_extdata)
+
+        _log = _bundle.log
+        log = translateLog(_log, log_extdata)
+        bundle_contents['log'] = log
+
+    if _bundle.registry is not None:
+        if external_data is not None and "registry_extdata" in external_data:
+            registry_extdata = external_data["registry_extdata"]
+        else:
+            registry_extdata = {"id_remap": {}}
+        _registry = _bundle.registry
+        registry = translateRegistry(_registry, registry_extdata)
+        bundle_contents['registry'] = registry
+
+
+    # FIXME set version in bundle
+    return SaveBundle(_bundle.bundle_type,
+                      **bundle_contents)

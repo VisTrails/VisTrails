@@ -35,9 +35,10 @@
 ###############################################################################
 from __future__ import division
 
+import copy
 from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBAnnotation, \
-                                      DBWorkflow, DBLog, DBRegistry, \
-                                      DBPortSpec, DBAdd, DBChange, DBDelete
+    DBWorkflow, DBLog, DBRegistry, DBPortSpec, DBAdd, DBChange, DBDelete, \
+    DBMashuptrail, DBMachine, SaveBundle
 from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
@@ -101,6 +102,34 @@ def translateRegistry(_registry):
     translate_dict = {}
     registry = DBRegistry()
     id_scope = registry.idScope
-    vistrail = DBRegistry.update_version(_registry, translate_dict, registry)
+    registry = DBRegistry.update_version(_registry, translate_dict, registry)
     registry.db_version = '1.0.3'
     return registry
+
+def translateMashup(_mashup):
+    global id_scope
+    translate_dict = {}
+    mashup = DBMashuptrail()
+    id_scope = mashup.id_scope
+    mashup = DBMashuptrail.update_version(_mashup, translate_dict, mashup)
+    mashup.db_version = '1.0.3'
+    return mashup
+
+def translateBundle(_bundle):
+    bundle = SaveBundle(_bundle.bundle_type)
+    if _bundle.vistrail is not None:
+        bundle.vistrail = translateVistrail(_bundle.vistrail)
+    if _bundle.workflow is not None:
+        bundle.workflow = translateWorkflow(_bundle.workflow)
+    if _bundle.log is not None:
+        bundle.log = translateLog(_bundle.log)
+    if _bundle.registry is not None:
+        bundle.registry = translateRegistry(_bundle.registry)
+    for _mashup in _bundle.mashups:
+        bundle.mashups.append(translateMashup(_mashup))
+    bundle.thumbnails = copy.copy(_bundle.thumbnails)
+    bundle.opm_graph = _bundle.opm_graph
+    # FIXME translate abstractions?
+    for a in _bundle.abstractions:
+        bundle.abstractions.append(a)
+    return bundle

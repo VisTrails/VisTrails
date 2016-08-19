@@ -40,7 +40,7 @@ from id_scope import IdScope
 class DBMashuptrail(_DBMashuptrail):
     def __init__(self, *args, **kwargs):
         _DBMashuptrail.__init__(self, *args, **kwargs)
-        self.id_scope = IdScope(1L)
+        self.idScope = IdScope(1L)
 
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
@@ -52,12 +52,12 @@ class DBMashuptrail(_DBMashuptrail):
 
     def update_id_scope(self):
         for action in self.db_actions:
-            self.id_scope.updateBeginId('mashup_action', action.db_id+1)
+            self.idScope.updateBeginId('mashup_action', action.db_id+1)
             for alias in action.db_mashup.db_aliases:
-                self.id_scope.updateBeginId('mashup_alias', alias.db_id+1)
-                self.id_scope.updateBeginId('mashup_component', alias.db_component.db_id+1)
+                self.idScope.updateBeginId('mashup_alias', alias.db_id+1)
+                self.idScope.updateBeginId('mashup_component', alias.db_component.db_id+1)
         for annotation in self.db_annotations:
-            self.id_scope.updateBeginId('annotation', annotation.db_id+1)
+            self.idScope.updateBeginId('annotation', annotation.db_id+1)
         for aannotation in self.db_actionAnnotations:
-            self.id_scope.updateBeginId('mashup_actionAnnotation', aannotation.db_id+1)
+            self.idScope.updateBeginId('mashup_actionAnnotation', aannotation.db_id+1)
 

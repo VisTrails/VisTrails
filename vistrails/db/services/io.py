@@ -65,8 +65,9 @@ import vistrails.db.services.prov
 import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
-from vistrails.db.versions import getVersionDAO, get_current_version, getVersionSchemaDir, \
-    translate_vistrail, translate_workflow, translate_log, translate_registry, translate_startup
+from vistrails.db.versions import getVersionDAO, get_current_version, \
+    getVersionSchemaDir, translate_vistrail, translate_workflow, translate_log, \
+    translate_registry, translate_startup, translate_bundle, translate_mashup
 
 import unittest
 import vistrails.core.system
@@ -740,7 +741,7 @@ def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
             for fname in files:
                 if fname == 'vistrail' and root == vt_save_dir:
                     vistrail = open_vistrail_from_xml(os.path.join(root, fname),
-                                                      do_translate)
+                                                      False)
                 elif fname == 'log' and root == vt_save_dir:
                     # FIXME read log to get execution info
                     # right now, just ignore the file
@@ -757,7 +758,7 @@ def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
                     thumbnail_files.append(thumbnail_file)
                 elif root == os.path.join(vt_save_dir,'mashups'):
                     mashup_file = os.path.join(root, fname)
-                    mashup = open_mashuptrail_from_xml(mashup_file, do_translate)
+                    mashup = open_mashuptrail_from_xml(mashup_file, False)
                     mashups.append(mashup)
                 else:
                     handled = False
@@ -788,6 +789,12 @@ def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
     save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
                              abstractions=abstraction_files, 
                              thumbnails=thumbnail_files, mashups=mashups)
+    if do_translate:
+        if vistrail.db_version != get_current_version():
+            # only translate to vistrail.db_version, **not current version**
+            # so bundle updates work as expected
+            save_bundle.log = open_log_from_xml(log_fname, True, vistrail.db_version)
+        save_bundle = translate_bundle(save_bundle, vistrail.db_version)
     return (save_bundle, vt_save_dir)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
@@ -1234,11 +1241,14 @@ def open_wf_execs_from_xml(filename):
         workflow_execs.append(workflow_exec)
     return workflow_execs
 
-def open_log_from_xml(filename, was_appended=False, do_translate=True):
+def open_log_from_xml(filename, was_appended=False, do_translate=True,
+                      target_version=None):
     """open_log_from_xml(filename) -> DBLog"""
 
     # do_translate=False cannot work for those that were appended, use
     # open_wf_execs_from_xml for that
+    if target_version is None:
+        target_version = get_current_version()
     if was_appended:
         raw_wf_execs = open_wf_execs_from_xml(filename)
         wf_execs = []
@@ -1248,15 +1258,15 @@ def open_log_from_xml(filename, was_appended=False, do_translate=True):
             if version != get_current_version():
                 log = DBLog()
                 # we have to translate to put into one log
-                translate_log(log, get_current_version(), version)
+                log = translate_log(log, get_current_version(), version)
                 log.db_add_workflow_exec(wf_exec)
-                log = translate_log(log, version)
+                log = translate_log(log, version, target_version)
                 wf_exec = log.db_workflow_execs[0]
                 wf_execs.append(wf_exec)
             else:
                 wf_execs.append(wf_exec)
         log = DBLog(workflow_execs=wf_execs)
-        log.db_version = get_current_version()
+        log.db_version = target_version
         vistrails.db.services.log.update_ids(log)
     else:
         tree = ElementTree.parse(filename)
@@ -2255,8 +2265,8 @@ class TestMySQLDatabase(TestSQLDatabase):
 # class TestMySQLDatabase_v1_0_4(TestMySQLDatabase, unittest.TestCase):
 #     db_version = '1.0.4'
 
-class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
-    db_version = '2.0.0'
+# class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '2.0.0'
 
 # class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
 #     db_fname = None
@@ -2286,9 +2296,9 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
     def get_filename(self):
         from vistrails.core.system import vistrails_root_directory
         fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
-                             'test_basics.vt')
+                             # 'test_basics.vt')
+                            'terminator-new.vt')
         return fname
-        # return '/vistrails/src/git/examples/terminator.vt'
 
 
     def run_vistrail_translation_test(self, version):
@@ -2388,6 +2398,32 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
     def run_bundle_translation_test(self, version):
         save_dir = None
         try:
+            #FIXME add mashups/abstractions/registry/workflow
+            (bundle1, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+
+            external_data = {"vistrail_extdata": self.create_external_data(),
+                             "log_extdata": self.create_external_data()}
+            bundle2 = translate_bundle(bundle1, get_current_version(), version, external_data)
+            # print "REMAP:", external_data["vistrail_extdata"]["id_remap"]
+            # print "LOG REMAP:", external_data["log_extdata"]["id_remap"]
+            self.invert_remaps(external_data["vistrail_extdata"])
+            self.invert_remaps(external_data["log_extdata"])
+            # print "INV REMAP:", external_data["vistrail_extdata"]["id_remap"]
+            # print "INV LOG REMAP:", external_data["log_extdata"]["id_remap"]
+
+            bundle2 = translate_bundle(bundle2, version, get_current_version(), external_data)
+
+            DBVistrailTest.deep_eq_test(bundle1.vistrail, bundle2.vistrail,
+                                        self, get_alternate_tests(version))
+            DBLogTest.deep_eq_test(bundle1.log, bundle2.log,
+                                   self, get_alternate_tests(version))
+        finally:
+            if save_dir is not None:
+                shutil.rmtree(save_dir)
+
+    def run_manual_bundle_translation_test(self, version):
+        save_dir = None
+        try:
             # have to translate the vistrail along with the log
 
             # --- READ AND SET UP DATA ---
@@ -2462,8 +2498,8 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
     # def test_v1_0_1_registry(self):
     #     self.run_registry_translation_test('1.0.1')
 
-    # def test_v1_0_1_bundle(self):
-    #     self.run_bundle_translation_test('1.0.1')
+    def test_v1_0_1_bundle(self):
+        self.run_bundle_translation_test('1.0.1')
 
 if __name__ == '__main__':
     import vistrails.core.application

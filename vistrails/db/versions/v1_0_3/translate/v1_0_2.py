@@ -34,16 +34,16 @@
 ##
 ###############################################################################
 from __future__ import division
-
+import copy
 from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, \
-                                      DBWorkflow, DBLog, DBRegistry, \
-                                      DBAdd, DBChange, DBDelete, \
-                                      DBPortSpec, DBPortSpecItem, \
-                                      DBParameterExploration, \
-                                      DBPEParameter, DBPEFunction, \
-                                      IdScope, DBAbstraction, \
-                                      DBModule, DBGroup, DBAnnotation, \
-                                      DBActionAnnotation
+    DBWorkflow, DBLog, DBRegistry, \
+    DBAdd, DBChange, DBDelete, \
+    DBPortSpec, DBPortSpecItem, \
+    DBParameterExploration, \
+    DBPEParameter, DBPEFunction, \
+    IdScope, DBAbstraction, \
+    DBModule, DBGroup, DBAnnotation, \
+    DBActionAnnotation, SaveBundle
 
 from vistrails.db.services.vistrail import materializeWorkflow
 
@@ -307,6 +307,23 @@ def translateRegistry(_registry):
     registry = DBRegistry.update_version(_registry, translate_dict, registry)
     registry.db_version = '1.0.3'
     return registry
+
+def translateBundle(_bundle):
+    bundle = SaveBundle(_bundle.bundle_type)
+    if _bundle.vistrail is not None:
+        bundle.vistrail = translateVistrail(_bundle.vistrail)
+    if _bundle.workflow is not None:
+        bundle.workflow = translateWorkflow(_bundle.workflow)
+    if _bundle.log is not None:
+        bundle.log = translateLog(_bundle.log)
+    if _bundle.registry is not None:
+        bundle.registry = translateRegistry(_bundle.registry)
+    bundle.thumbnails = copy.copy(_bundle.thumbnails)
+    bundle.opm_graph = _bundle.opm_graph
+    # FIXME translate abstractions?
+    for a in _bundle.abstractions:
+        bundle.abstractions.append(a)
+    return bundle
 
 class TestTranslate(unittest.TestCase):
     def testParamexp(self):

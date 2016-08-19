@@ -56,7 +56,7 @@ def update_id_scope(vistrail):
     elif hasattr(vistrail, 'idScope'):
         for action in vistrail.db_actions:
             vistrail.idScope.updateBeginId('action', action.db_id+1)
-            if action.db_session is not None:
+            if action.db_session is not None and action.db_session != '':
                 vistrail.idScope.updateBeginId('session', action.db_session + 1)
             for operation in action.db_operations:
                 vistrail.idScope.updateBeginId('operation', operation.db_id+1)
