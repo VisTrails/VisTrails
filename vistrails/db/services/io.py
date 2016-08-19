@@ -2026,7 +2026,11 @@ def get_alternate_tests(version):
                        ('DBAction', 'db_session'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
                       ('1.0.3', '1.0.4'):
-                      {('DBPortSpec', 'db_depth'): None},
+                      {('DBPortSpec', 'db_depth'): None,
+                       #FIXME find a better way to deal with machine_id changes
+                       ('DBMachine', 'db_id'): None,
+                       ('DBModuleExec', 'db_machine_id'): None,
+                       ('DBGroupExec', 'db_machine_id'): None},
                       ('1.0.2', '1.0.3'):
                       {('DBPortSpecItem', 'db_id'): None,
                        ('DBPortSpecItem', 'db_values'): None,

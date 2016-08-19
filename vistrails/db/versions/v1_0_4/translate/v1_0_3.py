@@ -167,8 +167,32 @@ def translateLog(_log):
 
         
         return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBModuleExec': {'loop_execs': update_loop_execs},
-                      'DBGroupExec': {'item_execs': update_item_execs}}
+
+    machines = {}
+    for _machine in _log.db_machines:
+        machines[_machine.db_id] = DBMachine.update_version(_machine, {})
+    # due to poor mapping, machine_ids didn't reference correctly in 1.0.3
+    machine_ids = {'ids': set()}
+    def update_machine_id(old_obj, translate_dict):
+        if old_obj.db_machine_id in machines:
+            machine_ids['ids'].add(old_obj.db_machine_id)
+            return old_obj.db_machine_id
+        return None
+    def update_wfexecs(old_obj, translate_dict):
+        new_wf_execs = []
+        for wf_exec in old_obj.db_workflow_execs:
+            machine_ids['ids'] = set()
+            new_wf_exec = DBWorkflowExec.update_version(wf_exec, translate_dict)
+            for mid in machine_ids['ids']:
+                new_wf_exec.db_add_machine(machines[mid])
+            new_wf_execs.append(new_wf_exec)
+        return new_wf_execs
+
+    translate_dict = {'DBLog': {'workflow_execs': update_wfexecs},
+                      'DBModuleExec': {'loop_execs': update_loop_execs,
+                                       'machine_id': update_machine_id},
+                      'DBGroupExec': {'item_execs': update_item_execs,
+                                      'machine_id': update_machine_id}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '1.0.4'
     return log
