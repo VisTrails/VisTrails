@@ -2296,19 +2296,83 @@ class TestMySQLDatabase(TestSQLDatabase):
 #         super(TestSQLite3Database, cls).tearDownClass()
 #         os.unlink(cls.db_fname)
 
-class TestTranslations(TranslationMixin, unittest.TestCase):
-    def get_filename(self):
+import itertools
+import os
+
+]class TestTranslationsMeta(type):
+    # Based on http://stackoverflow.com/a/20870875
+    def __new__(mcs, name, bases, dict):
+        def gen_test(obj_type, version, *args, **kwargs):
+            if obj_type == 'vistrail':
+                def test(self):
+                    self.run_vistrail_translation_test(version, *args, **kwargs)
+            elif obj_type == 'workflow':
+                def test(self):
+                    self.run_workflow_translation_test(version, *args, **kwargs)
+            elif obj_type == 'log':
+                def test(self):
+                    self.run_log_translation_test(version, *args, **kwargs)
+            elif obj_type == 'registry':
+                def test(self):
+                    self.run_registry_translation_test(version, *args, **kwargs)
+            elif obj_type == 'bundle':
+                def test(self):
+                    self.run_bundle_translation_test(version, *args, **kwargs)
+            else:
+                raise ValueError('Test not defined for object type "{}"'.format(obj_type))
+            return test
+
         from vistrails.core.system import vistrails_root_directory
-        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
-                             # 'test_basics.vt')
-                            'terminator-new.vt')
-        return fname
+        terminator_fname = os.path.join(vistrails_root_directory(),
+                                        'tests', 'resources',
+                                        'terminator-new.vt')
+        basics_fname = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources',
+                                    'test_basics.vt')
+        filenames = [basics_fname, terminator_fname]
+        tags = [['pasted',], ['Image Slices HW',]]
+        versions = ['0.9.3', '0.9.5', '1.0.1', '1.0.4']
+        params = [('vistrail', [(f,) for f in filenames]),
+                  ('workflow', [(f, t)
+                                for f, tlist in itertools.izip(filenames, tags)
+                                for t in tlist]),
+                  ('log', [(f,) for f in filenames]),
+                  ('registry', [tuple(),]),
+                  ('bundle', [(f,) for f in filenames])]
+        all_tests = {(k1, k2): v
+                     for (k1, (k2, v)) in itertools.product(versions, params)}
+        del all_tests[('0.9.3', 'registry')]
+        del all_tests[('0.9.3', 'bundle')]
+        del all_tests[('0.9.5', 'bundle')]
 
+        for (version, obj_type), params_list in all_tests.iteritems():
+            for params in params_list:
+                params_str = ""
+                # print version, obj_type, params
+                if params:
+                    short_params = []
+                    for p in params:
+                        if isinstance(p, basestring) and os.path.exists(p):
+                            p = os.path.splitext(os.path.basename(p))[0]
+                        p = p.replace(' ', '_').replace('.', '_')
+                        short_params.append(p)
+                    params_str = "_" + "_".join(str(x) for x in short_params)
+                test_name = "test_{}_{}{}".format(version, obj_type, params_str)
+                dict[test_name] = gen_test(obj_type, version, *params)
+        return type.__new__(mcs, name, bases, dict)
 
-    def run_vistrail_translation_test(self, version):
+class TestTranslations(TranslationMixin, unittest.TestCase):
+    """Metaclass will generate tests that look like:
+
+    test_vistrail_1_0_4_test_basics
+    test_workflow_0_9_5_terminator_Image_Slices_HW
+    """
+    __metaclass__ = TestTranslationsMeta
+
+    def run_vistrail_translation_test(self, version, filename):
         save_dir = None
         try:
-            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
             vt1 = bundle.vistrail
             external_data = self.create_external_data()
             vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
@@ -2319,15 +2383,15 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             if save_dir is not None:
                 shutil.rmtree(save_dir)
 
-    def run_workflow_translation_test(self, version):
+    def run_workflow_translation_test(self, version, filename, tagname):
         save_dir = None
         try:
-            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
             vt = bundle.vistrail
             # 258 is Image Slices HW in terminator.vt
             # 20 is the executed version in test_basics.vt
             for aa in vt.db_actionAnnotations:
-                if aa.db_key == '__tag__' and aa.db_value == 'pasted':
+                if aa.db_key == '__tag__' and aa.db_value == tagname:
                     action_id = aa.db_action_id
             wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, action_id)
             # FIXME may set db_version in materializeWorkflow?
@@ -2341,11 +2405,11 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             if save_dir is not None:
                 shutil.rmtree(save_dir)
 
-    def run_log_translation_test(self, version):
+    def run_log_translation_test(self, version, filename):
         save_dir = None
         try:
             # have to translate the vistrail along with the log
-            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
             log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True) # load
             log1.db_id = log1.id_scope.getNewId(DBLog.vtType)
             external_data = self.create_external_data()
@@ -2399,11 +2463,11 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         vistrails.db.services.log.update_ids(log)
         return log
 
-    def run_bundle_translation_test(self, version):
+    def run_bundle_translation_test(self, version, filename):
         save_dir = None
         try:
             #FIXME add mashups/abstractions/registry/workflow
-            (bundle1, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+            (bundle1, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
 
             external_data = {"vistrail_extdata": self.create_external_data(),
                              "log_extdata": self.create_external_data()}
@@ -2425,13 +2489,13 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             if save_dir is not None:
                 shutil.rmtree(save_dir)
 
-    def run_manual_bundle_translation_test(self, version):
+    def run_manual_bundle_translation_test(self, version, filename):
         save_dir = None
         try:
             # have to translate the vistrail along with the log
 
             # --- READ AND SET UP DATA ---
-            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename(),
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename,
                                                                    False)
             vt1 = bundle.vistrail
             initial_version = vt1.db_version
@@ -2467,43 +2531,6 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         finally:
             if save_dir is not None:
                 shutil.rmtree(save_dir)
-
-    # def test_v0_9_3_vistrail(self):
-    #     self.run_vistrail_translation_test('0.9.3')
-    #
-    # def test_v0_9_3_workflow(self):
-    #     self.run_workflow_translation_test('0.9.3')
-    #
-    # def test_v0_9_5_log(self):
-    #     self.run_log_translation_test('0.9.5')
-    #
-    # def test_v0_9_3_log(self):
-    #     self.run_log_translation_test('0.9.3')
-    #
-    # def test_v0_9_5_bundle(self):
-    #     self.run_bundle_translation_test('0.9.5')
-    #
-    # def test_v0_9_3_bundle(self):
-    #     self.run_bundle_translation_test('0.9.3')
-
-    # registry was introduced in 0.9.5 so cannot test back to 0.9.3
-    # def test_v0_9_5_registry(self):
-    #     self.run_registry_translation_test('0.9.5')
-    #
-    # def test_v1_0_1_vistrail(self):
-    #     self.run_vistrail_translation_test('1.0.1')
-    #
-    # def test_v1_0_1_workflow(self):
-    #     self.run_workflow_translation_test('1.0.1')
-    #
-    # def test_v1_0_1_log(self):
-    #     self.run_log_translation_test('1.0.1')
-    #
-    # def test_v1_0_1_registry(self):
-    #     self.run_registry_translation_test('1.0.1')
-
-    def test_v1_0_1_bundle(self):
-        self.run_bundle_translation_test('1.0.1')
 
 if __name__ == '__main__':
     import vistrails.core.application
