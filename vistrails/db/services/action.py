@@ -118,6 +118,11 @@ def create_copy_op_chain(object, parent=(None,None), id_scope=None):
         new_id = id_scope.getNewId(obj.vtType)
         id_remap[(obj.vtType, obj.db_id)] = new_id
         obj.db_id = new_id
+        # still need to reassign ids for those that are included in the action
+        for (child_obj, pt, pid) in obj.db_children(parent):
+            new_id = id_scope.getNewId(child_obj.vtType)
+            id_remap[(child_obj.vtType, child_obj.db_id)] = new_id
+            child_obj.db_id = new_id
         op = DBAdd(id=-1,
                    what=obj.vtType,
                    objectId=obj.db_id,
