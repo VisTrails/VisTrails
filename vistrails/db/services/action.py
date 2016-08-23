@@ -175,3 +175,19 @@ def create_action_from_ops(ops, simplify=False):
     action = DBAction(id=-1,
                       operations=ops)
     return action
+
+import unittest
+from vistrails.db.domain import IdScope, DBPortSpec, DBPortSpecItem
+class ActionTest(unittest.TestCase):
+    def test_port_spec_copy(self):
+        id_scope = IdScope()
+        psi = DBPortSpecItem(id=id_scope.getNewId(DBPortSpecItem.vtType),
+                             pos=0,
+                             module="File",
+                             package="org.vistrails.vistrails.basic")
+
+        ps1 = DBPortSpec(id=id_scope.getNewId(DBPortSpec.vtType),
+                         portSpecItems=[psi,])
+        ops = create_copy_op_chain(ps1, id_scope=id_scope)
+        self.assertNotEqual(ps1.db_portSpecItems[0].db_id,
+                            ops[0].db_data.db_portSpecItems[0].db_id)
