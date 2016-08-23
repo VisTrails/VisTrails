@@ -135,6 +135,7 @@
         <xs:element ref="plugin_data" minOccurs="0" maxOccurs="1"/>
       </xs:choice>
       <xs:attribute name="id" type="xs:string"/>
+      <xs:attribute name="pos" type="xs:int"/>
       <xs:attribute name="what" type="xs:string"/>
       <xs:attribute name="objectId" type="xs:string"/>
       <xs:attribute name="parentObjId" type="xs:string"/>
@@ -144,6 +145,7 @@
   <xs:element name="delete">
     <xs:complexType>
       <xs:attribute name="id" type="xs:string"/>
+      <xs:attribute name="pos" type="xs:int"/>
       <xs:attribute name="what" type="xs:string"/>
       <xs:attribute name="objectId" type="xs:string"/>
       <xs:attribute name="parentObjId" type="xs:string"/>
@@ -168,6 +170,7 @@
         <xs:element ref="plugin_data" minOccurs="0" maxOccurs="1"/>
       </xs:choice>
       <xs:attribute name="id" type="xs:string"/>
+      <xs:attribute name="pos" type="xs:int"/>
       <xs:attribute name="what" type="xs:string"/>
       <xs:attribute name="oldObjId" type="xs:string"/>
       <xs:attribute name="newObjId" type="xs:string"/>

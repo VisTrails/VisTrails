@@ -209,7 +209,12 @@
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="char(36)"/>
     </property>
-    
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
     <property name="what" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="varchar(255)"/>
@@ -509,12 +514,12 @@
       <sql table="vistrail_variable"/>
     </layout>
 
-    <property name="name" type="str" primaryKey="true">
+    <property name="name" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql column="name" type="varchar(255)"/>
     </property>
 
-    <property name="uuid" type="str">
+    <property name="uuid" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql column="uuid" type="char(36)"/>
     </property>
@@ -539,7 +544,7 @@
       <sql column="value" type="varchar(8191)"/>
     </property>
 
-    <property ref="true" type="long" object="vistrail" inverse="true" 
+    <property ref="true" type="str" object="vistrail" inverse="true"
 	      mapping="many-to-one">
       <sql column="parent_id" type="char(36)"/>
     </property>
@@ -568,7 +573,12 @@
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="char(36)"/>
     </property>
-    
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
     <property name="what" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="varchar(255)"/>
@@ -713,7 +723,12 @@
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="char(36)"/>
     </property>
-    
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
     <property name="what" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
       <sql type="varchar(255)"/>
@@ -972,7 +987,7 @@
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="char(36)" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="char(36)" global="true" globalName="entity_id"/>
     </property>
 
     <property name="entity_type" type="str">
@@ -1705,7 +1720,7 @@
       <sql column="parent_type" type="char(32)"/>
     </property>
 
-    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+    <choice name="parent" type="str" discriminator="parentType" inverse="true"
 	    mapping="many-to-one">
       <property ref="true" object="connection" type="str" mapping="many-to-one" 
 		inverse="true">
@@ -1978,7 +1993,7 @@
     
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="char(36)" autoInc="true"/>
+      <sql type="char(36)"/>
     </property>
     
     <property name="name" type="str">
@@ -2016,7 +2031,7 @@
       <xml name="moduleDescriptor" nodeType="xs:element"/>
     </property>
 
-    <property ref="true" type="long" object="registry" inverse="true" 
+    <property ref="true" type="str" object="registry" inverse="true"
 	      mapping="many-to-one">
       <sql column="parent_id" type="char(36)"/>
     </property>
@@ -2042,7 +2057,7 @@
     
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="char(36)" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="char(36)" global="true" globalName="entity_id"/>
     </property>
 
     <property name="entity_type" type="str">
@@ -2076,42 +2091,6 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
-  <!-- TAG +++++++++++++++++++++-->
-  <!--++++++++++++++++++++++++++-->
-
-  <object name="tag">
-    <layout>
-      <xml name="tag" nodeType="xs:element"/>
-      <sql table="tag"/>
-    </layout>
-
-    <property name="id" type="str" primaryKey="true" foreignKey="true" 
-	      object="action">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="char(36)"/>
-    </property>
-
-    <property name="name" type="str">
-      <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(255)"/>
-    </property>
-
-    <property ref="true" type="long" object="vistrail" inverse="true" 
-	      mapping="many-to-one">
-      <sql column="parent_id" type="char(36)"/>
-    </property>
-    
-    <property name="entity_id" type="str" inverse="true">
-      <sql type="char(36)"/>
-    </property>
-
-    <property name="entity_type" type="str" inverse="true">
-      <sql type="char(16)"/>
-    </property>
-
-  </object>
-
-  <!--++++++++++++++++++++++++++-->
   <!-- VISTRAIL ++++++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
@@ -2123,7 +2102,7 @@
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="char(36)" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="char(36)" global="true" globalName="entity_id"/>
     </property>
     
     <property name="entity_type" type="str">
@@ -2148,11 +2127,6 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" object="tag" type="list" mapping="one-to-many"
-	      index="name">
-      <xml nodeType="xs:element"/>
-    </property>
-
     <property ref="true" object="annotation" type="list" mapping="one-to-many"
 	      index="key">
       <xml nodeType="xs:element"/>
@@ -2164,7 +2138,7 @@
     </property>
 
     <property ref="true" object="vistrailVariable" type="list" mapping="one-to-many"
-	      index="uuid">
+	      index="name">
       <xml nodeType="xs:element"/>
     </property>
 
@@ -2192,7 +2166,7 @@
 
     <property name="id" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="char(36)" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="char(36)" global="true" globalName="entity_id"/>
     </property>
 
     <property name="entity_id" type="str" inverse="true">
@@ -2252,7 +2226,7 @@
       <sql type="char(36)"/>
     </property>
 
-    <property ref="true" object="group" type="long" inverse="true" 
+    <property ref="true" object="group" type="str" inverse="true"
 	      mapping="many-to-one">
       <sql column="parent_id" type="char(36)"/>
     </property>
@@ -2523,7 +2497,7 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" type="long" object="vistrail" inverse="true" 
+    <property ref="true" type="str" object="vistrail" inverse="true"
 	      mapping="many-to-one">
       <sql column="parent_id" type="char(36)"/>
     </property>
@@ -2653,7 +2627,7 @@
     </layout>
 
     <property name="id" type="str" primaryKey="true">
-      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+      <sql type="int" global="true" globalName="entity_id"/>
     </property>
 
     <property name="name" type="str">

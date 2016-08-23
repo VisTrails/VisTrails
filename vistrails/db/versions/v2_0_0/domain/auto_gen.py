@@ -1587,8 +1587,9 @@ class DBAdd(object):
 
     vtType = 'add'
 
-    def __init__(self, id=None, what=None, objectId=None, parentObjId=None, parentObjType=None, data=None):
+    def __init__(self, id=None, pos=None, what=None, objectId=None, parentObjId=None, parentObjType=None, data=None):
         self._db_id = id
+        self._db_pos = pos
         self._db_what = what
         self._db_objectId = objectId
         self._db_parentObjId = parentObjId
@@ -1603,6 +1604,7 @@ class DBAdd(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBAdd(id=self._db_id,
+                   pos=self._db_pos,
                    what=self._db_what,
                    objectId=self._db_objectId,
                    parentObjId=self._db_parentObjId,
@@ -1652,6 +1654,11 @@ class DBAdd(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
+            new_obj.db_pos = old_obj.db_pos
         if 'what' in class_dict:
             res = class_dict['what'](old_obj, trans_dict)
             new_obj.db_what = res
@@ -1794,6 +1801,23 @@ class DBAdd(object):
 
     def db_delete_id(self, id):
         self._db_id = None
+
+    def __get_db_pos(self):
+        return self._db_pos
+
+    def __set_db_pos(self, pos):
+        self._db_pos = pos
+        self.is_dirty = True
+    db_pos = property(__get_db_pos, __set_db_pos)
+
+    def db_add_pos(self, pos):
+        self._db_pos = pos
+
+    def db_change_pos(self, pos):
+        self._db_pos = pos
+
+    def db_delete_pos(self, pos):
+        self._db_pos = None
 
     def __get_db_what(self):
         return self._db_what
@@ -7195,8 +7219,9 @@ class DBChange(object):
 
     vtType = 'change'
 
-    def __init__(self, id=None, what=None, oldObjId=None, newObjId=None, parentObjId=None, parentObjType=None, data=None):
+    def __init__(self, id=None, pos=None, what=None, oldObjId=None, newObjId=None, parentObjId=None, parentObjType=None, data=None):
         self._db_id = id
+        self._db_pos = pos
         self._db_what = what
         self._db_oldObjId = oldObjId
         self._db_newObjId = newObjId
@@ -7212,6 +7237,7 @@ class DBChange(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBChange(id=self._db_id,
+                      pos=self._db_pos,
                       what=self._db_what,
                       oldObjId=self._db_oldObjId,
                       newObjId=self._db_newObjId,
@@ -7268,6 +7294,11 @@ class DBChange(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
+            new_obj.db_pos = old_obj.db_pos
         if 'what' in class_dict:
             res = class_dict['what'](old_obj, trans_dict)
             new_obj.db_what = res
@@ -7415,6 +7446,23 @@ class DBChange(object):
 
     def db_delete_id(self, id):
         self._db_id = None
+
+    def __get_db_pos(self):
+        return self._db_pos
+
+    def __set_db_pos(self, pos):
+        self._db_pos = pos
+        self.is_dirty = True
+    db_pos = property(__get_db_pos, __set_db_pos)
+
+    def db_add_pos(self, pos):
+        self._db_pos = pos
+
+    def db_change_pos(self, pos):
+        self._db_pos = pos
+
+    def db_delete_pos(self, pos):
+        self._db_pos = None
 
     def __get_db_what(self):
         return self._db_what
@@ -13612,8 +13660,9 @@ class DBDelete(object):
 
     vtType = 'delete'
 
-    def __init__(self, id=None, what=None, objectId=None, parentObjId=None, parentObjType=None):
+    def __init__(self, id=None, pos=None, what=None, objectId=None, parentObjId=None, parentObjType=None):
         self._db_id = id
+        self._db_pos = pos
         self._db_what = what
         self._db_objectId = objectId
         self._db_parentObjId = parentObjId
@@ -13626,6 +13675,7 @@ class DBDelete(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBDelete(id=self._db_id,
+                      pos=self._db_pos,
                       what=self._db_what,
                       objectId=self._db_objectId,
                       parentObjId=self._db_parentObjId,
@@ -13673,6 +13723,11 @@ class DBDelete(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
+            new_obj.db_pos = old_obj.db_pos
         if 'what' in class_dict:
             res = class_dict['what'](old_obj, trans_dict)
             new_obj.db_what = res
@@ -13725,6 +13780,23 @@ class DBDelete(object):
 
     def db_delete_id(self, id):
         self._db_id = None
+
+    def __get_db_pos(self):
+        return self._db_pos
+
+    def __set_db_pos(self, pos):
+        self._db_pos = pos
+        self.is_dirty = True
+    db_pos = property(__get_db_pos, __set_db_pos)
+
+    def db_add_pos(self, pos):
+        self._db_pos = pos
+
+    def db_change_pos(self, pos):
+        self._db_pos = pos
+
+    def db_delete_pos(self, pos):
+        self._db_pos = None
 
     def __get_db_what(self):
         return self._db_what

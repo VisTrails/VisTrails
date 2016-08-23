@@ -427,7 +427,7 @@ class DBAddSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = global_props
@@ -439,15 +439,17 @@ class DBAddSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
-            what = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            objectId = self.convertFromDB(row[2], 'str', 'char(36)')
-            parentObjId = self.convertFromDB(row[3], 'str', 'char(36)')
-            parentObjType = self.convertFromDB(row[4], 'str', 'char(16)')
-            action = self.convertFromDB(row[5], 'str', 'char(36)')
-            entity_id = self.convertFromDB(row[6], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            what = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            objectId = self.convertFromDB(row[3], 'str', 'char(36)')
+            parentObjId = self.convertFromDB(row[4], 'str', 'char(36)')
+            parentObjType = self.convertFromDB(row[5], 'str', 'char(16)')
+            action = self.convertFromDB(row[6], 'str', 'char(36)')
+            entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            add = DBAdd(what=what,
+            add = DBAdd(pos=pos,
+                        what=what,
                         objectId=objectId,
                         parentObjId=parentObjId,
                         parentObjType=parentObjType,
@@ -460,7 +462,7 @@ class DBAddSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = global_props
@@ -471,15 +473,17 @@ class DBAddSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
-            what = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            objectId = self.convertFromDB(row[2], 'str', 'char(36)')
-            parentObjId = self.convertFromDB(row[3], 'str', 'char(36)')
-            parentObjType = self.convertFromDB(row[4], 'str', 'char(16)')
-            action = self.convertFromDB(row[5], 'str', 'char(36)')
-            entity_id = self.convertFromDB(row[6], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            what = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            objectId = self.convertFromDB(row[3], 'str', 'char(36)')
+            parentObjId = self.convertFromDB(row[4], 'str', 'char(36)')
+            parentObjType = self.convertFromDB(row[5], 'str', 'char(16)')
+            action = self.convertFromDB(row[6], 'str', 'char(36)')
+            entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            add = DBAdd(what=what,
+            add = DBAdd(pos=pos,
+                        what=what,
                         objectId=objectId,
                         parentObjId=parentObjId,
                         parentObjType=parentObjType,
@@ -499,7 +503,7 @@ class DBAddSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = {}
@@ -511,6 +515,9 @@ class DBAddSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'str', 'char(36)')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
         if hasattr(obj, 'db_what') and obj.db_what is not None:
             columnMap['what'] = \
                 self.convertToDB(obj.db_what, 'str', 'varchar(255)')
@@ -543,7 +550,7 @@ class DBAddSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = {}
@@ -555,6 +562,9 @@ class DBAddSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'str', 'char(36)')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
         if hasattr(obj, 'db_what') and obj.db_what is not None:
             columnMap['what'] = \
                 self.convertToDB(obj.db_what, 'str', 'varchar(255)')
@@ -2273,8 +2283,8 @@ class DBChangeSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
-                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'what', 'old_obj_id', 'new_obj_id',
+                   'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -2285,16 +2295,18 @@ class DBChangeSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
-            what = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            oldObjId = self.convertFromDB(row[2], 'str', 'char(36)')
-            newObjId = self.convertFromDB(row[3], 'str', 'char(36)')
-            parentObjId = self.convertFromDB(row[4], 'str', 'char(36)')
-            parentObjType = self.convertFromDB(row[5], 'str', 'char(16)')
-            action = self.convertFromDB(row[6], 'str', 'char(36)')
-            entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            what = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            oldObjId = self.convertFromDB(row[3], 'str', 'char(36)')
+            newObjId = self.convertFromDB(row[4], 'str', 'char(36)')
+            parentObjId = self.convertFromDB(row[5], 'str', 'char(36)')
+            parentObjType = self.convertFromDB(row[6], 'str', 'char(16)')
+            action = self.convertFromDB(row[7], 'str', 'char(36)')
+            entity_id = self.convertFromDB(row[8], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
 
-            change = DBChange(what=what,
+            change = DBChange(pos=pos,
+                              what=what,
                               oldObjId=oldObjId,
                               newObjId=newObjId,
                               parentObjId=parentObjId,
@@ -2308,8 +2320,8 @@ class DBChangeSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
-                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'what', 'old_obj_id', 'new_obj_id',
+                   'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -2319,16 +2331,18 @@ class DBChangeSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
-            what = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            oldObjId = self.convertFromDB(row[2], 'str', 'char(36)')
-            newObjId = self.convertFromDB(row[3], 'str', 'char(36)')
-            parentObjId = self.convertFromDB(row[4], 'str', 'char(36)')
-            parentObjType = self.convertFromDB(row[5], 'str', 'char(16)')
-            action = self.convertFromDB(row[6], 'str', 'char(36)')
-            entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            what = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            oldObjId = self.convertFromDB(row[3], 'str', 'char(36)')
+            newObjId = self.convertFromDB(row[4], 'str', 'char(36)')
+            parentObjId = self.convertFromDB(row[5], 'str', 'char(36)')
+            parentObjType = self.convertFromDB(row[6], 'str', 'char(16)')
+            action = self.convertFromDB(row[7], 'str', 'char(36)')
+            entity_id = self.convertFromDB(row[8], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
 
-            change = DBChange(what=what,
+            change = DBChange(pos=pos,
+                              what=what,
                               oldObjId=oldObjId,
                               newObjId=newObjId,
                               parentObjId=parentObjId,
@@ -2349,8 +2363,8 @@ class DBChangeSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
-                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'what', 'old_obj_id', 'new_obj_id',
+                   'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -2361,6 +2375,9 @@ class DBChangeSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'str', 'char(36)')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
         if hasattr(obj, 'db_what') and obj.db_what is not None:
             columnMap['what'] = \
                 self.convertToDB(obj.db_what, 'str', 'varchar(255)')
@@ -2396,8 +2413,8 @@ class DBChangeSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
-                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'what', 'old_obj_id', 'new_obj_id',
+                   'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -2408,6 +2425,9 @@ class DBChangeSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'str', 'char(36)')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
         if hasattr(obj, 'db_what') and obj.db_what is not None:
             columnMap['what'] = \
                 self.convertToDB(obj.db_what, 'str', 'varchar(255)')
@@ -5199,7 +5219,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = global_props
@@ -5211,15 +5231,17 @@ class DBDeleteSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
-            what = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            objectId = self.convertFromDB(row[2], 'str', 'char(36)')
-            parentObjId = self.convertFromDB(row[3], 'str', 'char(36)')
-            parentObjType = self.convertFromDB(row[4], 'str', 'char(16)')
-            action = self.convertFromDB(row[5], 'str', 'char(36)')
-            entity_id = self.convertFromDB(row[6], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            what = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            objectId = self.convertFromDB(row[3], 'str', 'char(36)')
+            parentObjId = self.convertFromDB(row[4], 'str', 'char(36)')
+            parentObjType = self.convertFromDB(row[5], 'str', 'char(16)')
+            action = self.convertFromDB(row[6], 'str', 'char(36)')
+            entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            delete = DBDelete(what=what,
+            delete = DBDelete(pos=pos,
+                              what=what,
                               objectId=objectId,
                               parentObjId=parentObjId,
                               parentObjType=parentObjType,
@@ -5232,7 +5254,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = global_props
@@ -5243,15 +5265,17 @@ class DBDeleteSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
-            what = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            objectId = self.convertFromDB(row[2], 'str', 'char(36)')
-            parentObjId = self.convertFromDB(row[3], 'str', 'char(36)')
-            parentObjType = self.convertFromDB(row[4], 'str', 'char(16)')
-            action = self.convertFromDB(row[5], 'str', 'char(36)')
-            entity_id = self.convertFromDB(row[6], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            pos = self.convertFromDB(row[1], 'long', 'int')
+            what = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            objectId = self.convertFromDB(row[3], 'str', 'char(36)')
+            parentObjId = self.convertFromDB(row[4], 'str', 'char(36)')
+            parentObjType = self.convertFromDB(row[5], 'str', 'char(16)')
+            action = self.convertFromDB(row[6], 'str', 'char(36)')
+            entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
 
-            delete = DBDelete(what=what,
+            delete = DBDelete(pos=pos,
+                              what=what,
                               objectId=objectId,
                               parentObjId=parentObjId,
                               parentObjType=parentObjType,
@@ -5271,7 +5295,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = {}
@@ -5283,6 +5307,9 @@ class DBDeleteSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'str', 'char(36)')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
         if hasattr(obj, 'db_what') and obj.db_what is not None:
             columnMap['what'] = \
                 self.convertToDB(obj.db_what, 'str', 'varchar(255)')
@@ -5315,7 +5342,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'what', 'object_id', 'par_obj_id',
+        columns = ['id', 'pos', 'what', 'object_id', 'par_obj_id',
                    'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = {}
@@ -5327,6 +5354,9 @@ class DBDeleteSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'str', 'char(36)')
+        if hasattr(obj, 'db_pos') and obj.db_pos is not None:
+            columnMap['pos'] = \
+                self.convertToDB(obj.db_pos, 'long', 'int')
         if hasattr(obj, 'db_what') and obj.db_what is not None:
             columnMap['what'] = \
                 self.convertToDB(obj.db_what, 'str', 'varchar(255)')

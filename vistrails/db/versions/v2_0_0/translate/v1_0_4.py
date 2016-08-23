@@ -79,6 +79,9 @@ def translateVistrail(_vistrail, external_data=None):
     vistrail = DBVistrail()
     id_scope = vistrail.idScope
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
+    for action in vistrail.db_actions:
+        for pos, op in enumerate(action.db_operations):
+            op.db_pos = pos
     # FIXME have to eventually expand the inner workflows and update their ids
     vistrail = vistrail.do_copy(True, id_scope, id_remap)
 

@@ -69,6 +69,7 @@ CREATE TABLE group_tbl(
 
 CREATE TABLE add_tbl(
     id char(36),
+    pos int,
     what varchar(255),
     object_id char(36),
     par_obj_id char(36),
@@ -176,6 +177,7 @@ CREATE TABLE mashup_action(
 
 CREATE TABLE change_tbl(
     id char(36),
+    pos int,
     what varchar(255),
     old_obj_id char(36),
     new_obj_id char(36),
@@ -347,6 +349,7 @@ CREATE TABLE plugin_data(
 
 CREATE TABLE delete_tbl(
     id char(36),
+    pos int,
     what varchar(255),
     object_id char(36),
     par_obj_id char(36),

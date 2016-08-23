@@ -515,6 +515,8 @@ class DBAddXMLDAOBase(XMLDAO):
         # read attributes
         data = node.get('id', None)
         id = self.convertFromStr(data, 'str')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
         data = node.get('what', None)
         what = self.convertFromStr(data, 'str')
         data = node.get('objectId', None)
@@ -577,6 +579,7 @@ class DBAddXMLDAOBase(XMLDAO):
                 print '*** ERROR *** tag = %s' % child.tag
 
         obj = DBAdd(id=id,
+                    pos=pos,
                     what=what,
                     objectId=objectId,
                     parentObjId=parentObjId,
@@ -591,6 +594,7 @@ class DBAddXMLDAOBase(XMLDAO):
 
         # set attributes
         node.set('id', self.convertToStr(add.db_id, 'str'))
+        node.set('pos', self.convertToStr(add.db_pos, 'long'))
         node.set('what', self.convertToStr(add.db_what, 'str'))
         node.set('objectId', self.convertToStr(add.db_objectId, 'str'))
         node.set('parentObjId', self.convertToStr(add.db_parentObjId, 'str'))
@@ -2167,6 +2171,8 @@ class DBChangeXMLDAOBase(XMLDAO):
         # read attributes
         data = node.get('id', None)
         id = self.convertFromStr(data, 'str')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
         data = node.get('what', None)
         what = self.convertFromStr(data, 'str')
         data = node.get('oldObjId', None)
@@ -2231,6 +2237,7 @@ class DBChangeXMLDAOBase(XMLDAO):
                 print '*** ERROR *** tag = %s' % child.tag
 
         obj = DBChange(id=id,
+                       pos=pos,
                        what=what,
                        oldObjId=oldObjId,
                        newObjId=newObjId,
@@ -2246,6 +2253,7 @@ class DBChangeXMLDAOBase(XMLDAO):
 
         # set attributes
         node.set('id', self.convertToStr(change.db_id, 'str'))
+        node.set('pos', self.convertToStr(change.db_pos, 'long'))
         node.set('what', self.convertToStr(change.db_what, 'str'))
         node.set('oldObjId', self.convertToStr(change.db_oldObjId, 'str'))
         node.set('newObjId', self.convertToStr(change.db_newObjId, 'str'))
@@ -4252,6 +4260,8 @@ class DBDeleteXMLDAOBase(XMLDAO):
         # read attributes
         data = node.get('id', None)
         id = self.convertFromStr(data, 'str')
+        data = node.get('pos', None)
+        pos = self.convertFromStr(data, 'long')
         data = node.get('what', None)
         what = self.convertFromStr(data, 'str')
         data = node.get('objectId', None)
@@ -4262,6 +4272,7 @@ class DBDeleteXMLDAOBase(XMLDAO):
         parentObjType = self.convertFromStr(data, 'str')
 
         obj = DBDelete(id=id,
+                       pos=pos,
                        what=what,
                        objectId=objectId,
                        parentObjId=parentObjId,
@@ -4275,6 +4286,7 @@ class DBDeleteXMLDAOBase(XMLDAO):
 
         # set attributes
         node.set('id', self.convertToStr(delete.db_id, 'str'))
+        node.set('pos', self.convertToStr(delete.db_pos, 'long'))
         node.set('what', self.convertToStr(delete.db_what, 'str'))
         node.set('objectId', self.convertToStr(delete.db_objectId, 'str'))
         node.set('parentObjId', self.convertToStr(

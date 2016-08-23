@@ -853,7 +853,7 @@ def open_vistrail_from_db(db_connection, id, lock=False, version=None,
         vistrail = translate_vistrail(vistrail, version)
     #FIXME don't want to sort this here probably
     for db_action in vistrail.db_get_actions():
-        db_action.db_operations.sort(key=lambda x: x.db_id)
+        db_action.db_operations.sort(key=lambda x: x.db_pos)
     vistrails.db.services.vistrail.update_id_scope(vistrail)
     return vistrail
 
