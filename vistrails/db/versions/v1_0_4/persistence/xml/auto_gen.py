@@ -179,8 +179,8 @@ class DBConfigKeyXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBConfigKey(value=value,
-                          name=name)
+        obj = DBConfigKey(name=name,
+                          value=value)
         obj.is_dirty = False
         return obj
     
@@ -569,12 +569,12 @@ class DBAddXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBAdd(data=data,
-                    id=id,
+        obj = DBAdd(id=id,
                     what=what,
                     objectId=objectId,
                     parentObjId=parentObjId,
-                    parentObjType=parentObjType)
+                    parentObjType=parentObjType,
+                    data=data)
         obj.is_dirty = False
         return obj
     
@@ -1078,8 +1078,7 @@ class DBGroupExecXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBGroupExec(item_execs=item_execs,
-                          id=id,
+        obj = DBGroupExec(id=id,
                           ts_start=ts_start,
                           ts_end=ts_end,
                           cached=cached,
@@ -1089,7 +1088,8 @@ class DBGroupExecXMLDAOBase(XMLDAO):
                           completed=completed,
                           error=error,
                           machine_id=machine_id,
-                          annotations=annotations)
+                          annotations=annotations,
+                          item_execs=item_execs)
         obj.is_dirty = False
         return obj
     
@@ -1930,10 +1930,10 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBWorkflow(modules=modules,
-                         id=id,
+        obj = DBWorkflow(id=id,
                          name=name,
                          version=version,
+                         modules=modules,
                          connections=connections,
                          annotations=annotations,
                          plugin_datas=plugin_datas,
@@ -2187,13 +2187,13 @@ class DBChangeXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBChange(data=data,
-                       id=id,
+        obj = DBChange(id=id,
                        what=what,
                        oldObjId=oldObjId,
                        newObjId=newObjId,
                        parentObjId=parentObjId,
-                       parentObjType=parentObjType)
+                       parentObjType=parentObjType,
+                       data=data)
         obj.is_dirty = False
         return obj
     
@@ -2544,13 +2544,13 @@ class DBActionXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBAction(operations=operations,
-                       id=id,
+        obj = DBAction(id=id,
                        prevId=prevId,
                        date=date,
                        session=session,
                        user=user,
-                       annotations=annotations)
+                       annotations=annotations,
+                       operations=operations)
         obj.is_dirty = False
         return obj
     
@@ -3155,13 +3155,13 @@ class DBLoopIterationXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBLoopIteration(item_execs=item_execs,
-                              id=id,
+        obj = DBLoopIteration(id=id,
                               ts_start=ts_start,
                               ts_end=ts_end,
                               iteration=iteration,
                               completed=completed,
-                              error=error)
+                              error=error,
+                              item_execs=item_execs)
         obj.is_dirty = False
         return obj
     
@@ -3395,8 +3395,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBWorkflowExec(item_execs=item_execs,
-                             id=id,
+        obj = DBWorkflowExec(id=id,
                              user=user,
                              ip=ip,
                              session=session,
@@ -3409,7 +3408,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                              completed=completed,
                              name=name,
                              annotations=annotations,
-                             machines=machines)
+                             machines=machines,
+                             item_execs=item_execs)
         obj.is_dirty = False
         return obj
     
