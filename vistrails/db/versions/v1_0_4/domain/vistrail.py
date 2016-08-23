@@ -43,7 +43,7 @@ import uuid
 from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
     DBModule, DBAnnotation, DBActionAnnotation, DBParameterExploration, \
-    DBVistrailVariable
+    DBVistrailVariable, DBPortSpec, DBPortSpecItem
 from id_scope import IdScope
 
 # VistrailVariable uses a uuid for its core id so need a hybrid scope
@@ -125,6 +125,10 @@ class DBVistrail(_DBVistrail):
                     if operation.db_data is None:
                         if operation.vtType == 'change':
                             operation.db_objectId = operation.db_oldObjId
+                    elif operation.db_what == DBPortSpec.vtType:
+                        for psi in operation.db_data.db_portSpecItems:
+                            self.idScope.updateBeginId(DBPortSpecItem.vtType,
+                                                       psi.db_id+1)
                     self.db_add_object(operation.db_data)
             for annotation in action.db_annotations:
                 self.idScope.updateBeginId('annotation', annotation.db_id+1)
