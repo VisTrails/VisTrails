@@ -35,7 +35,7 @@
 from vistrails.db.versions.v2_0_0.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBStartup, DBMashuptrail, DBAction, \
     DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, DBActionAnnotation, \
-    DBModule, DBAnnotation, IdScope, SaveBundle
+    DBModule, DBAnnotation, DBPortSpec, DBPortSpecItem, IdScope, SaveBundle
 
 import copy
 import unittest
@@ -61,6 +61,17 @@ def translateVistrail(_vistrail, external_data=None):
 
     if (DBAction.vtType, 0) not in id_remap:
         id_remap[(DBAction.vtType, 0)] = DBVistrail.ROOT_VERSION
+
+    # fix PortSpecItem ids -- should be unique
+    for action in _vistrail.db_actions:
+        for op in action.db_operations:
+            if (op.db_what == DBPortSpec.vtType and
+                    (op.vtType == DBAdd.vtType or op.vtType == DBChange.vtType)):
+                ps = op.db_data
+                for psi in ps.db_portSpecItems:
+                    # we don't need to worry about overlap since psi ids are
+                    # not referenced as individual entities
+                    psi.db_id = _vistrail.idScope.getNewId(DBPortSpecItem.vtType)
 
     def update_workflow(old_obj, trans_dict):
         if old_obj.db_id in group_remaps:
