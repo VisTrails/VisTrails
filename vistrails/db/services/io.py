@@ -790,7 +790,7 @@ def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
                              abstractions=abstraction_files, 
                              thumbnails=thumbnail_files, mashups=mashups)
     if do_translate:
-        if vistrail.db_version != get_current_version():
+        if vistrail.db_version != get_current_version() and log_fname is not None:
             # only translate to vistrail.db_version, **not current version**
             # so bundle updates work as expected
             save_bundle.log = open_log_from_xml(log_fname, True, vistrail.db_version)
