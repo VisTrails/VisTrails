@@ -517,7 +517,7 @@ def setup_db_tables(db_connection, version=None, old_version=None, only_drop=Fal
                     cmd = cmd.rstrip()
 #                     if cmd.endswith(engine_str):
 #                         cmd = cmd[:-len(engine_str)] + ';'
-                    print cmd
+#                     print cmd
                     c.execute(cmd)
                     cmd = ""
 
@@ -1361,7 +1361,7 @@ def save_log_to_xml(log, filename, version=None, do_append=False):
         version = get_current_version()
     if not log.db_version:
         log.db_version = get_current_version()
-    print "SAVING LOG:", version, log.db_version
+    # print "SAVING LOG:", version, log.db_version
     log = translate_log(log, log.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -2101,19 +2101,83 @@ class TranslationMixin(object):
     def duplicate_extdata(external_data):
         return {k: copy.copy(v) for k,v in external_data.iteritems()}
 
-class TestXMLFile(TranslationMixin):
-    def get_version(self):
-        raise NotImplementedError("Subclass should implement get_version")
+import itertools
+import os
 
-    def get_filename(self):
+class TestMeta(type):
+    # Based on http://stackoverflow.com/a/20870875
+
+    @classmethod
+    def get_tests(mcs):
+        raise NotImplementedError("Child metaclass should implement this")
+
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        raise NotImplementedError("Child metaclass should implement this")
+
+    def __new__(mcs, name, bases, dict):
+        all_tests = mcs.get_tests()
+        for obj_type, params_list in all_tests:
+            # print "__NEW__:", obj_type, params_list
+            for params in params_list:
+                params_str = ""
+                # print version, obj_type, params
+                if params:
+                    short_params = []
+                    for p in params:
+                        if isinstance(p, basestring) and os.path.exists(p):
+                            p = os.path.splitext(os.path.basename(p))[0]
+                        p = p.replace(' ', '_').replace('.', '_')
+                        short_params.append(p)
+                    params_str = "_" + "_".join(str(x) for x in short_params)
+                test_name = "test_{}{}".format(obj_type, params_str)
+                dict[test_name] = mcs.gen_test(obj_type, *params)
+        return type.__new__(mcs, name, bases, dict)
+
+class TestXMLMeta(TestMeta):
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        if obj_type == 'vistrail':
+            def test(self):
+                self.run_save_and_reload_vistrail(*args, **kwargs)
+        elif obj_type == 'workflow':
+            def test(self):
+                self.run_save_and_reload_workflow(*args, **kwargs)
+        else:
+            raise ValueError(
+                'Test not defined for object type "{}"'.format(obj_type))
+        return test
+
+    @classmethod
+    def get_tests(mcs):
         from vistrails.core.system import vistrails_root_directory
-        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
-                             'test_basics.vt')
-        return fname
-        # return '/vistrails/src/git/examples/terminator.vt'
+        terminator_fname = os.path.join(vistrails_root_directory(),
+                                        'tests', 'resources',
+                                        'terminator-new.vt')
+        basics_fname = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources',
+                                    'test_basics.vt')
+        filenames = [basics_fname, terminator_fname]
+        tags = [['pasted',], ['Image Slices HW',]]
+        versions = ['0.9.3', '0.9.5', '1.0.1', '1.0.4']
+        params = [('vistrail', [(f,) for f in filenames]),
+                  ('workflow', [(f, t)
+                                for f, tlist in itertools.izip(filenames, tags)
+                                for t in tlist]),
+                  # ('log', [(f,) for f in filenames]),
+                  # ('registry', [tuple(),]),
+                  # ('bundle', [(f,) for f in filenames])
+                  ]
+        all_tests = [(k2, [(k1,) + v for v in vlist])
+                     for (k1, (k2, vlist)) in itertools.product(versions, params)]
+        return all_tests
 
-    def test_save_vistrail_and_reload(self):
-        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+
+class TestXMLFile(TranslationMixin, unittest.TestCase):
+    __metaclass__ = TestXMLMeta
+
+    def run_save_and_reload_vistrail(self, version, filename):
+        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
         vt1 = bundle.vistrail
 
         (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
@@ -2122,30 +2186,88 @@ class TestXMLFile(TranslationMixin):
         try:
             # do translate here to allow id remap
             external_data = self.create_external_data()
-            vt2 = translate_vistrail(vt1, get_current_version(), self.get_version(), external_data)
+            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
             self.invert_remaps(external_data)
-            save_vistrail_to_xml(vt2, fname, self.get_version())
+            save_vistrail_to_xml(vt2, fname, version)
             vt3 = open_vistrail_from_xml(fname, do_translate=False)
-            vt3 = translate_vistrail(vt2, self.get_version(), get_current_version(), external_data)
-            DBVistrailTest.deep_eq_test(vt1, vt3, self, get_alternate_tests(self.get_version()))
+            vt3 = translate_vistrail(vt2, version, get_current_version(), external_data)
+            DBVistrailTest.deep_eq_test(vt1, vt3, self, get_alternate_tests(version))
         finally:
             os.unlink(fname)
             shutil.rmtree(save_dir)
 
-# class TestXMLFile_v0_9_3(TestXMLFile, unittest.TestCase):
-#     def get_version(self):
-#         return '0.9.3'
-#
-# class TestXMLFile_v1_0_2(TestXMLFile, unittest.TestCase):
-#     def get_version(self):
-#         return '1.0.2'
+    def run_save_and_reload_workflow(self, version, filename, tagname):
+        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+        vt = bundle.vistrail
 
-class TestSQLDatabase(TranslationMixin):
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+        os.close(h)
+        try:
+            for aa in vt.db_actionAnnotations:
+                if aa.db_key == '__tag__' and aa.db_value == tagname:
+                    action_id = aa.db_action_id
+            wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt,
+                                                                     action_id)
+            #FIXME should this be done in materializeWorkflow?
+            wf1.db_version = get_current_version()
+            # do translate here to allow id remap
+            external_data = self.create_external_data()
+            wf2 = translate_workflow(wf1, get_current_version(), version, external_data)
+            self.invert_remaps(external_data)
+            save_workflow_to_xml(wf2, fname, version)
+            wf3 = open_workflow_from_xml(fname, do_translate=False)
+            wf3 = translate_workflow(wf2, version, get_current_version(), external_data)
+            DBWorkflowTest.deep_eq_test(wf1, wf3, self, get_alternate_tests(version))
+        finally:
+            os.unlink(fname)
+            shutil.rmtree(save_dir)
+
+class TestSQLDatabaseMeta(TestMeta):
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        if obj_type == 'vistrail':
+            def test(self):
+                self.run_save_and_reload_vistrail(*args, **kwargs)
+        else:
+            raise ValueError(
+                'Test not defined for object type "{}"'.format(obj_type))
+        return test
+
+    @classmethod
+    def get_tests(mcs):
+        from vistrails.core.system import vistrails_root_directory
+        terminator_fname = os.path.join(vistrails_root_directory(),
+                                        'tests', 'resources',
+                                        'terminator-new.vt')
+        basics_fname = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources',
+                                    'test_basics.vt')
+        filenames = [basics_fname, terminator_fname]
+        tags = [['pasted',], ['Image Slices HW',]]
+        params = [('vistrail', [(f,) for f in filenames]),
+                  # ('workflow', [(f, t)
+                  #               for f, tlist in itertools.izip(filenames, tags)
+                  #               for t in tlist]),
+                  # ('log', [(f,) for f in filenames]),
+                  # ('registry', [tuple(),]),
+                  # ('bundle', [(f,) for f in filenames])
+                  ]
+        all_tests = params
+        return all_tests
+
+class TestMySQLDatabase(TranslationMixin):
+    __metaclass__ = TestSQLDatabaseMeta
+
     conn = None
 
     @classmethod
     def get_config(cls):
-        raise NotImplementedError
+        return {"user": "vt_test",
+                # "passwd": None,
+                "host": "localhost",
+                # "port": None,
+                "db": "vt_test",
+                "version": cls.db_version}
 
     @classmethod
     def get_version(cls):
@@ -2171,13 +2293,6 @@ class TestSQLDatabase(TranslationMixin):
         close_db_connection(cls.conn)
         cls.conn = None
 
-    def get_filename(self):
-        from vistrails.core.system import vistrails_root_directory
-        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
-                             'test_basics.vt')
-        return fname
-        # return '/vistrails/src/git/examples/terminator.vt'
-
     # def test_save_bundle(self):
     #     (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
     #     try:
@@ -2185,40 +2300,37 @@ class TestSQLDatabase(TranslationMixin):
     #     finally:
     #         shutil.rmtree(save_dir)
 
-    def test_save_vistrail_and_reload(self):
-        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+    def run_save_and_reload_vistrail(self, filename):
+        version = self.get_version()
+        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
         vt1 = bundle.vistrail
-        print "VT1 version", vt1.db_version, vt1.db_id
+        # print "VT1 version", vt1.db_version, vt1.db_id
         try:
             # do translate here to allow id remap
             external_data = self.create_external_data()
-            vt2 = translate_vistrail(vt1, get_current_version(), self.get_version(), external_data)
-            print "EXTERNAL_DATA:", external_data
+            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
+            # print "EXTERNAL_DATA:", external_data
             self.invert_remaps(external_data)
-            print "VT2 version", vt2.db_version, vt2.db_id
-            for vv in vt2.db_vistrailVariables:
-                print "BEFORE SAVE:", vv.db_name, vv
-
-            vt3 = save_vistrail_to_db(vt2, self.conn, True, self.get_version(), save_wfs=False,
+            # print "VT2 version", vt2.db_version, vt2.db_id
+            vt3 = save_vistrail_to_db(vt2, self.conn, True, version, save_wfs=False,
                                       do_translate=False)
-            # HACK because db will assign vt3 id 1 (instead of 0)
-            if ('vistrail', 0) in external_data["id_remap"]:
-                external_data["id_remap"][('vistrail', 1)] = external_data["id_remap"][('vistrail', 0)]
-            print "VT3 version", vt3.db_version, vt3.db_id
+            # HACK because db will autoinc vt3 id which doesn't match the id
+            # from original load
+            vt_start_k = None
+            for k, v in external_data["id_remap"].iteritems():
+                if k[0] == 'vistrail':
+                    vt_start_k = k
+            if vt_start_k is not None:
+                external_data["id_remap"][('vistrail', vt3.db_id)] = \
+                    external_data["id_remap"][vt_start_k]
+            # print "VT3 version", vt3.db_version, vt3.db_id
             vt_id = vt3.db_id
-            for vv in vt3.db_vistrailVariables:
-                print "AFTER SAVE:", vv.db_name, vv
             vt4 = open_vistrail_from_db(self.conn, vt_id, do_translate=False)
-            print "VT4 version", vt4.db_version, vt4.db_id
-            for vv in vt3.db_vistrailVariables:
-                print "--> LOAD:", vv.db_name, vv
-            for (t, k1), k2 in external_data["id_remap"].iteritems():
-                if t == 'vistrailVariable':
-                    print t, k1, k2
-            print "INV EXTERNAL_DATA:", external_data
-            vt4 = translate_vistrail(vt4, self.get_version(), get_current_version(), external_data)
-            print "VT5 version", vt4.db_version, vt4.db_id
-            DBVistrailTest.deep_eq_test(vt1, vt4, self, get_alternate_tests(self.get_version()))
+            # print "VT4 version", vt4.db_version, vt4.db_id
+            # print "INV EXTERNAL_DATA:", external_data
+            vt4 = translate_vistrail(vt4, version, get_current_version(), external_data)
+            # print "VT5 version", vt4.db_version, vt4.db_id
+            DBVistrailTest.deep_eq_test(vt1, vt4, self, get_alternate_tests(version))
         finally:
             shutil.rmtree(save_dir)
 
@@ -2248,17 +2360,6 @@ class TestSQLDatabase(TranslationMixin):
     # def test_z_get_matching_abstraction_id(self):
     #     raise Exception("Need to implement this test")
 
-class TestMySQLDatabase(TestSQLDatabase):
-    db_version = None
-
-    @classmethod
-    def get_config(cls):
-        return {"user": "vt_test",
-                # "passwd": None,
-                "host": "localhost",
-                # "port": None,
-                "db": "vt_test",
-                "version": cls.db_version}
 
 # class TestMySQLDatabase_v1_0_2(TestMySQLDatabase, unittest.TestCase):
 #     db_version = '1.0.2'
@@ -2269,8 +2370,8 @@ class TestMySQLDatabase(TestSQLDatabase):
 # class TestMySQLDatabase_v1_0_4(TestMySQLDatabase, unittest.TestCase):
 #     db_version = '1.0.4'
 
-# class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
-#     db_version = '2.0.0'
+class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
+    db_version = '2.0.0'
 
 # class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
 #     db_fname = None
@@ -2296,32 +2397,31 @@ class TestMySQLDatabase(TestSQLDatabase):
 #         super(TestSQLite3Database, cls).tearDownClass()
 #         os.unlink(cls.db_fname)
 
-import itertools
-import os
+class TestTranslationsMeta(TestMeta):
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        if obj_type == 'vistrail':
+            def test(self):
+                self.run_vistrail_translation_test(*args, **kwargs)
+        elif obj_type == 'workflow':
+            def test(self):
+                self.run_workflow_translation_test(*args, **kwargs)
+        elif obj_type == 'log':
+            def test(self):
+                self.run_log_translation_test(*args, **kwargs)
+        elif obj_type == 'registry':
+            def test(self):
+                self.run_registry_translation_test(*args, **kwargs)
+        elif obj_type == 'bundle':
+            def test(self):
+                self.run_bundle_translation_test(*args, **kwargs)
+        else:
+            raise ValueError(
+                'Test not defined for object type "{}"'.format(obj_type))
+        return test
 
-]class TestTranslationsMeta(type):
-    # Based on http://stackoverflow.com/a/20870875
-    def __new__(mcs, name, bases, dict):
-        def gen_test(obj_type, version, *args, **kwargs):
-            if obj_type == 'vistrail':
-                def test(self):
-                    self.run_vistrail_translation_test(version, *args, **kwargs)
-            elif obj_type == 'workflow':
-                def test(self):
-                    self.run_workflow_translation_test(version, *args, **kwargs)
-            elif obj_type == 'log':
-                def test(self):
-                    self.run_log_translation_test(version, *args, **kwargs)
-            elif obj_type == 'registry':
-                def test(self):
-                    self.run_registry_translation_test(version, *args, **kwargs)
-            elif obj_type == 'bundle':
-                def test(self):
-                    self.run_bundle_translation_test(version, *args, **kwargs)
-            else:
-                raise ValueError('Test not defined for object type "{}"'.format(obj_type))
-            return test
-
+    @classmethod
+    def get_tests(mcs):
         from vistrails.core.system import vistrails_root_directory
         terminator_fname = os.path.join(vistrails_root_directory(),
                                         'tests', 'resources',
@@ -2345,21 +2445,10 @@ import os
         del all_tests[('0.9.3', 'bundle')]
         del all_tests[('0.9.5', 'bundle')]
 
-        for (version, obj_type), params_list in all_tests.iteritems():
-            for params in params_list:
-                params_str = ""
-                # print version, obj_type, params
-                if params:
-                    short_params = []
-                    for p in params:
-                        if isinstance(p, basestring) and os.path.exists(p):
-                            p = os.path.splitext(os.path.basename(p))[0]
-                        p = p.replace(' ', '_').replace('.', '_')
-                        short_params.append(p)
-                    params_str = "_" + "_".join(str(x) for x in short_params)
-                test_name = "test_{}_{}{}".format(version, obj_type, params_str)
-                dict[test_name] = gen_test(obj_type, version, *params)
-        return type.__new__(mcs, name, bases, dict)
+        # reformat to move version to parameter
+        all_tests = [(k2, [(k1,) + v for v in vlist])
+                     for (k1, k2), vlist in all_tests.iteritems()]
+        return all_tests
 
 class TestTranslations(TranslationMixin, unittest.TestCase):
     """Metaclass will generate tests that look like:
@@ -2513,18 +2602,18 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             self.remove_non_unique(external_data)
             log2 = translate_log(log1, get_current_version(), version, external_data)
             log_external_data = self.duplicate_extdata(external_data)
-            print "VT_EXTERNAL_DATA:", vt_external_data["id_remap"]
-            print "LOG_EXTERNAL_DATA:", log_external_data["id_remap"]
+            # print "VT_EXTERNAL_DATA:", vt_external_data["id_remap"]
+            # print "LOG_EXTERNAL_DATA:", log_external_data["id_remap"]
             self.invert_remaps(vt_external_data)
             self.invert_remaps(log_external_data)
-            print "INV VT_EXTERNAL_DATA:", vt_external_data["id_remap"]
-            print "INV LOG_EXTERNAL_DATA:", log_external_data["id_remap"]
+            # print "INV VT_EXTERNAL_DATA:", vt_external_data["id_remap"]
+            # print "INV LOG_EXTERNAL_DATA:", log_external_data["id_remap"]
             external_data = vt_external_data
             vt2 = translate_vistrail(vt2, version, get_current_version(), external_data)
             self.remove_non_unique(external_data)
-            print "BEFORE UPDATE:", external_data["id_remap"]
+            # print "BEFORE UPDATE:", external_data["id_remap"]
             external_data["id_remap"].update(log_external_data["id_remap"])
-            print "AFTER UPDATE:", external_data["id_remap"]
+            # print "AFTER UPDATE:", external_data["id_remap"]
             log2 = translate_log(log2, version, get_current_version(), external_data)
             DBVistrailTest.deep_eq_test(vt1, vt2, self, get_alternate_tests(version))
             DBLogTest.deep_eq_test(log1, log2, self, get_alternate_tests(version))
