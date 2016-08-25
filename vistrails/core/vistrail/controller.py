@@ -3428,6 +3428,9 @@ class VistrailController(object):
                     id_remap = {}
                     new_pipeline = err._pipeline.do_copy(True, id_scope,
                                                          id_remap)
+                    # set id to None so db saves correctly
+                    new_pipeline.id = None
+
                     new_exception_set = []
                     for sub_err in err.get_exception_set():
                         key = (Module.vtType, sub_err._module_id)
@@ -3437,8 +3440,9 @@ class VistrailController(object):
                         else:
                             new_exception_set.append(sub_err)
 
-                    # set id to None so db saves correctly
-                    new_pipeline.id = None
+                    # old_pipeline = err._pipeline
+                    # err._pipeline = new_pipeline
+                    new_err = InvalidPipeline(new_exception_set, new_pipeline)
                     # FIXME: We should not temporarily replace id_scope
                     old_id_scope = self.id_scope
                     self.id_scope = id_scope
@@ -3446,7 +3450,7 @@ class VistrailController(object):
                     # run handle_invalid_pipeline to fix multi-step upgrades
                     try:
                         _, new_pipeline = \
-                            self.handle_invalid_pipeline(err,
+                            self.handle_invalid_pipeline(new_err,
                                                     report_all_errors=True,
                                                     pipeline_only=True)
                     except InvalidPipeline, e:
@@ -3456,7 +3460,7 @@ class VistrailController(object):
                         raise e
                     finally:
                         self.id_scope = old_id_scope
-                    if new_pipeline != err._pipeline:
+                    if new_pipeline != new_err._pipeline:
                         # create action that recreates group/subworkflow
                         old_module = pipeline.modules[err._module_id]
                         if old_module.is_group():
