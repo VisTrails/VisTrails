@@ -793,7 +793,8 @@ def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
         if vistrail.db_version != get_current_version() and log_fname is not None:
             # only translate to vistrail.db_version, **not current version**
             # so bundle updates work as expected
-            save_bundle.log = open_log_from_xml(log_fname, True, vistrail.db_version)
+            save_bundle.log = open_log_from_xml(log_fname, True, True,
+                                                vistrail.db_version)
         save_bundle = translate_bundle(save_bundle, vistrail.db_version)
     return (save_bundle, vt_save_dir)
 
@@ -1260,13 +1261,15 @@ def open_log_from_xml(filename, was_appended=False, do_translate=True,
                 # we have to translate to put into one log
                 log = translate_log(log, get_current_version(), version)
                 log.db_add_workflow_exec(wf_exec)
-                log = translate_log(log, version, target_version)
+                log = translate_log(log, version, get_current_version())
                 wf_exec = log.db_workflow_execs[0]
                 wf_execs.append(wf_exec)
             else:
                 wf_execs.append(wf_exec)
         log = DBLog(workflow_execs=wf_execs)
-        log.db_version = target_version
+        log.db_version = get_current_version()
+        if do_translate and target_version != get_current_version():
+            log = translate_log(log, get_current_version(), target_version)
         vistrails.db.services.log.update_ids(log)
     else:
         tree = ElementTree.parse(filename)
