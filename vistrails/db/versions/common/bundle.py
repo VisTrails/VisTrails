@@ -68,7 +68,8 @@ class SaveBundle(object):
         self.log = None
         self.registry = None
         self.opm_graph = None
-        self.abstractions = []
+        self.abstractions = [] # just the filenames
+        self.subworkflows = [] # loaded subworkflows (need for uuid translation)
         self.thumbnails = []
         self.mashups = []
         # Make all args into attrs using vtType as attr name
@@ -105,6 +106,9 @@ class SaveBundle(object):
         cp.opm_graph = copy.copy(self.opm_graph)
         for a in self.abstractions:
             cp.abstractions.append(a)
+
+        for s in self.subworkflows:
+            cp.subworkflows.append(s)
 
         for t in self.thumbnails:
             cp.thumbnails.append(t)

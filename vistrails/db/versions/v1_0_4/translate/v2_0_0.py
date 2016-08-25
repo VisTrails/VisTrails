@@ -262,20 +262,79 @@ def translateBundle(_bundle, external_data=None):
         workflow_extdata = external_data["workflow_extdata"]
     else:
         workflow_extdata = None
-    if external_data is not None and "log_extdata" in external_data:
-        log_extdata = external_data["log_extdata"]
-    else:
-        log_extdata = None
+
+    # abstractions need to be translated first so internal versions in the
+    # vistrail match up...
+
+    # actual objects are translated in subworkflows field
+    # will be serialized in vistrails.db.services.io
+    abstractions = []
+    for _abstraction in _bundle.abstractions:
+        abstractions.append(_abstraction)
+    bundle_contents['abstractions'] = abstractions
+
+    # actually translate abstractions here
+    subworkflows = []
+    subwf_extdatas = {}
+    from vistrails.core.modules.sub_module import parse_abstraction_name
+    for _subworkflow in _bundle.subworkflows:
+        sw_extdata = {"id_remap": {}, "group_remaps": {}}
+        subworkflow = translateVistrail(_subworkflow, sw_extdata)
+        subworkflow.db_abstraction_fname = _subworkflow.db_abstraction_fname
+        (path, prefix, abs_name, abs_namespace, suffix) = \
+            parse_abstraction_name(subworkflow.db_abstraction_fname, True)
+        subworkflows.append(subworkflow)
+        subwf_extdatas[(abs_name, abs_namespace)] = sw_extdata
+    bundle_contents['subworkflows'] = subworkflows
+
+    internal_version_remap = {}
+    for subwf_key, extdata in subwf_extdatas.iteritems():
+        for (t, k), v in extdata["id_remap"].iteritems():
+            if t == DBAction.vtType:
+                internal_version_remap[subwf_key + (k,)] = v
+
+    def add_iversion_translate(tdict):
+        if len(internal_version_remap) > 0:
+            def update_abstraction_iversion(old_obj, trans_dict):
+                return str(internal_version_remap[
+                    (old_obj.db_name, old_obj.db_namespace,
+                     old_obj.db_internal_version)])
+
+            if 'DBAbstraction' not in tdict:
+                tdict['DBAbstraction'] = {}
+            if 'internal_version' not in tdict['DBAbstraction']:
+                tdict['DBAbstraction']['internal_version'] = \
+                    update_abstraction_iversion
+
     if _bundle.vistrail is not None:
         if vistrail_extdata is None:
             vistrail_extdata = {"id_remap": {}, "group_remaps": {}}
+        passed_tdict = None
+        if "translate_dict" in vistrail_extdata:
+            passed_tdict = vistrail_extdata["translate_dict"]
+            vistrail_extdata["translate_dict"] = copy.copy(vistrail_extdata["translate_dict"])
+        else:
+            passed_tdict = {}
+            vistrail_extdata["translate_dict"] = {}
+        add_iversion_translate(vistrail_extdata["translate_dict"])
         _vistrail = _bundle.vistrail
         vistrail = translateVistrail(_vistrail, vistrail_extdata)
+        if passed_tdict is not None:
+            vistrail_extdata["translate_dict"] = passed_tdict
         bundle_contents['vistrail'] = vistrail
 
     if _bundle.workflow is not None:
         if workflow_extdata is None:
             workflow_extdata = {"id_remap": {}, "group_remaps": {}}
+        passed_tdict = None
+        if "translate_dict" in workflow_extdata:
+            passed_tdict = workflow_extdata["translate_dict"]
+            workflow_extdata["translate_dict"] = copy.copy(workflow_extdata["translate_dict"])
+        else:
+            passed_tdict = {}
+            workflow_extdata["translate_dict"] = {}
+        add_iversion_translate(workflow_extdata["translate_dict"])
+
         if vistrail_extdata is not None:
             vt_extdata = copy_extdata(vistrail_extdata)
             remove_non_unique(vt_extdata, set()) # nothing for wf
@@ -285,30 +344,38 @@ def translateBundle(_bundle, external_data=None):
 
         _workflow = _bundle.workflow
         workflow = translateWorkflow(_workflow, workflow_extdata)
+        if passed_tdict is not None:
+            workflow_extdata["translate_dict"] = passed_tdict
         bundle_contents['workflow'] = workflow
 
-    abstractions = []
-    for _abstraction in _bundle.abstractions:
-        # convert abstractions
-        # should just be able to run vistrail translation...
-        pass
+    if vistrail_extdata is not None:
+        core_extdata = copy_extdata(vistrail_extdata)
+        remove_non_unique(core_extdata, set([DBAnnotation.vtType]))
+    elif workflow_extdata is not None:
+        core_extdata = copy_extdata(workflow_extdata)
+        remove_non_unique(core_extdata, set())
+    if external_data is not None and "mashup_extdata" in external_data:
+        mashup_extdata = external_data["mashup_extdata"]
+    else:
+        mashup_extdata = {"id_remap": {}, "group_remaps": {}}
+    update_extdata(mashup_extdata, core_extdata)
 
-    for mashup in _bundle.mashups:
-        # convert mashups
-        pass
+    mashups = []
+    for _mashup in _bundle.mashups:
+        # FIXME need to do this for each mashup, as with groups and
+        # store individual translations
+        mashup_extdata = copy_extdata(core_extdata)
+        mashup = translateMashup(_mashup, mashup_extdata)
+        mashups.append(mashup)
+    bundle_contents['mashups'] = mashups
 
     # FIXME abstractions and mashups may affect log
     if _bundle.log is not None:
-        if log_extdata is None:
+        if external_data is not None and "log_extdata" in external_data:
+            log_extdata = external_data["log_extdata"]
+        else:
             log_extdata = {"id_remap": {}, "group_remaps": {}}
-        if vistrail_extdata is not None:
-            vt_extdata = copy_extdata(vistrail_extdata)
-            remove_non_unique(vt_extdata, set([DBAnnotation.vtType]))
-            update_extdata(log_extdata, vt_extdata)
-        elif workflow_extdata is not None:
-            wf_extdata = copy_extdata(workflow_extdata)
-            remove_non_unique(wf_extdata, set())
-            update_extdata(log_extdata, wf_extdata)
+        update_extdata(log_extdata, core_extdata)
 
         _log = _bundle.log
         log = translateLog(_log, log_extdata)

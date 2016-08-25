@@ -46,6 +46,7 @@ from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
 import vistrails.core.requirements
 
 from datetime import datetime
+from distutils.version import LooseVersion
 import os.path
 import shutil
 import tempfile
@@ -685,7 +686,7 @@ def unserialize(str, obj_type):
 ##############################################################################
 # Vistrail I/O
 
-def open_vistrail_from_xml(filename, do_translate=True):
+def open_vistrail_from_xml(filename, do_translate=True, target_version=None):
     """open_vistrail_from_xml reads a Vistrail stored as xml and updates
     it to the latest version by default
         :param str filename:
@@ -695,13 +696,15 @@ def open_vistrail_from_xml(filename, do_translate=True):
 
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
+    if do_translate and target_version is None:
+        target_version = get_current_version()
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
         if vistrail is None:
             raise VistrailsDBException("Couldn't read vistrail from XML")
         if do_translate:
-            vistrail = translate_vistrail(vistrail, version)
+            vistrail = translate_vistrail(vistrail, version, target_version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
@@ -790,12 +793,23 @@ def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
                              abstractions=abstraction_files, 
                              thumbnails=thumbnail_files, mashups=mashups)
     if do_translate:
-        if vistrail.db_version != get_current_version() and log_fname is not None:
+        # only need to do this for the uuid transition, check 2.0.0 exact?
+        if LooseVersion(vistrail.db_version) < LooseVersion('2.0.0'):
             # only translate to vistrail.db_version, **not current version**
             # so bundle updates work as expected
-            save_bundle.log = open_log_from_xml(log_fname, True, True,
-                                                vistrail.db_version)
+            if log_fname is not None:
+                save_bundle.log = open_log_from_xml(log_fname, True, True,
+                                                    vistrail.db_version)
+            save_bundle.subworkflows = []
+            for abstraction in save_bundle.abstractions:
+                subworkflow = open_vistrail_from_xml(abstraction, True,
+                                                     vistrail.db_version)
+                # FIXME should use common filename stuff from controller?
+                subworkflow.db_abstraction_fname = abstraction
+                save_bundle.subworkflows.append(subworkflow)
         save_bundle = translate_bundle(save_bundle, vistrail.db_version)
+        for subworkflow in save_bundle.subworkflows:
+            save_vistrail_to_xml(subworkflow, subworkflow.db_abstraction_fname)
     return (save_bundle, vt_save_dir)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
@@ -2554,7 +2568,6 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         log.db_version = target_version
         vistrails.db.services.log.update_ids(log)
         return log
-
     def run_bundle_translation_test(self, version, filename):
         save_dir = None
         try:
@@ -2564,6 +2577,7 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             external_data = {"vistrail_extdata": self.create_external_data(),
                              "log_extdata": self.create_external_data()}
             bundle2 = translate_bundle(bundle1, get_current_version(), version, external_data)
+
             # print "REMAP:", external_data["vistrail_extdata"]["id_remap"]
             # print "LOG REMAP:", external_data["log_extdata"]["id_remap"]
             self.invert_remaps(external_data["vistrail_extdata"])

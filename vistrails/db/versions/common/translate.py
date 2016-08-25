@@ -124,11 +124,13 @@ def translate_bundle_f(version):
         if hasattr(_bundle, 'mashups'):
             for _mashup in _bundle.mashups:
                 bundle.mashups.append(translate_object(_mashup, _mashup.db_version, version, external_data, 'mashup'))
-        bundle.thumbnails = copy.copy(  _bundle.thumbnails)
+        bundle.thumbnails = copy.copy(_bundle.thumbnails)
         bundle.opm_graph = _bundle.opm_graph
         # FIXME translate abstractions?
         for a in _bundle.abstractions:
             bundle.abstractions.append(a)
+        for s in _bundle.subworkflows:
+            bundle.subworkflows.append(s)
         return bundle
 
     # def translate_f(_bundle, external_data=None):
