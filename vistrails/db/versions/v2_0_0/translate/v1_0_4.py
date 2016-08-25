@@ -63,15 +63,24 @@ def translateVistrail(_vistrail, external_data=None):
         id_remap[(DBAction.vtType, 0)] = DBVistrail.ROOT_VERSION
 
     # fix PortSpecItem ids -- should be unique
+    psi_ids = set()
     for action in _vistrail.db_actions:
         for op in action.db_operations:
             if (op.db_what == DBPortSpec.vtType and
                     (op.vtType == DBAdd.vtType or op.vtType == DBChange.vtType)):
                 ps = op.db_data
                 for psi in ps.db_portSpecItems:
-                    # we don't need to worry about overlap since psi ids are
-                    # not referenced as individual entities
-                    psi.db_id = _vistrail.idScope.getNewId(DBPortSpecItem.vtType)
+                    # only reassign when we need to
+                    old_id = psi.db_id
+                    if psi.db_id in psi_ids:
+                        # we don't need to worry about overlap since psi ids are
+                        # not referenced as individual entities
+                        new_id = _vistrail.idScope.getNewId(DBPortSpecItem.vtType)
+                        psi.db_id = new_id
+                    psi_ids.add(psi.db_id)
+
+    vistrail = DBVistrail()
+    id_scope = vistrail.idScope
 
     def update_workflow(old_obj, trans_dict):
         if old_obj.db_id in group_remaps:
@@ -85,10 +94,23 @@ def translateVistrail(_vistrail, external_data=None):
         group_remaps[old_obj.db_id] = group_data["id_remap"]
         return workflow
 
-    if 'DBGroup' not in translate_dict:
+    session_remap = {}
+    def update_session(old_obj, trans_dict):
+        if old_obj.db_session is None:
+            return ''
+        if old_obj.db_session in session_remap:
+            return session_remap[old_obj.db_session]
+        else:
+            new_id = id_scope.getNewId() # doesn't matter what objType is
+            session_remap[old_obj.db_session] = new_id
+            return new_id
+
+    if ('DBGroup' not in translate_dict or
+                'workflow' not in translate_dict['DBGroup']):
         translate_dict['DBGroup'] = {'workflow': update_workflow}
-    vistrail = DBVistrail()
-    id_scope = vistrail.idScope
+    if ('DBAction' not in translate_dict or
+                'session' not in translate_dict['DBAction']):
+        translate_dict['DBAction'] = {'session': update_session}
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
     for action in vistrail.db_actions:
         for pos, op in enumerate(action.db_operations):

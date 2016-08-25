@@ -42,6 +42,7 @@ import os
 from vistrails.core import debug
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
+from .common import translate as common_translate
 
 currentVersion = '2.0.0'
 
@@ -118,7 +119,6 @@ def get_version_path(version, target_version):
         version = next_version
     return path
 
-
 def translate_object(obj, method_name, version=None, target_version=None,
                      external_data=None):
     if version is None:
@@ -152,23 +152,9 @@ def translate_object(obj, method_name, version=None, target_version=None,
         if count > len(map):
             break
         next_version = map[version]
-        try:
-            translate_module = get_translate_module(map, version, next_version)
-        except Exception, e:
-            import traceback
-            raise VistrailsDBException("Cannot translate version: "
-                                       "error loading translation version %s method '%s': %s" % \
-                                           (version, method_name, traceback.format_exc()))
-        if not hasattr(translate_module, method_name):
-            raise VistrailsDBException("Cannot translate version: "
-                                       "version %s missing method '%s'" % \
-                                           (version, method_name))
-        func = getattr(translate_module, method_name)
-        fspec = inspect.getargspec(func)
-        if len(fspec.args) > 1:
-            obj = func(obj, external_data)
-        else:
-            obj = func(obj)
+        obj_type = method_name[9].lower() + method_name[10:]
+        obj = common_translate.translate_object(obj, version, next_version,
+                                                external_data, obj_type)
         version = next_version
         count += 1
 

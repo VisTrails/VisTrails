@@ -91,6 +91,9 @@ def translateVistrail(_vistrail, external_data=None):
     else:
         translate_dict = {}
 
+    vistrail = DBVistrail()
+    id_scope = vistrail.idScope
+
     def update_workflow(old_obj, trans_dict):
         if old_obj.db_id in group_remaps:
             group_remap = group_remaps[old_obj.db_id]
@@ -103,15 +106,27 @@ def translateVistrail(_vistrail, external_data=None):
         group_remaps[old_obj.db_id] = group_data["id_remap"]
         return workflow
 
-    if 'DBGroup' not in translate_dict:
-        translate_dict['DBGroup'] = {'workflow': update_workflow}
+    session_remap = {}
+    def update_session(old_obj, trans_dict):
+        if old_obj.db_session is None:
+            return ''
+        if old_obj.db_session in session_remap:
+            return session_remap[old_obj.db_session]
+        else:
+            new_id = id_scope.getNewId('session')
+            session_remap[old_obj.db_session] = new_id
+            return new_id
 
+    if ('DBGroup' not in translate_dict or
+                'workflow' not in translate_dict['DBGroup']):
+        translate_dict['DBGroup'] = {'workflow': update_workflow}
+    if ('DBAction' not in translate_dict or
+                'session' not in translate_dict['DBAction']):
+        translate_dict['DBAction'] = {'session': update_session}
     root_action_t = (DBAction.vtType, "00000000-0000-0000-0000-000000000000")
     if root_action_t not in id_remap:
         id_remap[root_action_t] = 0
 
-    vistrail = DBVistrail()
-    id_scope = vistrail.idScope
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail, False)
     # FIXME have to eventually expand the inner workflows and update their ids
     vistrail = vistrail.do_copy(True, id_scope, id_remap)

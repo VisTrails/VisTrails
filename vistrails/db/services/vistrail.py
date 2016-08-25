@@ -67,7 +67,8 @@ def update_id_scope(vistrail):
                     if operation.db_data is None:
                         if operation.vtType == 'change':
                             operation.db_objectId = operation.db_oldObjId
-                    vistrail.db_add_object(operation.db_data)
+                    if hasattr(vistrail, 'db_add_object'):
+                        vistrail.db_add_object(operation.db_data)
             for annotation in action.db_annotations:
                 vistrail.idScope.updateBeginId('annotation', annotation.db_id+1)
     else:

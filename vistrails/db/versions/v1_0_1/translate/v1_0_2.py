@@ -37,7 +37,7 @@ from __future__ import division
 
 import copy
 from vistrails.db.versions.v1_0_1.domain import DBVistrail, DBWorkflow, DBLog, \
-    DBRegistry, DBGroup, DBTag, DBAnnotation, DBAction, IdScope, SaveBundle
+    DBRegistry, DBGroup, DBTag, DBAnnotation, DBAction, IdScope
 
 def translateVistrail(_vistrail):
     tag_annotations = {}
@@ -174,40 +174,3 @@ def translateVistrail(_vistrail):
     
     vistrail.db_version = '1.0.1'
     return vistrail
-
-def translateWorkflow(_workflow):
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    workflow = DBWorkflow.update_version(_workflow, translate_dict)
-    workflow.db_version = '1.0.1'
-    return workflow
-
-def translateLog(_log):
-    translate_dict = {}
-    log = DBLog.update_version(_log, translate_dict)
-    log.db_version = '1.0.1'
-    return log
-
-def translateRegistry(_registry):
-    translate_dict = {}
-    registry = DBRegistry.update_version(_registry, translate_dict)
-    registry.db_version = '1.0.1'
-    return registry
-
-def translateBundle(_bundle):
-    bundle = SaveBundle(_bundle.bundle_type)
-    if _bundle.vistrail is not None:
-        bundle.vistrail = translateVistrail(_bundle.vistrail)
-    if _bundle.workflow is not None:
-        bundle.workflow = translateWorkflow(_bundle.workflow)
-    if _bundle.log is not None:
-        bundle.log = translateLog(_bundle.log)
-    if _bundle.registry is not None:
-        bundle.registry = translateRegistry(_bundle.registry)
-    bundle.thumbnails = copy.copy(_bundle.thumbnails)
-    bundle.opm_graph = _bundle.opm_graph
-    # FIXME translate abstractions?
-    for a in _bundle.abstractions:
-        bundle.abstractions.append(a)
-    return bundle

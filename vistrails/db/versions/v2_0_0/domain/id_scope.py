@@ -56,7 +56,7 @@ class IdScope:
     def __str__(self):
         return str(self.ids)
 
-    def getNewId(self, objType):
+    def getNewId(self, objType=None):
         return str(uuid.uuid4())
 
     def updateBeginId(self, objType, beginId):

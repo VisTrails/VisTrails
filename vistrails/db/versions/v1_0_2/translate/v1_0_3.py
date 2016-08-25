@@ -37,8 +37,7 @@ from __future__ import division
 import copy
 from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
     DBWorkflow, DBLog, DBRegistry, \
-    DBPortSpec, DBAdd, DBChange, DBDelete, \
-    SaveBundle
+    DBPortSpec, DBAdd, DBChange, DBDelete
 from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
@@ -163,12 +162,6 @@ def translateWorkflow(_workflow):
     workflow.db_version = '1.0.2'
     return workflow
 
-def translateLog(_log):
-    translate_dict = {}
-    log = DBLog.update_version(_log, translate_dict)
-    log.db_version = '1.0.2'
-    return log
-
 def translateRegistry(_registry):
     global id_scope
     translate_dict = {'DBModuleDescriptor': {'portSpecs': update_portSpecs}}
@@ -177,23 +170,6 @@ def translateRegistry(_registry):
     vistrail = DBRegistry.update_version(_registry, translate_dict, registry)
     registry.db_version = '1.0.2'
     return registry
-
-def translateBundle(_bundle):
-    bundle = SaveBundle(_bundle.bundle_type)
-    if _bundle.vistrail is not None:
-        bundle.vistrail = translateVistrail(_bundle.vistrail)
-    if _bundle.workflow is not None:
-        bundle.workflow = translateWorkflow(_bundle.workflow)
-    if _bundle.log is not None:
-        bundle.log = translateLog(_bundle.log)
-    if _bundle.registry is not None:
-        bundle.registry = translateRegistry(_bundle.registry)
-    bundle.thumbnails = copy.copy(_bundle.thumbnails)
-    bundle.opm_graph = _bundle.opm_graph
-    # FIXME translate abstractions?
-    for a in _bundle.abstractions:
-        bundle.abstractions.append(a)
-    return bundle
 
 class TestTranslate(unittest.TestCase):
     def testParamexp(self):

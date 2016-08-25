@@ -57,35 +57,6 @@ import unittest
 
 id_scope = None
 
-def translateVistrail(_vistrail):
-    """ Translate old annotation based vistrail variables to new
-        DBVistrailVariable class """
-    global id_scope
-
-    def update_workflow(old_obj, trans_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         trans_dict, DBWorkflow())
-
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    vistrail = DBVistrail()
-    id_scope = vistrail.idScope
-    vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
-
-    vistrail.db_version = '1.0.4'
-    return vistrail
-
-def translateWorkflow(_workflow):
-    global id_scope
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-
-    workflow = DBWorkflow()
-    id_scope = IdScope(remap={DBAbstraction.vtType: DBModule.vtType, DBGroup.vtType: DBModule.vtType})
-    workflow = DBWorkflow.update_version(_workflow, translate_dict, workflow)
-    workflow.db_version = '1.0.4'
-    return workflow
-
 def translateLog(_log):
     id_scope = _log.id_scope
 
@@ -196,25 +167,6 @@ def translateLog(_log):
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '1.0.4'
     return log
-
-def translateRegistry(_registry):
-    global id_scope
-    translate_dict = {}
-    registry = DBRegistry()
-    id_scope = registry.idScope
-    registry = DBRegistry.update_version(_registry, translate_dict, registry)
-    registry.db_version = '1.0.4'
-    return registry
-
-def translateMashup(_mashup):
-    global id_scope
-    translate_dict = {}
-    mashup = DBMashuptrail()
-    id_scope = mashup.id_scope
-    mashup = DBMashuptrail.update_version(_mashup, translate_dict, mashup)
-    mashup.db_version = '1.0.4'
-    return mashup
-
 
 def translateStartup(_startup):
     # format is {<old_name>: <new_name>} or
@@ -455,25 +407,6 @@ def translateStartup(_startup):
 
     startup.db_version = '1.0.4'
     return startup
-
-def translateBundle(_bundle):
-    bundle = SaveBundle(_bundle.bundle_type)
-    if _bundle.vistrail is not None:
-        bundle.vistrail = translateVistrail(_bundle.vistrail)
-    if _bundle.workflow is not None:
-        bundle.workflow = translateWorkflow(_bundle.workflow)
-    if _bundle.log is not None:
-        bundle.log = translateLog(_bundle.log)
-    if _bundle.registry is not None:
-        bundle.registry = translateRegistry(_bundle.registry)
-    for _mashup in _bundle.mashups:
-        bundle.mashups.append(translateMashup(_mashup))
-    bundle.thumbnails = copy.copy(_bundle.thumbnails)
-    bundle.opm_graph = _bundle.opm_graph
-    # FIXME translate abstractions?
-    for a in _bundle.abstractions:
-        bundle.abstractions.append(a)
-    return bundle
 
 class TestTranslate(unittest.TestCase):
     def test_startup_update(self):
