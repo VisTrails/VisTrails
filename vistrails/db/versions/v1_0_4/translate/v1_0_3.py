@@ -42,7 +42,7 @@ from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, 
     DBActionAnnotation, DBStartup, DBConfigKey, DBConfigBool, DBConfigStr, \
     DBConfigInt, DBConfigFloat, DBConfiguration, DBStartupPackage, \
     DBLoopIteration, DBLoopExec, DBModuleExec, DBGroupExec, \
-    DBMashuptrail, DBMachine, DBWorkflowExec, SaveBundle
+    DBMashuptrail, DBMachine, DBWorkflowExec
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString

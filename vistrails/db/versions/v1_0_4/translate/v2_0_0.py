@@ -32,10 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from vistrails.db.versions.common.bundle import SaveBundle
 from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBAbstraction, \
     DBGroup, DBModule, DBActionAnnotation, DBAnnotation, DBLoopExec, \
-    DBModuleExec, DBGroupExec, DBAction, IdScope, SaveBundle
+    DBModuleExec, DBGroupExec, DBAction, DBMashuptrail, IdScope
 
 import copy
 import unittest
@@ -210,6 +212,21 @@ def translateRegistry(_registry, external_data=None):
     registry = registry.do_copy(True, id_scope, id_remap)
     registry.db_version = '1.0.4'
     return registry
+
+def translateMashup(_mashup, external_data=None):
+    #FIXME check if this is correct
+    if external_data is not None and "id_remap" in external_data:
+        id_remap = external_data["id_remap"]
+    else:
+        id_remap = {}
+
+    translate_dict = {}
+    mashup = DBMashuptrail()
+    id_scope = mashup.id_scope
+    mashup = DBMashuptrail.update_version(_mashup, translate_dict, mashup)
+    mashup = mashup.do_copy(True, id_scope, id_remap)
+    mashup.db_version = '1.0.4'
+    return mashup
 
 def translateBundle(_bundle, external_data=None):
     if external_data is not None and "translate_dict" in external_data:

@@ -32,10 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from vistrails.db.versions.common.bundle import SaveBundle
 from vistrails.db.versions.v2_0_0.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBStartup, DBMashuptrail, DBAction, \
     DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, DBActionAnnotation, \
-    DBModule, DBAnnotation, DBPortSpec, DBPortSpecItem, IdScope, SaveBundle
+    DBModule, DBAnnotation, DBPortSpec, DBPortSpecItem, IdScope
 
 import copy
 import unittest
