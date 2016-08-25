@@ -34,6 +34,9 @@
 ##
 ###############################################################################
 
+from bundle import SaveBundle
+
+import copy
 import inspect
 
 def get_full_version_str(version_str):
@@ -69,9 +72,9 @@ def get_translate_object_f(obj_type, start_version, end_version):
         return getattr(m, "translate{}".format(obj_type.capitalize()))
     return None
 
-def translate_object_default(version):
+def translate_object_default_f(version):
     def translate_f(_obj, external_data=None):
-        if "translate_dict" in external_data:
+        if external_data is not None and "translate_dict" in external_data:
             translate_dict = external_data["translate_dict"]
         else:
             translate_dict = {}
@@ -84,114 +87,106 @@ def translate_object_default(version):
         return obj
     return translate_f
 
-def translate_with_groups(version):
+def translate_with_groups_f(version):
     def translate_f(_obj, external_data=None):
         if external_data is None:
             external_data = {}
         if "translate_dict" not in external_data:
             external_data["translate_dict"] = {}
-        translate_dict = external_data["translate_dict"]
+        # don't modify existing translate_dict-could hardcode incorrect version
+        translate_dict = copy.copy(external_data["translate_dict"])
         if 'DBGroup' not in translate_dict:
             translate_dict['DBGroup'] = {}
         if 'workflow' not in translate_dict['DBGroup']:
             wf_cls = get_domain_cls(version, 'workflow')
             def update_workflow(old_obj, trans_dict):
-                return wf_cls.update_version(old_obj.db_workflow,
-                                             trans_dict, wf_cls())
+                new_obj = wf_cls()
+                new_obj = wf_cls.update_version(old_obj.db_workflow,
+                                                trans_dict, new_obj)
+                new_obj.db_version = version
+                return new_obj
             translate_dict['DBGroup']['workflow'] = update_workflow
-        return translate_object_default(version)(_obj, external_data)
+        return translate_object_default_f(version)(_obj, external_data)
     return translate_f
 
-def translate_vistrail_default(version):
-    return translate_with_groups(version)
+def translate_bundle_f(version):
+    def translate_f(_bundle, external_data=None):
+        bundle = SaveBundle(_bundle.bundle_type)
+        if _bundle.vistrail is not None:
+            bundle.vistrail = translate_object(_bundle.vistrail, _bundle.vistrail.db_version, version, external_data, 'vistrail')
+        if _bundle.workflow is not None:
+            bundle.workflow = translate_object(_bundle.workflow, _bundle.workflow.db_version, version, external_data, 'workflow')
+        if _bundle.log is not None:
+            # print "TRANSLATING LOG VERSION:", _bundle.log.db_version, version
+            bundle.log = translate_object(_bundle.log, _bundle.log.db_version, version, external_data, 'log')
+        if _bundle.registry is not None:
+            bundle.registry = translate_object(_bundle.registry, _bundle.registry.db_version, version, external_data, 'registry')
+        if hasattr(_bundle, 'mashups'):
+            for _mashup in _bundle.mashups:
+                bundle.mashups.append(translate_object(_mashup, _mashup.db_version, version, external_data, 'mashup'))
+        bundle.thumbnails = copy.copy(  _bundle.thumbnails)
+        bundle.opm_graph = _bundle.opm_graph
+        # FIXME translate abstractions?
+        for a in _bundle.abstractions:
+            bundle.abstractions.append(a)
+        return bundle
 
-def translate_workflow_default(version):
-    return translate_with_groups(version)
+    # def translate_f(_bundle, external_data=None):
+    #     if 'obj_types' in external_data:
+    #         obj_types = external_data['obj_types']
+    #     else:
+    #         obj_types = ['vistrail', 'workflow', 'log', 'registry', ('mashup', True)]
+    #     if 'update_extdata' in external_data:
+    #         update_extdata = external_data["update_extdata"]
+    #     else:
+    #         update_extdata = {}
+    #
+    #     bundle = SaveBundle(_bundle.bunde_type)
+    #     all_extdata = {}
+    #     for obj_type in obj_types:
+    #         is_plural = False
+    #         if type(obj_type) == tuple:
+    #             obj_type = obj_type[0]
+    #             if len(obj_type) > 1:
+    #                 is_plural = obj_type[1]
+    #         extdata_k = "{}_extdata".format(obj_type)
+    #         if extdata_k in external_data:
+    #             obj_extdata = external_data[extdata_k]
+    #         else:
+    #             obj_extdata = {}
+    #
+    #         #FIXME add some way to update extdata across objects?
+    #         if hasattr(_bundle, obj_type):
+    #             update_extdata_f = None
+    #             if obj_type in 'update_extdata':
+    #                 update_extdata_f = update_extdata[obj_type]
+    #
+    #             def translate_one(_obj, obj_extdata):
+    #                 if update_extdata_f is not None:
+    #                     obj_extdata = update_extdata_f(version, all_extdata,
+    #                                                    obj_extdata)
+    #                 return translate_object(_obj, _obj.db_version, version, obj_extdata,
+    #                                         obj_type)
+    #
+    #             if is_plural:
+    #                 attr_name = "{}s".format(obj_type)
+    #                 _objs = getattr(_bundle, "{}s".format(obj_type))
+    #                 objs = []
+    #                 for _obj in _objs:
+    #                     if update_extdata_f is not None:
+    #                         obj_extdata = update_extdata_f(version, all_extdata, obj_extdata)
+    #                     objs.append(translate_object(version, _obj, obj_extdata))
+    #                 setattr(bundle, attr_name, objs)
+    #             else:
+    #                 _obj = getattr(_bundle, obj_type)
+    #                 obj = translate_object(version, _obj, obj_extdata)
+    #                 setattr(bundle, obj_type, obj)
 
-# def translate_vistrail_default(version, _vistrail, external_data=None):
-#     if "translate_dict" in external_data:
-#         translate_dict = external_data["translate_dict"]
-#     else:
-#         translate_dict = {}
-#
-#     if 'DBGroup' not in translate_dict:
-#         translate_dict['DBGroup'] = {}
-#     if 'workflow' not in translate_dict['DBGroup']:
-#         wf_cls = get_domain_cls(version, 'workflow')
-#         def update_workflow(old_obj, trans_dict):
-#             return wf_cls.update_version(old_obj.db_workflow,
-#                                          trans_dict, wf_cls())
-#         translate_dict['DBGroup']['workflow'] = update_workflow
-#     return translate_object_default(version, _vistrail, external_data)
-#
-# def translate_workflow_default(version, _workflow, external_data=None):
-#     if "translate_dict" in external_data:
-#         translate_dict = external_data["translate_dict"]
-#     else:
-#         translate_dict = {}
-#
-#     if 'DBGroup' not in translate_dict:
-#         translate_dict['DBGroup'] = {}
-#     if 'workflow' not in translate_dict['DBGroup']:
-#         wf_cls = get_domain_cls(version, 'workflow')
-#         def update_workflow(old_obj, trans_dict):
-#             return wf_cls.update_version(old_obj.db_workflow,
-#                                          trans_dict, wf_cls())
-#         translate_dict['DBGroup']['workflow'] = update_workflow
-#     return translate_object_default(version, _workflow, external_data)
+    return translate_f
 
-def translate_bundle(version, _bundle, external_data=None):
-    if 'obj_types' in external_data:
-        obj_types = external_data['obj_types']
-    else:
-        obj_types = ['vistrail', 'workflow', 'log', 'registry', ('mashup', True)]
-    if 'update_extdata' in external_data:
-        update_extdata = external_data["update_extdata"]
-    else:
-        update_extdata = {}
-
-    bundle = SaveBundle(_bundle.bunde_type)
-    all_extdata = {}
-    for obj_type in obj_types:
-        is_plural = False
-        if type(obj_type) == tuple:
-            obj_type = obj_type[0]
-            if len(obj_type) > 1:
-                is_plural = obj_type[1]
-        extdata_k = "{}_extdata".format(obj_type)
-        if extdata_k in external_data:
-            obj_extdata = external_data[extdata_k]
-        else:
-            obj_extdata = {}
-
-        #FIXME add some way to update extdata across objects?
-        if hasattr(_bundle, obj_type):
-            update_extdata_f = None
-            if obj_type in 'update_extdata':
-                update_extdata_f = update_extdata[obj_type]
-
-            def translate_one(_obj, obj_extdata):
-                if update_extdata_f is not None:
-                    obj_extdata = update_extdata_f(version, all_extdata,
-                                                   obj_extdata)
-
-            if is_plural:
-                attr_name = "{}s".format(obj_type)
-                _objs = getattr(_bundle, "{}s".format(obj_type))
-                objs = []
-                for _obj in _objs:
-                    if update_extdata_f is not None:
-                        obj_extdata = update_extdata_f(version, all_extdata, obj_extdata)
-                    objs.append(translate_object(version, _obj, obj_extdata))
-                setattr(bundle, attr_name, objs)
-            else:
-                _obj = getattr(_bundle, obj_type)
-                obj = translate_object(version, _obj, obj_extdata)
-                setattr(bundle, obj_type, obj)
-
-defaults = {'vistrail': translate_with_groups,
-            'workflow': translate_with_groups,
-            'bundle': translate_bundle,
+defaults = {'vistrail': translate_with_groups_f,
+            'workflow': translate_with_groups_f,
+            'bundle': translate_bundle_f,
             }
 
 def translate_object(_obj, start_version, end_version, external_data=None,
@@ -201,7 +196,7 @@ def translate_object(_obj, start_version, end_version, external_data=None,
     translate_f = get_translate_object_f(obj_type, start_version, end_version)
     if translate_f is None:
         if obj_type not in defaults:
-            translate_f = translate_object_default(end_version)
+            translate_f = translate_object_default_f(end_version)
         else:
             translate_f = defaults[obj_type](end_version)
     fspec = inspect.getargspec(translate_f)
@@ -210,22 +205,3 @@ def translate_object(_obj, start_version, end_version, external_data=None,
     else:
         obj = translate_f(_obj)
     return obj
-
-# def translateBundle(_bundle):
-#     bundle = SaveBundle(_bundle.bundle_type)
-#     if _bundle.vistrail is not None:
-#         bundle.vistrail = translateVistrail(_bundle.vistrail)
-#     if _bundle.workflow is not None:
-#         bundle.workflow = translateWorkflow(_bundle.workflow)
-#     if _bundle.log is not None:
-#         bundle.log = translateLog(_bundle.log)
-#     if _bundle.registry is not None:
-#         bundle.registry = translateRegistry(_bundle.registry)
-#     for _mashup in _bundle.mashups:
-#         bundle.mashups.append(translateMashup(_mashup))
-#     bundle.thumbnails = copy.copy(_bundle.thumbnails)
-#     bundle.opm_graph = _bundle.opm_graph
-#     # FIXME translate abstractions?
-#     for a in _bundle.abstractions:
-#         bundle.abstractions.append(a)
-#     return bundle

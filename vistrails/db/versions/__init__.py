@@ -153,6 +153,7 @@ def translate_object(obj, method_name, version=None, target_version=None,
             break
         next_version = map[version]
         obj_type = method_name[9].lower() + method_name[10:]
+        # print "TRANSLATING {} FROM {} TO {}".format(obj_type, version, next_version)
         obj = common_translate.translate_object(obj, version, next_version,
                                                 external_data, obj_type)
         version = next_version
