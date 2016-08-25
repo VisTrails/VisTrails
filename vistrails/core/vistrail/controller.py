@@ -3653,7 +3653,7 @@ class VistrailController(object):
         if (len(left_exceptions) == len(root_exceptions) and
             len(new_exceptions) == 0):
             debug.debug('handle_invalid_pipeline failed to validate version '
-                        '%d: %d errors left.' % (new_version,
+                        '%s: %d errors left.' % (new_version,
                                                len(root_exceptions)))
             raise InvalidPipeline(left_exceptions + new_exceptions,
                                   cur_pipeline, new_version)
