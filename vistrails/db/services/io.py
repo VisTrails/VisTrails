@@ -69,6 +69,7 @@ import vistrails.db.services.vistrail
 from vistrails.db.versions import getVersionDAO, get_current_version, \
     getVersionSchemaDir, translate_vistrail, translate_workflow, translate_log, \
     translate_registry, translate_startup, translate_bundle, translate_mashup
+from vistrails.db.versions.common.translate import ExternalData, GroupExternalData
 
 import unittest
 import vistrails.core.system
@@ -2084,39 +2085,35 @@ def get_alternate_tests(version):
     return alternate_tests
 
 class TranslationMixin(object):
-    @staticmethod
-    def create_external_data():
-        id_remap = {}
-        group_remaps = {}
-        external_data = {"id_remap": id_remap,
-                         "group_remaps": group_remaps}
-        return external_data
-
-    @staticmethod
-    def invert_remaps(external_data):
-        # reverse the maps
-        id_remap = external_data['id_remap']
-        group_remaps = external_data['group_remaps']
-        group_remaps = {id_remap[('module', gid)]:
-                            {(t, k2): k1 for ((t, k1), k2) in
-                             remap.iteritems()}
-                        for (gid, remap) in group_remaps.iteritems()}
-        external_data["group_remaps"] = group_remaps
-        id_remap = {(t, k2): k1 for ((t, k1), k2) in id_remap.iteritems()}
-        external_data["id_remap"] = id_remap
-
-    @staticmethod
-    def remove_non_unique(external_data):
-        non_unique = set(['annotation'])
-        new_remap = {}
-        for ((t, k1), k2) in external_data["id_remap"].iteritems():
-            if t not in non_unique:
-                new_remap[(t, k1)] = k2
-        external_data["id_remap"] = new_remap
-
-    @staticmethod
-    def duplicate_extdata(external_data):
-        return {k: copy.copy(v) for k,v in external_data.iteritems()}
+    # @staticmethod
+    # def create_external_data():
+    #     return ExternalData()
+    #
+    # @staticmethod
+    # def invert_remaps(external_data):
+    #     # reverse the maps
+    #     id_remap = external_data['id_remap']
+    #     group_remaps = external_data['group_remaps']
+    #     group_remaps = {id_remap[('module', gid)]:
+    #                         {(t, k2): k1 for ((t, k1), k2) in
+    #                          remap.iteritems()}
+    #                     for (gid, remap) in group_remaps.iteritems()}
+    #     external_data["group_remaps"] = group_remaps
+    #     id_remap = {(t, k2): k1 for ((t, k1), k2) in id_remap.iteritems()}
+    #     external_data["id_remap"] = id_remap
+    #
+    # @staticmethod
+    # def remove_non_unique(external_data):
+    #     non_unique = set(['annotation'])
+    #     new_remap = {}
+    #     for ((t, k1), k2) in external_data["id_remap"].iteritems():
+    #         if t not in non_unique:
+    #             new_remap[(t, k1)] = k2
+    #     external_data["id_remap"] = new_remap
+    #
+    # @staticmethod
+    # def duplicate_extdata(external_data):
+    #     return {k: copy.copy(v) for k,v in external_data.iteritems()}
 
 import itertools
 import os
@@ -2148,6 +2145,9 @@ class TestMeta(type):
                         short_params.append(p)
                     params_str = "_" + "_".join(str(x) for x in short_params)
                 test_name = "test_{}{}".format(obj_type, params_str)
+                # # hack to run only one test
+                # if test_name == "test_vistrail_0_9_3_test_basics":
+                #     dict[test_name] = mcs.gen_test(obj_type, *params)
                 dict[test_name] = mcs.gen_test(obj_type, *params)
         return type.__new__(mcs, name, bases, dict)
 
@@ -2202,9 +2202,10 @@ class TestXMLFile(TranslationMixin, unittest.TestCase):
 
         try:
             # do translate here to allow id remap
-            external_data = self.create_external_data()
+            external_data = GroupExternalData()
             vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
-            self.invert_remaps(external_data)
+            external_data.invert_remaps()
+            # self.invert_remaps(external_data)
             save_vistrail_to_xml(vt2, fname, version)
             vt3 = open_vistrail_from_xml(fname, do_translate=False)
             vt3 = translate_vistrail(vt2, version, get_current_version(), external_data)
@@ -2228,10 +2229,10 @@ class TestXMLFile(TranslationMixin, unittest.TestCase):
             #FIXME should this be done in materializeWorkflow?
             wf1.db_version = get_current_version()
             # do translate here to allow id remap
-            external_data = self.create_external_data()
+            external_data = GroupExternalData()
             wf2 = translate_workflow(wf1, get_current_version(), version, external_data)
-            self.invert_remaps(external_data)
             save_workflow_to_xml(wf2, fname, version)
+            external_data.invert_remaps()
             wf3 = open_workflow_from_xml(fname, do_translate=False)
             wf3 = translate_workflow(wf2, version, get_current_version(), external_data)
             DBWorkflowTest.deep_eq_test(wf1, wf3, self, get_alternate_tests(version))
@@ -2324,22 +2325,22 @@ class TestMySQLDatabase(TranslationMixin):
         # print "VT1 version", vt1.db_version, vt1.db_id
         try:
             # do translate here to allow id remap
-            external_data = self.create_external_data()
+            external_data = GroupExternalData()
             vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
             # print "EXTERNAL_DATA:", external_data
-            self.invert_remaps(external_data)
+            external_data.invert_remaps()
             # print "VT2 version", vt2.db_version, vt2.db_id
             vt3 = save_vistrail_to_db(vt2, self.conn, True, version, save_wfs=False,
                                       do_translate=False)
             # HACK because db will autoinc vt3 id which doesn't match the id
             # from original load
             vt_start_k = None
-            for k, v in external_data["id_remap"].iteritems():
+            for k, v in external_data.id_remap.iteritems():
                 if k[0] == 'vistrail':
                     vt_start_k = k
             if vt_start_k is not None:
-                external_data["id_remap"][('vistrail', vt3.db_id)] = \
-                    external_data["id_remap"][vt_start_k]
+                external_data.id_remap[('vistrail', vt3.db_id)] = \
+                    external_data.id_remap[vt_start_k]
             # print "VT3 version", vt3.db_version, vt3.db_id
             vt_id = vt3.db_id
             vt4 = open_vistrail_from_db(self.conn, vt_id, do_translate=False)
@@ -2480,9 +2481,9 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         try:
             (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
             vt1 = bundle.vistrail
-            external_data = self.create_external_data()
+            external_data = GroupExternalData()
             vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
-            self.invert_remaps(external_data)
+            external_data.invert_remaps()
             vt2 = translate_vistrail(vt2, version, get_current_version(), external_data)
             DBVistrailTest.deep_eq_test(vt1, vt2, self, get_alternate_tests(version))
         finally:
@@ -2502,9 +2503,9 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, action_id)
             # FIXME may set db_version in materializeWorkflow?
             wf1.db_version = get_current_version()
-            external_data = self.create_external_data()
+            external_data = GroupExternalData()
             wf2 = translate_workflow(wf1, get_current_version(), version, external_data)
-            self.invert_remaps(external_data)
+            external_data.invert_remaps()
             wf2 = translate_workflow(wf2, version, get_current_version(), external_data)
             DBWorkflowTest.deep_eq_test(wf1, wf2, self, get_alternate_tests(version))
         finally:
@@ -2518,9 +2519,9 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
             (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
             log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True) # load
             log1.db_id = log1.id_scope.getNewId(DBLog.vtType)
-            external_data = self.create_external_data()
+            external_data = ExternalData()
             log2 = translate_log(log1, get_current_version(), version, external_data)
-            self.invert_remaps(external_data)
+            external_data.invert_remaps()
             log2 = translate_log(log2, version, get_current_version(), external_data)
             DBLogTest.deep_eq_test(log1, log2, self, get_alternate_tests(version))
         finally:
@@ -2535,9 +2536,10 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         try:
             out_fname = save_registry_to_xml(get_module_registry(), fname)
             reg1 = open_registry_from_xml(fname)
-            external_data = self.create_external_data()
+            external_data = ExternalData()
             reg2 = translate_registry(reg1, get_current_version(), version, external_data)
-            self.invert_remaps(external_data)
+            # external_data.print_remaps()
+            external_data.invert_remaps()
             reg2 = translate_registry(reg2, version, get_current_version(), external_data)
             DBRegistryTest.deep_eq_test(reg1, reg2, self, get_alternate_tests(version))
         finally:
@@ -2573,67 +2575,21 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         try:
             #FIXME add mashups/abstractions/registry/workflow
             (bundle1, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
-
-            external_data = {"vistrail_extdata": self.create_external_data(),
-                             "log_extdata": self.create_external_data()}
+            external_data = ExternalData()
             bundle2 = translate_bundle(bundle1, get_current_version(), version, external_data)
 
-            # print "REMAP:", external_data["vistrail_extdata"]["id_remap"]
-            # print "LOG REMAP:", external_data["log_extdata"]["id_remap"]
-            self.invert_remaps(external_data["vistrail_extdata"])
-            self.invert_remaps(external_data["log_extdata"])
-            # print "INV REMAP:", external_data["vistrail_extdata"]["id_remap"]
-            # print "INV LOG REMAP:", external_data["log_extdata"]["id_remap"]
+            # print "REMAPS:", external_data.print_remaps("S ")
+            external_data.invert_remaps()
+            # print "INV REMAPS:", external_data.print_remaps("I ")
 
             bundle2 = translate_bundle(bundle2, version, get_current_version(), external_data)
+            # print "FINAL REMAPS:", external_data.print_remaps("F ")
 
             DBVistrailTest.deep_eq_test(bundle1.vistrail, bundle2.vistrail,
                                         self, get_alternate_tests(version))
             DBLogTest.deep_eq_test(bundle1.log, bundle2.log,
                                    self, get_alternate_tests(version))
-        finally:
-            if save_dir is not None:
-                shutil.rmtree(save_dir)
-
-    def run_manual_bundle_translation_test(self, version, filename):
-        save_dir = None
-        try:
-            # have to translate the vistrail along with the log
-
-            # --- READ AND SET UP DATA ---
-            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename,
-                                                                   False)
-            vt1 = bundle.vistrail
-            initial_version = vt1.db_version
-            log1 = self.load_log(bundle.vistrail.db_log_filename, initial_version)
-            log1.db_id = log1.id_scope.getNewId(DBLog.vtType)
-            external_data = self.create_external_data()
-            vt1 = translate_vistrail(vt1, initial_version, get_current_version(), external_data)
-            self.remove_non_unique(external_data)
-            log1 = translate_log(log1, initial_version, get_current_version(), external_data)
-
-            # --- RUN TESTS ---
-            external_data = self.create_external_data()
-            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
-            vt_external_data = self.duplicate_extdata(external_data)
-            self.remove_non_unique(external_data)
-            log2 = translate_log(log1, get_current_version(), version, external_data)
-            log_external_data = self.duplicate_extdata(external_data)
-            # print "VT_EXTERNAL_DATA:", vt_external_data["id_remap"]
-            # print "LOG_EXTERNAL_DATA:", log_external_data["id_remap"]
-            self.invert_remaps(vt_external_data)
-            self.invert_remaps(log_external_data)
-            # print "INV VT_EXTERNAL_DATA:", vt_external_data["id_remap"]
-            # print "INV LOG_EXTERNAL_DATA:", log_external_data["id_remap"]
-            external_data = vt_external_data
-            vt2 = translate_vistrail(vt2, version, get_current_version(), external_data)
-            self.remove_non_unique(external_data)
-            # print "BEFORE UPDATE:", external_data["id_remap"]
-            external_data["id_remap"].update(log_external_data["id_remap"])
-            # print "AFTER UPDATE:", external_data["id_remap"]
-            log2 = translate_log(log2, version, get_current_version(), external_data)
-            DBVistrailTest.deep_eq_test(vt1, vt2, self, get_alternate_tests(version))
-            DBLogTest.deep_eq_test(log1, log2, self, get_alternate_tests(version))
+            #FIXME Add tests for abstractions, mashups, workflows, etc.
         finally:
             if save_dir is not None:
                 shutil.rmtree(save_dir)
