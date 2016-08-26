@@ -230,11 +230,11 @@ def translateBundle(_bundle, external_data=None):
 
         internal_version_remap = {}
         # get all subworkflow extdatas here...
-        for k, subwf_extdata in extdata.child_extdata.iteritems():
-            if type(k) == tuple and k[0] == 'subworkflow':
+        for subwf_key, subwf_extdata in extdata.child_extdata.iteritems():
+            if type(subwf_key) == tuple and subwf_key[0] == 'subworkflow':
                 for (t, k), v in subwf_extdata.id_remap.iteritems():
                     if t == DBAction.vtType:
-                        internal_version_remap[subwf_key + (str(k),)] = v
+                        internal_version_remap[subwf_key[1] + (str(k),)] = v
 
         def update_abstraction_iversion(old_obj, trans_dict):
             return internal_version_remap[

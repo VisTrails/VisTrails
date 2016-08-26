@@ -347,7 +347,7 @@ defaults = {'vistrail': translate_with_groups_f,
 
 def translate_object(_obj, start_version, end_version, external_data=None,
                      obj_type=None):
-    print "TRANSLATING:", obj_type, start_version, end_version
+    # print "TRANSLATING:", obj_type, start_version, end_version
     if obj_type is None:
         obj_type = _obj.vtType
     translate_f = get_translate_object_f(obj_type, start_version, end_version)

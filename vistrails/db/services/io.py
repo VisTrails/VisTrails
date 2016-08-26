@@ -2114,6 +2114,7 @@ class TranslationMixin(object):
     # @staticmethod
     # def duplicate_extdata(external_data):
     #     return {k: copy.copy(v) for k,v in external_data.iteritems()}
+    pass
 
 import itertools
 import os
