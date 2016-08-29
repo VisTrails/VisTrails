@@ -79,41 +79,57 @@ def execute(notebook_filename, inputs):
         {'metadata': {'path': os.path.dirname(notebook_filename)}})
     with open(notebook_filename, 'wt') as fp:
         nbformat.write(notebook, fp)
+    return notebook
+
+
+def render_output(notebook, cells):
     out = [HTML_HEADER]
-    for output in notebook['cells'][-1]['outputs']:
-        otype = output['output_type']
-        print output
-        out.append('<div class="output_area">\n')
-        if otype == 'stream':
-            err = ' stderr' if output['name'] != 'stdout' else ''
-            out.append('  <div class="prompt"></div>\n'
-                       '  <div class="output stream%s"><pre>' % err)
-            out.append(output['text'])
-            out.append('</pre></div>\n')
-        elif otype == 'display_data' or otype == 'execute_result':
-            out.append('  <div class="prompt">')
-            if otype == 'execute_result':
-                if 'execution_count' in output:
-                    out.append('Out[%s]' % output['execution_count'])
-                else:
-                    out.append('Out')
-            out.append('</div>\n')
-            if 'text/html' in output['data']:
-                out.append('  <div class="output">')
-                out.append(output['data']['text/html'])
+
+    nb_cells = len(notebook['cells'])
+    if cells is None or cells <= 0:
+        cells = xrange(nb_cells)
+    elif isinstance(cells, (int, long)):
+        cells = xrange(nb_cells - cells, nb_cells)
+    elif isinstance(cells, (tuple, list)):
+        cells = (c for c in cells if 0 <= c < nb_cells)
+
+    for nb in cells:
+        cell = notebook['cells'][nb]
+        out.append('<div class="cell">\n')
+        for output in cell['outputs']:
+            otype = output['output_type']
+            out.append('  <div class="output_area">\n')
+            if otype == 'stream':
+                err = ' stderr' if output['name'] != 'stdout' else ''
+                out.append('    <div class="prompt"></div>\n'
+                           '    <div class="output stream%s"><pre>' % err)
+                out.append(output['text'])
+                out.append('  </pre></div>\n')
+            elif otype == 'display_data' or otype == 'execute_result':
+                out.append('    <div class="prompt">')
+                if otype == 'execute_result':
+                    if 'execution_count' in output:
+                        out.append('Out[%s]' % output['execution_count'])
+                    else:
+                        out.append('Out')
                 out.append('</div>\n')
-            elif 'text/plain' in output['data']:
-                out.append('  <div class="output plain"><pre>')
-                out.append(output['data']['text/plain'])
-                out.append('</pre></div>')
+                if 'text/html' in output['data']:
+                    out.append('    <div class="output">')
+                    out.append(output['data']['text/html'])
+                    out.append('</div>\n')
+                elif 'text/plain' in output['data']:
+                    out.append('    <div class="output plain"><pre>')
+                    out.append(output['data']['text/plain'])
+                    out.append('</pre></div>')
+                else:
+                    out.append('    <div class="output error">'
+                               '&lt;unknown data&gt;'
+                               '</div>')
             else:
-                out.append('<div class="output error">'
-                           '&lt;unknown data&gt;'
-                           '</div>')
-        else:
-            debug.warning("Encountered unknown output type %r, ignored" %
-                          otype)
-        out.append('</div>\n')
+                debug.warning("Encountered unknown output type %r, ignored" %
+                              otype)
+            out.append('  </div>\n')
+        out.append('</div>\n\n')
     out.append(HTML_FOOTER)
     return ''.join(out)
 
@@ -168,6 +184,23 @@ HTML_HEADER = (
     '  <head>\n'
     '    <title>Notebook results</title>\n'
     '    <style type="text/css">\n'
+    'div.cell {\n'
+    '    border: 1px solid black;\n'
+    '    padding: 5px;\n'
+    '}\n'
+    'div.output_area {\n'
+    '    padding: 5px;\n'
+    '}\n'
+    'div.output {\n'
+    '    border: 1px solid grey;\n'
+    '    margin-left: 50px;\n'
+    '}\n'
+    'div.stderr pre {\n'
+    '   background-color: red;\n'
+    '}\n'
+    'div.prompt {\n'
+    '    width: 50px;\n'
+    '}\n'
     '    </style>\n'
     '  </head>\n'
     '  <body>\n'

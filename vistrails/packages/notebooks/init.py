@@ -47,7 +47,7 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, \
 from vistrails.core.system import current_dot_vistrails
 
 from . import identifiers
-from .notebook import execute, read_metadata
+from .notebook import execute, read_metadata, render_output
 
 
 TYPE_MAP = {
@@ -64,6 +64,7 @@ class Notebook(Module):
     """
     notebook = None
     inputs = None
+    outputs = None
 
     def compute(self):
         inputs = {}
@@ -72,8 +73,9 @@ class Notebook(Module):
                 continue
             inputs[name] = self.get_input(name)
 
-        out = execute(self.notebook, inputs)
-        self.set_output('html_result', out)
+        nb = execute(self.notebook, inputs)
+        html = render_output(nb, self.outputs)
+        self.set_output('html_result', html)
 
 
 def initialize():
@@ -136,10 +138,13 @@ def add_notebook(reg, filename):
             name = elem
         vistrails_inputs.append((name, signature, kwargs))
 
+    outputs = metadata.get('__output_cells__', 1)
+
     module_class = new_module(
         Notebook, os.path.basename(filename)[:-6],
         {'inputs': [(e[0], e[2].get('optional', True))
                     for e in vistrails_inputs],
+         'outputs': outputs,
          'notebook': filename},
         "Notebook %s" % filename)
     reg.add_module(module_class, package=identifiers.identifier,
