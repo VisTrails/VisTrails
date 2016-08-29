@@ -42,6 +42,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 import nbformat
 import os
 
+from vistrails.core import debug
 
 __all__ = ['execute', 'read_metadata']
 
@@ -78,6 +79,43 @@ def execute(notebook_filename, inputs):
         {'metadata': {'path': os.path.dirname(notebook_filename)}})
     with open(notebook_filename, 'wt') as fp:
         nbformat.write(notebook, fp)
+    out = [HTML_HEADER]
+    for output in notebook['cells'][-1]['outputs']:
+        otype = output['output_type']
+        print output
+        out.append('<div class="output_area">\n')
+        if otype == 'stream':
+            err = ' stderr' if output['name'] != 'stdout' else ''
+            out.append('  <div class="prompt"></div>\n'
+                       '  <div class="output stream%s"><pre>' % err)
+            out.append(output['text'])
+            out.append('</pre></div>\n')
+        elif otype == 'display_data' or otype == 'execute_result':
+            out.append('  <div class="prompt">')
+            if otype == 'execute_result':
+                if 'execution_count' in output:
+                    out.append('Out[%s]' % output['execution_count'])
+                else:
+                    out.append('Out')
+            out.append('</div>\n')
+            if 'text/html' in output['data']:
+                out.append('  <div class="output">')
+                out.append(output['data']['text/html'])
+                out.append('</div>\n')
+            elif 'text/plain' in output['data']:
+                out.append('  <div class="output plain"><pre>')
+                out.append(output['data']['text/plain'])
+                out.append('</pre></div>')
+            else:
+                out.append('<div class="output error">'
+                           '&lt;unknown data&gt;'
+                           '</div>')
+        else:
+            debug.warning("Encountered unknown output type %r, ignored" %
+                          otype)
+        out.append('</div>\n')
+    out.append(HTML_FOOTER)
+    return ''.join(out)
 
 
 def visit(metadata, node):
@@ -122,3 +160,21 @@ def read_metadata(notebook_filename):
     for node in ast.iter_child_nodes(ast.parse(cell['source'])):
         visit(metadata, node)
     return metadata
+
+
+HTML_HEADER = (
+    '<!DOCTYPE html>\n'
+    '<html>\n'
+    '  <head>\n'
+    '    <title>Notebook results</title>\n'
+    '    <style type="text/css">\n'
+    '    </style>\n'
+    '  </head>\n'
+    '  <body>\n'
+)
+
+
+HTML_FOOTER = (
+    '  </body>\n'
+    '</html>\n'
+)

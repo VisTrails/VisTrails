@@ -72,7 +72,8 @@ class Notebook(Module):
                 continue
             inputs[name] = self.get_input(name)
 
-        execute(self.notebook, inputs)
+        out = execute(self.notebook, inputs)
+        self.set_output('html_result', out)
 
 
 def initialize():
@@ -145,6 +146,7 @@ def add_notebook(reg, filename):
                    package_version=identifiers.version)
     for name, signature, kwargs in vistrails_inputs:
         reg.add_input_port(module_class, name, signature, **kwargs)
+    reg.add_output_port(module_class, 'html_result', 'basic:String')
 
 
 def menu_items():
