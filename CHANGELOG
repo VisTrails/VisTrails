@@ -1,6 +1,6 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2 build 7a19c29b8322 from master branch
+Release Name: v2.2 build 422e1a9bbc1c from master branch
 
 Enhancements:
  - zip/unzip binaries no longer needed (#862)
