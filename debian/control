@@ -3,7 +3,7 @@ Section: science
 Priority: extra
 Maintainer: Alastair McKinstry <mckinstry@debian.org>
 Build-Depends: debhelper (>= 9), python-all-dev, python-numpy
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Homepage: http://www.vistrails.org/
 
 Package: vistrails
@@ -11,7 +11,7 @@ Section: science
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-numpy, python-scipy,
   python-qt4, python-matplotlib, python-xlrd, python-xlwt,
-  python-suds, python-sip, ipython-qtconsole, python-sklearn,
+  python-suds, python-sip, python-sklearn,
   python-qt4-gl, python-qt4-sql, python-vtk6 | python-vtk
 Description: Scientific workflow and provenance management system
  VisTrails is an open-source scientific workflow and provenance management
