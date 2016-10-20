@@ -85,6 +85,7 @@ class clean_tempdir(object):
         atexit.register(self.clean)
         self.listdir = os.listdir
         self.isdir = os.path.isdir
+        self.join = os.path.join
         self.test_temp_dir = test_temp_dir
         self.rmtree = shutil.rmtree
         self.out = sys.stdout.write
@@ -92,7 +93,7 @@ class clean_tempdir(object):
         nb_dirs = 0
         nb_files = 0
         for f in self.listdir(self.test_temp_dir):
-            if self.isdir(os.path.join(self.test_temp_dir,f)):
+            if self.isdir(self.join(self.test_temp_dir,f)):
                 nb_dirs += 1
             else:
                 nb_files += 1
