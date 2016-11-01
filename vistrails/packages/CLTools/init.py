@@ -43,7 +43,7 @@ import shutil
 import subprocess
 import sys
 
-from vistrails.core.modules.vistrails_module import Module, ModuleError, IncompleteImplementation, new_module
+from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
 from vistrails.core.packagemanager import get_package_manager
@@ -63,7 +63,7 @@ class CLTools(Module):
     We will create a new Module subclass for each tool.
     """
     def compute(self):
-        raise IncompleteImplementation  # pragma: no cover
+        raise NotImplementedError  # pragma: no cover
 
 
 SUFFIX = '.clt'

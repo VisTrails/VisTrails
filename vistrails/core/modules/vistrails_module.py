@@ -65,10 +65,7 @@ class NeedsInputPort(Exception):
     def __str__(self):
         return "Module %s needs port %s" % (self.obj, self.port)
 
-
-class IncompleteImplementation(Exception):
-    def __str__(self):
-        return "Module has incomplete implementation"
+IncompleteImplementation = NotImplementedError
 
 class ModuleBreakpoint(Exception):
     def __init__(self, module):
