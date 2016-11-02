@@ -36,6 +36,7 @@
 
 from __future__ import division
 
+from distutils.version import StrictVersion
 import docker
 import docker.errors
 import subprocess
@@ -81,7 +82,11 @@ class RunContainer(Module):
         ('assert_zero', 'basic:Boolean',
          {'optional': True, 'defaults': '[True]'}),
         ('combined_stdout', 'basic:Boolean',
-         {'optional': True, 'defaults': '[False]'})]
+         {'optional': True, 'defaults': '[False]'}),
+        ('volumes', '(basic:Path, basic:String)',
+         {'optional': True, 'depth': 1}),
+        ('volumes_ro', '(basic:Path, basic:String)',
+         {'optional': True, 'depth': 1})]
     _output_ports = [
         ('exit_status', 'basic:Integer'),
         ('stdout', 'basic:String'),
@@ -92,15 +97,37 @@ class RunContainer(Module):
         command = self.get_input('command')
 
         client = get_docker()
+
+        volumes = (
+            [(host.name, container, 'rw')
+             for host, container in self.force_get_input('volumes', [])] +
+            [(host.name, container, 'ro')
+             for host, container in self.force_get_input('volumes_ro', [])])
+        create_args = dict(
+            image=image, command=command,
+            volumes=[v[1] for v in volumes])
+        host_config = dict(binds=['%s:%s:%s' % (host, container, mode)
+                                  for host, container, mode in volumes])
+
+        # Since 1.10, we need to pass host arguments in create; before that
+        # pass them to start
+        start_args = {}
+        if StrictVersion(client.api_version) >= StrictVersion('1.10'):
+            create_args['host_config'] = host_config
+        else:
+            start_args = host_config
+
         try:
-            container = client.create_container(image=image, command=command)
+            container = client.create_container(**create_args)
         except docker.errors.NotFound:
             client.pull(image)
-            container = client.create_container(image=image, command=command)
-        client.start(container=container['Id'])
+            container = client.create_container(**create_args)
+        client.start(container=container['Id'], **start_args)
+
         for line in client.logs(container=container['Id'], stream=True):
             sys.stderr.write(line)
         ret = client.wait(container=container['Id'])
+
         if ret == -1 or (ret != 0 and self.get_input('assert_zero')):
             raise ModuleError(self, "Container exited with status %d" % ret)
         if self.get_input('combined_stdout'):
