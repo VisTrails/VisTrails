@@ -38,9 +38,17 @@
 from __future__ import division
 
 from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.requirements import require_python_module
 
 from .identifiers import *
 
 
 configuration = ConfigurationObject(machine=(None, str),
                                     host=(None, str))
+
+
+def package_requirements():
+    require_python_module('docker', {
+                          'pip': 'docker-py',
+                          'linux-debian': 'python-docker',
+                          'linux-ubuntu': 'python-docker'})
