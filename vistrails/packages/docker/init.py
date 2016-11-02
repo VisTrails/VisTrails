@@ -39,8 +39,9 @@ from __future__ import division
 import docker
 import docker.errors
 import subprocess
+import sys
 
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from . import configuration
 
@@ -78,7 +79,13 @@ class RunContainer(Module):
         ('command', 'basic:List',
          {'optional': True, 'defaults': '["[]"]'}),
         ('assert_zero', 'basic:Boolean',
-         {'optional': True, 'defaults': '[True]'})]
+         {'optional': True, 'defaults': '[True]'}),
+        ('combined_stdout', 'basic:Boolean',
+         {'optional': True, 'defaults': '[False]'})]
+    _output_ports = [
+        ('exit_status', 'basic:Integer'),
+        ('stdout', 'basic:String'),
+        ('stderr', 'basic:String')]
 
     def compute(self):
         image = self.get_input('image')
@@ -90,8 +97,23 @@ class RunContainer(Module):
         except docker.errors.NotFound:
             client.pull(image)
             container = client.create_container(image=image, command=command)
-        client.start(container=container.get('Id'))
-        client.wait(container=container.get('Id'))
+        client.start(container=container['Id'])
+        for line in client.logs(container=container['Id'], stream=True):
+            sys.stderr.write(line)
+        ret = client.wait(container=container['Id'])
+        if ret == -1 or (ret != 0 and self.get_input('assert_zero')):
+            raise ModuleError(self, "Container exited with status %d" % ret)
+        if self.get_input('combined_stdout'):
+            stdout = client.logs(container=container['Id'],
+                                 stdout=True, stderr=True)
+            stderr = ''
+        else:
+            stdout = client.logs(container=container['Id'],
+                                 stdout=True, stderr=False)
+            stderr = client.logs(container=container['Id'],
+                                 stdout=False, stderr=True)
+        self.set_output('stdout', stdout)
+        self.set_output('stderr', stderr)
         client.remove_container(container=container.get('Id'))
 
 
