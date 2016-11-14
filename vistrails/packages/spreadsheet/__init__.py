@@ -40,3 +40,8 @@ from identifiers import *
 
 # This must be here because of VisTrails protocol
 from .spreadsheet_config import configuration
+
+
+def package_requirements():
+    from vistrails.gui.requirements import require_pyqt4_api2
+    require_pyqt4_api2()
