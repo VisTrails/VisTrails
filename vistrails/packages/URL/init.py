@@ -537,8 +537,11 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     module_remap = {
             # HTTPFile was renamed DownloadFile
             'HTTPFile': [
-                (None, '1.0.0', 'DownloadFile', {})
+                (None, '1.0.0', 'DownloadFile'),
             ],
+            'RepoSync': [
+                (None, '1.1.0', 'org.vistrails.vistrails.reposync:RepoSync'),
+            ]
         }
 
     return UpgradeWorkflowHandler.remap_module(controller,
