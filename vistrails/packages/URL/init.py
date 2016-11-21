@@ -581,7 +581,7 @@ class RepoSync(Module):
                 else:
                     # compute checksum
                     f = open(self.in_file.name, 'r')
-                    self.checksum = hashlib.sha1()
+                    self.checksum = sha_hash()
                     block = 1
                     while block:
                         block = f.read(128)
