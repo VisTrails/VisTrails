@@ -69,8 +69,6 @@ import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.system import current_dot_vistrails, strptime
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-import vistrails.gui.repository
-from vistrails.gui.utils import show_warning
 
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
@@ -494,6 +492,8 @@ class RepoSync(Module):
 
         # local file not on repository, so upload
         if not self.on_server and os.path.isfile(self.in_file.name):
+            import vistrails.gui.repository
+
             cookiejar = vistrails.gui.repository.QRepositoryDialog.cookiejar
             if cookiejar:
                 register_openers(cookiejar=cookiejar)
@@ -510,25 +510,23 @@ class RepoSync(Module):
                 try:
                     result = urllib2.urlopen(request)
                     if result.code != 200:
-                        show_warning("Upload Failure",
-                                     "Data failed to upload to repository")
+                        debug.warning("Failed to upload data to the "
+                                      "repository")
                         # make temporarily uncachable
                         self.is_cacheable = self.invalidate_cache
                     else:
-                        debug.warning("Push to repository was successful")
+                        debug.log("Push to repository was successful")
                         # make sure module caches
                         self.is_cacheable = self.validate_cache
                 except Exception, e:
-                    show_warning("Upload Failure",
-                                 "Data failed to upload to repository")
+                    debug.warning("Failed to upload data to the repository")
                     # make temporarily uncachable
                     self.is_cacheable = self.invalidate_cache
                 debug.warning('RepoSync uploaded %s to the repository' % \
                               self.in_file.name)
             else:
-                show_warning("Please login", ("You must be logged into the web"
-                                              " repository in order to upload "
-                                              "data. No data was synced"))
+                debug.warning("You must be logged into the web repository in "
+                              "order to upload data. No data was synced")
                 # make temporarily uncachable
                 self.is_cacheable = self.invalidate_cache
 
@@ -575,9 +573,8 @@ class RepoSync(Module):
                 # do size check
                 size = os.path.getsize(self.in_file.name)
                 if size > 26214400:
-                    show_warning("File is too large",
-                                 "file is larger than 25MB, "
-                                 "unable to sync with web repository")
+                    debug.warning("File is too large (>25MB): unable to sync "
+                                  "with web repository")
                     self.set_output("file", self.in_file)
                 else:
                     # compute checksum
