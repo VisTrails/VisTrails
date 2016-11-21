@@ -60,6 +60,7 @@ except ImportError:
     import sha
     sha_hash = sha.new
 
+from vistrails.core.application import is_running_gui
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.core import debug
@@ -492,9 +493,10 @@ class RepoSync(Module):
 
         # local file not on repository, so upload
         if not self.on_server and os.path.isfile(self.in_file.name):
-            import vistrails.gui.repository
-
-            cookiejar = vistrails.gui.repository.QRepositoryDialog.cookiejar
+            cookiejar = None
+            if is_running_gui():
+                import vistrails.gui.repository
+                cookiejar = vistrails.gui.repository.QRepositoryDialog.cookiejar
             if cookiejar:
                 register_openers(cookiejar=cookiejar)
 
