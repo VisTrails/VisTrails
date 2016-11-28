@@ -46,8 +46,4 @@ check is performed efficiently using HTTP headers.
 
 from __future__ import division
 
-identifier = 'org.vistrails.vistrails.url'
-name = 'URL'
-version = '1.1.0'
-old_identifiers = ['org.vistrails.vistrails.http',
-                   'edu.utah.sci.vistrails.http']
+from identifiers import *
