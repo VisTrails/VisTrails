@@ -780,7 +780,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 # redirect stdout
                 old_stdout = sys.stdout
                 sys.stdout = StringIO.StringIO()
-                result = self.parse_input_args_from_other_instance(str(byte_array))
+                result, shutdown = self.parse_input_args_from_other_instance(str(byte_array))
                 output = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
@@ -790,6 +790,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()
+                shutdown = False
 
             if None == result:
                 result = True
@@ -807,8 +808,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if not local_socket.waitForBytesWritten(self.timeout):
                 debug.critical("Writing failed: %s" %
                             local_socket.errorString())
-                return
-            local_socket.disconnectFromServer()
+            else:
+                local_socket.disconnectFromServer()
+            if shutdown:
+                debug.warning("Shutdown requested from other instance")
+                stop_application()
 
     def send_message(self, local_socket, message):
         self.shared_memory.lock()
@@ -835,6 +839,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def parse_input_args_from_other_instance(self, msg):
         reportusage.record_feature('args_from_other_instance')
+        shutdown = False
         try:
             args = literal_eval(msg)
         except Exception as e:
@@ -845,12 +850,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     conf_options = self.read_options(args)
                 except SystemExit:
                     debug.critical("Invalid options: %s" % ' '.join(args))
-                    return False
+                    return False, shutdown
                 try:
                     # Execute using persistent configuration + new temp configuration
                     old_temp_conf = self.temp_configuration
                     self.startup.temp_configuration = copy.copy(self.configuration)
                     self.temp_configuration.update(conf_options)
+                    shutdown = self.startup.temp_configuration.check('remoteShutdown')
 
                     interactive = not self.temp_configuration.check('batch')
                     if interactive:
@@ -860,14 +866,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             # so builderWindow is activated
                             self.builderWindow.raise_()
                             self.builderWindow.activateWindow()
-                        return result
+                        return result, shutdown
                     else:
-                        return self.noninteractiveMode()
+                        return self.noninteractiveMode(), shutdown
                 finally:
                     self.startup.temp_configuration = old_temp_conf
             else:
                 debug.critical("Invalid input: %s" % msg)
-        return False
+        return False, shutdown
 
 def linux_default_application_set():
     """linux_default_application_set() -> True|False|None
