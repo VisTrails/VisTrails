@@ -103,6 +103,7 @@ outputVersionTree: Output the version tree as an image
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
+remoteShutdown: If connecting to single instance, make that instance exit
 reportUsage: Report anonymous usage statistics to the developers
 enableUsage: Enable sending anonymous usage statistics
 disableUsage: Disable sending anonymous usage statistics
@@ -366,6 +367,10 @@ pythonPrompt: Boolean
 recentVistrailList: String
 
     Storage for recent vistrails. Users should not edit.
+
+remoteShutdown: Boolean
+
+    If connecting to single instance, make that instance exit.
 
 reportUsage: Integer
 
@@ -671,7 +676,8 @@ base_config = {
      ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField('enableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField('disableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField('disableUsage', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('remoteShutdown', False, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
      ConfigField("port", None, int, ConfigType.COMMAND_LINE),
