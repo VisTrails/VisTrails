@@ -43,7 +43,6 @@ from ast import literal_eval
 import copy
 import os.path
 import getpass
-import re
 import sys
 import StringIO
 import usagestats
