@@ -214,6 +214,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             finished = self.run_single_instance(args)
             if finished is not None:
                 return finished
+            elif self.temp_configuration.check('remoteShutdown'):
+                debug.critical("remoteShutdown is set, but we didn't connect "
+                               "to another instance")
+                return APP_FAIL
+        elif self.temp_configuration.check('remoteShutdown'):
+            debug.critical("remoteShutdown is set, but singleInstance isn't")
+            return APP_FAIL
 
         interactive = not self.temp_configuration.check('batch')
         if interactive:
