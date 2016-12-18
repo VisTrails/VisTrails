@@ -44,7 +44,7 @@ wiki page
 from datetime import date
 #Release version
 VT_VERSION = "2.2.4"
-VT_REVISION = "048c632a7ac5"
+VT_REVISION = "1519abc0ae2b"
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
 SF_FOLDER_NAME = "v2.2.4"

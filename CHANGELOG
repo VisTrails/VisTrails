@@ -1,6 +1,6 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2.4 build 000000000000 from v2.2 branch
+Release Name: v2.2.4 build 1519abc0ae2b from v2.2 branch
 
 Bug fixes:
  - Fix module with optional connected port having the wrong size

@@ -1,3 +1,16 @@
+vistrails (2.2.4-1) unstable; urgency=medium
+
+  * New upstream release
+  * Standards-Version: 3.9.8
+  * DH_COMPAT=10
+  * Change dependency: ipython-qtconsole -> jupyter-qtconsole 
+  * Build-Depend on dh-python
+  * Update copyright owners; make copyright machine readable. 
+    Closes: #840525, #796994
+  * Now depend on python-usagestats
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 18 Dec 2016 11:43:33 +0000
+
 vistrails (2.2-2) unstable; urgency=medium
 
   * Standards-Version: 3.9.8
