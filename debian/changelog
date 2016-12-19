@@ -1,15 +1,21 @@
-vistrails (2.2.3-1) unstable; urgency=medium
+vistrails (2.2.4-2) unstable; urgency=medium
 
   * New upstream release.
 
- -- Remi Rampin <remi.rampin@nyu.edu>  Tue, 22 Sep 2015 14:05:14 -0400
+ -- Remi Rampin <remi.rampin@nyu.edu>  Mon, 19 Dec 2016 11:05:45 -0500
 
-vistrails (2.2.2-1) unstable; urgency=medium
+vistrails (2.2.4-1) unstable; urgency=medium
 
-  * New upstream release.
-  * Fix outdated copyright info.
+  * New upstream release
+  * Standards-Version: 3.9.8
+  * DH_COMPAT=10
+  * Change dependency: ipython-qtconsole -> jupyter-qtconsole 
+  * Build-Depend on dh-python
+  * Update copyright owners; make copyright machine readable. 
+    Closes: #840525, #796994
+  * Now depend on python-usagestats
 
- -- Remi Rampin <remi.rampin@nyu.edu>  Thu, 27 Aug 2015 15:01:00 -0400
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 18 Dec 2016 11:43:33 +0000
 
 vistrails (2.2-2) unstable; urgency=medium
 

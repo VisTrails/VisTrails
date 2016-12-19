@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -90,6 +90,8 @@ class SourceWidget(PortTableConfigurationWidget):
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.inputPortTable.initializePorts(self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
+            horiz = self.inputPortTable.horizontalHeader()
+            horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
         if has_outputs:
             self.outputPortTable = PortTable(self)
             labels = ["Output Port Name", "Type", "List Depth"]
@@ -97,12 +99,20 @@ class SourceWidget(PortTableConfigurationWidget):
             self.outputPortTable.initializePorts(self.module.output_port_specs,
                                                  True)
             self.layout().addWidget(self.outputPortTable)
-        if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            horiz = self.outputPortTable.horizontalHeader()
+            horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
         if has_inputs:
             self.inputPortTable.fixGeometry()
+            # resize input ports in case there are no output ports
+            self.inputPortTable.resizeColumnToContents(0)
+            self.inputPortTable.resizeColumnToContents(2)
+        if has_inputs and has_outputs:
+            self.performPortConnection(self.connect)
         if has_outputs:
             self.outputPortTable.fixGeometry()
+            # Resize output (because it is largest) and trigger sync
+            self.outputPortTable.resizeColumnToContents(0)
+            self.outputPortTable.resizeColumnToContents(2)
 
     def initializeCode(self):
         self.codeEditor.clear()
@@ -176,6 +186,7 @@ class SourceWidget(PortTableConfigurationWidget):
             self.inputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
+        QtGui.QApplication.processEvents()
         self.performPortConnection(self.connect)
 
     def activate(self):
@@ -197,34 +208,40 @@ class SourceViewerWidget(SourceWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = QtGui.QTableWidget(1, 3, self)
-            labels = ["Input Port Name", "Type", "List Depth"]
-            self.inputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.inputPortTable.horizontalHeader().setMovable(False)
-            #self.inputPortTable.horizontalHeader().setStretchLastSection(True)
-            self.inputPortTable.horizontalHeader().setResizeMode(1, self.inputPortTable.horizontalHeader().Stretch)
+            self.inputPortTable.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+            self.inputPortTable.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            labels = ["Input Port Name", "Type", "List Depth"]
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.initializePorts(self.inputPortTable,
                                  self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
+            horiz = self.inputPortTable.horizontalHeader()
+            horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
         if has_outputs:
             self.outputPortTable = QtGui.QTableWidget(1, 3, self)
-            labels = ["Output Port Name", "Type", "List Depth"]
-            self.outputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.outputPortTable.horizontalHeader().setMovable(False)
-            #self.outputPortTable.horizontalHeader().setStretchLastSection(True)
-            self.outputPortTable.horizontalHeader().setResizeMode(1, self.outputPortTable.horizontalHeader().Stretch)
-
+            self.outputPortTable.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+            self.outputPortTable.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            labels = ["Output Port Name", "Type", "List Depth"]
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.initializePorts(self.outputPortTable,
                                  self.module.output_port_specs, True)
             self.layout().addWidget(self.outputPortTable)
-        if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
-
+            horiz = self.outputPortTable.horizontalHeader()
+            horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
         if has_inputs:
             self.fixTableGeometry(self.inputPortTable)
+            # resize input ports in case there are no output ports
+            self.inputPortTable.resizeColumnToContents(0)
+            self.inputPortTable.resizeColumnToContents(2)
+        if has_inputs and has_outputs:
+            self.performPortConnection(self.connect)
         if has_outputs:
             self.fixTableGeometry(self.outputPortTable)
+            # Resize output (because it is largest) and trigger sync
+            self.outputPortTable.resizeColumnToContents(0)
+            self.outputPortTable.resizeColumnToContents(2)
 
     def initializePorts(self, table, port_specs, reverse_order=False):
         if reverse_order:

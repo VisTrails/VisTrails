@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -115,7 +115,7 @@ def _parse_abstraction_name(filename):
             name = name[len(prefix):]
             break
     for suffix in suffixes:
-        if name.endswith(suffix):
+        if name.lower().endswith(suffix):
             name = name[:-len(suffix)]
             break
     return name

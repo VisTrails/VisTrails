@@ -1,0 +1,18 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Change name of dependency; now jupyter in Debian
+Last-Updated: 2016-12-18
+Forwarded: no
+
+Index: vistrails-2.2.4/vistrails/gui/shell.py
+===================================================================
+--- vistrails-2.2.4.orig/vistrails/gui/shell.py
++++ vistrails-2.2.4/vistrails/gui/shell.py
+@@ -65,7 +65,7 @@ def get_shell_dialog():
+     try:
+         deps = {'pip': 'ipython>=1.0',
+                 'linux-ubuntu': 'ipython-qtconsole',
+-                'linux-debian': 'ipython-qtconsole'}
++                'linux-debian': 'jupyter-qtconsole'}
+ 
+         IPython = py_import('IPython.qt.console.rich_ipython_widget', deps,
+                             True)

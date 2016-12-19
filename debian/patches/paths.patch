@@ -1,12 +1,12 @@
 Author: Alastair McKinstry <mckinstry@debian.org>
 Description: Search in the correct locations for stuff on Debian.
-Last-Updated: 2015-08-27
+Last-Updated: 2014-05-16
 Forwarded: not-needed
 
-Index: vistrails-2.2.2/vistrails/core/system/__init__.py
+Index: vistrails-2.2/vistrails/core/system/__init__.py
 ===================================================================
---- vistrails-2.2.2.orig/vistrails/core/system/__init__.py
-+++ vistrails-2.2.2/vistrails/core/system/__init__.py
+--- vistrails-2.2.orig/vistrails/core/system/__init__.py
++++ vistrails-2.2/vistrails/core/system/__init__.py
 @@ -132,7 +132,8 @@ if systemType in ['Darwin'] and not os.p
      __fileDir = os.path.realpath(os.path.join(__rootDir,
                                                '/'.join(['..']*6),'examples'))

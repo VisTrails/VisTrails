@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -43,11 +43,11 @@ wiki page
 """
 from datetime import date
 #Release version
-VT_VERSION = "2.2.3"
-VT_REVISION = "df9bf200d91e"
+VT_VERSION = "2.2.4"
+VT_REVISION = "1519abc0ae2b"
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
-SF_FOLDER_NAME = "v2.2.3"
+SF_FOLDER_NAME = "v2.2.4"
 SF_DOWNLOAD_URL = "%s%s"%(SF_ROOT_URL,SF_FOLDER_NAME)
 #binaries names
 MAC_64_BIN = "vistrails-mac-10.6-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)

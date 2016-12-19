@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -36,6 +36,7 @@
 """Hasher class for vistrail items."""
 from __future__ import division
 
+import unittest
 from vistrails.core.cache.utils import hash_list
 
 try:
@@ -94,6 +95,16 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def port_spec_signature(ps, constant_hasher_map={}):
+        hasher = sha_hash()
+        u = hasher.update
+        u(ps.type)
+        u(ps.name)
+        u(ps.sigstring)
+        u('%d' % ps.depth)
+        return hasher.digest()
+
+    @staticmethod
     def connection_subpipeline_signature(c, source_sig, dest_sig):
         """Returns the signature for the connection, including source and dest
         subpipelines
@@ -118,6 +129,8 @@ class Hasher(object):
         u(hash_list(obj.functions, Hasher.function_signature,
                     constant_hasher_map))
         u(hash_list(obj.control_parameters, Hasher.control_param_signature,
+                    constant_hasher_map))
+        u(hash_list(obj.port_spec_list, Hasher.port_spec_signature,
                     constant_hasher_map))
         return hasher.digest()
 
@@ -147,3 +160,34 @@ class Hasher(object):
         for h in sorted(sig_list):
             hasher.update(h)
         return hasher.digest()
+
+
+##############################################################################
+# Unit tests
+
+
+class TestCacheHash(unittest.TestCase):
+    def test_outputportspec_cache(self):
+        """
+        Test that signature hash includes port specs
+
+        If it is not included, a module with different port spec may
+        be used in the cache, leading to an exception.
+        """
+        from vistrails import api
+        from vistrails.core.vistrail.port_spec import PortSpec
+        api.new_vistrail()
+        c = api.get_current_controller()
+        ps = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'PythonSource', '')
+        api.change_parameter(ps.id, 'source', ['a = b = 1\ncache_this()'])
+        so = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'Integer', '')
+
+        api.add_port_spec(ps.id, PortSpec(name='a', type='output', sigstring='org.vistrails.vistrails.basic:Integer'))
+        api.add_connection(ps.id, 'a', so.id, 'value')
+        # adds ps to cache
+        self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
+
+        api.add_port_spec(ps.id, PortSpec(name='b', type='output', sigstring='org.vistrails.vistrails.basic:Integer'))
+        api.add_connection(ps.id, 'b', so.id, 'value')
+        # will fail if outputportspec is not hashed and cache is reused
+        self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
