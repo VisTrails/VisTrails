@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -264,6 +264,7 @@ def install(dependency_dictionary):
     files = (dependency_dictionary.get(distro) or
              dependency_dictionary.get('pip'))
     if not files:
+        debug.warning("No source for bundle on this platform")
         return None
     can_install = (('pip' in dependency_dictionary and pip_installed) or
                    distro in dependency_dictionary)

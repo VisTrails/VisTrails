@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2013-2014, NYU-Poly.
 ## All rights reserved.
 ## Contact: contact@vistrails.org

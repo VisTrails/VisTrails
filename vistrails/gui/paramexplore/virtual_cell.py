@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -658,13 +658,3 @@ class TestCamelCase(unittest.TestCase):
         self.assertEqual(split_camel_case('parseHTML'), 'parse\nHTML')
         self.assertEqual(split_camel_case('HTMLParser'), 'HTML\nParser')
         self.assertEqual(split_camel_case('vHTMLParser'), 'v\nHTML\nParser')
-
-if __name__=="__main__":
-    import sys
-    import vistrails.gui.theme
-    app = QtGui.QApplication(sys.argv)
-    vistrails.gui.theme.initializeCurrentTheme()
-    vc = QVirtualCellConfiguration()
-    vc.configVirtualCells(['VTKCell', 'ImageViewerCell', 'RichTextCell'])
-    vc.show()
-    sys.exit(app.exec_())

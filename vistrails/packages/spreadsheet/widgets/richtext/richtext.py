@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -52,7 +52,7 @@ from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 
 class RichTextToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         filename = output_module.get_input('value').name
 
         with open(filename, 'rb') as fp:

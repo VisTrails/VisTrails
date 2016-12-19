@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -41,12 +41,12 @@ from vistrails.core.modules.basic_modules import Boolean, String, Variant, \
     List, Not, Integer, Float
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
-from fold import Fold, FoldWithModule
-from utils import Map, Filter, Sum, And, Or
-from conditional import If, Default
-from products import ElementwiseProduct, Dot, Cross, CartesianProduct
-from order import ExecuteInOrder
-from looping import For, While
+from .fold import Fold, FoldWithModule
+from .utils import Map, Filter, Sum, And, Or
+from .conditional import If, Default
+from .products import ElementwiseProduct, Dot, Cross, CartesianProduct
+from .order import ExecuteInOrder
+from .looping import For, While
 
 
 #################################################################################

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -43,7 +43,7 @@ from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.sub_module import read_vistrail, new_abstraction, \
-    get_abstraction_dependencies, save_abstraction
+    get_abstraction_dependencies, save_abstraction, get_all_abs_namespaces
 import vistrails.core.modules.module_registry
 from vistrails.core.system import vistrails_version, get_vistrails_directory
 from vistrails.core.utils import InvalidPipeline
@@ -87,6 +87,7 @@ def initialize(*args, **kwargs):
                             break
             if add_abstraction:
                 abstraction = None
+                module_version = None
                 try:
                     abstraction = \
                         new_abstraction(abs_name, abs_vistrail, abs_fname)
@@ -110,12 +111,29 @@ def initialize(*args, **kwargs):
                 except Exception, e:
                     cannot_load[abs_name] = (abs_vistrail, e)
                 if abstraction is not None:
-                    options = {'namespace': abstraction.uuid,
-                               'hide_namespace': True,
-                               'version': str(abstraction.internal_version)}
-                    reg.auto_add_module((abstraction, options))
-                    reg.auto_add_ports(abstraction)
-                    # print "Added subworkflow", abs_name, abstraction.uuid
+                    # add descriptors for all available version namespaces
+                    all_namespaces = get_all_abs_namespaces(abs_vistrail)
+                    for ns in all_namespaces:
+                        # hide all but latest version
+                        hide_descriptor = (ns != abstraction.uuid)
+                        # print '()()() adding abstraction', namespace
+                        if reg.has_descriptor_with_name(identifier,
+                                                        abs_name,
+                                                        ns,
+                                                        version,
+                                                        str(abstraction.internal_version)):
+                            # don't add something twice
+                            continue
+                        new_desc = reg.auto_add_module((abstraction,
+                                                        {'package': identifier,
+                                                         'package_version': version,
+                                                         'namespace': ns,
+                                                         'version': str(module_version),
+                                                         'hide_namespace': True,
+                                                         'hide_descriptor': hide_descriptor,
+                                                         }))
+                        reg.auto_add_ports(abstraction)
+                        # print "Added subworkflow", abs_name, abstraction.uuid
                 elif abs_name not in cannot_load:
                     cannot_load[abs_name] = (abs_vistrail, '')
         last_count = len(abs_vistrails)

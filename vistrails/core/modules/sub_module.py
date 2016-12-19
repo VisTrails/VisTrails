@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -47,7 +47,7 @@ from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError, ModuleSuspended
+    ModuleError, ModuleSuspended, ModuleConnector
 from vistrails.core.utils import VistrailsInternalError
 import os.path
 
@@ -188,15 +188,21 @@ class Group(Module):
 
         # Connect Group's external input ports to internal InputPort modules
         for iport_name, conn in self.inputPorts.iteritems():
+            from vistrails.core.modules.basic_modules import create_constant
+            # The type information is lost when passing as Variant,
+            # so we need to use the the final normalized value
+            value = self.get_input(iport_name)
+            temp_conn = ModuleConnector(create_constant(value),
+                                        'value', self.input_specs[iport_name])
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
-            iport_obj.set_input_port('ExternalPipe', conn[0])
+            iport_obj.set_input_port('ExternalPipe', temp_conn)
 
         # Execute pipeline
         kwargs = {'logger': self.logging.log.recursing(self),
                   'clean_pipeline': True,
                   'current_version': self.moduleInfo['version']}
-        module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
+        module_info_args = set(['locator', 'reason', 'extra_info', 'actions', 'job_monitor'])
         for arg in module_info_args:
             if arg in self.moduleInfo:
                 kwargs[arg] = self.moduleInfo[arg]
@@ -268,10 +274,14 @@ def coalesce_port_specs(neighbors, type):
                 raise VistrailsInternalError("Cannot have single port "
                                              "connect to incompatible "
                                              "types")
-            if cur_depth != next_depth:
-                raise VistrailsInternalError("Cannot have single port "
-                                             "connect to types with "
-                                             "different list depth")
+            if 'input' == type and cur_depth > next_depth:
+                # use least depth
+                cur_depth = next_depth
+                cur_descs = next_descs
+            if 'output' == type and cur_depth < next_depth:
+                # use least depth
+                cur_depth = next_depth
+                cur_descs = next_descs
             descs = []
             for cur_desc, next_desc in izip(cur_descs, next_descs):
                 if cur_desc is Variant_desc:
@@ -330,11 +340,14 @@ def get_port_spec_info(pipeline, module):
 ###############################################################################
 
 class Abstraction(Group):
-    _settings = ModuleSettings(name="SubWorkflow", 
+    # We need Abstraction to be a subclass of Group so that the hierarchy of
+    # modules is right
+    # But the pipeline comes from somewhere else, so skip the transfer_attrs()
+    _settings = ModuleSettings(name="SubWorkflow",
                                hide_descriptor=True)
 
-    def __init__(self):
-        Group.__init__(self)
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
 
     # the compute method is inherited from Group!
 
@@ -478,14 +491,18 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
         vistrail = read_vistrail(vistrail)
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
-    # action = vistrail.actionMap[internal_version]
     pipeline = vistrail.getPipeline(internal_version)
-    
+
     packages = {}
-    for module in pipeline.module_list:
-        if module.package not in packages:
-            packages[module.package] = set()
-        packages[module.package].add(module.descriptor_info)
+    def pipeline_deps(pipeline):
+        for module in pipeline.module_list:
+            if module.is_group():
+                pipeline_deps(module.pipeline)
+                continue
+            if module.package not in packages:
+                packages[module.package] = set()
+            packages[module.package].add(module.descriptor_info)
+    pipeline_deps(pipeline)
     return packages
 
 def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
@@ -510,7 +527,7 @@ def parse_abstraction_name(filename, get_all_parts=False):
     uuidpat = hexpat + '{8}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{4}-' + hexpat + '{12}'
     prepat = '|'.join(prefixes).replace('.','\\.')
     sufpat = '|'.join(suffixes).replace('.','\\.')
-    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
+    pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL | re.IGNORECASE)
     matchobj = pattern.match(fname)
     prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
     if get_all_parts:

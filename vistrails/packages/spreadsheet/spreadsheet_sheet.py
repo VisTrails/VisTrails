@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -544,6 +544,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setCellWidget(row, col, cellWidget)
         if cellWidget:
             self.delegate.updateEditorGeometry(cellWidget, None, index)
+        if (row, col) == self.activeCell:
+            self.setActiveCell(row, col)
 
     def selectCell(self, row, col, toggling):
         """ selectCell(row: int, col: int, toggling: bool) -> None

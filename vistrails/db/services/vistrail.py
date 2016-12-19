@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -1303,6 +1303,10 @@ def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
                     sharedModuleIds.remove(getOldObjId(op))
                 if paramChgModules.has_key(getOldObjId(op)):
                     del paramChgModules[getOldObjId(op)]
+                if cparamChgModules.has_key(getOldObjId(op)):
+                    del cparamChgModules[getOldObjId(op)]
+                if annotChgModules.has_key(getOldObjId(op)):
+                    del annotChgModules[getOldObjId(op)]
             elif op.what == 'function' and \
                     (op.db_parentObjType == 'module' or 
                      op.db_parentObjType == 'abstraction' or 

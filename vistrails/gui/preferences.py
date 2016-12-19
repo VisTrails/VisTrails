@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -42,18 +42,13 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
 from vistrails.core.system import get_vistrails_basic_pkg_id
-from vistrails.core.utils import InvalidPipeline
-from vistrails.core.utils.uxml import (named_elements,
-                             elements_filter, enter_named_element)
 from vistrails.gui.configuration import QConfigurationWidget, \
     QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
 from vistrails.gui.modules.output_configuration import OutputModeConfigurationWidget
-from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration, base_config
 from vistrails.core import debug
-import os.path
 
 ##############################################################################
 
@@ -325,6 +320,7 @@ class QPackagesWidget(QtGui.QWidget):
             try:
                 pm.late_enable_package(codepath)
             except (Package.InitializationFailed, MissingRequirement), e:
+                debug.unexpected_exception(e)
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
                                e)
@@ -708,7 +704,7 @@ class TestPreferencesDialog(unittest.TestCase):
             selected again in the available packages list.
         """
         
-        pkg = "dialogs"
+        pkg = "URL"
         _app = get_vistrails_application()
         builder = _app.builderWindow
         builder.showPreferences()
@@ -719,11 +715,15 @@ class TestPreferencesDialog(unittest.TestCase):
 
         # check if package is loaded
         av = packages._available_packages_list
-        item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
-        av.setCurrentItem(item)
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
-        packages.enable_current_package()
+        try:
+            item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
+            av.setCurrentItem(item)
+            QtGui.QApplication.processEvents()
+            QtGui.QApplication.processEvents()
+            packages.enable_current_package()
+        except ValueError:
+            # Already enabled
+            pass
         QtGui.QApplication.processEvents()
         QtGui.QApplication.processEvents()
 

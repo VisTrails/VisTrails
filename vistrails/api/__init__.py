@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -132,7 +132,7 @@ def get_current_vistrail_view():
     return view    
 
 def close_current_vistrail(quiet=False):
-    get_vistrails_application().builderWindow.close_vistrail(get_current_vistrail_view())
+    get_vistrails_application().builderWindow.close_vistrail(get_current_vistrail_view(), quiet=quiet)
 
 def get_module_registry():
     from vistrails.core.modules.module_registry import get_module_registry

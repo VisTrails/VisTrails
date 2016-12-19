@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -48,7 +48,7 @@ import imageviewer_rc
 ################################################################################
 
 class ImageFileToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         fname = output_module.get_input('value').name
         window = spreadsheetController.findSpreadsheetWindow()
         local_file = window.file_pool.make_local_copy(fname)

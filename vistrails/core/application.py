@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -48,16 +48,18 @@ import vistrails.core.configuration
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
+import vistrails.core.db.action
 import vistrails.core.db.io
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
+from vistrails.core import reportusage
+import vistrails.core.requirements
 from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject, VistrailsWarning
+from vistrails.core.utils import VistrailsWarning
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
@@ -169,6 +171,9 @@ class VistrailsApplicationInterface(object):
 
         self.package_manager = PackageManager(self.registry,
                                               self.startup)
+
+        if reportusage.update_config(self.temp_configuration):
+            self.temp_configuration.batch = True
 
     def check_all_requirements(self):
         # check scipy
@@ -405,7 +410,7 @@ class VistrailsApplicationInterface(object):
         if controller is None:
             # vistrail is not already open
             try:
-                loaded_objs = vistrails.core.db.io.load_vistrail(locator, False)
+                loaded_objs = vistrails.core.db.io.load_vistrail(locator, is_abstraction)
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
                 if locator.is_untitled():
@@ -557,7 +562,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
             locator = self._cur_controller.locator
         del self._controllers[locator]
         if len(self._controllers) > 0:
-            self._cur_controller = self._controllers.itervalues().next()
+            self._cur_controller = next(self._controllers.itervalues())
 
     def ensure_vistrail(self, locator):
         if locator in self._controllers:

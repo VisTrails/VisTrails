@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -352,13 +352,11 @@ class PathObject(object):
         if name.startswith('_repr_') and name.endswith('_'):
             if self._ipython_repr is None:
                 filetype, encoding = mimetypes.guess_type(self.name)
-                if not filetype:
-                    self._ipython_repr = False
-                elif filetype.startswith('image/'):
+                if filetype and filetype.startswith('image/'):
                     self._ipython_repr = display.Image(filename=self.name)
                 else:
                     self._ipython_repr = False
-            elif self._ipython_repr is not False:
+            if self._ipython_repr is not False:
                 return getattr(self._ipython_repr, name)
         raise AttributeError
 
@@ -1033,7 +1031,8 @@ class CodeRunnerMixin(object):
                 locals_[k] = self.get_input(k)
         if use_output:
             for output_portname in self.output_ports_order:
-                locals_[output_portname] = None
+                if output_portname not in self.inputPorts:
+                    locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         reg = get_module_registry()
         locals_.update({'fail': fail,

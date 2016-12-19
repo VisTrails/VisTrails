@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -60,7 +60,7 @@ from vistrails.db.domain import IdScope
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'ExecutionResults', 'ExecutionErrors', 'Function',
-           'load_vistrail', 'load_pipeline', 'load_package',
+           'ipython_mode', 'load_vistrail', 'load_pipeline', 'load_package',
            'output_mode', 'run_vistrail',
            'NoSuchVersion', 'NoSuchPackage']
 
@@ -104,6 +104,22 @@ def initialize():
     return True
 
 
+def ipython_mode(use_notebook=True):
+    """Selects whether the IPython notebook should be used.
+
+    Call ``vistrails.ipython_mode(True)`` to enable IPythonMode for output
+    modules, directing supported output to the notebook instead of files.
+    """
+    if use_notebook:
+        try:
+            import IPython.core.display
+        except ImportError:
+            raise ValueError("IPython doesn't seem to be installed!?")
+
+    from vistrails.core.modules.output_modules import IPythonMode
+    IPythonMode.notebook_override = use_notebook
+
+
 class Vistrail(object):
     """This class wraps both Vistrail and VistrailController.
 
@@ -121,7 +137,8 @@ class Vistrail(object):
             # Copied from VistrailsApplicationInterface#open_vistrail()
             locator = UntitledLocator()
             loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-            self.controller = VistrailController(*loaded_objs)
+            self.controller = VistrailController(loaded_objs[0], locator,
+                                                 *loaded_objs[1:])
         elif isinstance(arg, (_Pipeline, Pipeline)):
             if isinstance(arg, Pipeline):
                 pipeline = arg.pipeline
@@ -187,14 +204,15 @@ class Vistrail(object):
         else:
             raise TypeError("select_version() argument must be a string "
                             "or integer, not %r" % type(version).__name__)
-        self.controller.change_selected_version(version)
+        self.controller.do_version_switch(version)
         self._current_pipeline = None
         self._html = None
 
     def select_latest_version(self):
         """Sets the most recent version in the vistrail as current.
         """
-        self.controller.select_latest_version()
+        self.controller.do_version_switch(
+                self.controller.get_latest_version_in_graph())
         self._current_pipeline = None
         self._html = None
 
@@ -413,9 +431,13 @@ class Pipeline(object):
         else:
             pipeline = self.pipeline
             if inputs:
-                id_scope = IdScope()
-                id_remap = {}
-                pipeline = pipeline.do_copy(True, id_scope, id_remap)
+                id_scope = IdScope(1)
+                pipeline = pipeline.do_copy(False, id_scope)
+
+                # A hach to get ids from id_scope that we know won't collide:
+                # make them negative
+                id_scope.getNewId = lambda t, g=id_scope.getNewId: -g(t)
+
                 create_module = \
                         VistrailController.create_module_from_descriptor_static
                 create_function = VistrailController.create_function_static
@@ -634,8 +656,6 @@ class ModuleClass(type):
     def __call__(self, *args, **kwargs):
         return Module(self.descriptor, *args, **kwargs)
 
-    # Ignored by IPython because of bug 6709
-    # https://github.com/ipython/ipython/issues/6709
     def __repr__(self):
         return "<Module class %r from %s>" % (self.descriptor.name,
                                               self.descriptor.identifier)
@@ -697,6 +717,16 @@ class Module(object):
     def module_class(self):
         return ModuleClass(self.descriptor)
 
+    @property
+    def name(self):
+        if self.module_id is None:
+            raise ValueError("This module is not part of a pipeline")
+        mod = self.pipeline.pipeline.modules[self.module_id]
+        if '__desc__' in mod.db_annotations_key_index:
+            return mod.get_annotation_by_key('__desc__').value
+        else:
+            return None
+
     def __repr__(self):
         desc = "<Module %r from %s" % (self.descriptor.name,
                                        self.descriptor.identifier)
@@ -705,7 +735,7 @@ class Module(object):
             if self.pipeline is not None:
                 mod = self.pipeline.pipeline.modules[self.module_id]
                 if '__desc__' in mod.db_annotations_key_index:
-                    desc += (", label \"%s\"" %
+                    desc += (", name \"%s\"" %
                              mod.get_annotation_by_key('__desc__').value)
         return desc + ">"
 
@@ -862,7 +892,10 @@ def load_vistrail(filename, version=None):
     controller = VistrailController(loaded_objs[0], locator,
                                     *loaded_objs[1:])
 
-    return Vistrail(controller)
+    vistrail = Vistrail(controller)
+    if version is not None:
+        vistrail.select_version(version)
+    return vistrail
 
 
 def load_pipeline(filename):

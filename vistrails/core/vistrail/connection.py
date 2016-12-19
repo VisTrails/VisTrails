@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.core.configuration import get_vistrails_configuration
 """ This python module defines Connection class.
 """
 import copy

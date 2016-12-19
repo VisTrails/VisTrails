@@ -1,14 +1,46 @@
+###############################################################################
+##
+## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
-try:
-    import numpy
-except ImportError: # pragma: no cover
-    numpy = None
 import re
 
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from .common import TableObject, Table, choose_column, choose_columns
+from .common import get_numpy, TableObject, Table, \
+    choose_column, choose_columns
 
 # FIXME use pandas?
 
@@ -83,6 +115,7 @@ class JoinedTables(TableObject):
                     j = self.row_map[i]
                     result.append(column[j])
 
+        numpy = get_numpy(False)
         if numeric and numpy is not None:
             result = numpy.array(result, dtype=numpy.float32)
         self.column_cache[(index, numeric)] = result
@@ -392,6 +425,8 @@ class TestJoin(unittest.TestCase):
     def test_join(self):
         """Test joining tables that have column names.
         """
+        import numpy
+
         with intercept_result(JoinTables, 'value') as results:
             self.assertFalse(execute([
                     ('BuildTable', identifier, [
@@ -611,6 +646,8 @@ class TestSelect(unittest.TestCase):
     def test_numeric(self):
         """Selects using the 'less-than' condition.
         """
+        import numpy
+
         self.do_select([
                 ('float_expr', [('String', '6'),
                                 ('String', '<='),

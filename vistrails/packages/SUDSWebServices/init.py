@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -810,11 +810,14 @@ def contextMenuName(signature):
     return None
 
 def saveVistrailFileHook(vistrail, temp_dir):
-    """ This is called when a vistrail is loaded
-        We should copy all used Web Services in temp_dir to .vistrails
-        """
+    """ This is called when a vistrail is saved
+        We should copy all cached Web Services in vistrail to temp_dir
+        if they do not exist
 
-    
+    """
+    # Skip if this is a DBVistrail
+    if not hasattr(vistrail, 'get_used_packages'):
+        return
     packages = vistrail.get_used_packages()
     # clear old files
     for name in os.listdir(temp_dir):
@@ -831,10 +834,10 @@ def saveVistrailFileHook(vistrail, temp_dir):
                 shutil.copyfile(cached, vt_cached)
 
 def loadVistrailFileHook(vistrail, temp_dir):
-    """ This is called when a vistrail is saved
-        We should copy all cached Web Services in vistrail to temp_dir
-        if they do not exist
-    """
+    """ This is called when a vistrail is loaded
+        We should copy all used Web Services in temp_dir to .vistrails
+
+        """
     for name in os.listdir(temp_dir):
         src = os.path.join(temp_dir, name)
         dest = os.path.join(package_cache.location, name)

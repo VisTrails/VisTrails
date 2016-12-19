@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2013-2014, NYU-Poly.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -135,9 +135,12 @@ class VistrailsViewerWindow(StoreViewerWindow):
                     break
 
 
-store = get_default_store()
-viewer = VistrailsViewerWindow(store)
+_viewer = None
 
 
 def show_viewer():
-    viewer.show()
+    global _viewer
+    if _viewer is None:
+        store = get_default_store()
+        _viewer = VistrailsViewerWindow(store)
+    _viewer.show()

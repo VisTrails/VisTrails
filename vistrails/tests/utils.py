@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -37,8 +37,13 @@
 from __future__ import division
 
 import contextlib
+import functools
 import logging
+import os
+import pdb
 import sys
+import traceback
+import unittest
 
 try:
     import cStringIO as StringIO
@@ -221,6 +226,31 @@ def execute(modules, connections=[], add_port_specs=[],
         return result.errors
 
 
+def run_file(filename, tag_filter=lambda x: True):
+    """Loads a .vt file and runs all the tagged versions in it.
+    """
+    import vistrails.core.db.io
+    from vistrails.core.db.locator import FileLocator
+    from vistrails.core.system import vistrails_root_directory
+    from vistrails.core.vistrail.controller import VistrailController
+
+    filename = os.path.join(vistrails_root_directory(), '..', filename)
+    locator = FileLocator(filename)
+    loaded_objs = vistrails.core.db.io.load_vistrail(locator)
+    controller = VistrailController(loaded_objs[0], locator, *loaded_objs[1:])
+    errors = []
+    for version, name in controller.vistrail.get_tagMap().iteritems():
+        if tag_filter(name):
+            controller.change_selected_version(0)
+            controller.change_selected_version(version)
+            assert controller.current_version != 0
+            (result,), _ = controller.execute_current_workflow()
+            if result.errors:
+                errors.append(("%d: %s" % (version, name), result.errors))
+
+    return errors
+
+
 @contextlib.contextmanager
 def intercept_result(module, output_name):
     """This temporarily hooks a module to intercept its results.
@@ -346,3 +376,44 @@ class MockLogHandler(logging.Handler):
         finally:
             if hasattr(logging, '_acquireLock'):
                 logging._releaseLock()
+
+
+def debug_func(f):
+    """Decorator starting a debugger when a method raises an exception.
+    """
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception:
+            info = sys.exc_info()
+            traceback.print_exception(*info)
+            tb = info[2]
+            tb_it = tb
+            while tb_it.tb_next is not None:
+                tb_it = tb_it.tb_next
+            frame = tb_it.tb_frame
+            p = pdb.Pdb()
+            p.reset()
+            p.interaction(frame, tb)
+            raise
+    return wrapper
+
+
+class debug_metaclass(type):
+    """Metaclass adding `debug_func` on every ``test_*`` method.
+    """
+    def __new__(cls, name, bases, dct):
+        new_dct = {}
+        for k, v in dct.iteritems():
+            if k.startswith('test_'):
+                new_dct[k] = debug_func(v)
+            else:
+                new_dct[k] = v
+        return type.__new__(cls, name, bases, new_dct)
+
+
+class DebugTestCaseMetaBase(unittest.TestCase):
+    """Base class used to bring in `debug_metaclass`.
+    """
+    __metaclass__ = debug_metaclass
