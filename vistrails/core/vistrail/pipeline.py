@@ -64,6 +64,7 @@ from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port import Port
 from vistrails.db.domain import IdScope
+import vistrails.db.services.io
 
 ##############################################################################
 
@@ -1446,7 +1447,7 @@ class TestPipeline(unittest.TestCase):
 
     def setUp(self):
         self.pipeline = self.create_default_pipeline()
-        self.sink_id = 2
+        self.sink_id = self.pipeline.module_list[2].id
 
     def test_create_pipeline_signature(self):
         self.pipeline.subpipeline_signature(self.sink_id)
@@ -1457,8 +1458,8 @@ class TestPipeline(unittest.TestCase):
         m_sig_size_before = len(p._module_signatures)
         c_sig_size_before = len(p._connection_signatures)
         p_sig_size_before = len(p._subpipeline_signatures)
-        p.delete_connection(0)
-        p.delete_module(0)
+        p.delete_connection(p.connection_list[0].id)
+        p.delete_module(p.module_list[0].id)
         m_sig_size_after = len(p._module_signatures)
         c_sig_size_after = len(p._connection_signatures)
         p_sig_size_after = len(p._subpipeline_signatures)
@@ -1468,9 +1469,9 @@ class TestPipeline(unittest.TestCase):
 
     def test_delete_connections(self):
         p = self.create_default_pipeline()
-        p.delete_connection(0)
-        p.delete_connection(1)
-        p.delete_module(2)
+        p.delete_connection(p.connection_list[0].id)
+        p.delete_connection(p.connection_list[0].id)
+        p.delete_module(p.module_list[2].id)
         self.assertEquals(len(p.connections), 0)
 
     def test_basic(self):
@@ -1520,18 +1521,24 @@ class TestPipeline(unittest.TestCase):
     def test_aliases(self):
         """ Exercises aliases manipulation """
         import vistrails.core.db.action
-        from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
-        v = XMLFileLocator(
+        from vistrails.core.vistrail.vistrail import Vistrail
+
+        # read in and retain remap
+        v = vistrails.db.services.io.open_vistrail_from_xml(
             vistrails.core.system.vistrails_root_directory() +
-            '/tests/resources/test_alias.xml').load()
+            '/tests/resources/test_alias.xml', do_translate=False)
+        external_data = vistrails.db.services.io.GroupExternalData()
+        v = vistrails.db.services.io.translate_vistrail(v, external_data=external_data)
+        Vistrail.convert(v)
+        remap = external_data.id_remap
 
         p1 = v.getPipeline('alias')
         p2 = v.getPipeline('alias')
         
         # testing removing an alias
-        old_param = p1.modules[0].functions[0].params[0]
-        func = p1.modules[0].functions[0]
+        old_param = p1.modules[remap[('module',0)]].functions[0].params[0]
+        func = p1.modules[remap[('module',0)]].functions[0]
         #old_id = p1.modules[0].functions[0].params[0].db_id
         #old_f_id = p1.modules[0].functions[0].db_id
         new_param = ModuleParam(id=-1,
@@ -1546,14 +1553,18 @@ class TestPipeline(unittest.TestCase):
         p1.perform_action(action)
         self.assertEquals(p1.has_alias('v1'),False)
         v1 = p2.aliases['v1']
-        old_param2 = p2.modules[0].functions[0].params[0]
+        # old_param2 = p2.modules[0].functions[0].params[0]
+        old_param2 = p2.modules[remap[('module',0)]].functions[0].params[0]
+
+
         new_param2 = ModuleParam(id=old_param.real_id,
                                 pos=old_param.pos,
                                 name=old_param.name,
                                 alias="v1",
-                                val=str(v),
+                                val=str(1.0),
                                 type=old_param.type)
-        func2 = p2.modules[0].functions[0]
+        # func2 = p2.modules[0].functions[0]
+        func2 = p2.modules[remap[('module',0)]].functions[0]
         action2 = vistrails.core.db.action.create_action([('change',
                                                  old_param2,
                                                  new_param2,
