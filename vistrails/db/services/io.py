@@ -70,6 +70,7 @@ from vistrails.db.versions import getVersionDAO, get_current_version, \
     getVersionSchemaDir, translate_vistrail, translate_workflow, translate_log, \
     translate_registry, translate_startup, translate_bundle, translate_mashup
 from vistrails.db.versions.common.translate import ExternalData, GroupExternalData
+from vistrails.db.versions.common.bundle import SaveBundle
 
 import unittest
 import vistrails.core.system
@@ -93,83 +94,6 @@ def get_db_lib():
 def set_db_lib(lib):
     global _db_lib
     _db_lib = lib
-
-
-class SaveBundle(object):
-    """Transient bundle of objects to be saved or loaded.
-       The bundle type MUST be specified in the constructor; it should be
-       the the vtType of the primary object in the bundle. This parameter
-       identifies which object is the primary object when mutiple objects
-       are stored in the bundle.
-
-       Args is the (unordered) list of objects to be included in the bundle
-       (vistrail, workflow, log, registry, opm_graph).  Any args without a
-       'vtType' attribute are explicitly ignored (including any args=None).
-
-       As kwargs, you can specify 'abstractions=[]' or 'thumbnails=[]',
-       both of which should be a list of filenames as strings.  You can also
-       specify the other bundle objects as kwargs, but abstractions and
-       thumbnails cannot be args, since they are both lists, and there is no
-       vtType to differentiate between them.
-
-       As a final option, you can directly set the objects in the bundle,
-       self.vistrail = vistrail_object, self.thumbnails = thumbs_list, etc.,
-       before passing the SaveBundle to a locator.  Both abstractions and
-       thumbnails are intialized for convenience so that you can directly
-       append to them when using this step-by-step bundle creation method.
-
-    """
-
-    def __init__(self, bundle_type, *args, **kwargs):
-        self.bundle_type = bundle_type
-        self.vistrail = None
-        self.workflow = None
-        self.log = None
-        self.registry = None
-        self.opm_graph = None
-        self.abstractions = []
-        self.thumbnails = []
-        self.mashups = []
-        # Make all args into attrs using vtType as attr name
-        # This requires that attr names in this class match the vtTypes
-        # i.e. if arg's vtType is 'vistrail', self.vistrail = arg, etc...
-        for arg in args:
-            if hasattr(arg, 'vtType'):
-                setattr(self, arg.vtType, arg)
-        # Make all keyword args directly into attrs
-        for (k,v) in kwargs.iteritems():
-            setattr(self, k, v)
-
-    def get_db_objs(self):
-        """Gets a list containing only the DB* objects in the bundle"""
-        return self.mashups + [obj for obj in self.__dict__.itervalues() if obj is not None and not isinstance(obj, (list, basestring))]
-
-    def get_primary_obj(self):
-        """get_primary_obj() -> DB*
-           Gets the bundle's primary DB* object based on the bundle type.
-        """
-        return getattr(self, self.bundle_type)
-
-    def __copy__(self):
-        return SaveBundle.do_copy(self)
-    
-    def do_copy(self):
-        cp = SaveBundle(self.bundle_type)
-        cp.vistrail = copy.copy(self.vistrail)
-        cp.workflow = copy.copy(self.workflow)
-        cp.log = copy.copy(self.log)
-        cp.registry = copy.copy(self.registry)
-        cp.opm_graph = copy.copy(self.opm_graph)
-        for a in self.abstractions:
-            cp.abstractions.append(a)
-        
-        for t in self.thumbnails:
-            cp.thumbnails.append(t)
-
-        for m in self.mashups:
-            cp.mashups.append(m)
-        
-        return cp
 
 def format_prepared_statement(statement):
     """format_prepared_statement(statement: str) -> str
@@ -2571,6 +2495,7 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         log.db_version = target_version
         vistrails.db.services.log.update_ids(log)
         return log
+
     def run_bundle_translation_test(self, version, filename):
         save_dir = None
         try:
