@@ -122,7 +122,11 @@ def get_version_path(version, target_version):
 def translate_object(obj, method_name, version=None, target_version=None,
                      external_data=None):
     if version is None:
-        version = obj.version
+        try:
+            version = obj.version
+        except AttributeError:
+            version = obj.db_version
+
     if target_version is None:
         target_version = currentVersion
     version = get_full_version_str(version)
