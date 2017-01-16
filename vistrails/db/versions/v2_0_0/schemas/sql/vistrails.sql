@@ -236,7 +236,7 @@ CREATE TABLE port_spec(
     type varchar(255),
     optional int,
     depth int,
-    union varchar(255),
+    ps_union varchar(255),
     sort_key int,
     min_conns int,
     max_conns int,
