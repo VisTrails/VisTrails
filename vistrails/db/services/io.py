@@ -1968,6 +1968,9 @@ def get_alternate_tests(version):
                        #FIXME add session upgrade logic
                        ('DBAction', 'db_session'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
+                      ('1.0.4','2.0.0'): {
+                          ('DBPortSpec', 'db_union'): None,
+                      },
                       ('1.0.3', '1.0.4'):
                       {('DBPortSpec', 'db_depth'): None,
                        #FIXME find a better way to deal with machine_id changes
