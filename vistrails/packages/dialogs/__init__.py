@@ -56,5 +56,5 @@ def package_dependencies():
 
 
 def package_requirements():
-    from vistrails.core.requirements import require_pyqt4_api2
+    from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
