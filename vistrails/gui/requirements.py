@@ -36,7 +36,46 @@
 
 from __future__ import division
 
-from vistrails.core.requirements import qt_available, require_pyqt4_api2
+import os
+import sys
+
+from vistrails.core.requirements import MissingRequirement, require_python_module
 
 
-__all__ = ['qt_available', 'require_pyqt4_api2']
+def setNewPyQtAPI():
+    import sip
+    # We now use the new PyQt API - IPython needs it
+    sip.setapi('QString', 2)
+    sip.setapi('QVariant', 2)
+
+
+def qt_available():
+    try:
+        require_python_module('sip')
+        setNewPyQtAPI()
+        require_python_module('PyQt4.QtGui')
+        require_python_module('PyQt4.QtOpenGL')
+    except MissingRequirement:
+        return False
+    else:
+        return True
+
+
+def require_pyqt4_api2():
+    # Forces the use of PyQt4 (avoid PySide even if installed)
+    # This is necessary at least for IPython
+    if os.environ.get('QT_API', None) not in (None, 'pyqt'):
+        sys.stderr.write("Warning: QT_API was set to %r, changing to 'pyqt'\n" %
+                         os.environ['QT_API'])
+    os.environ['QT_API'] = 'pyqt'
+
+    if not qt_available():
+        from vistrails.gui.bundles.installbundle import install
+        r = install({
+            'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
+            'linux-fedora': ['PyQt4'],
+            'pip': ['PyQt<5.0']})
+        if not r:
+            raise MissingRequirement('PyQt4')
+        setNewPyQtAPI()
