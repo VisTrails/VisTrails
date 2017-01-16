@@ -1,0 +1,4144 @@
+<!--###############################################################################
+##
+## Copyright (C) 2014-2016, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+-->
+<objects>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- ABSTRACTION +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="abstraction">
+    <layout>
+      <xml name="abstraction" nodeType="xs:element"/>
+      <sql table="abstraction"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="cache" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(511)"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="internal_version" type="str">
+      <xml name="internalVersion" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="location" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="function" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+    <property ref="true" object="controlParameter" type="list" mapping="one-to-many"
+	          index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- ACTION ++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="action">
+    <layout>
+      <xml name="action" nodeType="xs:element"/>
+      <sql table="action"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="prevId" type="long" foreignKey="true" object="action">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="prev_id" type="int"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="session" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <choice name="operation" type="list" mapping="one-to-many">
+      <property name="add" ref="true" object="add">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="delete" ref="true" object="delete">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="change" ref="true" object="change">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+    
+    <property ref="true" object="vistrail" type="long" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- ADD +++++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="add">
+    <layout>
+      <xml name="add" nodeType="xs:element"/>
+      <sql table="add_tbl"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="what" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="objectId" type="long" foreignKey="true" discriminator="what">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="object_id" type="int"/>
+    </property>
+
+    <property name="parentObjId" type="long" foreignKey="true"
+	      discriminator="parentObjType">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="par_obj_id" type="int"/>
+    </property>
+
+    <property name="parentObjType" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="par_obj_type" type="char(16)"/>
+    </property>
+    
+    <choice name="data" type="object" discriminator="what">
+      <property ref="true" object="module" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="location" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="annotation" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="controlParameter" mapping="one-to-one">
+        <xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="function" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="connection" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="port" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="parameter" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="portSpec" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="abstraction" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="group" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="other" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="plugin_data" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+
+    <property name="action" type="long" ref="true" object="action" 
+	      mapping="many-to-one" inverse="true">
+      <sql column="action_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- ACTION_ANNOTATION +++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="actionAnnotation">
+    <layout>
+      <xml nodeType="xs:element"/>
+      <sql table="action_annotation"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="key" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="akey" type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(8191)"/>
+    </property>
+
+    <property name="action_id" type="long" foreignKey="true" object="action">
+      <xml name="actionId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>    
+
+    <property ref="true" type="long" object="vistrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+    
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- ANNOTATION ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="annotation">
+    <layout>
+      <xml name="annotation" nodeType="xs:element"/>
+      <sql table="annotation"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="key" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="akey" type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="vistrail">
+	<sql column="parent_id" type="int"/>
+      </property>
+      
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      
+      <property ref="true" object="module">
+	<sql column="parent_id" type="int"/>
+      </property>
+      
+      <property ref="true" object="workflow_exec">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="module_exec">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="action">
+	<sql column="parent_id" type="int"/>
+      </property>
+      
+      <property ref="true" object="abstraction">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="mashuptrail">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONTROL PARAMETER +++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="controlParameter">
+    <layout>
+      <xml nodeType="xs:element"/>
+      <sql table="control_parameter"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="name" type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="vistrail">
+	<sql column="parent_id" type="int"/>
+      </property>
+      
+      <property ref="true" object="module">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="abstraction">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+    </choice>
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- VISTRAIL_VARIABLE +++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="vistrailVariable">
+    <layout>
+      <xml nodeType="xs:element"/>
+      <sql table="vistrail_variable"/>
+    </layout>
+
+    <property name="name" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="name" type="varchar(255)"/>
+    </property>
+
+    <property name="uuid" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="uuid" type="char(36)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="package" type="varchar(255)"/>
+    </property>
+
+    <property name="module" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="module" type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="namespace" type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="value" type="varchar(8191)"/>
+    </property>
+
+    <property ref="true" type="long" object="vistrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CHANGE ++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="change">
+    <layout>
+      <xml name="change" nodeType="xs:element"/>
+      <sql table="change_tbl"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="what" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="oldObjId" type="long" foreignKey="true" discriminator="what">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="old_obj_id" type="int"/>
+    </property>
+
+    <property name="newObjId" type="long" foreignKey="true" discriminator="what">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="new_obj_id" type="int"/>
+    </property>
+
+    <property name="parentObjId" type="long" foreignKey="true" 
+	      discriminator="parentObjType">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="par_obj_id" type="int"/>
+    </property>
+
+    <property name="parentObjType" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="par_obj_type" type="char(16)"/>
+    </property>
+
+    <choice name="data" type="object" discriminator="what">
+      <property ref="true" object="module" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="location" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="annotation" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+	  <property ref="true" object="controlParameter" mapping="one-to-one">
+        <xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="function" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="connection" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="port" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="parameter" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="portSpec" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="abstraction" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="group" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="other" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="plugin_data" mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+    
+    <property name="action" type="long" ref="true" object="action" 
+	      mapping="many-to-one" inverse="true">
+      <sql column="action_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONNECTION ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="connection">
+    <layout>
+      <xml name="connection" nodeType="xs:element"/>
+      <sql table="connection_tbl"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="port" type="list" mapping="one-to-many"
+	      index="type">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- DELETE ++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="delete">
+    <layout>
+      <xml name="delete" nodeType="xs:element"/>
+      <sql table="delete_tbl"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="what" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="objectId" type="long" foreignKey="true" discriminator="what">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="object_id" type="int"/>
+    </property>
+
+    <property name="parentObjId" type="long" foreignKey="true" 
+	      discriminator="parentObjType">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="par_obj_id" type="int"/>
+    </property>
+
+    <property name="parentObjType" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="par_obj_type" type="char(16)"/>
+    </property>
+
+    <property name="action" type="long" ref="true" object="action" 
+	      mapping="many-to-one" inverse="true">
+      <sql column="action_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- FUNCTION ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="function">
+    <layout>
+      <xml name="function" nodeType="xs:element"/>
+      <sql table="function"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="parameter" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="module">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="abstraction">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="group">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- GROUP +++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="group" parentClass="module">
+    <layout>
+      <xml name="group" nodeType="xs:element"/>
+      <sql table="group_tbl"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="workflow" type="object" mapping="one-to-one" 
+	      expand="false">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="cache" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(511)"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="location" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="function" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+    <property ref="true" object="controlParameter" type="list" mapping="one-to-many"
+	          index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- LOCATION ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="location">
+    <layout>
+      <xml name="location" nodeType="xs:element"/>
+      <sql table="location"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="x" type="float">
+      <xml nodeType="xs:attribute" type="xs:float"/>
+      <sql type="DECIMAL(18,12)"/>
+    </property>
+
+    <property name="y" type="float">
+      <xml nodeType="xs:attribute" type="xs:float"/>
+      <sql type="DECIMAL(18,12)"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="module">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="abstraction">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="group">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- LOG +++++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="log">
+    <layout>
+      <xml name="log" nodeType="xs:element"/>
+      <sql table="log_tbl"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+
+    <property name="entity_type" type="str">
+      <sql type="char(16)" global="true" globalName="entity_type"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(16)"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <property ref="true" object="workflow_exec" cascade="false" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="vistrail_id" type="long" foreignKey="true" object="vistrail">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MACHINE +++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="machine">
+    <layout>
+      <xml name="machine" nodeType="xs:element"/>
+      <sql table="machine"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="os" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="architecture" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="processor" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="ram" type="int">
+      <xml nodeType="xs:attribute" type="xs:long"/>
+      <sql type="bigint"/>
+    </property>
+
+    <property name="vistrailId" type="long" inverse="true"
+	      foreignKey="true" object="vistrail">
+      <sql column="vt_id" type="int"/>
+    </property>
+
+    <property ref="true" object="workflow_exec" type="long" 
+	      mapping="many-to-one" inverse="true">
+      <sql column="log_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MODULE ++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="module">
+    <layout>
+      <xml name="module" nodeType="xs:element"/>
+      <sql table="module"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="cache" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(511)"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="location" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="function" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="controlParameter" type="list" mapping="one-to-many"
+	      index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="portSpec" type="list" mapping="one-to-many"
+	      index="name:type">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- LOOP_EXEC +++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="loop_exec">
+    <layout>
+      <xml name="loopExec" nodeType="xs:element"/>
+      <sql table="loop_exec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+            
+      <property ref="true" object="module_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property ref="true" object="loop_iteration" type="list"
+            mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- LOOP_ITERATION ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="loop_iteration">
+    <layout>
+      <xml name="loopIteration" nodeType="xs:element"/>
+      <sql table="loop_iteration"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="iteration" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="completed" type="int">
+      <xml name="completed" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="error" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <choice name="item_exec" type="list" mapping="one-to-many">
+      <property name="module_exec" ref="true" object="module_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="group_exec" ref="true" object="group_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+      
+      <property name="loop_exec" ref="true" object="loop_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+
+    <property name="parent" ref="true" object="loop_exec"
+            mapping="many-to-one" inverse="true">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- GROUP_EXEC ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="group_exec">
+    <layout>
+      <xml name="groupExec" nodeType="xs:element"/>
+      <sql table="group_exec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="cached" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql nodeType="int"/>
+    </property>
+
+    <property name="module_id" type="long" foreignKey="true" object="module">
+      <xml name="moduleId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="group_name" type="str">
+      <xml name="groupName" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="group_type" type="str">
+      <xml name="groupType" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="completed" type="int">
+      <xml name="completed" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="error" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property name="machine_id" type="long" foreignKey="true" object="machine">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <choice name="item_exec" type="list" mapping="one-to-many">
+      <property name="module_exec" ref="true" object="module_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="group_exec" ref="true" object="group_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="loop_exec" ref="true" object="loop_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="loop_iteration" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <!--<property ref="true" object="workflow_exec" type="long" mapping="many-to-one" 
+	      inverse="true">
+      <sql column="wf_exec_id" type="int"/>
+    </property>-->
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- MODULE_EXEC +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="module_exec">
+    <layout>
+      <xml name="moduleExec" nodeType="xs:element"/>
+      <sql table="module_exec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="cached" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql nodeType="int"/>
+    </property>
+
+    <property name="module_id" type="long" foreignKey="true" object="module">
+      <xml name="moduleId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="module_name" type="str">
+      <xml name="moduleName" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="completed" type="int">
+      <xml name="completed" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="error" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property name="machine_id" type="long" foreignKey="true" object="machine">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="loop_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="loop_iteration" type="long" 
+		mapping="many-to-one" inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OTHER +++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="other">
+    <layout>
+      <xml name="other" nodeType="xs:element"/>
+      <sql table="other"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="key" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="okey" type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PARAMETER +++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="parameter">
+    <layout>
+      <xml name="parameter" nodeType="xs:element"/>
+      <sql table="parameter"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="type" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="val" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="alias" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="function">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PLUGIN DATA +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="plugin_data">
+    <layout>
+      <xml name="plugin_data" nodeType="xs:element"/>
+      <sql table="plugin_data"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="data" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(8191)"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="workflow">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PORT ++++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="port">
+    <layout>
+      <xml name="port" nodeType="xs:element"/>
+      <sql table="port"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="type" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="moduleId" type="long" foreignKey="true" object="module">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="moduleName" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="signature" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="connection" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PORTSPEC ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="portSpec">
+    <layout>
+      <xml name="portSpec" nodeType="xs:element"/>
+      <sql table="port_spec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="type" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="optional" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="depth" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="union" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="sort_key" type="int">
+      <xml name="sortKey" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="portSpecItem" type="list" 
+	      mapping="one-to-many" expandAction="false">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="min_conns" type="int">
+      <xml name="minConns" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="max_conns" type="int">
+      <xml name="maxConns" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+	    mapping="many-to-one">
+      <property ref="true" object="module">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="module_descriptor">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="add">
+	<sql column="parent_id" type="int"/>
+      </property>
+      <property ref="true" object="change">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PORTSPECITEM ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="portSpecItem">
+    <layout>
+      <xml name="portSpecItem" nodeType="xs:element"/>
+      <sql table="port_spec_item"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="module" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="label" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(4095)"/>
+    </property>
+
+    <property name="default" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="_default" type="varchar(4095)"/>
+    </property>
+
+    <property name="values" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="_values" type="mediumtext"/>
+    </property>
+
+    <property name="entry_type" type="str">
+      <xml name="entryType" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" type="long" object="portSpec" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MODULE_DESCRIPTOR +++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="module_descriptor">
+    <layout>
+      <xml name="moduleDescriptor" nodeType="xs:element"/>
+      <sql table="module_descriptor"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+	   
+    <property name="namespace" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="package_version" type="str">
+      <xml name="packageVersion" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="base_descriptor_id" type="long" foreignKey="true" 
+	      object="module_descriptor">
+      <xml name="baseDescriptorId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="portSpec" type="list" mapping="one-to-many"
+	      index="name:type">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" type="long" object="package" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+    <!--
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="registry">
+	<sql column="parent_id" type="int"/>
+      </property>
+      
+      <property ref="true" object="package">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+    -->
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PACKAGE +++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="package">
+    <layout>
+      <xml name="package" nodeType="xs:element"/>
+      <sql table="package"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true"/>
+    </property>
+    
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="identifier" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property name="codepath" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+      
+    <property name="load_configuration" type="int">
+      <xml name="loadConfiguration" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>      
+
+    <property name="description" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property ref="true" object="module_descriptor" type="list" 
+	      mapping="one-to-many" index="name:namespace:version">
+      <xml name="moduleDescriptor" nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" type="long" object="registry" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- REGISTRY ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="registry">
+    <layout>
+      <xml name="registry" nodeType="xs:element"/>
+      <sql table="registry"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+
+    <property name="entity_type" type="str">
+      <sql type="char(16)" global="true" globalName="entity_type"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(16)"/>
+    </property>
+
+    <property name="root_descriptor_id" type="long" foreignKey="true" 
+	      object="module_descriptor">
+      <xml name="rootDescriptorId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <!-- <xml nodeType="xs:attribute" type="xs:string"/> -->
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <property ref="true" object="package" type="list"
+	      mapping="one-to-many" index="identifier:version">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- TAG +++++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="tag">
+    <layout>
+      <xml name="tag" nodeType="xs:element"/>
+      <sql table="tag"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true" foreignKey="true" 
+	      object="action">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" type="long" object="vistrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+    
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- VISTRAIL ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="vistrail">
+    <layout>
+      <xml name="vistrail" nodeType="xs:element"/>
+      <sql table="vistrail"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+    
+    <property name="entity_type" type="str">
+      <sql type="char(16)" global="true" globalName="entity_type"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(16)"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <property ref="true" object="action" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="tag" type="list" mapping="one-to-many"
+	      index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="controlParameter" type="list" mapping="one-to-many"
+	      index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="vistrailVariable" type="list" mapping="one-to-many"
+	      index="uuid">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="parameter_exploration" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+    <property ref="true" object="actionAnnotation" type="list" 
+	      mapping="one-to-many" index="action_id:key !key:value">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- WORKFLOW ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="workflow">
+    <layout>
+      <xml name="workflow" nodeType="xs:element"/>
+      <sql table="workflow"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str">
+      <sql type="char(16)" global="true" globalName="entity_type"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(16)"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <choice name="module" type="list" mapping="one-to-many">
+      <property name="module" ref="true" object="module">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="abstraction" ref="true" object="abstraction">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="group" ref="true" object="group">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+    
+    <property ref="true" object="connection" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="plugin_data" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="other" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="vistrail_id" type="long" foreignKey="true" object="vistrail">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="group" type="long" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- WORKFLOW_EXEC +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="workflow_exec">
+    <layout>
+      <xml name="workflowExec" nodeType="xs:element"/>
+      <sql table="workflow_exec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="ip" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="session" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="vt_version" type="str">
+      <xml name="vtVersion" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="parent_id" type="long">
+      <xml name="parentId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="parent_type" type="str">
+      <xml name="parentType" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="parent_version" type="long">
+      <xml name="parentVersion" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="completed" type="int">
+      <xml name="completed" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="log" type="long" mapping="many-to-one" 
+	      inverse="true">
+      <sql column="log_id" type="int"/>
+    </property>
+    
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="machine" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <choice name="item_exec" type="list" mapping="one-to-many">
+      <property name="module_exec" ref="true" object="module_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="group_exec" ref="true" object="group_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="loop_exec" ref="true" object="loop_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PE_PARAMETER ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="pe_parameter" className="DBPEParameter">
+    <layout>
+      <xml name="peParameter" nodeType="xs:element"/>
+      <sql table="pe_parameter"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="interpolator" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="dimension" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <property ref="true" type="long" object="pe_function" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PE_FUNCTION +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="pe_function" className="DBPEFunction">
+    <layout>
+      <xml name="peFunction" nodeType="xs:element"/>
+      <sql table="pe_function"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="module_id" type="long" foreignKey="true" object="module">
+      <xml name="moduleId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="port_name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="is_alias" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" name="parameter" object="pe_parameter" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <property ref="true" type="long" object="parameter_exploration" 
+	      inverse="true" mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PARAMETER_EXPLORATION +++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="parameter_exploration">
+    <layout>
+      <xml name="parameterExploration" nodeType="xs:element"/>
+      <sql table="parameter_exploration"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="action_id" type="long" foreignKey="true" object="action">
+      <xml name="actionId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="dims" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="layout" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" name="function" object="pe_function" type="list" 
+	      mapping="one-to-many" index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" type="long" object="vistrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- MASHUP_ACTION +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="mashup_action">
+    <layout>
+      <xml name="action" nodeType="xs:element"/>
+      <sql table="mashup_action"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="prevId" type="long" foreignKey="true" object="mashup_action">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql column="prev_id" type="int"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property ref="true" object="mashup" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" type="long" object="mashuptrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+    
+	<property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+    
+  </object>
+
+  <!--+++++++++++++++++++++++++++++-->
+  <!-- MASHUP_ACTION_ANNOTATION +++-->
+  <!--+++++++++++++++++++++++++++++-->
+
+  <object name="mashup_actionAnnotation">
+    <layout>
+      <xml name="actionAnnotation" nodeType="xs:element"/>
+      <sql table="mashup_action_annotation"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="key" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql column="akey" type="varchar(255)"/>
+     </property>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(8191)"/>
+    </property>
+
+    <property name="action_id" type="long" foreignKey="true" object="mashup_action">
+      <xml name="action_id" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="user" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>    
+
+    <property ref="true" type="long" object="mashuptrail" inverse="true" 
+	      mapping="many-to-one">
+      <sql column="parent_id" type="int"/>
+    </property>
+    
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MASHUPTRAIL +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="mashuptrail">
+    <layout>
+      <xml name="mashuptrail" nodeType="xs:element"/>
+      <sql table="mashuptrail"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(36)"/>
+    </property>
+    
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(16)"/>
+    </property>
+    
+    <property name="vtVersion" type="long">
+      <xml name="vtVersion" nodeType="xs:attribute" type="xs:int"/>
+      <sql column="vt_version" type="int"/>
+    </property>
+
+    <property name="last_modified" type="datetime">
+      <sql type="datetime"/>
+    </property>
+
+    <property name="action" ref="true" object="mashup_action" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many"
+	      index="key">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="actionAnnotation" ref="true" object="mashup_actionAnnotation" type="list" 
+	      mapping="one-to-many" index="action_id:key !key:value">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--+++++++++++++++++++++++++++++-->
+  <!-- MASHUP_ALIAS +++++++++++++++-->
+  <!--+++++++++++++++++++++++++++++-->
+
+  <object name="mashup_alias">
+    <layout>
+      <xml name="alias" nodeType="xs:element"/>
+      <sql table="mashup_alias"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="component" ref="true" object="mashup_component" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+    
+    <property name="parent" ref="true" object="mashup" type="long" 
+	      mapping="many-to-one" inverse="true">
+      <sql column="parent_id" type="int"/>
+    </property>
+    
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MASHUP_COMPONENT ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="mashup_component">
+    <layout>
+      <xml name="component" nodeType="xs:element"/>
+      <sql table="mashup_component"/>
+    </layout>
+    
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="vtid" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+     <property name="vttype" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="vtparent_type" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(32)"/>
+    </property>
+    
+    <property name="vtparent_id" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="vtpos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="vtmid" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="pos" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="type" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="val" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+    
+    <property name="minVal" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="maxVal" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="stepSize" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="strvaluelist" type="str">
+      <xml name="valueList" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+    
+    <property name="widget" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="seq" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="parent" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property ref="true" object="mashup_alias" type="long" mapping="one-to-one" 
+	      inverse="true">
+      <sql column="alias_id" type="int"/>
+    </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- MASHUP ++++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="mashup">
+    <layout>
+      <xml name="mashup" nodeType="xs:element"/>
+      <sql table="mashup"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+    
+    <property name="version" type="long">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="alias" pluralName="aliases" type= "list" ref="true" 
+              object="mashup_alias" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="type" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="vtid" type="long" foreignKey="true" object="vistrail">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="layout" type="str">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="geometry" type="str">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <sql type="mediumtext"/>
+    </property>
+
+    <property name="has_seq" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+    
+    <property name="parent" ref="true" object="mashup_action" type="long" 
+		mapping="one-to-one" inverse="true">
+      <sql column="parent_id" type="int"/>
+    </property>
+    
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_GRAPH +++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_graph">
+    <layout>
+      <xml name="opmGraph" nodeType="xs:element"/>
+      <!-- <sql table="opm_graph"/> -->
+    </layout>
+
+    <property name="accounts" ref="true" object="opm_accounts" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="processes" ref="true" object="opm_processes" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="artifacts" ref="true" object="opm_artifacts" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="agents" ref="true" object="opm_agents" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="dependencies" ref="true" object="opm_dependencies" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ACCOUNTS ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_accounts">
+    <layout>
+      <xml name="accounts" nodeType="xs:element"/>
+      <!-- <sql table="accounts"/> -->
+    </layout>
+
+    <property name="account" ref="true" object="opm_account" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="opm_overlaps" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ACCOUNT +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_account">
+    <layout>
+      <xml name="account" nodeType="xs:element"/>
+      <!-- <sql table="account"/> -->
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+    
+    <property name="value" type="str">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_OVERLAPS ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_overlaps">
+    <layout>
+      <xml name="overlaps" nodeType="xs:element"/>
+      <!-- <sql table="overlaps"/> -->
+    </layout>
+
+    <property ref="true" object="opm_account_id" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ARTIFACTS +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_artifacts">
+    <layout>
+      <xml name="artifacts" nodeType="xs:element"/>
+      <!-- <sql table="artifacts"/> -->
+    </layout>
+
+    <property name="artifact" ref="true" object="opm_artifact" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ARTIFACT_VALUE ++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_artifact_value">
+    <layout>
+      <xml name="value" nodeType="xs:element"/>
+      <!-- <sql table="artifact_value"/> -->
+    </layout>
+    
+    <choice name="value" type="object" mapping="one-to-one">
+      <property ref="true" object="portSpec" type="object" 
+		mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property ref="true" object="function" type="object" 
+		mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ARTIFACT ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_artifact">
+    <layout>
+      <xml name="artifact" nodeType="xs:element"/>
+      <!-- <sql table="artifact"/> -->
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+    
+    <property name="value" ref="true" object="opm_artifact_value" type="object" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_PROCESSES +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_processes">
+    <layout>
+      <xml name="processes" nodeType="xs:element"/>
+      <!-- <sql table="processes"/> -->
+    </layout>
+
+    <property name="process" ref="true" object="opm_process" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_PROCESS_VALUE +++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_process_value">
+    <layout>
+      <xml name="value" nodeType="xs:element"/>
+      <!-- <sql table="process_value"/> -->
+    </layout>
+    
+    <choice name="value" type="object" mapping="one-to-one">
+      <property ref="true" object="module_exec" type="object" 
+		mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="object" 
+		mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property ref="true" object="loop_exec" type="object" 
+		mapping="one-to-one">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_PROCESS +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_process">
+    <layout>
+      <xml name="process" nodeType="xs:element"/>
+      <!-- <sql table="process"/> -->
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="value" ref="true" object="opm_process_value" type="object" 
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_AGENTS ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_agents">
+    <layout>
+      <xml name="agents" nodeType="xs:element"/>
+      <!-- <sql table="agents"/> -->
+    </layout>
+
+    <property name="agent" ref="true" object="opm_agent" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_AGENT +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_agent">
+    <layout>
+      <xml name="agent" nodeType="xs:element"/>
+      <!-- <sql table="agent"/> -->
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+    
+    <property name="value" type="str">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type=""/> -->
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_DEPENDENCIES ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="opm_dependencies">
+    <layout>
+      <xml name="causalDependencies" nodeType="xs:element"/>
+      <!-- <sql table="causal_dependencies"/> -->
+    </layout>
+
+    <choice name="dependency" type="list" mapping="one-to-many">
+      <property name="used" ref="true" object="opm_used">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="was_generated_by" ref="true" 
+		object="opm_was_generated_by">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="was_triggered_by" ref="true" 
+		object="opm_was_triggered_by">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="was_derived_from" ref="true" 
+		object="opm_was_derived_from">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="was_controlled_by" ref="true" 
+		object="opm_was_controlled_by">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_TIME ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_time">
+    <layout>
+      <xml name="time" nodeType="xs:element"/>
+      <!-- <sql table="time"/> -->
+    </layout>
+
+    <property name="no_later_than" type="datetime">
+      <xml name="noLaterThan" nodeType="xs:attribute" type="xs:dateTime"/>
+      <!-- <sql type="datetime"/> -->
+    </property>
+
+    <property name="no_earlier_than" type="datetime">
+      <xml name="noEarlierThan" nodeType="xs:attribute" type="xs:dateTime"/>
+      <!-- <sql type="datetime"/> -->
+    </property>
+
+    <property name="clock_id" type="str">
+      <xml name="clockId" nodeType="xs:attribute" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ACCOUNT_ID ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_account_id">
+    <layout>
+      <xml name="account" nodeType="xs:element"/>
+      <!-- <sql table="account_id"/> -->
+    </layout>
+
+    <property name="id" type="str" foreignKey="true" object="opm_account">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_PROCESS_ID_CAUSE ++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_process_id_cause">
+    <layout>
+      <xml name="cause" nodeType="xs:element"/>
+      <!-- <sql table="process_id_cause"/> -->
+    </layout>
+
+    <property name="id" type="str" foreignKey="true" object="opm_process">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_PROCESS_ID_EFFECT +++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_process_id_effect">
+    <layout>
+      <xml name="effect" nodeType="xs:element"/>
+      <!-- <sql table="process_id_effect"/> -->
+    </layout>
+
+    <property name="id" type="str" foreignKey="true" object="opm_process">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ARTIFACT_ID_CAUSE +++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_artifact_id_cause">
+    <layout>
+      <xml name="cause" nodeType="xs:element"/>
+      <!-- <sql table="artifact_id_cause"/> -->
+    </layout>
+
+    <property name="id" type="str" foreignKey="true" object="opm_artifact">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ARTIFACT_ID_EFFECT ++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_artifact_id_effect">
+    <layout>
+      <xml name="effect" nodeType="xs:element"/>
+      <!-- <sql table="artifact_id_effect"/> -->
+    </layout>
+
+    <property name="id" type="str" foreignKey="true" object="opm_artifact">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_AGENT_ID ++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_agent_id">
+    <layout>
+      <xml name="agent" nodeType="xs:element"/>
+      <!-- <sql table="agent_id"/> -->
+    </layout>
+
+    <property name="id" type="str" foreignKey="true" object="opm_agent">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_ROLE ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_role">
+    <layout>
+      <xml name="role" nodeType="xs:element"/>
+      <!-- <sql table="role"/> -->
+    </layout>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute"/>
+      <!-- <sql type="varchar(4095)"/> -->
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_USED ++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_used">
+    <layout>
+      <xml name="used" nodeType="xs:element"/>
+      <!-- <sql table="used"/> -->
+    </layout>
+
+    <property name="effect" ref="true" object="opm_process_id_effect"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="role" ref="true" object="opm_role" type="str"
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="cause" ref="true" object="opm_artifact_id_cause"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property ref="true" object="opm_time" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_WAS_GENERATED_BY ++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_was_generated_by">
+    <layout>
+      <xml name="wasGeneratedBy" nodeType="xs:element"/>
+      <!-- <sql table="was_generated_by"/> -->
+    </layout>
+
+    <property name="effect" ref="true" object="opm_artifact_id_effect"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="role" ref="true" object="opm_role" type="str"
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="cause" ref="true" object="opm_process_id_cause"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property ref="true" object="opm_time" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_WAS_CONTROLLED_BY +++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_was_controlled_by">
+    <layout>
+      <xml name="wasControlledBy" nodeType="xs:element"/>
+      <!-- <sql table="was_controlled_by"/> -->
+    </layout>
+
+    <property name="effect" ref="true" object="opm_process_id_effect"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="role" ref="true" object="opm_role" type="str"
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="cause" ref="true" object="opm_agent_id"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="start" ref="true" object="opm_time" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="end" ref="true" object="opm_time" type="list" 
+	      mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_WAS_DERIVED_FROM ++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_was_derived_from">
+    <layout>
+      <xml name="wasDerivedFrom" nodeType="xs:element"/>
+      <!-- <sql table="was_derived_from"/> -->
+    </layout>
+
+    <property name="effect" ref="true" object="opm_artifact_id_effect"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="role" ref="true" object="opm_role" type="str"
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="cause" ref="true" object="opm_artifact_id_cause"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property ref="true" object="opm_time" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- OPM_WAS_TRIGGERED_BY ++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="opm_was_triggered_by">
+    <layout>
+      <xml name="wasTriggeredBy" nodeType="xs:element"/>
+      <!-- <sql table="was_triggered_by"/> -->
+    </layout>
+
+    <property name="effect" ref="true" object="opm_process_id_effect"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="role" ref="true" object="opm_role" type="str"
+	      mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="cause" ref="true" object="opm_process_id_cause"
+	      type="str" mapping="one-to-one">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property name="account" ref="true" object="opm_account_id"
+	      type="list" mapping="one-to-many">
+      <xml nodeType="xs:element" type="xs:string"/>
+      <!-- <sql type="varchar(255)"/> -->
+    </property>
+
+    <property ref="true" object="opm_time" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_DOCUMENT +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_document">
+    <layout>
+      <xml name="prov:document" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_entity" ref="true" object="prov_entity" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_activity" ref="true" object="prov_activity" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_agent" ref="true" object="prov_agent" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </property>
+    
+    <property name="vt_connection" ref="true" object="vt_connection" type="list" 
+          mapping="one-to-many">
+      <xml name="vt:connection" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_usage" ref="true" object="prov_usage" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:used" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_generation" ref="true" object="prov_generation" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:wasGeneratedBy" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_association" ref="true" object="prov_association" type="list" 
+          mapping="one-to-many">
+      <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
+    </property>
+    
+    <!--<property name="vt_part" ref="true" object="vt_part" type="list" 
+          mapping="one-to-many">
+      <xml name="vt:isPartOf" nodeType="xs:element"/>
+    </property>-->
+    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ENTITY +++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_entity">
+    <layout>
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+    <property name="prov_type" type="str">
+      <xml name="prov:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_label" type="str">
+      <xml name="prov:label" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_value" type="str">
+      <xml name="prov:value" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_id" type="str">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_type" type="str">
+      <xml name="vt:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_desc" type="str">
+      <xml name="vt:desc" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_package" type="str">
+      <xml name="vt:package" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_version" type="str">
+      <xml name="vt:version" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_cache" type="str">
+      <xml name="vt:cache" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_location_x" type="str">
+      <xml name="vt:location_x" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_location_y" type="str">
+      <xml name="vt:location_y" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_ENTITY +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_entity">
+    <layout>
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_entity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_PLAN +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_plan">
+    <layout>
+      <xml name="prov:plan" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_entity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ACTIVITY +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_activity">
+    <layout>
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+    
+    <property name="startTime" type="str">
+      <xml name="prov:startTime" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="endTime" type="str">
+      <xml name="prov:endTime" nodeType="xs:element" type="xs:string"/>
+    </property>
+
+    <property name="vt_id" type="str" primaryKey="true">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_type" type="str">
+      <xml name="vt:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_cached" type="str">
+      <xml name="vt:cached" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_completed" type="str">
+      <xml name="vt:completed" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_id" type="str">
+      <xml name="vt:machine_id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_error" type="str">
+      <xml name="vt:error" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="is_part_of" ref="true" object="is_part_of" type="str">
+      <xml name="dcterms:isPartOf" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_ACTIVITY +++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_activity">
+    <layout>
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_activity">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_AGENT ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_agent">
+    <layout>
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="prov:id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property name="vt_id" type="str">
+      <xml name="vt:id" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_type" type="str">
+      <xml name="prov:type" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="prov_label" type="str">
+      <xml name="prov:label" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_os" type="str">
+      <xml name="vt:machine_os" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_architecture" type="str">
+      <xml name="vt:machine_architecture" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_processor" type="str">
+      <xml name="vt:machine_processor" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_machine_ram" type="str">
+      <xml name="vt:machine_ram" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- REF_PROV_AGENT ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+  
+  <object name="ref_prov_agent">
+    <layout>
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str" foreignKey="true" object="prov_agent">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- VT_CONNECTION +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="vt_connection">
+    <layout>
+      <xml name="vt:connection" nodeType="xs:element"/>
+    </layout>
+
+    <property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property name="vt_source" type="str">
+      <xml name="vt:source" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest" type="str">
+      <xml name="vt:dest" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_source_port" type="str">
+      <xml name="vt:source_port" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest_port" type="str">
+      <xml name="vt:dest_port" nodeType="xs:element" type="xs:string"/>
+    </property>
+      
+    <property name="vt_source_signature" type="str">
+      <xml name="vt:source_signature" nodeType="xs:element" type="xs:string"/>
+    </property>
+    
+    <property name="vt_dest_signature" type="str">
+      <xml name="vt:dest_signature" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_USAGE ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_usage">
+    <layout>
+      <xml name="prov:used" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_entity" ref="true" object="ref_prov_entity" type="str">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_GENERATION +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_generation">
+    <layout>
+      <xml name="prov:wasGeneratedBy" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_entity" ref="true" object="ref_prov_entity" type="str">
+      <xml name="prov:entity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- PROV_ASSOCIATION ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="prov_association">
+    <layout>
+      <xml name="prov:wasAssociatedWith" nodeType="xs:element"/>
+    </layout>
+
+    <!--<property name="id" type="str" primaryKey="true">
+      <xml name="id" nodeType="xs:attribute" type="xs:string"/>
+    </property>-->
+    
+    <property name="prov_activity" ref="true" object="ref_prov_activity" type="str">
+      <xml name="prov:activity" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_agent" ref="true" object="ref_prov_agent" type="str">
+      <xml name="prov:agent" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_plan" ref="true" object="ref_prov_plan" type="str">
+      <xml name="prov:plan" nodeType="xs:element"/>
+    </property>
+    
+    <property name="prov_role" type="str">
+      <xml name="prov:role" nodeType="xs:element" type="xs:string"/>
+    </property>  
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
+  <!-- IS_PART_OF ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="is_part_of">
+    <layout>
+      <xml name="dcterms:isPartOf" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="prov_ref" type="str">
+      <xml name="prov:ref" nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- STARTUP +++++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="startup">
+    <layout>
+      <xml name="startup" nodeType="xs:element"/>
+    </layout>
+    
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <property ref="true" object="configuration" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="enabled_packages" type="list" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>    
+
+    <property ref="true" object="disabled_packages" type="list" mapping="one-to-one">
+      <xml nodeType="xs:element"/>
+    </property>    
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- ENABLED_PACKAGES ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="enabled_packages">
+    <layout>
+      <xml name="packages" nodeType="xs:element"/>
+    </layout>
+  
+    <property name="package" ref="true" object="startup_package" type="list" 
+	      mapping="one-to-many" index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- DISABLED_PACKAGES +++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="disabled_packages">
+    <layout>
+      <xml name="disabledpackages" nodeType="xs:element"/>
+    </layout>
+  
+    <property name="package" ref="true" object="startup_package" type="list" 
+	      mapping="one-to-many" index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- STARTUP_PACKAGE +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="startup_package">
+    <layout>
+      <xml name="package" nodeType="xs:element"/>
+    </layout>
+
+    <property name="name" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property ref="true" object="configuration" type="object" mapping="one-to-one">
+      <xml nodeType="xs:element" name="configuration"/>
+    </property>    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONFIGURATION +++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="configuration">
+    <layout>
+      <xml name="configuration" nodeType="xs:element"/>
+    </layout>
+
+    <property ref="true" object="config_key" type="list" 
+	      mapping="one-to-many">
+      <xml name="key" nodeType="xs:element"/>
+    </property>    
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONFIG_KEY ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="config_key">
+    <layout>
+      <xml name="key" nodeType="xs:element"/>
+    </layout>
+
+    <property name="name" type="str" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+    </property>
+
+    <choice name="value" type="object" mapping="one-to-one">
+      <property ref="true" object="config_str">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property ref="true" object="config_int">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property ref="true" object="config_float">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property ref="true" object="config_bool">
+	<xml nodeType="xs:element"/>
+      </property>
+      
+      <property ref="true" object="configuration">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONFIG_STR ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="config_str">
+    <layout>
+      <xml name="str" nodeType="xs:element"/>
+    </layout>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONFIG_INT ++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="config_int">
+    <layout>
+      <xml name="int" nodeType="xs:element"/>
+    </layout>
+
+    <property name="value" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONFIG_FLOAT ++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="config_float">
+    <layout>
+      <xml name="float" nodeType="xs:element"/>
+    </layout>
+
+    <property name="value" type="float">
+      <xml nodeType="xs:attribute" type="xs:float"/>
+    </property>
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- CONFIG_BOOL +++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="config_bool">
+    <layout>
+      <xml name="bool" nodeType="xs:element"/>
+    </layout>
+
+    <property name="value" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+    </property>
+  </object>
+</objects>

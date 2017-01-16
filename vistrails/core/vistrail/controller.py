@@ -216,12 +216,6 @@ class VistrailController(object):
             return version
     current_base_version = property(_get_current_base_version)
 
-    def _get_current_pipeline(self):
-        return self._current_pipeline
-    def _set_current_pipeline(self, pipeline):
-        self._current_pipeline = pipeline
-    current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
-
     def flush_pipeline_cache(self):
         self._pipelines = {Vistrail.ROOT_VERSION: Pipeline()}
 
@@ -1064,7 +1058,6 @@ class VistrailController(object):
         action = self.add_module_action(module)
         return module
 
-
     def add_module(self, identifier, name, namespace='', x=0.0, y=0.0, 
                    internal_version=-1):
         """ addModule(x: int, y: int, identifier, name: str, namespace='') 
@@ -1475,8 +1468,6 @@ class VistrailController(object):
         self.validate(self.current_pipeline, False)
         return res
 
-
-
     ##########################################################################
     # Methods to access/find pipeline information
     
@@ -1766,7 +1757,6 @@ class VistrailController(object):
                     raise VistrailsInternalError("port_type incorrect")
                 pipeline.add_connection(new_conn)
             return (old_module, old_port_name, new_name)
-            
 
         outside_connections = []
         existing_ports = {}
@@ -4063,7 +4053,6 @@ class VistrailController(object):
                                                abs_save_dir,
                                                debug.format_exception(e)))
             return result
-
 
     def write_workflow(self, locator, version=None):
         if self.current_pipeline:

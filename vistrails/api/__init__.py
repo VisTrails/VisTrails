@@ -147,7 +147,7 @@ def add_module(x, y, identifier, name, namespace, controller=None):
         controller = get_current_controller()
     if controller.current_version==-1:
         controller.change_selected_version(Vistrail.ROOT_VERSION)
-    result = controller.add_module(x, y, identifier, name, namespace)
+    result = controller.add_module(identifier, name, namespace, x, y)
     controller.updatePipelineScene()
     result = controller.current_pipeline.modules[result.id]
     return result

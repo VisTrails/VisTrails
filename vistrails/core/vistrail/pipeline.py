@@ -252,12 +252,14 @@ class Pipeline(DBWorkflow):
 
     def clear(self):
         """clear() -> None. Erases pipeline contents."""
-        if hasattr(self, 'db_modules'):
-            for module in self.db_modules:
-                self.db_delete_module(module)
         if hasattr(self, 'db_connections'):
-            for connection in self.db_connections:
-                self.db_delete_connection(connection)
+            while self.db_connections:
+                self.db_delete_object(self.db_connections[0].id,
+                                      Connection.vtType)
+        if hasattr(self, 'db_modules'):
+            while self.db_modules:
+                self.db_delete_object(self.db_modules[0].id,
+                                      Module.vtType)
         self.graph = Graph()
         self.aliases = Bidict()
         self._subpipeline_signatures = Bidict()

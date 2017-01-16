@@ -82,19 +82,11 @@ class ModuleExec(DBModuleExec):
         return None
     duration = property(_get_duration)
 
-    def _get_annotations(self):
-        return self.db_annotations
-    def _set_annotations(self, annotations):
-        self.db_annotations = annotations
-    annotations = property(_get_annotations, _set_annotations)
+    annotations = DBModuleExec.db_annotations
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
 
-    def _get_loop_execs(self):
-        return self.db_loop_execs
-    def _set_loop_execs(self, loop_execs):
-        self.db_loop_execs = loop_execs
-    loop_execs = property(_get_loop_execs, _set_loop_execs)
+    loop_execs = DBModuleExec.db_loop_execs
     def add_loop_exec(self, loop_exec):
         self.db_add_loop_exec(loop_exec)
         

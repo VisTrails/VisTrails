@@ -847,6 +847,33 @@ In addition, VisTrails 2.1 introduced new port configuration arguments :py:attr:
 .. index::
    pair: ports; shape
 
+Union types
+^^^^^^^^^^^
+
+The supported types of an input port is its module type, and its subclasses. Sometimes it is useful to define a port that supports multiple types, e.g., both ``Float`` and ``String``. You could creating a new module type that accepted both floats and strings, but it would not be possible to make it accept both Float and String types, because you can only inherit from one of them.
+
+VisTrails solves this by defining ports as belonging to the same union. The GUI will show all ports with the same union name as the same port. When you create a union type function or show it as a port you will be prompted to select which type you want to use.
+
+Below is an example defining a module with a union port called ``myunion``. The union port will consist of the ports ``myunionFloat`` and ``myunionString``, but it will be shown in the GUI as a single port ``myunion``. Note that you should set ``optional`` to ``True`` for all union ports, otherwise you will not be able to change the type of the visible port.  In the compute method you will need to check for values on both ports manually, usually to fetch the value from whichever port has been set. 
+
+.. code-block:: python
+    :linenos:
+
+    class MyModule(Module):
+        """ A module with union ports
+
+        """
+        _input_ports = [IPort("myunionFloat", "basic:Float",
+                              optional=True, union='myunion'),
+                        IPort("myunionString", "basic:String",
+                              optional=True, union='myunion')]
+
+     def compute(self):
+	 if self.has_input('myunionFloat'):
+             value = self.get_input('myunionFloat')
+	 else:
+             value = self.get_input('myunionString')
+
 Shape
 ^^^^^
 

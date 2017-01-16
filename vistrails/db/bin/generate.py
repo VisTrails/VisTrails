@@ -37,7 +37,7 @@
 ###############################################################################
 """auto-generates code given specs"""
 
-# requires mako python package (easy_install Mako) and 
+# requires mako python package (easy_install Mako) and
 
 from __future__ import division
 

@@ -495,7 +495,8 @@ InputPort = subnamedtuple('InputPort', Port,
                           [(('label', None),),
                            (('default', None),),
                            (('values', None),),
-                           (('entry_type', None),)])
+                           (('entry_type', None),),
+                           (('union', ''),)])
 OutputPort = subnamedtuple('OutputPort', Port)
 
 CompoundPort = subnamedtuple('CompoundPort', Port,
@@ -505,7 +506,8 @@ CompoundInputPort = subnamedtuple('CompoundInputPort', CompoundPort,
                                   [(('labels', None),), 
                                    (('defaults', None),),
                                    (('values', None),),
-                                   (('entry_types', None),)])
+                                   (('entry_types', None),),
+                                   (('union', ''),)])
 CompoundOutputPort = subnamedtuple('CompoundOutputPort', CompoundPort)
 
 PortItem = namedtuple('PortItem', [('signature', None)])

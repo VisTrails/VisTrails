@@ -43,6 +43,7 @@ from ast import literal_eval
 import copy
 import os.path
 import getpass
+import platform
 import re
 import sys
 import StringIO
@@ -66,7 +67,25 @@ from vistrails.gui import qt
 import vistrails.gui.theme
 
 
-################################################################################
+def global_ui_fixes():
+    # Prevent Mac OS 10.7 from restoring windows state since it would make Qt
+    # 4.7.3 unstable due to its lack of handling Cocoa's Main Window.
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2 and (int(release[0]), int(release[1])) >= (10, 7):
+            ss_path = os.path.expanduser('~/Library/Saved Application State/'
+                                         'org.vistrails.savedState')
+            if os.path.exists(ss_path):
+                os.system('rm -rf "%s"' % ss_path)
+            os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows '
+                      '-bool false')
+
+    # font bugfix for Qt 4.8 and OS X 10.9
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2 and (int(release[0]), int(release[1])) >= (1, 9):
+            QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+
 
 class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                     QtGui.QApplication):
@@ -77,6 +96,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     """
 
     use_event_filter = system.systemType in ['Darwin']
+    timeout = 15000
+    execution_timeout = 600000
 
     def __call__(self):
         """ __call__() -> VistrailsApplicationSingleton
@@ -88,12 +109,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return self
 
     def __init__(self):
-        # font bugfix for Qt 4.8 and OS X 10.9
-        import platform
-        if platform.system()=='Darwin':
-            release = platform.mac_ver()[0].split('.')
-            if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
-                QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+        global_ui_fixes()
+
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
@@ -117,7 +134,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
-            self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
                        "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
@@ -140,8 +156,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 else:
                     if self.found_another_instance_running(local_socket, args):
                         return APP_DONE # success, we should shut down
-                    else:
-                        return APP_FAIL  # error, we should shut down
+                    else:  # This is bad, but not fatal. Let's keep going...
+                        debug.critical("Failed to communicate with existing "
+                                       "instance")
+                        return
 
             if not self.shared_memory.create(1):
                 debug.critical("Unable to create single instance "
@@ -779,8 +797,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception, e:
-                import traceback
-                traceback.print_exc()
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()
@@ -812,7 +828,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Writing failed: %s" %
                            local_socket.errorString())
             return False
-        if not local_socket.waitForReadyRead(self.timeout):
+        if not local_socket.waitForReadyRead(self.execution_timeout):
             debug.critical("Read error: %s" %
                            local_socket.errorString())
             return False
