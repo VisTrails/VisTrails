@@ -1467,33 +1467,28 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         v = locator.load()
         controller = VistrailController(v, locator, pipeline_view=DummyView(),
                                         auto_save=False)
-        # DAK: version is different because of upgrades
-        # controller.change_selected_version(9L)
         controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
 
-        # If getting a KeyError here, run the upgrade on the vistrail and
-        # update the ids
-        # TODO : rewrite test so we don't have to update this unrelated code
-        # each time new upgrades are introduced
-        # Original ids:
-        #     module_ids = [1, 2, 3]
-        #     connection_ids = [1, 2, 3]
-        module_ids = [15, 13, 14]
-        connection_ids = [21, 18, 20]
-        controller.create_abstraction(module_ids, connection_ids,
+        module_ids = set()
+        connection_ids = []
+        for c in controller.current_pipeline.connection_list:
+            module_ids.add(c.sourceId)
+            connection_ids.append(c.id)
+        controller.create_abstraction(list(module_ids),
+                                      connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
 
     def test_abstraction_execute(self):
         from vistrails import api
         api.new_vistrail()
-        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
-        api.change_parameter(0, 'value', ['Running Abstraction'])
-        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'StandardOutput', '')
-        api.add_connection(0, 'value', 1, 'value')
+        m0 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
+        api.change_parameter(m0.id, 'value', ['Running Abstraction'])
+        m1 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'StandardOutput', '')
+        conn = api.add_connection(m0.id, 'value', m1.id, 'value')
         c = api.get_current_controller()
-        abs = c.create_abstraction([0,1], [0], 'ExecAbs')
+        abs = c.create_abstraction([m0.id,m1.id], [conn.id], 'ExecAbs')
         d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
         filename = os.path.join(d, 'ExecAbs.xml')
         api.close_current_vistrail(True)

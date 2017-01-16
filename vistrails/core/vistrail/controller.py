@@ -1839,18 +1839,19 @@ class VistrailController(object):
         
         # save vistrail
         abs_vistrail = self.create_vistrail_from_pipeline(pipeline)
+        action_id = abs_vistrail.actions[0].id
         abs_vistrail.name = name
-        abs_vistrail.change_description("Copied from pipeline", 1L)
+        abs_vistrail.change_description("Copied from pipeline", action_id)
         abs_fname = self.save_abstraction(abs_vistrail)
 
         # need to late enable stuff on the abstraction_pkg package
         self.add_abstraction_to_registry(abs_vistrail, abs_fname, name, 
-                                         None, "1")
+                                         None, action_id)
         namespace = get_cur_abs_namespace(abs_vistrail)
         (avg_x, avg_y) = self.get_avg_location([full_pipeline.modules[m_id]
                                                 for m_id in module_ids])
         abstraction = self.create_module(abstraction_pkg, name, namespace, 
-                                         avg_x, avg_y, 1L)
+                                         avg_x, avg_y, action_id)
         connections = self.get_connections_to_subpipeline(abstraction, 
                                                           outside_connections)
         return (abstraction, connections)
@@ -1860,8 +1861,9 @@ class VistrailController(object):
             return
         group = self.current_pipeline.modules[group_id]
         abs_vistrail = self.create_vistrail_from_pipeline(group.pipeline)
+        action_id = abs_vistrail.actions[0].id
         abs_vistrail.name = name
-        abs_vistrail.change_description("Created from group", 1L)
+        abs_vistrail.change_description("Created from group", action_id)
         abs_fname = self.save_abstraction(abs_vistrail)
 
         group_connections = self.get_connections_to_and_from(full_pipeline,
@@ -1881,11 +1883,11 @@ class VistrailController(object):
 
         # need to late enable stuff on the 'local.abstractions' package
         self.add_abstraction_to_registry(abs_vistrail, abs_fname, name,
-                                         None, "1")
+                                         None, action_id)
         namespace = get_cur_abs_namespace(abs_vistrail)
         abstraction = self.create_module(abstraction_pkg, name, namespace, 
                                          group.location.x, group.location.y, 
-                                         1L)
+                                         action_id)
         connections = self.get_connections_to_subpipeline(abstraction, 
                                                           outside_connections)
         return (abstraction, connections)
@@ -1897,7 +1899,7 @@ class VistrailController(object):
         action = vistrails.core.db.action.create_paste_action(pipeline, 
                                                     abs_vistrail.idScope,
                                                     id_remap)
-        abs_vistrail.add_action(action, 0L, 0)
+        abs_vistrail.add_action(action, Vistrail.ROOT_VERSION)
         return abs_vistrail
         
     def get_abstraction_dir(self):
