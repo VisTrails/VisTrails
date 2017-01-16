@@ -808,7 +808,6 @@ class Package(ModuleNamespace):
     def __ne__(self, other):
         return not self == other
 
-
 class ExecutionErrors(Exception):
     """Errors raised during a pipeline execution.
     """
@@ -952,3 +951,4 @@ def run_vistrail(filename, version=None, *args, **kwargs):
     """Shortcut for load_vistrail(filename).execute(...)
     """
     return load_vistrail(filename, version).execute(*args, **kwargs)
+

@@ -1,0 +1,152 @@
+<vistrail id="d8b79501-561f-473e-b88f-bf428636bb00" name="" version="2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2015-03-26 17:09:29" id="44ad759c-0aeb-420b-9826-2419ed596201" prevId="00000000-0000-0000-0000-000000000000" session="0" user="Remi">
+    <add id="801305ed-254c-45a4-8caa-906c51fa0c3e" objectId="cd9e4898-954f-464e-a4e1-2471e6e3baa2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="cd9e4898-954f-464e-a4e1-2471e6e3baa2" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.1" />
+    </add>
+    <add id="cda72388-1ba0-4946-9687-1bc9dd13f3af" objectId="ac800451-6d0c-4ca9-be62-8064c8792250" parentObjId="cd9e4898-954f-464e-a4e1-2471e6e3baa2" parentObjType="module" what="location">
+      <location id="ac800451-6d0c-4ca9-be62-8064c8792250" x="-25.0" y="30.0" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:09:47" id="f5a7dffe-4f0a-46fa-885a-d22b6feca5d4" prevId="44ad759c-0aeb-420b-9826-2419ed596201" session="1" user="Remi">
+    <annotation id="7fe751ef-f120-41d1-b5f4-6e7e3e66d3d1" key="__description__" value="Upgrade" />
+    <delete id="6dacddda-b29d-4fce-88ae-2fb814fc1b7d" objectId="ac800451-6d0c-4ca9-be62-8064c8792250" parentObjId="cd9e4898-954f-464e-a4e1-2471e6e3baa2" parentObjType="module" what="location" />
+    <delete id="bc2ba8f1-77c8-436e-9e08-3aa98f0ec355" objectId="cd9e4898-954f-464e-a4e1-2471e6e3baa2" parentObjId="" parentObjType="" what="module" />
+    <add id="374e282b-dca0-4df0-8465-aa2e7a7c9313" objectId="82cb8fbe-0c64-4f8e-a6b0-ebe764f07b82" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="82cb8fbe-0c64-4f8e-a6b0-ebe764f07b82" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="2008666c-c45b-4adf-9269-d20d72bf5927" objectId="f70145e7-956d-4297-b8b2-24f25094bdd3" parentObjId="82cb8fbe-0c64-4f8e-a6b0-ebe764f07b82" parentObjType="module" what="location">
+      <location id="f70145e7-956d-4297-b8b2-24f25094bdd3" x="-25.0" y="30.0" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:10:02" id="23e7d194-a8be-4f7d-8e6c-9910d35b1b27" prevId="f5a7dffe-4f0a-46fa-885a-d22b6feca5d4" session="2" user="Remi">
+    <annotation id="c7c46044-2897-432c-82f9-4dd003cb1711" key="__description__" value="Upgrade" />
+    <delete id="ecb2d3a8-9211-4c38-a913-07056d400f87" objectId="f70145e7-956d-4297-b8b2-24f25094bdd3" parentObjId="82cb8fbe-0c64-4f8e-a6b0-ebe764f07b82" parentObjType="module" what="location" />
+    <delete id="31ab8192-b889-4329-b0ef-4927763356e3" objectId="82cb8fbe-0c64-4f8e-a6b0-ebe764f07b82" parentObjId="" parentObjType="" what="module" />
+    <add id="c3075435-97e2-45c5-bb96-92fd36aacb05" objectId="17bfc1ef-8430-4e72-baab-d0f686ea1052" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="17bfc1ef-8430-4e72-baab-d0f686ea1052" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.3" />
+    </add>
+    <add id="1003f833-20e5-4bb1-823b-180a042d55ff" objectId="b1ef2329-2f27-4d8a-84b5-5ac07d0ff235" parentObjId="17bfc1ef-8430-4e72-baab-d0f686ea1052" parentObjType="module" what="location">
+      <location id="b1ef2329-2f27-4d8a-84b5-5ac07d0ff235" x="-25.0" y="30.0" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:10:09" id="a19b616a-08be-4960-8feb-945e52d62b94" prevId="23e7d194-a8be-4f7d-8e6c-9910d35b1b27" session="2" user="Remi">
+    <change id="97f2c807-08ae-42e5-9a53-62665886422b" newObjId="bff0d55f-8a98-4ff6-b214-6254642b3433" oldObjId="b1ef2329-2f27-4d8a-84b5-5ac07d0ff235" parentObjId="17bfc1ef-8430-4e72-baab-d0f686ea1052" parentObjType="module" what="location">
+      <location id="bff0d55f-8a98-4ff6-b214-6254642b3433" x="-58.5033557047" y="1.65100671141" />
+    </change>
+  </action>
+  <action date="2015-03-26 17:12:06" id="5f820fa0-d21e-4b5c-a947-7e8dd82312b3" prevId="00000000-0000-0000-0000-000000000000" session="3" user="Remi">
+    <add id="4458de0f-e8fd-433c-bce5-b67be88f5b54" objectId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="abc1c5e3-acff-496d-a6e4-13ed7c213899" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.1" />
+    </add>
+    <add id="b6ea08e4-34e9-4848-b3ff-2ac56028c410" objectId="d7ded48d-719f-432b-a0e8-247a359a72dc" parentObjId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjType="module" what="location">
+      <location id="d7ded48d-719f-432b-a0e8-247a359a72dc" x="-36.9395973154" y="74.7382550336" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:12:28" id="490019eb-6c1f-45aa-b18a-b34d3c39fe13" prevId="5f820fa0-d21e-4b5c-a947-7e8dd82312b3" session="4" user="Remi">
+    <annotation id="a41c475c-5efd-46b8-9a43-79c973b00db5" key="__description__" value="Upgrade" />
+    <delete id="8b890538-afd1-4198-b20c-62663c07648b" objectId="d7ded48d-719f-432b-a0e8-247a359a72dc" parentObjId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjType="module" what="location" />
+    <delete id="751bd865-dd93-4219-834f-dbf01f78a7cc" objectId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjId="" parentObjType="" what="module" />
+    <add id="a86dc96d-ac14-49f8-b378-5171b5b6aade" objectId="83a29851-4a7f-4d2e-8961-011c1a6c4fb5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="83a29851-4a7f-4d2e-8961-011c1a6c4fb5" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="44a8ab64-fe1c-45d6-acd5-178676887d54" objectId="f9dc6d15-03e9-4384-906c-08fa81b4f251" parentObjId="83a29851-4a7f-4d2e-8961-011c1a6c4fb5" parentObjType="module" what="location">
+      <location id="f9dc6d15-03e9-4384-906c-08fa81b4f251" x="-36.9395973154" y="74.7382550336" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:12:42" id="ab80852c-dedf-4d38-b0cd-de4b89a66d28" prevId="490019eb-6c1f-45aa-b18a-b34d3c39fe13" session="5" user="Remi">
+    <annotation id="e889e382-ae7c-4548-acda-a41e5e5a9395" key="__description__" value="Upgrade" />
+    <delete id="645c93d8-07cd-4276-8f81-7efb5af92135" objectId="f9dc6d15-03e9-4384-906c-08fa81b4f251" parentObjId="83a29851-4a7f-4d2e-8961-011c1a6c4fb5" parentObjType="module" what="location" />
+    <delete id="613891e1-dade-4a69-98da-6f3901f1e5b6" objectId="83a29851-4a7f-4d2e-8961-011c1a6c4fb5" parentObjId="" parentObjType="" what="module" />
+    <add id="01d6501d-c058-4340-b56e-f09d1d29ddd2" objectId="421d4fd6-d0ec-4461-bf31-22402480adde" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="421d4fd6-d0ec-4461-bf31-22402480adde" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.3" />
+    </add>
+    <add id="4b4311ac-397a-4b62-a28a-07a478ff0435" objectId="0d43447b-350c-4a5e-82a0-21651f2ff43b" parentObjId="421d4fd6-d0ec-4461-bf31-22402480adde" parentObjType="module" what="location">
+      <location id="0d43447b-350c-4a5e-82a0-21651f2ff43b" x="-36.9395973154" y="74.7382550336" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:12:46" id="aecb267e-91e9-4b08-b616-5f92b71a6a6b" prevId="ab80852c-dedf-4d38-b0cd-de4b89a66d28" session="5" user="Remi">
+    <change id="9be9850f-e73a-49a4-8c7e-8b784672a502" newObjId="72fa93e4-e3ea-4048-8327-66b810acfda2" oldObjId="0d43447b-350c-4a5e-82a0-21651f2ff43b" parentObjId="421d4fd6-d0ec-4461-bf31-22402480adde" parentObjType="module" what="location">
+      <location id="72fa93e4-e3ea-4048-8327-66b810acfda2" x="-110.818791946" y="71.3020134229" />
+    </change>
+  </action>
+  <action date="2015-03-26 17:14:05" id="cb546121-5dcd-468a-a2a4-6e42cb3f8a55" prevId="5f820fa0-d21e-4b5c-a947-7e8dd82312b3" session="6" user="Remi">
+    <change id="11f4299c-a6ef-439a-8974-c9053028c9aa" newObjId="043fbef2-5859-4049-920a-4125a994ea90" oldObjId="d7ded48d-719f-432b-a0e8-247a359a72dc" parentObjId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjType="module" what="location">
+      <location id="043fbef2-5859-4049-920a-4125a994ea90" x="-18.0402684563" y="77.3154362417" />
+    </change>
+  </action>
+  <action date="2015-03-26 17:14:22" id="6a5e6ab5-8dba-4e03-befb-80cfeac2dedf" prevId="cb546121-5dcd-468a-a2a4-6e42cb3f8a55" session="7" user="Remi">
+    <annotation id="0fed8d9e-d084-4b30-875d-b4c74fe72de4" key="__description__" value="Upgrade" />
+    <delete id="ab551250-65e0-41c6-95cf-7d6bba87b9bb" objectId="043fbef2-5859-4049-920a-4125a994ea90" parentObjId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjType="module" what="location" />
+    <delete id="bbf65417-32a3-4da2-9a3a-13589f598492" objectId="abc1c5e3-acff-496d-a6e4-13ed7c213899" parentObjId="" parentObjType="" what="module" />
+    <add id="6a54fc1f-e28a-494f-9582-27cb6353e527" objectId="c1c165df-860e-429b-9e8f-7d11a0c75dd0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="c1c165df-860e-429b-9e8f-7d11a0c75dd0" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="4a2724da-36c7-4079-90e8-6dff15d2a8cf" objectId="689fef19-5d57-4363-8108-9418af602534" parentObjId="c1c165df-860e-429b-9e8f-7d11a0c75dd0" parentObjType="module" what="location">
+      <location id="689fef19-5d57-4363-8108-9418af602534" x="-18.0402684563" y="77.3154362417" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:14:53" id="2cdf6b2a-6dd8-4acd-905a-0bcb3e75acee" prevId="6a5e6ab5-8dba-4e03-befb-80cfeac2dedf" session="7" user="Remi">
+    <change id="c736cee9-9b73-48ca-90e7-55e418639650" newObjId="bed6eb87-6b76-4039-989a-45eb88729bb0" oldObjId="689fef19-5d57-4363-8108-9418af602534" parentObjId="c1c165df-860e-429b-9e8f-7d11a0c75dd0" parentObjType="module" what="location">
+      <location id="bed6eb87-6b76-4039-989a-45eb88729bb0" x="22.3355704699" y="74.7382550336" />
+    </change>
+  </action>
+  <action date="2015-03-26 17:15:15" id="c04408eb-edf2-4a1d-b484-cc3a763371fb" prevId="6a5e6ab5-8dba-4e03-befb-80cfeac2dedf" session="8" user="Remi">
+    <annotation id="d2726007-d02c-41d6-bc74-f32bb3d1673d" key="__description__" value="Upgrade" />
+    <delete id="e28bdc70-1464-4725-9d19-4d155fa867e9" objectId="689fef19-5d57-4363-8108-9418af602534" parentObjId="c1c165df-860e-429b-9e8f-7d11a0c75dd0" parentObjType="module" what="location" />
+    <delete id="157ea3a4-e733-4d2e-b348-00ca9403da9a" objectId="c1c165df-860e-429b-9e8f-7d11a0c75dd0" parentObjId="" parentObjType="" what="module" />
+    <add id="355665c2-359e-489a-ab6f-b6989f72b32c" objectId="8c0514a9-e80b-4652-9a2e-7b726edb4f18" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="8c0514a9-e80b-4652-9a2e-7b726edb4f18" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.3" />
+    </add>
+    <add id="8f0851a1-921d-47fb-a9e2-e45beab89259" objectId="7894355b-9347-44b3-ab3b-8474493beb71" parentObjId="8c0514a9-e80b-4652-9a2e-7b726edb4f18" parentObjType="module" what="location">
+      <location id="7894355b-9347-44b3-ab3b-8474493beb71" x="-18.0402684563" y="77.3154362417" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:15:25" id="e9433ecf-2f33-4076-ad61-af864cd31bec" prevId="c04408eb-edf2-4a1d-b484-cc3a763371fb" session="8" user="Remi">
+    <change id="4ba50fce-4227-4d35-91dd-1f9b9ea1f15e" newObjId="3fbd224a-9676-4136-b770-f7f2c8a73de3" oldObjId="7894355b-9347-44b3-ab3b-8474493beb71" parentObjId="8c0514a9-e80b-4652-9a2e-7b726edb4f18" parentObjType="module" what="location">
+      <location id="3fbd224a-9676-4136-b770-f7f2c8a73de3" x="-55.8389261744" y="109.100671141" />
+    </change>
+  </action>
+  <action date="2015-03-26 17:16:17" id="724e3663-7c1b-4a94-93c9-b5095ba19b7b" prevId="00000000-0000-0000-0000-000000000000" session="9" user="Remi">
+    <add id="00b1d4ea-8db6-4773-bc0e-3fd35ee66d03" objectId="d1769c02-34af-408c-97a0-4629faaae1f1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="d1769c02-34af-408c-97a0-4629faaae1f1" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.1" />
+    </add>
+    <add id="998c7744-6546-4aac-b8e5-4a3601558594" objectId="3667c2ce-9b53-4d96-be6d-97159177a2be" parentObjId="d1769c02-34af-408c-97a0-4629faaae1f1" parentObjType="module" what="location">
+      <location id="3667c2ce-9b53-4d96-be6d-97159177a2be" x="-12.8859060403" y="13.744966443" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:16:32" id="6c7765d8-7fdd-4e14-8bc3-063074214566" prevId="724e3663-7c1b-4a94-93c9-b5095ba19b7b" session="10" user="Remi">
+    <annotation id="e22129bd-5cee-47af-ad3a-c2020772aa72" key="__description__" value="Upgrade" />
+    <delete id="c74130ca-c731-448a-90d0-675c9e58b422" objectId="3667c2ce-9b53-4d96-be6d-97159177a2be" parentObjId="d1769c02-34af-408c-97a0-4629faaae1f1" parentObjType="module" what="location" />
+    <delete id="c9324506-f0a7-4929-8f7e-abea45207c6a" objectId="d1769c02-34af-408c-97a0-4629faaae1f1" parentObjId="" parentObjType="" what="module" />
+    <add id="fdb17df9-0c3f-439a-9a5f-bbe434ae5a7a" objectId="5c247f14-adb5-4d4b-a314-95bb5e240741" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5c247f14-adb5-4d4b-a314-95bb5e240741" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="40360a15-6036-48a8-872a-91629e4d83df" objectId="3cf15e1c-08f2-4806-9a33-4f7832f9b780" parentObjId="5c247f14-adb5-4d4b-a314-95bb5e240741" parentObjType="module" what="location">
+      <location id="3cf15e1c-08f2-4806-9a33-4f7832f9b780" x="-12.8859060403" y="13.744966443" />
+    </add>
+  </action>
+  <action date="2015-03-26 17:16:43" id="e411a6c0-3d35-44a0-b198-b978117db69e" prevId="6c7765d8-7fdd-4e14-8bc3-063074214566" session="11" user="Remi">
+    <annotation id="678b4b40-7714-4b19-8e5b-29b7e80f775c" key="__description__" value="Upgrade" />
+    <delete id="6fb926ef-2730-483c-bb06-e40929a958c9" objectId="3cf15e1c-08f2-4806-9a33-4f7832f9b780" parentObjId="5c247f14-adb5-4d4b-a314-95bb5e240741" parentObjType="module" what="location" />
+    <delete id="ba5b9c05-21ac-487a-ad73-1485a0d06edc" objectId="5c247f14-adb5-4d4b-a314-95bb5e240741" parentObjId="" parentObjType="" what="module" />
+    <add id="d2362dc3-c3f2-4244-b95b-805688025cf5" objectId="532e94bf-6723-4fb8-ac51-1555018ba3f8" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="532e94bf-6723-4fb8-ac51-1555018ba3f8" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.3" />
+    </add>
+    <add id="5ecc013e-72a2-4f63-85f8-c0605c6281d7" objectId="90869fb4-9d5e-429e-bc71-f1a20b8018f3" parentObjId="532e94bf-6723-4fb8-ac51-1555018ba3f8" parentObjType="module" what="location">
+      <location id="90869fb4-9d5e-429e-bc71-f1a20b8018f3" x="-12.8859060403" y="13.744966443" />
+    </add>
+  </action>
+  <actionAnnotation actionId="44ad759c-0aeb-420b-9826-2419ed596201" date="2015-03-26 17:09:34" id="90425927-6f43-4ff2-a0f1-50f55fd16c91" key="__tag__" user="Remi" value="T1" />
+  <actionAnnotation actionId="23e7d194-a8be-4f7d-8e6c-9910d35b1b27" date="2015-03-26 17:10:07" id="06c25b18-31e3-4ba0-a62a-64b7fa515aff" key="__tag__" user="Remi" value="T2" />
+  <actionAnnotation actionId="5f820fa0-d21e-4b5c-a947-7e8dd82312b3" date="2015-03-26 17:12:10" id="269be5d3-198e-44a1-9434-60b899cb86e4" key="__tag__" user="Remi" value="T3" />
+  <actionAnnotation actionId="6a5e6ab5-8dba-4e03-befb-80cfeac2dedf" date="2015-03-26 17:14:37" id="0858fdf1-ecef-4728-a0b2-6ca50025445c" key="__tag__" user="Remi" value="T4" />
+  <actionAnnotation actionId="e411a6c0-3d35-44a0-b198-b978117db69e" date="2015-03-26 17:16:47" id="165f3f44-ed84-4159-bdbe-2b9be2b0426f" key="__tag__" user="Remi" value="T5" />
+  <actionAnnotation actionId="44ad759c-0aeb-420b-9826-2419ed596201" date="2015-03-26 17:09:47" id="c3f37bb4-2a09-4df2-98ce-151a2fecc085" key="__upgrade__" user="Remi" value="f5a7dffe-4f0a-46fa-885a-d22b6feca5d4" />
+  <actionAnnotation actionId="f5a7dffe-4f0a-46fa-885a-d22b6feca5d4" date="2015-03-26 17:10:02" id="7d95de48-255d-414a-8c4d-434dbfeb2b00" key="__upgrade__" user="Remi" value="23e7d194-a8be-4f7d-8e6c-9910d35b1b27" />
+  <actionAnnotation actionId="5f820fa0-d21e-4b5c-a947-7e8dd82312b3" date="2015-03-26 17:12:28" id="d5d2c5d3-a6aa-4f30-9c07-731be0ffd5f0" key="__upgrade__" user="Remi" value="490019eb-6c1f-45aa-b18a-b34d3c39fe13" />
+  <actionAnnotation actionId="490019eb-6c1f-45aa-b18a-b34d3c39fe13" date="2015-03-26 17:12:42" id="4e4c87ec-df19-4f53-977c-78091ee159b8" key="__upgrade__" user="Remi" value="ab80852c-dedf-4d38-b0cd-de4b89a66d28" />
+  <actionAnnotation actionId="cb546121-5dcd-468a-a2a4-6e42cb3f8a55" date="2015-03-26 17:14:22" id="029a69e5-0b53-494e-af81-2ffd458042ce" key="__upgrade__" user="Remi" value="6a5e6ab5-8dba-4e03-befb-80cfeac2dedf" />
+  <actionAnnotation actionId="6a5e6ab5-8dba-4e03-befb-80cfeac2dedf" date="2015-03-26 17:15:15" id="46c28bef-21bc-48dd-b4c3-adab0c080ec9" key="__upgrade__" user="Remi" value="c04408eb-edf2-4a1d-b484-cc3a763371fb" />
+  <actionAnnotation actionId="724e3663-7c1b-4a94-93c9-b5095ba19b7b" date="2015-03-26 17:16:32" id="2d7330b6-126d-4893-a520-6f35c655e26c" key="__upgrade__" user="Remi" value="6c7765d8-7fdd-4e14-8bc3-063074214566" />
+  <actionAnnotation actionId="6c7765d8-7fdd-4e14-8bc3-063074214566" date="2015-03-26 17:16:43" id="24e1929c-f5eb-4c9a-8a25-c3b682fc6300" key="__upgrade__" user="Remi" value="e411a6c0-3d35-44a0-b198-b978117db69e" />
+</vistrail>

@@ -87,6 +87,7 @@ class MashupsManager(object):
             (p_mashuptrail, p_version) = \
                      MashupsManager.findClosestParentMashuptrail(vt_controller, 
                                                                  version)
+            # DK: Why do all of these trails and mashups share the same id scope?
             id_scope = IdScope(1L)
             if p_mashuptrail is not None:
                 version_name = vt_controller.get_pipeline_name(p_version)
@@ -111,10 +112,8 @@ class MashupsManager(object):
                                       user=vistrails.core.system.current_user(),
                                       date=vistrails.core.system.current_time())
                         mashuptrail.currentVersion = currVersion
-                        mashuptrail.updateIdScope()
-                        p_tag = p_mashuptrail.getTagForActionId(mshpv)
-                        if p_tag == '':
-                            tag = "<latest>"
+                        mashuptrail.update_id_scope()
+                        p_tag = p_mashuptrail.getTagForActionId(mshpv) or "<latest>"
                         tag = "Copy from %s"%p_tag
                         MashupsManager.addMashuptrailtoVistrailController(vt_controller,
                                                                           mashuptrail)    
@@ -404,11 +403,9 @@ class MashupsManager(object):
                         tag = "Imported workflow"
                     vistrail.addTag(tag, action.id)
                     node.set('version', str(action.id))
-                    id_scope = IdScope(1L)
                     newmashuptrail = Mashuptrail(
                                      MashupsManager.getNewMashuptrailId(), 
-                                     action.id, 
-                                     id_scope)
+                                     action.id)
                     
                     maction = mashuptrail.actionMap[mashupversion]
                     mtag = mashuptrail.getTagForActionId(mashupversion)

@@ -76,12 +76,12 @@ def load_vistrail(locator, is_abstraction=False):
         vistrail = Vistrail()
     else:
         res = locator.load()
-        if type(res) == type(SaveBundle(None)):
+        try:
             vistrail = res.vistrail
             abstraction_files.extend(res.abstractions)
             thumbnail_files.extend(res.thumbnails)
             mashups.extend(res.mashups)
-        else:
+        except AttributeError:
             vistrail = res
     vistrail.is_abstraction = is_abstraction
     return (vistrail, abstraction_files, thumbnail_files, mashups)

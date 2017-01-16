@@ -1,26 +1,26 @@
-<vistrail id="" name="" version="1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
-  <action date="2014-10-08 16:59:45" id="1" prevId="0" session="0" user="Remi">
-    <annotation id="0" key="__description__" value="Paste" />
-    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="0" name="A" namespace="" package="org.vistrails.vistrails.tests.looping_fix.a" version="0.1" />
+<vistrail id="d70fa456-36a9-4ebd-ac19-94950849f8dc" name="" version="2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2014-10-08 16:59:45" id="93133e0d-baa5-48ca-918f-9531f40a29a3" prevId="00000000-0000-0000-0000-000000000000" session="0" user="Remi">
+    <annotation id="063836e5-ce9b-4ba1-866d-3912f9df7016" key="__description__" value="Paste" />
+    <add id="dbd0f8fe-7617-41f1-9775-78b5477d84b6" objectId="90c360f9-105e-41e7-8146-1cb9e770b1b4" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="90c360f9-105e-41e7-8146-1cb9e770b1b4" name="A" namespace="" package="org.vistrails.vistrails.tests.looping_fix.a" version="0.1" />
     </add>
-    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
-      <location id="0" x="-31.0939597316" y="33.3825503356" />
+    <add id="a1bb59bd-843a-4f87-9fb9-52e9e9bbf030" objectId="24130181-ed9a-42ce-9d18-2414d49a1e79" parentObjId="90c360f9-105e-41e7-8146-1cb9e770b1b4" parentObjType="module" what="location">
+      <location id="24130181-ed9a-42ce-9d18-2414d49a1e79" x="-31.0939597316" y="33.3825503356" />
     </add>
-    <add id="2" objectId="1" parentObjId="" parentObjType="" what="module">
-      <module cache="1" id="1" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    <add id="fc858e46-fad7-4569-8f0b-42c629a67ce6" objectId="0422f4d5-2052-44d0-baf9-15cdf553b3e8" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0422f4d5-2052-44d0-baf9-15cdf553b3e8" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
     </add>
-    <add id="3" objectId="1" parentObjId="1" parentObjType="module" what="location">
-      <location id="1" x="53.0939597316" y="-53.3825503356" />
+    <add id="588704bf-1ff6-41e9-9397-6461f58813d2" objectId="86e52788-9da8-4249-b8cb-da5013ab9753" parentObjId="0422f4d5-2052-44d0-baf9-15cdf553b3e8" parentObjType="module" what="location">
+      <location id="86e52788-9da8-4249-b8cb-da5013ab9753" x="53.0939597316" y="-53.3825503356" />
     </add>
-    <add id="4" objectId="0" parentObjId="" parentObjType="" what="connection">
-      <connection id="0" />
+    <add id="61ee766f-8823-4ff5-8795-782f15b0bbcf" objectId="4e88c1e4-d09d-4ed0-8e0c-9e50e306b18e" parentObjId="" parentObjType="" what="connection">
+      <connection id="4e88c1e4-d09d-4ed0-8e0c-9e50e306b18e" />
     </add>
-    <add id="5" objectId="1" parentObjId="0" parentObjType="connection" what="port">
-      <port id="1" moduleId="1" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    <add id="38eb1098-2a02-416d-8b4e-6d92d7c1590c" objectId="9f8afb07-e529-432f-ab82-0d4c9148a56a" parentObjId="4e88c1e4-d09d-4ed0-8e0c-9e50e306b18e" parentObjType="connection" what="port">
+      <port id="9f8afb07-e529-432f-ab82-0d4c9148a56a" moduleId="0422f4d5-2052-44d0-baf9-15cdf553b3e8" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
     </add>
-    <add id="6" objectId="0" parentObjId="0" parentObjType="connection" what="port">
-      <port id="0" moduleId="0" moduleName="A" name="result" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    <add id="959ba26a-6c05-4501-bab9-982acb0a0d04" objectId="0d700a6e-fc72-41e3-b76e-3f4ae0acab72" parentObjId="4e88c1e4-d09d-4ed0-8e0c-9e50e306b18e" parentObjType="connection" what="port">
+      <port id="0d700a6e-fc72-41e3-b76e-3f4ae0acab72" moduleId="90c360f9-105e-41e7-8146-1cb9e770b1b4" moduleName="A" name="result" signature="(org.vistrails.vistrails.basic:String)" type="source" />
     </add>
   </action>
 </vistrail>

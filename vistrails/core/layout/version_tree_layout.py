@@ -42,6 +42,7 @@ from __future__ import division
 
 from tree_layout import TreeLW, NodeLW, TreeLayoutLW
 from vistrails.core.data_structures.point import Point
+from vistrails.core.vistrail.vistrail import Vistrail
 
 ################################################################################
 
@@ -99,8 +100,8 @@ class VistrailsTreeLayoutLW(object):
         X = set()
 
         # include the root manually
-        nodes = [(0,"")]
-        X.add(0)
+        nodes = [(Vistrail.ROOT_VERSION,"")]
+        X.add(Vistrail.ROOT_VERSION)
 
         # include the tagged nodes
         for id, tag_name in vistrail.get_tagMap().iteritems():

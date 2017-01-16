@@ -1639,11 +1639,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-            if hasattr(locator,'_vtag'):
-                # if a tag is set, it should be used instead of the
-                # version number
-                if locator._vtag != '':
-                    version = locator._vtag
             elif hasattr(locator, '_vnode'):
                 version = locator._vnode
             mashuptrail = None
@@ -1664,10 +1659,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def executeParameterExploration(self, pe_id):
         vistrail = self.current_view.controller.vistrail
         try:
-            pe_id = int(pe_id)
             pe = vistrail.get_paramexp(pe_id)
-        except ValueError:
-            pe= vistrail.get_named_paramexp(pe_id)
         except Exception, e:
             debug.unexpected_exception(e)
             return
@@ -1697,10 +1689,6 @@ class QVistrailsWindow(QVistrailViewWindow):
             if locator.kwargs['version_node']:
                 version = locator.kwargs['version_node']
             del locator.kwargs['version_node']
-        if 'version_tag' in locator.kwargs:
-            if locator.kwargs['version_tag']:
-                version = locator.kwargs['version_tag']
-            del locator.kwargs['version_tag']
         if not parameterExploration:
             if 'parameterExploration' in locator.kwargs:
                 parameterExploration = locator.kwargs['parameterExploration']

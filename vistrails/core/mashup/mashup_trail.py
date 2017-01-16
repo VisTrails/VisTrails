@@ -48,16 +48,13 @@ class Mashuptrail(DBMashuptrail):
     """ MashupTrail is a class that stores versions of Mashups.
     For now it keeps a linear history."""
     def __init__(self, id, vt_version, id_scope=None):
-        DBMashuptrail.__init__(self, None, id, version="", vtVersion=vt_version)
-        self.db_actions = []
-        self.currentVersion = -1
-        self.db_annotations = []
-        self.db_actionAnnotations = []
-        if not id_scope:
-            self.id_scope = IdScope(1L)
-        else:
+        DBMashuptrail.__init__(self, id=None, name=id, version="", vtVersion=vt_version)
+        # DK: I don't understand this logic so keeping it
+        # (see MashupsManager.createMashupController)
+        if id_scope is not None:
             self.id_scope = id_scope
-        
+        self.currentVersion = -1
+
     id = DBMashuptrail.db_name
     vtVersion = DBMashuptrail.db_vtVersion
     actions = DBMashuptrail.db_actions
@@ -80,9 +77,9 @@ class Mashuptrail(DBMashuptrail):
 
         for aannotation in _mtrail.actionAnnotations:
             ActionAnnotation.convert(aannotation)
-        _mtrail.id_scope = IdScope(1L)
-        _mtrail.updateIdScope()
-            
+
+        _mtrail.currentVersion = _mtrail.getLatestVersion()
+
     def addVersion(self, parent_id, mashup, user, date):
         id = self.getLatestVersion() + 1
         mashup.id_scope = self.id_scope
@@ -112,6 +109,9 @@ class Mashuptrail(DBMashuptrail):
         return max_ver
 
     def getMashup(self, version):
+        tag_map = self.getTagMap()
+        if version in tag_map:
+            return self.actionMap[tag_map[version]].mashup
         if version in self.actionMap.keys():
             return self.actionMap[version].mashup
         else:
@@ -180,7 +180,7 @@ class Mashuptrail(DBMashuptrail):
             if a.key == "__tag__":
                 tagMap[a.value] = a.action_id
         return tagMap
-    
+
     def addActionAnnotation(self, action_id, key, value, user, date):
         id = self.id_scope.getNewId("mashup_actionAnnotation")
         annot = ActionAnnotation(id=id, action_id=action_id, key=key,
@@ -255,19 +255,3 @@ class Mashuptrail(DBMashuptrail):
 #        mtrail.currentVersion = mtrail.getLatestVersion()
 #        mtrail.updateIdScope()
 #        return mtrail
-    
-    ######################################################################
-    ## IdScope
-    ##      
-    def updateIdScope(self):
-        for action in self.actions:
-            self.id_scope.updateBeginId('mashup_action', action.id+1)
-            for alias in action.mashup.alias_list:
-                self.id_scope.updateBeginId('mashup_alias', alias.id+1)
-                self.id_scope.updateBeginId('mashup_component', alias.component.id+1)
-        for annotation in self.annotations:
-            self.id_scope.updateBeginId('annotation', annotation.id+1)
-        for aannotation in self.actionAnnotations:
-            self.id_scope.updateBeginId('mashup_actionAnnotation', aannotation.id+1)
-        
-

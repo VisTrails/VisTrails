@@ -445,14 +445,11 @@ class VistrailController(QtCore.QObject, BaseController):
             # check if a job exist for this workflow
             current_workflow = None
             for wf in self.jobMonitor.workflows.itervalues():
+                # FIXME this code does not work since tried to use int cohersion to detect when we had a tag
                 try:
-                    wf_version = int(wf.version)
-                except ValueError:
-                    try:
-                        wf_version = self.vistrail.get_version_number(wf.version)
-                    except KeyError:
-                        # this is a PE or mashup
-                        continue
+                    wf_version = self.vistrail.get_version_id(wf.version)
+                except KeyError:
+                    continue
                 if version_id == wf_version:
                     current_workflow = wf
                     self.jobMonitor.startWorkflow(wf)
@@ -739,7 +736,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.change_selected_version(new_version)
             # case 1:
             if not dest_node_in_terse_tree and \
-                    not current_node_will_be_visible and not current == 0:
+                    not current_node_will_be_visible and \
+                    not current == Vistrail.ROOT_VERSION:
                 # we're going from one boring node to another,
                 # so just rename the node on the terse graph
                 self._current_terse_graph.rename_vertex(current, new_version)
@@ -763,7 +761,7 @@ class VistrailController(QtCore.QObject, BaseController):
         try:
             prev = self._current_full_graph.parent(self.current_version)
         except Graph.VertexHasNoParentError:
-            prev = 0
+            prev = Vistrail.ROOT_VERSION
 
         self._change_version_short_hop(prev)
 
@@ -1433,11 +1431,11 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller = VistrailController(Vistrail(), None, 
                                         pipeline_view=DummyView(),
                                         auto_save=False)
-        controller.change_selected_version(0L)
+        controller.change_selected_version(Vistrail.ROOT_VERSION)
         module = controller.add_module(
-                vistrails.core.system.get_vistrails_basic_pkg_id(),
-                'ConcatenateString',
-                0.0, 0.0)
+            vistrails.core.system.get_vistrails_basic_pkg_id(),
+            'ConcatenateString',
+            0.0, 0.0)
         functions = [('str1', ['foo'], -1, True),
                      ('str2', ['bar'], -1, True)]
         controller.update_functions(module, functions)
@@ -1466,33 +1464,28 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         v = locator.load()
         controller = VistrailController(v, locator, pipeline_view=DummyView(),
                                         auto_save=False)
-        # DAK: version is different because of upgrades
-        # controller.change_selected_version(9L)
         controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
 
-        # If getting a KeyError here, run the upgrade on the vistrail and
-        # update the ids
-        # TODO : rewrite test so we don't have to update this unrelated code
-        # each time new upgrades are introduced
-        # Original ids:
-        #     module_ids = [1, 2, 3]
-        #     connection_ids = [1, 2, 3]
-        module_ids = [15, 13, 14]
-        connection_ids = [21, 18, 20]
-        controller.create_abstraction(module_ids, connection_ids,
+        module_ids = set()
+        connection_ids = []
+        for c in controller.current_pipeline.connection_list:
+            module_ids.add(c.sourceId)
+            connection_ids.append(c.id)
+        controller.create_abstraction(list(module_ids),
+                                      connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
 
     def test_abstraction_execute(self):
         from vistrails import api
         api.new_vistrail()
-        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
-        api.change_parameter(0, 'value', ['Running Abstraction'])
-        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'StandardOutput', '')
-        api.add_connection(0, 'value', 1, 'value')
+        m0 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
+        api.change_parameter(m0.id, 'value', ['Running Abstraction'])
+        m1 = api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'StandardOutput', '')
+        conn = api.add_connection(m0.id, 'value', m1.id, 'value')
         c = api.get_current_controller()
-        abs = c.create_abstraction([0,1], [0], 'ExecAbs')
+        abs = c.create_abstraction([m0.id,m1.id], [conn.id], 'ExecAbs')
         d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
         filename = os.path.join(d, 'ExecAbs.xml')
         api.close_current_vistrail(True)
@@ -1510,22 +1503,26 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         from vistrails import api
         view = api.open_vistrail_from_file(
                 vistrails.core.system.vistrails_root_directory() +
-                '/tests/resources/chained_upgrade.xml')
+                '/tests/resources/chained-upgrade-uuid.xml')
         # Trigger upgrade
         api.select_version('myTuple')
         view.execute()
         # Assert new upgrade was created from the latest action
-        # 1 = original
-        # 2 = old upgrade
-        # 3 = new upgrade (should be the upgrade of 2)
+        # 93732fd5-e4ea-4ffa-a7f2-f9922140177d = original
+        # 0f28eae9-cca1-4f0c-aa0a-27dbac0a7380 = old upgrade
+        # ??? = new upgrade (should be the upgrade of old_upgrade)
         vistrail = api.get_current_vistrail()
+        latest_action_id = vistrail.actions[-1].id
         for a in vistrail.action_annotations:
             if a.key == Vistrail.UPGRADE_ANNOTATION:
-                self.assertIn(a.action_id, [1,2])
-                if a.action_id == 1:
-                    self.assertEqual(int(a.value), 2)
-                if a.action_id == 2:
-                    self.assertEqual(int(a.value), 3)
+                self.assertIn(a.action_id,
+                              ['93732fd5-e4ea-4ffa-a7f2-f9922140177d',
+                              '0f28eae9-cca1-4f0c-aa0a-27dbac0a7380'])
+                if a.action_id == '93732fd5-e4ea-4ffa-a7f2-f9922140177d':
+                    self.assertEqual(a.value,
+                                     '0f28eae9-cca1-4f0c-aa0a-27dbac0a7380')
+                if a.action_id == '0f28eae9-cca1-4f0c-aa0a-27dbac0a7380':
+                    self.assertEqual(a.value, latest_action_id)
 
     def test_broken_upgrade(self):
         # When upgrade is broken the controller should try to upgrade
@@ -1533,16 +1530,18 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         from vistrails import api
         view = api.open_vistrail_from_file(
                 vistrails.core.system.vistrails_root_directory() +
-                '/tests/resources/broken_upgrade.xml')
+                '/tests/resources/broken-upgrade-uuid.xml')
         # Trigger upgrade
         api.select_version('myTuple')
         view.execute()
         # Assert new upgrade was created from the first action
-        # 1 = original
-        # 2 = broken
-        # 3 = new (should be the upgrade of 1)
+        # 32e5de16-420d-4381-a3fc-f942ddabfd4c = original
+        # 2b1866c8-0b49-4885-a64a-393206e51de3 = broken
+        # ??? = new (should be the upgrade of original)
         vistrail = api.get_current_vistrail()
+        latest_action_id = vistrail.actions[-1].id
         for a in vistrail.action_annotations:
             if a.key == Vistrail.UPGRADE_ANNOTATION:
-                self.assertEqual(a.action_id, 1)
-                self.assertEqual(int(a.value), 3)
+                self.assertEqual(a.action_id,
+                                 '32e5de16-420d-4381-a3fc-f942ddabfd4c')
+                self.assertEqual(a.value, latest_action_id)

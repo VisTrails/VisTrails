@@ -79,6 +79,7 @@ class AutoGenParser(object):
         params = {}
         properties = []
         choices = []
+        fields = []
         layouts = None
         for attr in node.attributes.keys():
             params[attr] = node.attributes.get(attr).value
@@ -89,10 +90,12 @@ class AutoGenParser(object):
                 elif child.nodeName == 'property':
                     property = self.parseProperty(child)
                     properties.append(property)
+                    fields.append(property)
                 elif child.nodeName == 'choice':
                     choice = self.parseChoice(child)
                     choices.append(choice)
-        return Object(params, properties, layouts, choices)
+                    fields.append(choice)
+        return Object(params, properties, layouts, choices, fields)
     
     def parseLayouts(self, node):
         layouts = {}

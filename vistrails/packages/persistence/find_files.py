@@ -102,7 +102,7 @@ if __name__ == '__main__':
     version = sys.argv[2] if len(sys.argv) > 2 else None
     if version:
         try:
-            version = int(version)
+            version = version
         except ValueError:
             pass
     all_files, tags = find_files(fname, version)

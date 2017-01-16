@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 from __future__ import division
-
+import copy
 from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
-                                      DBWorkflow, DBLog, DBRegistry, \
-                                      DBPortSpec, DBAdd, DBChange, DBDelete
+    DBWorkflow, DBLog, DBRegistry, \
+    DBPortSpec, DBAdd, DBChange, DBDelete
 from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
@@ -85,7 +85,7 @@ def translateVistrail(_vistrail):
     """ Translate new DBVistrailVariable based vistrail variables to old
          annotation based type """
     global id_scope
-    
+
     def update_workflow(old_obj, trans_dict):
         return DBWorkflow.update_version(old_obj.db_workflow, 
                                          trans_dict, DBWorkflow())
@@ -162,12 +162,6 @@ def translateWorkflow(_workflow):
     workflow.db_version = '1.0.2'
     return workflow
 
-def translateLog(_log):
-    translate_dict = {}
-    log = DBLog.update_version(_log, translate_dict)
-    log.db_version = '1.0.2'
-    return log
-
 def translateRegistry(_registry):
     global id_scope
     translate_dict = {'DBModuleDescriptor': {'portSpecs': update_portSpecs}}
@@ -178,25 +172,29 @@ def translateRegistry(_registry):
     return registry
 
 class TestTranslate(unittest.TestCase):
-    def testParamexp(self):
-        """test translating parameter explorations from 1.0.3 to 1.0.2"""
-        from vistrails.db.services.io import open_bundle_from_zip_xml
-        from vistrails.core.system import vistrails_root_directory
-        import os
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
-                        os.path.join(vistrails_root_directory(),
-                        'tests/resources/paramexp-1.0.3.vt'))
-        vistrail = translateVistrail(save_bundle.vistrail)
-        # paramexps cannot be downgraded but should produce a warning
+    # FIXME paramexp-1.0.3.vt isn't actually a 1.0.3 vistrail
+    # def testParamexp(self):
+    #     """test translating parameter explorations from 1.0.3 to 1.0.2"""
+    #     from vistrails.db.services.io import open_vistrail_bundle_from_zip_xml
+    #     from vistrails.core.system import vistrails_root_directory
+    #     import os
+    #     # FIXME this isn't actually a 1.0.3 vt!
+    #     (save_bundle, vt_save_dir) = open_vistrail_bundle_from_zip_xml(
+    #         os.path.join(vistrails_root_directory(),
+    #                     'tests/resources/paramexp-1.0.3.vt'),
+    #         do_translate=False)
+    #     vistrail = translateVistrail(save_bundle.vistrail)
+    #     # paramexps cannot be downgraded but should produce a warning
         
     def testVistrailvars(self):
         """test translating vistrail variables from 1.0.3 to 1.0.2"""
-        from vistrails.db.services.io import open_bundle_from_zip_xml
+        from vistrails.db.services.io import open_vistrail_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
-                        os.path.join(vistrails_root_directory(),
-                        'tests/resources/visvar-1.0.3.vt'))
+        (save_bundle, vt_save_dir) = open_vistrail_bundle_from_zip_xml(
+            os.path.join(vistrails_root_directory(),
+                        'tests/resources/visvar-1.0.3.vt'),
+            do_translate=False)
         vistrail = translateVistrail(save_bundle.vistrail)
         visvars = vistrail.db_annotations_key_index['__vistrail_vars__']
         self.assertTrue(visvars.db_value)

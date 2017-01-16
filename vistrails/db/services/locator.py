@@ -218,13 +218,9 @@ class BaseLocator(object):
         if 'id' in parsed_dict:
             args['obj_id'] = parsed_dict['id'][0]
         args['version_node'] = None
-        args['version_tag'] = None
         if 'workflow' in parsed_dict:
             workflow_arg = parsed_dict['workflow'][0]
-            try:
-                args['version_node'] = int(workflow_arg)
-            except ValueError:
-                args['version_tag'] = workflow_arg
+            args['version_node'] = workflow_arg
         if 'workflow_exec' in parsed_dict:
             args['workflow_exec'] = parsed_dict['workflow_exec'][0]
         if 'parameterExploration' in parsed_dict:
@@ -250,8 +246,6 @@ class BaseLocator(object):
             generate_dict['id'] = args['obj_id']
         if 'version_node' in args and args['version_node']:
             generate_dict['workflow'] = args['version_node']
-        elif 'version_tag' in args and args['version_tag']:
-            generate_dict['workflow'] = args['version_tag']
         if 'parameterExploration' in args and args['parameterExploration']:
             generate_dict['parameterExploration'] = args['parameterExploration']
         if 'mashuptrail' in args and args['mashuptrail']:
@@ -363,7 +357,6 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
         else:
             self._uuid = uuid.uuid4()
         self._vnode = kwargs.get('version_node', None)
-        self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
         if 'mashupVersion' in kwargs:
             self._mshpversion = kwargs.get('mashupVersion', None)
@@ -459,7 +452,6 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def __init__(self, filename, **kwargs):
         self._name = self.real_filename(filename)
         self._vnode = kwargs.get('version_node', None)
-        self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
         if 'mashupVersion' in kwargs:
             self._mshpversion = kwargs.get('mashupVersion', None)
@@ -721,7 +713,6 @@ class DBLocator(BaseLocator):
         self._obj_type = self.kwargs.get('obj_type', None)
         self._conn_id = self.kwargs.get('connection_id', None)
         self._vnode = self.kwargs.get('version_node', None)
-        self._vtag = self.kwargs.get('version_tag', None)
         self._mshptrail = self.kwargs.get('mashuptrail', None)
         if 'mashupVersion' in self.kwargs:
             self._mshpversion = self.kwargs.get('mashupVersion', None)
@@ -1104,10 +1095,11 @@ class TestLocators(unittest.TestCase):
             os.path.realpath = old_realpath
 
     def test_parse_untitled(self):
-        loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"
+        loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=066288ac-9b76-4ad5-ad2c-770d6c73611b"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, UntitledLocator)
-        self.assertEqual(loc.kwargs['version_node'], 42)
+        self.assertEqual(loc.kwargs['version_node'],
+                         '066288ac-9b76-4ad5-ad2c-770d6c73611b')
         self.assertEqual(loc._uuid, 
                          uuid.UUID('e78394a73b87429e952b71b858e03242'))
         self.assertEqual(loc.to_url(), loc_str)
@@ -1125,7 +1117,7 @@ class TestLocators(unittest.TestCase):
         loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
-        self.assertEqual(loc.kwargs['version_tag'], "abc")
+        self.assertEqual(loc.kwargs['version_node'], "abc")
         self.assertEqual(loc.short_filename, "test_parse_zip_file \xE9 \xEA")
         self.assertEqual(loc.to_url(), loc_str)
 
@@ -1135,7 +1127,7 @@ class TestLocators(unittest.TestCase):
         loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
-        self.assertEqual(loc.kwargs['version_tag'], "abc")
+        self.assertEqual(loc.kwargs['version_node'], "abc")
         self.assertEqual(loc.short_filename,
                          "test_parse_zip_file_no_scheme \xE9 \xEA")
         loc_str = loc_str.replace(os.sep, '/')
@@ -1184,14 +1176,15 @@ class TestLocators(unittest.TestCase):
         urllib.pathname2url = nturl2path.pathname2url
         urllib.url2pathname = nturl2path.url2pathname
         try:
-            loc_str = "C:\\vt?dir\\tmp\\test_win_xml_file.xml?workflow=3"
+            loc_str = "C:\\vt?dir\\tmp\\test_win_xml_file.xml?workflow=066288ac-9b76-4ad5-ad2c-770d6c73611b"
             loc = BaseLocator.from_url(loc_str)
             self.assertIsInstance(loc, XMLFileLocator)
             self.assertEqual(loc.short_filename, "test_win_xml_file")
-            self.assertEqual(loc.kwargs['version_node'], 3)
+            self.assertEqual(loc.kwargs['version_node'],
+                             '066288ac-9b76-4ad5-ad2c-770d6c73611b')
             self.assertEqual(
                     loc.to_url(),
-                    "file:///C:/vt%3Fdir/tmp/test_win_xml_file.xml?workflow=3")
+                    "file:///C:/vt%3Fdir/tmp/test_win_xml_file.xml?workflow=066288ac-9b76-4ad5-ad2c-770d6c73611b")
         finally:
             systemType = old_sys_type
             os.path = old_path
@@ -1199,10 +1192,11 @@ class TestLocators(unittest.TestCase):
             urllib.url2pathname = old_url2pathname
 
     def test_parse_db(self):
-        loc_str = "db://localhost:3306/vistrails?workflow=42"
+        loc_str = "db://localhost:3306/vistrails?workflow=066288ac-9b76-4ad5-ad2c-770d6c73611b"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, DBLocator)
-        self.assertEqual(loc.kwargs['version_node'], 42)
+        self.assertEqual(loc.kwargs['version_node'],
+                         '066288ac-9b76-4ad5-ad2c-770d6c73611b')
         self.assertEqual(loc._host, "localhost")
         self.assertEqual(loc._port, 3306)
         self.assertEqual(loc._db, "vistrails")

@@ -36,23 +36,18 @@
 from __future__ import division
 
 from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, \
-                                      DBWorkflow, DBLog, DBRegistry, \
-                                      DBAdd, DBChange, DBDelete, \
-                                      DBPortSpec, DBPortSpecItem, \
-                                      DBParameterExploration, \
-                                      DBPEParameter, DBPEFunction, \
-                                      IdScope, DBAbstraction, \
-                                      DBModule, DBGroup, DBAnnotation, \
-                                      DBActionAnnotation, DBStartup, \
-                                      DBConfigKey, DBConfigBool, DBConfigStr, \
-                                      DBConfigInt, DBConfigFloat, \
-                                      DBConfiguration, DBStartupPackage, \
-                                      DBLoopIteration, DBLoopExec, \
-                                      DBModuleExec, DBGroupExec
+    DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBPortSpec, \
+    DBPortSpecItem, DBParameterExploration, DBPEParameter, DBPEFunction, \
+    IdScope, DBAbstraction, DBModule, DBGroup, DBAnnotation, \
+    DBActionAnnotation, DBStartup, DBConfigKey, DBConfigBool, DBConfigStr, \
+    DBConfigInt, DBConfigFloat, DBConfiguration, DBStartupPackage, \
+    DBLoopIteration, DBLoopExec, DBModuleExec, DBGroupExec, \
+    DBMashuptrail, DBMachine, DBWorkflowExec
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
 from itertools import izip
+import copy
 import os
 import shutil
 import string
@@ -62,37 +57,9 @@ import unittest
 
 id_scope = None
 
-def translateVistrail(_vistrail):
-    """ Translate old annotation based vistrail variables to new
-        DBVistrailVariable class """
-    global id_scope
-
-    def update_workflow(old_obj, trans_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, 
-                                         trans_dict, DBWorkflow())
-
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    vistrail = DBVistrail()
-    id_scope = vistrail.idScope
-    vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
-
-    vistrail.db_version = '1.0.4'
-    return vistrail
-
-def translateWorkflow(_workflow):
-    global id_scope
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-
-    workflow = DBWorkflow()
-    id_scope = IdScope(remap={DBAbstraction.vtType: DBModule.vtType, DBGroup.vtType: DBModule.vtType})
-    workflow = DBWorkflow.update_version(_workflow, translate_dict, workflow)
-    workflow.db_version = '1.0.4'
-    return workflow
-
 def translateLog(_log):
     id_scope = _log.id_scope
+
     def update_loop_execs(old_obj, translate_dict):
         if len(old_obj.db_loop_execs) == 0:
             return []
@@ -171,20 +138,35 @@ def translateLog(_log):
 
         
         return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBModuleExec': {'loop_execs': update_loop_execs},
-                      'DBGroupExec': {'item_execs': update_item_execs}}
+
+    machines = {}
+    for _machine in _log.db_machines:
+        machines[_machine.db_id] = DBMachine.update_version(_machine, {})
+    # due to poor mapping, machine_ids didn't reference correctly in 1.0.3
+    machine_ids = {'ids': set()}
+    def update_machine_id(old_obj, translate_dict):
+        if old_obj.db_machine_id in machines:
+            machine_ids['ids'].add(old_obj.db_machine_id)
+            return old_obj.db_machine_id
+        return None
+    def update_wfexecs(old_obj, translate_dict):
+        new_wf_execs = []
+        for wf_exec in old_obj.db_workflow_execs:
+            machine_ids['ids'] = set()
+            new_wf_exec = DBWorkflowExec.update_version(wf_exec, translate_dict)
+            for mid in machine_ids['ids']:
+                new_wf_exec.db_add_machine(machines[mid])
+            new_wf_execs.append(new_wf_exec)
+        return new_wf_execs
+
+    translate_dict = {'DBLog': {'workflow_execs': update_wfexecs},
+                      'DBModuleExec': {'loop_execs': update_loop_execs,
+                                       'machine_id': update_machine_id},
+                      'DBGroupExec': {'item_execs': update_item_execs,
+                                      'machine_id': update_machine_id}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '1.0.4'
     return log
-
-def translateRegistry(_registry):
-    global id_scope
-    translate_dict = {}
-    registry = DBRegistry()
-    id_scope = registry.idScope
-    registry = DBRegistry.update_version(_registry, translate_dict, registry)
-    registry.db_version = '1.0.4'
-    return registry
 
 def translateStartup(_startup):
     # format is {<old_name>: <new_name>} or

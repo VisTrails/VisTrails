@@ -254,7 +254,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                                                                           '/'))
             else:
                 self.namespace_edit.setText('')
-            self.module_id.setText('%d' % self.module.id)
+            self.module_id.setText(self.module.id)
 
     def name_editing_finished(self):
         # updating module may trigger a second call so we check for that

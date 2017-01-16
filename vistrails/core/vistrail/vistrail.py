@@ -165,7 +165,6 @@ class Vistrail(DBVistrail):
 
     id = DBVistrail.db_id
     actions = DBVistrail.db_actions # This is now read-write
-    tags = DBVistrail.db_tags # This is now read-write
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
     vistrail_variables = DBVistrail.db_vistrailVariables
@@ -249,8 +248,10 @@ class Vistrail(DBVistrail):
         tag_map = self.get_tagMap()
         action_map = self.actionMap
         count = 0
+        if version == -1:
+            return None
         while True:
-            if version in tag_map or version <= 0:
+            if version in tag_map or version == Vistrail.ROOT_VERSION:
                 if version in tag_map:
                     name = tag_map[version]
                 else:
@@ -259,6 +260,9 @@ class Vistrail(DBVistrail):
                 if count > 0:
                     count_str = " + " + str(count)
                 return name + count_str
+            if version not in action_map:
+                raise KeyError("Cannot locate name for version %s" % \
+                                str(version))
             version = action_map[version].parent
             count += 1
 
@@ -269,13 +273,23 @@ class Vistrail(DBVistrail):
         """
         return len(self.actionMap)
 
-    def get_version_number(self, version):
+    def get_version_id(self, version):
         """get_version_number(version) -> Integer
         Returns the version number given a tag.
 
         """
-        return self.get_tag_str(version).action_id
-    
+        if self.has_tag_str(version):
+            return self.get_tag_str(version).action_id
+        if version in self.actionMap or version == -1: # -1 is no version
+            return version
+        raise KeyError("Cannot find version %s" % version)
+
+    def get_ordered_actions(self):
+        """get_ordered_actions() -> [Action]
+        Returns all actions sorted by date (ids are not sequential with uuids)
+        """
+        return sorted(self.actions.itervalues(), key=lambda a: a.date)
+
     def get_latest_version(self):
         """get_latest_version() -> Integer
         Returns the latest version id for the vistrail.
@@ -285,16 +299,14 @@ class Vistrail(DBVistrail):
         FIXME: Check if pruning is handled correctly here.
 
         """
-        try:
-            desc_key = Action.ANNOTATION_DESCRIPTION
-            # Get the max id of all actions (excluding upgrade actions)
-            max_ver = max(v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade'))
-            # If that action has an upgrade, use it
-            if self.has_upgrade(max_ver):
-                max_ver = long(self.get_upgrade(max_ver))
-            return max_ver
-        except Exception:
-            return 0
+        desc_key = Action.ANNOTATION_DESCRIPTION
+        # Get the max id of all actions (excluding upgrade actions)
+        max_ver = max((v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade')),
+                      key=lambda v: self.actionMap[v].date)
+        # If that action has an upgrade, use it
+        if self.has_upgrade(max_ver):
+            max_ver = self.get_upgrade(max_ver)
+        return max_ver
 
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
@@ -302,7 +314,10 @@ class Vistrail(DBVistrail):
 
         """
         try:
-            return Vistrail.getPipelineDispatcher[type(version)](self, version)
+            if self.has_tag_str(str(version)):
+                return self.getPipelineVersionName(str(version))
+            else:
+                return self.getPipelineVersionNumber(version)
         except Exception, e:
             raise InvalidPipeline([e])
     
@@ -409,34 +424,16 @@ class Vistrail(DBVistrail):
         t1 = set()
         t1.add(v1)
         t = self.actionMap[v1].parent
-        while  t != 0:
+        while  t != Vistrail.ROOT_VERSION:
             t1.add(t)
             t = self.actionMap[t].parent
         
         t = v2
-        while t != 0:
+        while t != Vistrail.ROOT_VERSION:
             if t in t1:
                 return t
             t = self.actionMap[t].parent
         return 0
-    
-    def getLastCommonVersion(self, v):
-        """getLastCommonVersion(v: Vistrail) -> int
-        Returns the last version that is common to this vistrail and v
-        
-        """
-        # TODO:  There HAS to be a better way to do this...
-        common = []
-        for action in self.actionMap:
-            if(v.hasVersion(action.timestep)):
-                common.append(action.timestep)
-                
-        timestep = 0
-        for time in common:
-            if time > timestep:
-                timestep = time
-
-        return timestep
 
     def general_action_chain(self, v1, v2):
         """general_action_chain(v1, v2): Returns an action that turns
@@ -518,8 +515,8 @@ class Vistrail(DBVistrail):
         if num_actions < n:
             n = num_actions
         if n > 0:
-            sorted_keys = sorted(self.actionMap.keys())
-            last_n = sorted_keys[num_actions-n:num_actions-1]
+            sorted_items = sorted(self.actionMap.iteritems(), key=lambda a: a[1].date)
+            last_n = [k for (k,v) in sorted_items[num_actions-n:num_actions-1]]
         return last_n
 
     def hasVersion(self, version):
@@ -663,6 +660,8 @@ class Vistrail(DBVistrail):
         """ Check if vistrail has a default paramexp for action action_id
             and returns it (using latest id)
         """
+        if self.has_named_paramexp(action_id):
+            return self.get_named_paramexp(action_id)
         pes = self.get_paramexps(action_id)
         if not len(pes):
             return None
@@ -731,7 +730,7 @@ class Vistrail(DBVistrail):
         if a is not None:
             # Recurse to get the newest upgrade in case there are
             # multiple chained upgrades
-            return self.get_upgrade(long(a.value), False)
+            return self.get_upgrade(a.value, False)
         if root_level:
             return None
         return action_id
@@ -923,30 +922,6 @@ class Vistrail(DBVistrail):
                     description += "s"
         return description
 
-    # FIXME: remove this function (left here only for transition)
-    def getVersionGraph(self):
-        """getVersionGraph() -> Graph 
-        Returns the version graph
-        
-        """
-        result = Graph()
-        result.add_vertex(0)
-
-        # the sorting is for the display using graphviz
-        # we want to always add nodes from left to right
-        for action in sorted(self.actionMap.itervalues(), 
-                             key=lambda x: x.timestep):
-            # We need to check the presence of the parent's timestep
-            # on the graph because it might have been previously
-            # pruned. Remember that pruning is only marked for the
-            # topmost invisible action.
-            if (action.parent in result.vertices and
-                not self.is_pruned(action.id)):
-                result.add_edge(action.parent,
-                                action.timestep,
-                               0)
-        return result
-
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
         return datetime.datetime.now()
@@ -958,29 +933,12 @@ class Vistrail(DBVistrail):
     def serialize(self, filename):
         pass
 
-    def pruneVersion(self, version):
-        """ pruneVersion(version: int) -> None
-        Add a version into the prunedVersion set
-        
-        """
-        tagMap = self.get_tagMap()
-        if version!=0: # not root
-            def delete_tag(version):
-                if version in tagMap:
-                    # delete tag
-                    self.set_tag(version, '')
-            current_graph = self.getVersionGraph()
-            current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
-            self.set_prune(version, str(True))
-
-            # self.prunedVersions.add(version)
-
     def hideVersion(self, version):
         """ hideVersion(version: int) -> None
         Set the prune flag for the version
 
         """
-        if version != 0:
+        if version != self.ROOT_VERSION:
             self.set_prune(version, str(True))
 
     def showVersion(self, version):
@@ -988,7 +946,7 @@ class Vistrail(DBVistrail):
         Set the prune flag for the version
 
         """
-        if version != 0:
+        if version != self.ROOT_VERSION:
             self.set_prune(version, str(False))
 
     def expandVersion(self, version):
@@ -996,7 +954,7 @@ class Vistrail(DBVistrail):
         Set the expand flag for the version
         
         """
-        if version!=0: # not root
+        if version != self.ROOT_VERSION: # not root
             self.actionMap[version].expand = 1
 
     def collapseVersion(self, version):
@@ -1004,7 +962,7 @@ class Vistrail(DBVistrail):
         Reset the expand flag for the version
         
         """
-        if version!=0:
+        if version != self.ROOT_VERSION:
             self.actionMap[version].expand = 0
 
     def setSavedQueries(self, savedQueries):
@@ -1013,12 +971,6 @@ class Vistrail(DBVistrail):
         
         """
         self.savedQueries = savedQueries
-
-    # Dispatch in runtime according to type
-    getPipelineDispatcher = {}
-    getPipelineDispatcher[type(0)] = getPipelineVersionNumber
-    getPipelineDispatcher[type(0L)] = getPipelineVersionNumber
-    getPipelineDispatcher[type('0')] = getPipelineVersionName
 
     class InvalidAbstraction(Exception):
         pass
@@ -1055,7 +1007,7 @@ class Vistrail(DBVistrail):
         upgrade_rev_map = {}
         for ann in self.action_annotations:
             if ann.key == Vistrail.UPGRADE_ANNOTATION:
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_rev_map[ann.value] = ann.action_id
 
         while version in upgrade_rev_map:
             version = upgrade_rev_map[version]
@@ -1080,8 +1032,8 @@ class Vistrail(DBVistrail):
         upgrade_rev_map = {}
         for ann in self.action_annotations:
             if ann.key == Vistrail.UPGRADE_ANNOTATION:
-                upgrade_map[ann.action_id] = int(ann.value)
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_map[ann.action_id] = ann.value
+                upgrade_rev_map[ann.value] = ann.action_id
 
         if start_at_base is True:
             while base_version in upgrade_rev_map:
@@ -1116,8 +1068,8 @@ class Vistrail(DBVistrail):
         upgrade_rev_map = {}
         for ann in self.action_annotations:
             if ann.key == Vistrail.UPGRADE_ANNOTATION:
-                upgrade_map[ann.action_id] = int(ann.value)
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_map[ann.action_id] = ann.value
+                upgrade_rev_map[ann.value] = ann.action_id
         if start_at_base is True:
             while base_version in upgrade_rev_map:
                 base_version = upgrade_rev_map[base_version]
@@ -1141,7 +1093,7 @@ class ExplicitExpandedVersionTree(object):
     def __init__(self, vistrail):
         self.vistrail = vistrail
         self.expandedVersionTree = Graph()
-        self.expandedVersionTree.add_vertex(0)
+        self.expandedVersionTree.add_vertex(Vistrail.ROOT_VERSION)
         self.tersedVersionTree = Graph()
 
     def addVersion(self, id, prevId):
@@ -1173,6 +1125,7 @@ class VersionNotTagged(Exception):
 # Testing
 
 from vistrails.core.system import get_vistrails_basic_pkg_id
+from vistrails.tests.utils import reproducible_uuid_context, uuids_sim
 
 class TestVistrail(unittest.TestCase):
 
@@ -1239,17 +1192,17 @@ class TestVistrail(unittest.TestCase):
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy.xml').load()
+                           '/tests/resources/dummy-uuid.xml').load()
         #testing nodes in different branches
-        v1 = 36
-        v2 = 41
+        v1 = v.get_version_id("int chain") # 36
+        v2 = v.get_version_id("float chain") # 41
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
         
         #testing nodes in the same branch
-        v1 = 15
-        v2 = 36
+        v1 = "61b3df67-2e13-40fd-a776-3676ec1f71f2" #15 -- 14 down
+        v2 = v.get_version_id("int chain") # 36
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
@@ -1261,11 +1214,11 @@ class TestVistrail(unittest.TestCase):
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy.xml').load()
+                           '/tests/resources/dummy-uuid.xml').load()
         #testing diff
-        v1 = 17
-        v2 = 27
-        v3 = 22
+        v1 = "86c60887-b1c0-424e-b481-27b8979aab29" # 17 -- 16 down
+        v2 = "1adc47dd-9ba7-40c9-aada-b7543e92ece1" # 27 -- 26 down
+        v3 = "0dff5a48-6bcd-43e7-948e-71045f40a971" # 22 -- 21 down
         v.get_pipeline_diff(v1,v2)
         v.get_pipeline_diff(v1,v3)
         v.get_pipeline_diff_with_connections(v1,v2)
@@ -1274,7 +1227,7 @@ class TestVistrail(unittest.TestCase):
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""
         v = Vistrail()
-        p = v.getPipeline(0)
+        p = v.getPipeline(Vistrail.ROOT_VERSION)
 
     def test_empty_action_chain_2(self):
         from vistrails.core.db.locator import XMLFileLocator
@@ -1290,13 +1243,6 @@ class TestVistrail(unittest.TestCase):
         """
         v = Vistrail()
         self.assertRaises(InvalidPipeline, lambda: v.getPipeline(-1))
-
-    def test_version_graph(self):
-        from vistrails.core.db.locator import XMLFileLocator
-        import vistrails.core.system
-        v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy.xml').load()
-        v.getVersionGraph()
 
     def test_plugin_info(self):
         import vistrails.core.db.io
@@ -1328,8 +1274,9 @@ class TestVistrail(unittest.TestCase):
                        data=p)
         action = Action(id=v1.idScope.getNewId(Action.vtType),
                         operations=[add_op])
-        v1.add_action(action, 0)
+        v1.add_action(action, Vistrail.ROOT_VERSION)
         workflow = v1.getPipeline(action.id)
+        # FIXME why is this just accessed as a list?
         p2 = workflow.plugin_datas[0]
         assert plugin_data_str == p2.data
 
@@ -1377,6 +1324,22 @@ class TestVistrail(unittest.TestCase):
 
         do_test('/tests/resources/dummy.xml', XMLFileLocator)
         do_test('/tests/resources/terminator.vt', FileLocator)
+
+    def test_ids(self):
+        with reproducible_uuid_context:
+            v = Vistrail()
+            action1 = Action(id=v.idScope.getNewId(Action.vtType),
+                             operations=[])
+            action2 = Action(id=v.idScope.getNewId(Action.vtType),
+                             operations=[])
+            v.add_action(action1, Vistrail.ROOT_VERSION)
+            v.add_action(action2, Vistrail.ROOT_VERSION)
+            print "ACTION 1 ID:", action1.id
+            print "ACTION 2 ID:", action2.id
+            self.assertTrue(uuids_sim(action1.prevId, Vistrail.ROOT_VERSION))
+            self.assertTrue(uuids_sim(action1.id, '360de7dd'))
+            self.assertTrue(uuids_sim(action2.id, 'cc0d23a4'))
+
 
 if __name__ == '__main__':
     unittest.main()

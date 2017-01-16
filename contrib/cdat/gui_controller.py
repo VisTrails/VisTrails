@@ -1,11 +1,6 @@
-import core.modules.module_registry
-import core.modules.vistrails_module
-from logging import debug, warn
-from core.vistrail.connection import Connection
-from core.vistrail.port import Port
-from PyQt4 import QtGui, QtCore
+from vistrails.core.vistrail.vistrail import Vistrail
+from PyQt4 import QtCore
 import api
-import vcs
 import os
 
 cdat_id = "edu.utah.sci.vistrails.cdat"
@@ -197,7 +192,7 @@ class GuiController(QtCore.QObject):
         a new workflow and appends it to the workflow list.
         """
         if self.workflows == []:
-            api.get_current_controller().change_selected_version(0)
+            api.get_current_controller().change_selected_version(Vistrail.ROOT_VERSION)
         
         self.currentWorkflow = Workflow()
         self.workflows.append(self.currentWorkflow)

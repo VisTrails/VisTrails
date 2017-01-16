@@ -1,0 +1,358 @@
+<vistrail id="e8369ab2-1a55-4642-938c-dcb37a77e478" name="" version="2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2006-11-09 11:11:45" id="7b321aa6-a9b3-4564-91bb-a644a282fcbf" prevId="00000000-0000-0000-0000-000000000000" session="" user="cscheid">
+    <add id="85550b96-ac34-44b4-b533-81a31e410ef7" objectId="9dc604e3-5ba9-472e-be36-4e4b1b9a9fca" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="9dc604e3-5ba9-472e-be36-4e4b1b9a9fca" name="File" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="5c794a2d-c413-4b21-acc2-72147f695ddc" objectId="ffa699eb-d6bc-44f8-8b72-4fe928fa303c" parentObjId="9dc604e3-5ba9-472e-be36-4e4b1b9a9fca" parentObjType="module" what="location">
+      <location id="ffa699eb-d6bc-44f8-8b72-4fe928fa303c" x="-0.405904047613" y="0.590405904059" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:11:49" id="f89c030d-11d0-422b-b589-ec663f135d72" prevId="7b321aa6-a9b3-4564-91bb-a644a282fcbf" session="" user="cscheid">
+    <add id="768d14b1-13cf-4933-9f8a-9a5107be66c0" objectId="38299606-d304-4503-8264-bcbc45994015" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="38299606-d304-4503-8264-bcbc45994015" name="String" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="7c7bbaca-8f2e-46d9-b5c6-3ccbc9380665" objectId="b11e5531-50a1-457e-8050-c9eebf6f3cef" parentObjId="38299606-d304-4503-8264-bcbc45994015" parentObjType="module" what="location">
+      <location id="b11e5531-50a1-457e-8050-c9eebf6f3cef" x="-79.7416969521" y="113.505537534" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:11:52" id="fd09e7e8-376e-4020-9b66-1549742f520e" prevId="f89c030d-11d0-422b-b589-ec663f135d72" session="" user="cscheid">
+    <add id="3e5a1cc5-ab6c-4db2-a2b1-104ba4a57f09" objectId="7bbc0e06-fbee-4658-ba9e-400a73927326" parentObjId="" parentObjType="" what="connection">
+      <connection id="7bbc0e06-fbee-4658-ba9e-400a73927326" />
+    </add>
+    <add id="56d587f7-8271-4ae4-9b29-74c33dcf747b" objectId="d02b7007-557c-4ada-9f68-1a4fbb17ee2d" parentObjId="7bbc0e06-fbee-4658-ba9e-400a73927326" parentObjType="connection" what="port">
+      <port id="d02b7007-557c-4ada-9f68-1a4fbb17ee2d" moduleId="38299606-d304-4503-8264-bcbc45994015" moduleName="String" name="value" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="df5990f6-d006-4591-9099-ccaa1c19ae8c" objectId="7e6c8275-3fa4-4e75-b3ce-33b7ad73ec8c" parentObjId="7bbc0e06-fbee-4658-ba9e-400a73927326" parentObjType="connection" what="port">
+      <port id="7e6c8275-3fa4-4e75-b3ce-33b7ad73ec8c" moduleId="9dc604e3-5ba9-472e-be36-4e4b1b9a9fca" moduleName="File" name="name" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:12:01" id="28c6356e-1dc0-439a-892e-846420eee9a6" prevId="fd09e7e8-376e-4020-9b66-1549742f520e" session="" user="cscheid">
+    <add id="ebc1480f-94bf-4d26-8ce7-5b78334dca88" objectId="e5efbade-c251-4a18-b6fa-e3783f97a90d" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="e5efbade-c251-4a18-b6fa-e3783f97a90d" name="FileSink" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="25742d8f-bb09-4f38-8cc6-e41a6c540ac9" objectId="7a65ce40-62bc-4675-9403-70413415c8aa" parentObjId="e5efbade-c251-4a18-b6fa-e3783f97a90d" parentObjType="module" what="location">
+      <location id="7a65ce40-62bc-4675-9403-70413415c8aa" x="-25.1291511435" y="-88.7084891257" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:12:04" id="fbee5595-23db-46f1-a5f8-d68a424af2b4" prevId="28c6356e-1dc0-439a-892e-846420eee9a6" session="" user="cscheid">
+    <add id="301ed7ba-ca43-4e30-89d9-5a952a960ab8" objectId="5c5cfc4b-a936-4abe-b205-955933756b92" parentObjId="" parentObjType="" what="connection">
+      <connection id="5c5cfc4b-a936-4abe-b205-955933756b92" />
+    </add>
+    <add id="51801cde-e3c9-46d1-b54b-1c8c12f5eae1" objectId="bbc80a53-f986-4348-be82-f49aabdf5b2e" parentObjId="5c5cfc4b-a936-4abe-b205-955933756b92" parentObjType="connection" what="port">
+      <port id="bbc80a53-f986-4348-be82-f49aabdf5b2e" moduleId="9dc604e3-5ba9-472e-be36-4e4b1b9a9fca" moduleName="File" name="self" signature="(org.vistrails.vistrails.basic:File)" type="source" />
+    </add>
+    <add id="e23e130b-9a14-47f9-84ff-2880ae1661ca" objectId="28b6ef37-3d45-4841-ad61-728db0a782ea" parentObjId="5c5cfc4b-a936-4abe-b205-955933756b92" parentObjType="connection" what="port">
+      <port id="28b6ef37-3d45-4841-ad61-728db0a782ea" moduleId="e5efbade-c251-4a18-b6fa-e3783f97a90d" moduleName="FileSink" name="file" signature="(org.vistrails.vistrails.basic:File)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:12:06" id="d0b718a8-1dca-4dcd-a1f9-61fcccc477ee" prevId="fbee5595-23db-46f1-a5f8-d68a424af2b4" session="" user="cscheid">
+    <change id="bb269a9b-c658-4bbb-9f96-7d3f332cfbc4" newObjId="d7278d60-7eaf-470c-acbe-058210ca505f" oldObjId="7a65ce40-62bc-4675-9403-70413415c8aa" parentObjId="e5efbade-c251-4a18-b6fa-e3783f97a90d" parentObjType="module" what="location">
+      <location id="d7278d60-7eaf-470c-acbe-058210ca505f" x="63.4317339516" y="-116.014762799" />
+    </change>
+  </action>
+  <action date="2006-11-09 11:12:06" id="9be131b3-1a68-4ca0-8b91-1c649da2bc43" prevId="d0b718a8-1dca-4dcd-a1f9-61fcccc477ee" session="" user="cscheid">
+    <add id="706f70ed-f975-4caa-94b9-92c925f8bc4b" objectId="f690f0d4-8718-4ac9-85ae-db7fa5033f73" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="f690f0d4-8718-4ac9-85ae-db7fa5033f73" name="String" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="5d4cae89-a586-4088-b5a0-3bf047998f79" objectId="0c4f91b1-d694-45c5-8b9f-fb586ea8c4a4" parentObjId="f690f0d4-8718-4ac9-85ae-db7fa5033f73" parentObjType="module" what="location">
+      <location id="0c4f91b1-d694-45c5-8b9f-fb586ea8c4a4" x="135.756456779" y="-26.7158678139" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:12:09" id="4c1436bb-ddb0-40ea-b133-b880d787af47" prevId="9be131b3-1a68-4ca0-8b91-1c649da2bc43" session="" user="cscheid">
+    <add id="4c8cd7f4-ee48-4da8-ae72-fb9995ff3aa1" objectId="bc167a81-6f0a-424f-9355-03efbe6d06a9" parentObjId="" parentObjType="" what="connection">
+      <connection id="bc167a81-6f0a-424f-9355-03efbe6d06a9" />
+    </add>
+    <add id="d17e2d47-4518-4886-8103-3272b663808c" objectId="b1addf91-b6b7-4882-9066-ed9560c86d7e" parentObjId="bc167a81-6f0a-424f-9355-03efbe6d06a9" parentObjType="connection" what="port">
+      <port id="b1addf91-b6b7-4882-9066-ed9560c86d7e" moduleId="f690f0d4-8718-4ac9-85ae-db7fa5033f73" moduleName="String" name="value" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="71f9365c-214b-4dd2-8a7c-555873ee2fe7" objectId="18e3de8d-b685-40e8-b4e1-bee7c194e22e" parentObjId="bc167a81-6f0a-424f-9355-03efbe6d06a9" parentObjType="connection" what="port">
+      <port id="18e3de8d-b685-40e8-b4e1-bee7c194e22e" moduleId="e5efbade-c251-4a18-b6fa-e3783f97a90d" moduleName="FileSink" name="outputName" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:12:12" id="1f121b05-b9c5-4661-b26b-e0b4e2b7d583" prevId="4c1436bb-ddb0-40ea-b133-b880d787af47" session="" user="cscheid">
+    <add id="df57d6d6-913d-4a56-9c00-7da6ff762caa" objectId="9af40d2d-0956-461a-b540-f10e19f514da" parentObjId="f690f0d4-8718-4ac9-85ae-db7fa5033f73" parentObjType="module" what="function">
+      <function id="9af40d2d-0956-461a-b540-f10e19f514da" name="value" pos="0" />
+    </add>
+    <add id="e21cb756-25cf-4dc6-934c-2ff9937c8821" objectId="156110c5-92c4-4ede-a21b-7f5d32ace58b" parentObjId="9af40d2d-0956-461a-b540-f10e19f514da" parentObjType="function" what="parameter">
+      <parameter alias="" id="156110c5-92c4-4ede-a21b-7f5d32ace58b" name="&lt;no description&gt;" pos="0" type="String" val="" />
+    </add>
+  </action>
+  <action date="2006-11-09 11:12:23" id="708ef973-2ba3-478a-87f0-7141fcf6f52a" prevId="1f121b05-b9c5-4661-b26b-e0b4e2b7d583" session="" user="cscheid">
+    <change id="6d1ed461-2d06-46ef-8de3-d0e1ab45818e" newObjId="df56b5ac-1061-440e-b6ef-f43875d43dd5" oldObjId="156110c5-92c4-4ede-a21b-7f5d32ace58b" parentObjId="9af40d2d-0956-461a-b540-f10e19f514da" parentObjType="function" what="parameter">
+      <parameter alias="" id="df56b5ac-1061-440e-b6ef-f43875d43dd5" name="&lt;no description&gt;" pos="0" type="String" val="/tmp/unimportant.tmp" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:10:52" id="250c15f1-510a-4770-b03b-cbef4a3feae1" prevId="00000000-0000-0000-0000-000000000000" session="" user="emanuele">
+    <add id="d0f842ee-046c-4345-83ee-d55b74132375" objectId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="fc4f4122-a65a-4ecd-904a-25a94a429a9b" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="0add6775-c4d1-4aa1-abfe-4ec34840ff42" objectId="59b44d42-8669-4213-aa31-e35ec88740ff" parentObjId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjType="module" what="location">
+      <location id="59b44d42-8669-4213-aa31-e35ec88740ff" x="-11.8561695459" y="98.7737701549" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:11:01" id="b25b123c-fca0-42f0-b78a-cd167cfb1df0" prevId="250c15f1-510a-4770-b03b-cbef4a3feae1" session="" user="emanuele">
+    <change id="23c2fda8-90b3-49bb-ba78-dd88206bb130" newObjId="15ea79b9-facd-4cd6-88e2-fc0a3d3b52bf" oldObjId="59b44d42-8669-4213-aa31-e35ec88740ff" parentObjId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjType="module" what="location">
+      <location id="15ea79b9-facd-4cd6-88e2-fc0a3d3b52bf" x="-5.13030019463" y="136.606785107" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:11:02" id="eb70fc4c-8826-4917-819f-d45646118d5d" prevId="b25b123c-fca0-42f0-b78a-cd167cfb1df0" session="" user="emanuele">
+    <add id="e9c0d05c-478a-45fe-a444-79c00926f8c8" objectId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="4906167e-72be-410e-9d52-c7095ec86c5d" objectId="10f45282-3dc5-46ca-9259-ed290bf766f9" parentObjId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjType="module" what="location">
+      <location id="10f45282-3dc5-46ca-9259-ed290bf766f9" x="100.802142088" y="40.7631472281" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:11:06" id="61b3df67-2e13-40fd-a776-3676ec1f71f2" prevId="eb70fc4c-8826-4917-819f-d45646118d5d" session="" user="emanuele">
+    <change id="cc45fd1b-bcef-42f9-a115-fe94f287c745" newObjId="f27cc0db-c093-420c-b1eb-e77789536839" oldObjId="10f45282-3dc5-46ca-9259-ed290bf766f9" parentObjId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjType="module" what="location">
+      <location id="f27cc0db-c093-420c-b1eb-e77789536839" x="76.4208656896" y="14.7004035944" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:11:06" id="44ef654e-de59-4e22-aeea-64ca2e5587d6" prevId="61b3df67-2e13-40fd-a776-3676ec1f71f2" session="" user="emanuele">
+    <add id="a2c7ec92-3946-4d69-8f44-2cd126ffddaf" objectId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjId="" parentObjType="" what="connection">
+      <connection id="5451d40b-a324-4379-8aec-3fa057acbee9" />
+    </add>
+    <add id="140518a9-afb7-4631-b9d0-5bcd0aa72791" objectId="c114cf7c-1fd2-4b5f-886f-aea6bd4d1a0c" parentObjId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjType="connection" what="port">
+      <port id="c114cf7c-1fd2-4b5f-886f-aea6bd4d1a0c" moduleId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="6e619f0c-48d1-4beb-8082-f35eae7b7488" objectId="9795aa2b-604d-410d-b237-383b784ed064" parentObjId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjType="connection" what="port">
+      <port id="9795aa2b-604d-410d-b237-383b784ed064" moduleId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:11:16" id="86c60887-b1c0-424e-b481-27b8979aab29" prevId="44ef654e-de59-4e22-aeea-64ca2e5587d6" session="" user="emanuele">
+    <change id="43f4e6f9-a0c9-4d9d-865d-3be4a2346765" newObjId="036e2eab-f04a-436c-af68-b4c6bff0f4c1" oldObjId="f27cc0db-c093-420c-b1eb-e77789536839" parentObjId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjType="module" what="location">
+      <location id="036e2eab-f04a-436c-af68-b4c6bff0f4c1" x="82.306001372" y="8.81526793517" />
+    </change>
+    <change id="351b12fa-44aa-43fb-a2a2-ebdb22e73db6" newObjId="af922a50-3df5-4824-a63a-f46e28ce1bd1" oldObjId="15ea79b9-facd-4cd6-88e2-fc0a3d3b52bf" parentObjId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjType="module" what="location">
+      <location id="af922a50-3df5-4824-a63a-f46e28ce1bd1" x="-59.7779886737" y="142.491920766" />
+    </change>
+    <change id="43779955-c660-4ab4-a4d0-e887d2172470" newObjId="f0bed087-f1c8-40c0-a556-e2dbbc1f6188" oldObjId="036e2eab-f04a-436c-af68-b4c6bff0f4c1" parentObjId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjType="module" what="location">
+      <location id="f0bed087-f1c8-40c0-a556-e2dbbc1f6188" x="66.3320616627" y="63.4629561995" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:11:16" id="27b86d52-5220-45dc-9b31-e776f66ba4c0" prevId="86c60887-b1c0-424e-b481-27b8979aab29" session="" user="emanuele">
+    <add id="443dcb7f-557c-4d2b-bf44-a3e2f66f412e" objectId="2a79246a-29b3-4d5e-b443-f35bc786318c" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2a79246a-29b3-4d5e-b443-f35bc786318c" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="2cc59f3d-5752-4978-9343-35e95cfb03d4" objectId="00fdb9f7-ace1-4665-ab81-2da53016e897" parentObjId="2a79246a-29b3-4d5e-b443-f35bc786318c" parentObjType="module" what="location">
+      <location id="00fdb9f7-ace1-4665-ab81-2da53016e897" x="156.290564236" y="-60.1248926444" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:11:18" id="cda2baa6-05e3-4206-bec1-33fd729c5f2d" prevId="27b86d52-5220-45dc-9b31-e776f66ba4c0" session="" user="emanuele">
+    <add id="c126d041-789b-40b4-b521-ecb581db2ce7" objectId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjId="" parentObjType="" what="connection">
+      <connection id="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" />
+    </add>
+    <add id="445d017a-e6a0-46ee-a8b3-740288a33724" objectId="d17fa97e-91a2-4aed-8156-beadf0db3f41" parentObjId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjType="connection" what="port">
+      <port id="d17fa97e-91a2-4aed-8156-beadf0db3f41" moduleId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="d4a359b2-a419-4c21-a3cf-12677b02e2a7" objectId="c53c3589-0767-4a92-98b7-753b20bad06f" parentObjId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjType="connection" what="port">
+      <port id="c53c3589-0767-4a92-98b7-753b20bad06f" moduleId="2a79246a-29b3-4d5e-b443-f35bc786318c" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:06" id="72c57354-a168-45a5-9a95-4ced694e1859" prevId="cda2baa6-05e3-4206-bec1-33fd729c5f2d" session="" user="emanuele">
+    <add id="4cb7b831-2459-4b72-9274-0b3bcab751da" objectId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="80505cfa-e24d-4ec1-90f5-33b47ca97ddb" objectId="1572af03-6417-4931-be84-48d53931a5ab" parentObjId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" parentObjType="module" what="location">
+      <location id="1572af03-6417-4931-be84-48d53931a5ab" x="-74.0704610451" y="2.93013227592" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:10" id="6858dc8f-671a-4e2e-90ad-d5a06a5583f8" prevId="72c57354-a168-45a5-9a95-4ced694e1859" session="" user="emanuele">
+    <change id="b846e86b-cae1-4f37-918f-ef25e29d51f1" newObjId="b104b05e-4ba6-4dc1-93c2-e25cbc99428d" oldObjId="1572af03-6417-4931-be84-48d53931a5ab" parentObjId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" parentObjType="module" what="location">
+      <location id="b104b05e-4ba6-4dc1-93c2-e25cbc99428d" x="-90.0444007544" y="19.744805588" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:12:10" id="0dff5a48-6bcd-43e7-948e-71045f40a971" prevId="6858dc8f-671a-4e2e-90ad-d5a06a5583f8" session="" user="emanuele">
+    <add id="003dbafe-f2d2-47d5-919c-ace2c132b2a1" objectId="cd96d667-41cd-4338-8257-3fbdb63621b9" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="cd96d667-41cd-4338-8257-3fbdb63621b9" name="Integer" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="6565209b-a7ee-40ea-ab79-741f51115717" objectId="a0cc9aca-fa75-4ecf-8ef9-50d0e5466d79" parentObjId="cd96d667-41cd-4338-8257-3fbdb63621b9" parentObjType="module" what="location">
+      <location id="a0cc9aca-fa75-4ecf-8ef9-50d0e5466d79" x="24.2953782172" y="-86.1876362782" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:14" id="e0683b82-ca42-4be4-8fda-f47ba1ee36a5" prevId="0dff5a48-6bcd-43e7-948e-71045f40a971" session="" user="emanuele">
+    <add id="a5cfa182-e565-4677-bf1f-d687093320c7" objectId="8eb0921d-8fe1-4a05-8349-93cfa2e20842" parentObjId="" parentObjType="" what="connection">
+      <connection id="8eb0921d-8fe1-4a05-8349-93cfa2e20842" />
+    </add>
+    <add id="6b3e4404-a3f4-47e5-81fb-ecf00a4396e3" objectId="a2be4e48-505d-4e22-8ad3-0290679d0294" parentObjId="8eb0921d-8fe1-4a05-8349-93cfa2e20842" parentObjType="connection" what="port">
+      <port id="a2be4e48-505d-4e22-8ad3-0290679d0294" moduleId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+    </add>
+    <add id="e957f591-4ba2-4679-8166-1dca999f59bf" objectId="9839c0df-db90-42f6-bc23-333d96d14361" parentObjId="8eb0921d-8fe1-4a05-8349-93cfa2e20842" parentObjType="connection" what="port">
+      <port id="9839c0df-db90-42f6-bc23-333d96d14361" moduleId="cd96d667-41cd-4338-8257-3fbdb63621b9" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:20" id="3c7f40a2-d32c-44da-979c-319461fb2ffb" prevId="e0683b82-ca42-4be4-8fda-f47ba1ee36a5" session="" user="emanuele">
+    <change id="ea5f8aed-2ecd-437a-a5e6-7475683f46d9" newObjId="ba54f889-32d1-4c9f-82f0-0993fa70828e" oldObjId="a0cc9aca-fa75-4ecf-8ef9-50d0e5466d79" parentObjId="cd96d667-41cd-4338-8257-3fbdb63621b9" parentObjType="module" what="location">
+      <location id="ba54f889-32d1-4c9f-82f0-0993fa70828e" x="-15.2191042215" y="-94.5949729342" />
+    </change>
+    <change id="4af4cc04-d53b-42a5-8a1f-018ef9bc2714" newObjId="41fabfee-0123-44fe-9ff4-8448cabfe497" oldObjId="b104b05e-4ba6-4dc1-93c2-e25cbc99428d" parentObjId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" parentObjType="module" what="location">
+      <location id="41fabfee-0123-44fe-9ff4-8448cabfe497" x="-85.8407324099" y="31.5150769065" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:12:21" id="8042f215-daeb-45f6-becb-5e2dc04de4ae" prevId="3c7f40a2-d32c-44da-979c-319461fb2ffb" session="" user="emanuele">
+    <delete id="99ab19f9-a665-4bee-8000-d9d055d4aba4" objectId="c114cf7c-1fd2-4b5f-886f-aea6bd4d1a0c" parentObjId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjType="connection" what="port" />
+    <delete id="c3c2d23d-3659-4eb9-b0c2-1535decda63f" objectId="9795aa2b-604d-410d-b237-383b784ed064" parentObjId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjType="connection" what="port" />
+    <delete id="ed9925f1-4636-4da3-9694-31945a4f47d1" objectId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2006-11-21 22:12:21" id="30d5241b-456e-45c5-95a4-b406ecf61666" prevId="8042f215-daeb-45f6-becb-5e2dc04de4ae" session="" user="emanuele">
+    <delete id="459b5d9c-5ad7-4957-91dc-f4b9a91782cb" objectId="af922a50-3df5-4824-a63a-f46e28ce1bd1" parentObjId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjType="module" what="location" />
+    <delete id="ba80622d-3fbd-4cdd-a9e9-f5f42183457b" objectId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2006-11-21 22:12:23" id="1adc47dd-9ba7-40c9-aada-b7543e92ece1" prevId="30d5241b-456e-45c5-95a4-b406ecf61666" session="" user="emanuele">
+    <delete id="7a8bc150-5df8-477e-9518-6c1e80da764c" objectId="d17fa97e-91a2-4aed-8156-beadf0db3f41" parentObjId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjType="connection" what="port" />
+    <delete id="9c5d0850-c2bf-4d3d-add1-152b93ba5275" objectId="c53c3589-0767-4a92-98b7-753b20bad06f" parentObjId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjType="connection" what="port" />
+    <delete id="e8c5708f-fe9f-437f-965c-41db63602491" objectId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2006-11-21 22:12:23" id="efbb3372-9860-4695-9a17-545608476b51" prevId="1adc47dd-9ba7-40c9-aada-b7543e92ece1" session="" user="emanuele">
+    <delete id="c5071949-eb94-4bc3-afa3-4c259f595f2e" objectId="f0bed087-f1c8-40c0-a556-e2dbbc1f6188" parentObjId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjType="module" what="location" />
+    <delete id="f3ce34a1-2d03-42ce-930b-28c4258b32f4" objectId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2006-11-21 22:12:26" id="05d65be7-ae85-4561-b590-5e59b825dfb5" prevId="efbb3372-9860-4695-9a17-545608476b51" session="" user="emanuele" />
+  <action date="2006-11-21 22:12:26" id="e03e334d-f524-4979-8e33-015558364615" prevId="05d65be7-ae85-4561-b590-5e59b825dfb5" session="" user="emanuele">
+    <delete id="a7e9c666-0812-4d4b-a4f9-297fdf8e453a" objectId="00fdb9f7-ace1-4665-ab81-2da53016e897" parentObjId="2a79246a-29b3-4d5e-b443-f35bc786318c" parentObjType="module" what="location" />
+    <delete id="2c26687b-e702-4cfe-aacc-a9108bef63c8" objectId="2a79246a-29b3-4d5e-b443-f35bc786318c" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2006-11-21 22:12:41" id="36abbba0-c463-49e8-869b-50daafd12459" prevId="e03e334d-f524-4979-8e33-015558364615" session="" user="emanuele">
+    <change id="7c012d71-f3b5-4fb6-bab8-3663811fb6e8" newObjId="19ffa122-8b29-499e-9cfe-3fc6132e7b1e" oldObjId="ba54f889-32d1-4c9f-82f0-0993fa70828e" parentObjId="cd96d667-41cd-4338-8257-3fbdb63621b9" parentObjType="module" what="location">
+      <location id="19ffa122-8b29-499e-9cfe-3fc6132e7b1e" x="70.5357300072" y="-53.3990233196" />
+    </change>
+    <change id="1d561f8b-1a51-4367-aab2-50145684363d" newObjId="9f650489-dccd-4a76-ad31-a15e714f9957" oldObjId="41fabfee-0123-44fe-9ff4-8448cabfe497" parentObjId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" parentObjType="module" what="location">
+      <location id="9f650489-dccd-4a76-ad31-a15e714f9957" x="-21.9449735728" y="83.640564174" />
+    </change>
+    <change id="a137dbce-7292-4d27-aa42-88ac5a439bc9" newObjId="2081e4fc-083a-4e5b-9cb6-0eaf468d4a60" oldObjId="19ffa122-8b29-499e-9cfe-3fc6132e7b1e" parentObjId="cd96d667-41cd-4338-8257-3fbdb63621b9" parentObjType="module" what="location">
+      <location id="2081e4fc-083a-4e5b-9cb6-0eaf468d4a60" x="81.465267703" y="-12.203073705" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:12:41" id="a2058dc0-0d8b-41c1-9fb4-7b1ef5fe997a" prevId="36abbba0-c463-49e8-869b-50daafd12459" session="" user="emanuele">
+    <add id="ce4cd827-a5a6-4cf7-902a-3ffec7d87735" objectId="45467dd1-ca38-4e44-808d-1ee3158509d3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="45467dd1-ca38-4e44-808d-1ee3158509d3" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="975ebef8-ce46-4f3f-bd2f-b99aca02a6f6" objectId="764c0ef8-df53-4aaf-9452-74f6b02d4d47" parentObjId="45467dd1-ca38-4e44-808d-1ee3158509d3" parentObjType="module" what="location">
+      <location id="764c0ef8-df53-4aaf-9452-74f6b02d4d47" x="112.572413453" y="-161.853666183" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:44" id="b68b48f2-9ae5-448b-a0c4-31250c8bbd9c" prevId="a2058dc0-0d8b-41c1-9fb4-7b1ef5fe997a" session="" user="emanuele">
+    <add id="aae25210-aaf8-4eb3-a29a-869a04522e4f" objectId="35325fec-9f3e-4e23-825e-bc7c71b972c7" parentObjId="" parentObjType="" what="connection">
+      <connection id="35325fec-9f3e-4e23-825e-bc7c71b972c7" />
+    </add>
+    <add id="1c67de2f-735b-4f7f-9d6c-c4d290fa3604" objectId="478f5ab1-b556-4c1c-92e3-b709e78d1199" parentObjId="35325fec-9f3e-4e23-825e-bc7c71b972c7" parentObjType="connection" what="port">
+      <port id="478f5ab1-b556-4c1c-92e3-b709e78d1199" moduleId="cd96d667-41cd-4338-8257-3fbdb63621b9" moduleName="Integer" name="value" signature="(org.vistrails.vistrails.basic:Integer)" type="source" />
+    </add>
+    <add id="da0b2b80-445d-4c5d-aaba-fa9d7fb5378d" objectId="653534a2-d5e0-4e4e-8797-ef108b526b1b" parentObjId="35325fec-9f3e-4e23-825e-bc7c71b972c7" parentObjType="connection" what="port">
+      <port id="653534a2-d5e0-4e4e-8797-ef108b526b1b" moduleId="45467dd1-ca38-4e44-808d-1ee3158509d3" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:49" id="4dc5ba6c-b456-419e-96b5-78c49dd62c4c" prevId="b68b48f2-9ae5-448b-a0c4-31250c8bbd9c" session="" user="emanuele">
+    <add id="38a01e1d-1a2a-48cd-a3a2-d10faf0cded7" objectId="9e2eaa8b-0ffa-42d6-9c47-70d4f963a80a" parentObjId="7169b5a8-c29d-4fb4-83cd-88a84a6bacb5" parentObjType="module" what="function">
+      <function id="9e2eaa8b-0ffa-42d6-9c47-70d4f963a80a" name="value" pos="0" />
+    </add>
+    <add id="15a6917f-59ca-45c9-ba3a-328f55411b15" objectId="8fd7cc0b-9616-4c1f-8722-ea2b1441ad08" parentObjId="9e2eaa8b-0ffa-42d6-9c47-70d4f963a80a" parentObjType="function" what="parameter">
+      <parameter alias="" id="8fd7cc0b-9616-4c1f-8722-ea2b1441ad08" name="&lt;no description&gt;" pos="0" type="Integer" val="0" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:12:53" id="ad6a3202-bdae-458a-a121-868fdb1f1763" prevId="4dc5ba6c-b456-419e-96b5-78c49dd62c4c" session="" user="emanuele">
+    <change id="78a47530-f541-4e53-b07b-cfc1d44fc914" newObjId="f68128dc-7461-40a8-be8c-dd7c70b76cb9" oldObjId="8fd7cc0b-9616-4c1f-8722-ea2b1441ad08" parentObjId="9e2eaa8b-0ffa-42d6-9c47-70d4f963a80a" parentObjType="function" what="parameter">
+      <parameter alias="" id="f68128dc-7461-40a8-be8c-dd7c70b76cb9" name="&lt;no description&gt;" pos="0" type="Integer" val="2" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:13:08" id="62f1e904-508d-4a61-9837-70f675921750" prevId="ad6a3202-bdae-458a-a121-868fdb1f1763" session="" user="emanuele">
+    <change id="b0b4aa29-d3c7-460f-9284-9d210ece356d" newObjId="06446b03-7411-4212-a1c7-e9200cb4d52e" oldObjId="764c0ef8-df53-4aaf-9452-74f6b02d4d47" parentObjId="45467dd1-ca38-4e44-808d-1ee3158509d3" parentObjType="module" what="location">
+      <location id="06446b03-7411-4212-a1c7-e9200cb4d52e" x="57.9247249739" y="-112.250379912" />
+    </change>
+    <change id="56d149d6-70f1-434a-8eb1-8d5b676c68cb" newObjId="642cf85c-bcf6-4a04-b574-0f34f4f50f78" oldObjId="2081e4fc-083a-4e5b-9cb6-0eaf468d4a60" parentObjId="cd96d667-41cd-4338-8257-3fbdb63621b9" parentObjType="module" what="location">
+      <location id="642cf85c-bcf6-4a04-b574-0f34f4f50f78" x="56.2432576357" y="-6.31793804582" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:13:23" id="1c7c23fa-15e6-4b70-8d5e-8fb9f115d7a7" prevId="cda2baa6-05e3-4206-bec1-33fd729c5f2d" session="" user="emanuele">
+    <add id="76e031b5-71d0-4444-b6bf-282cf6b861bf" objectId="c780957a-8312-4ca1-9019-379d4b7bebd5" parentObjId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjType="module" what="function">
+      <function id="c780957a-8312-4ca1-9019-379d4b7bebd5" name="value" pos="0" />
+    </add>
+    <add id="f1804dfd-0d54-47f7-b2b6-ac439c2e898b" objectId="5ca103d7-22ba-4de3-ad0c-4d72b8fed40c" parentObjId="c780957a-8312-4ca1-9019-379d4b7bebd5" parentObjType="function" what="parameter">
+      <parameter alias="" id="5ca103d7-22ba-4de3-ad0c-4d72b8fed40c" name="&lt;no description&gt;" pos="0" type="Float" val="0.0" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:13:27" id="89f95978-24a1-43fa-a74c-737025bbf311" prevId="1c7c23fa-15e6-4b70-8d5e-8fb9f115d7a7" session="" user="emanuele">
+    <change id="d0a5b5ba-bd98-4738-bc01-419455de3c3d" newObjId="5050b171-60ad-4426-a41e-f0639c51bf7f" oldObjId="5ca103d7-22ba-4de3-ad0c-4d72b8fed40c" parentObjId="c780957a-8312-4ca1-9019-379d4b7bebd5" parentObjType="function" what="parameter">
+      <parameter alias="" id="5050b171-60ad-4426-a41e-f0639c51bf7f" name="&lt;no description&gt;" pos="0" type="Float" val="1.2" />
+    </change>
+  </action>
+  <action date="2006-11-21 22:13:33" id="23f74373-0fdf-477d-a6a0-f1107a7f714b" prevId="89f95978-24a1-43fa-a74c-737025bbf311" session="" user="emanuele">
+    <add id="b0ecc95d-5d9e-4184-82c3-5fad086f13f3" objectId="80e6e422-d82c-46ca-810b-dff1e746d70f" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="80e6e422-d82c-46ca-810b-dff1e746d70f" name="StandardOutput" namespace="" package="org.vistrails.vistrails.basic" version="" />
+    </add>
+    <add id="65d949c1-19c7-46a7-ad67-9f1b337a2c7b" objectId="d881e448-4925-49d8-80aa-10bdfad8a3c1" parentObjId="80e6e422-d82c-46ca-810b-dff1e746d70f" parentObjType="module" what="location">
+      <location id="d881e448-4925-49d8-80aa-10bdfad8a3c1" x="73.8986646828" y="-196.323746472" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:13:36" id="c231ea70-5c09-4fb0-ae7a-31e73e2e6eac" prevId="23f74373-0fdf-477d-a6a0-f1107a7f714b" session="" user="emanuele">
+    <add id="1002ceb4-af40-4a83-b8d4-2772d727208b" objectId="f74de548-4f33-4805-a5c7-09eb0ea6028f" parentObjId="" parentObjType="" what="connection">
+      <connection id="f74de548-4f33-4805-a5c7-09eb0ea6028f" />
+    </add>
+    <add id="cc58f471-6f89-40c3-ac56-b622badc6f67" objectId="b8da8102-6376-4e0d-a272-be91813b3df7" parentObjId="f74de548-4f33-4805-a5c7-09eb0ea6028f" parentObjType="connection" what="port">
+      <port id="b8da8102-6376-4e0d-a272-be91813b3df7" moduleId="2a79246a-29b3-4d5e-b443-f35bc786318c" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="e8f44db6-a06f-4be8-8af2-1f80a1b54f2d" objectId="b83dbe30-aafa-46c6-b9a1-4b65262769b0" parentObjId="f74de548-4f33-4805-a5c7-09eb0ea6028f" parentObjType="connection" what="port">
+      <port id="b83dbe30-aafa-46c6-b9a1-4b65262769b0" moduleId="80e6e422-d82c-46ca-810b-dff1e746d70f" moduleName="StandardOutput" name="value" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2006-11-21 22:13:42" id="b8bc9556-de25-4f01-9e1b-cffae8a4c0ef" prevId="c231ea70-5c09-4fb0-ae7a-31e73e2e6eac" session="" user="emanuele">
+    <change id="d0779639-26ac-4497-8bb5-a641b9ea1b23" newObjId="a20059ec-a341-4332-a2ef-cff751ee1283" oldObjId="d881e448-4925-49d8-80aa-10bdfad8a3c1" parentObjId="80e6e422-d82c-46ca-810b-dff1e746d70f" parentObjType="module" what="location">
+      <location id="a20059ec-a341-4332-a2ef-cff751ee1283" x="62.1283933181" y="-165.216600845" />
+    </change>
+  </action>
+  <action date="2016-08-15 12:31:56" id="24694655-fa9e-483a-8286-a2ba4ca97426" prevId="cda2baa6-05e3-4206-bec1-33fd729c5f2d" session="18009fa8-67ff-4439-b37f-abf0d0a0c907" user="dkoop">
+    <annotation id="35f3ba04-11d1-46bf-a441-f59a6d484b18" key="__description__" value="Upgrade" />
+    <delete id="318601a1-16aa-439c-8758-db73db22ab61" objectId="d17fa97e-91a2-4aed-8156-beadf0db3f41" parentObjId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjType="connection" what="port" />
+    <delete id="51977cb9-9985-4e58-90be-43f08414f02d" objectId="c53c3589-0767-4a92-98b7-753b20bad06f" parentObjId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjType="connection" what="port" />
+    <delete id="403ca7cd-4ebb-4289-bbdb-225fa0e16c6d" objectId="cfb0fe43-0e69-419d-b6ce-617ce2cd523a" parentObjId="" parentObjType="" what="connection" />
+    <delete id="e0341082-a8ab-4248-93af-fb1885e6e23e" objectId="00fdb9f7-ace1-4665-ab81-2da53016e897" parentObjId="2a79246a-29b3-4d5e-b443-f35bc786318c" parentObjType="module" what="location" />
+    <delete id="0aaaa8df-0cad-4ea6-b72e-4188fb9b8b22" objectId="2a79246a-29b3-4d5e-b443-f35bc786318c" parentObjId="" parentObjType="" what="module" />
+    <delete id="1ba30472-db69-4ef3-95c4-00c594b29e19" objectId="c114cf7c-1fd2-4b5f-886f-aea6bd4d1a0c" parentObjId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjType="connection" what="port" />
+    <delete id="9bb78c7e-a580-4bce-92b0-2120a59f8b42" objectId="9795aa2b-604d-410d-b237-383b784ed064" parentObjId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjType="connection" what="port" />
+    <delete id="faa5db9c-2d69-432f-ac91-c8d5a9b0950b" objectId="5451d40b-a324-4379-8aec-3fa057acbee9" parentObjId="" parentObjType="" what="connection" />
+    <delete id="f21e7306-af29-4cf6-902b-21bdc4855654" objectId="f0bed087-f1c8-40c0-a556-e2dbbc1f6188" parentObjId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjType="module" what="location" />
+    <delete id="cf0d584b-8981-4b58-ba06-ea43247f1730" objectId="7e750a71-07f5-4f8b-9956-ef4f9f9dd488" parentObjId="" parentObjType="" what="module" />
+    <delete id="814ddb27-7a55-4605-ae29-f88c7cc2b968" objectId="af922a50-3df5-4824-a63a-f46e28ce1bd1" parentObjId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjType="module" what="location" />
+    <delete id="46924b65-2f27-4cb8-b1fd-3ad3263869dd" objectId="fc4f4122-a65a-4ecd-904a-25a94a429a9b" parentObjId="" parentObjType="" what="module" />
+    <add id="5001f07c-daaf-4aa0-9ae1-79c61e94e0d2" objectId="4b9cbb53-c491-402b-9d9e-254e45c4d33f" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="4b9cbb53-c491-402b-9d9e-254e45c4d33f" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="5a507761-01bb-4250-8f82-bfeffde2ff71" objectId="132aa2b3-0325-4615-89c0-69f87b6a7aba" parentObjId="4b9cbb53-c491-402b-9d9e-254e45c4d33f" parentObjType="module" what="location">
+      <location id="132aa2b3-0325-4615-89c0-69f87b6a7aba" x="156.290564236" y="-60.1248926444" />
+    </add>
+    <add id="d18443b3-97a8-411a-b8f2-ca993065dd52" objectId="3b499a55-f28b-4e99-9de4-0f78a75b490e" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3b499a55-f28b-4e99-9de4-0f78a75b490e" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="89fb0192-dff5-47ab-b2e2-0f91c546d838" objectId="e7ab444b-2b5b-4284-af8d-c4f56c22a63e" parentObjId="3b499a55-f28b-4e99-9de4-0f78a75b490e" parentObjType="module" what="location">
+      <location id="e7ab444b-2b5b-4284-af8d-c4f56c22a63e" x="66.3320616627" y="63.4629561995" />
+    </add>
+    <add id="8cb54852-ce35-4ea1-bb9e-1f0b05f9b0f3" objectId="cee9293e-0011-44f1-8047-f38bae88903d" parentObjId="" parentObjType="" what="connection">
+      <connection id="cee9293e-0011-44f1-8047-f38bae88903d" />
+    </add>
+    <add id="7a13242c-1d67-4a86-9da8-173d5b89cb66" objectId="efe14347-3a35-4ff2-a830-4f29a6f15b69" parentObjId="cee9293e-0011-44f1-8047-f38bae88903d" parentObjType="connection" what="port">
+      <port id="efe14347-3a35-4ff2-a830-4f29a6f15b69" moduleId="3b499a55-f28b-4e99-9de4-0f78a75b490e" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="e3a2395c-e843-40a5-8557-c75496e1bf1c" objectId="1f759858-6ed9-496e-a5ad-c655c2126986" parentObjId="cee9293e-0011-44f1-8047-f38bae88903d" parentObjType="connection" what="port">
+      <port id="1f759858-6ed9-496e-a5ad-c655c2126986" moduleId="4b9cbb53-c491-402b-9d9e-254e45c4d33f" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
+    </add>
+    <add id="13c5f695-51bf-4551-9b85-7651de77120c" objectId="a8658784-9c57-4ce4-a422-8ed6228d4706" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="a8658784-9c57-4ce4-a422-8ed6228d4706" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="2825d57e-87c8-4d29-bd25-2a4d8b9ec7e4" objectId="0c3acbe2-da43-48f0-84d3-8850d5459580" parentObjId="a8658784-9c57-4ce4-a422-8ed6228d4706" parentObjType="module" what="location">
+      <location id="0c3acbe2-da43-48f0-84d3-8850d5459580" x="-59.7779886737" y="142.491920766" />
+    </add>
+    <add id="995e25fa-c755-4a7f-a6db-3394b4b877aa" objectId="167184ea-bc5d-40ef-a5f5-182c57ec41e9" parentObjId="" parentObjType="" what="connection">
+      <connection id="167184ea-bc5d-40ef-a5f5-182c57ec41e9" />
+    </add>
+    <add id="caa918db-ec28-4f36-9526-0158a108e7a2" objectId="845a820b-f9f4-4200-a6bb-aacb07647f31" parentObjId="167184ea-bc5d-40ef-a5f5-182c57ec41e9" parentObjType="connection" what="port">
+      <port id="845a820b-f9f4-4200-a6bb-aacb07647f31" moduleId="a8658784-9c57-4ce4-a422-8ed6228d4706" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="7e23db21-a254-4090-a797-fdf5efca38d3" objectId="4fb0307d-8250-4929-bd93-0addcbcaa3f4" parentObjId="167184ea-bc5d-40ef-a5f5-182c57ec41e9" parentObjType="connection" what="port">
+      <port id="4fb0307d-8250-4929-bd93-0addcbcaa3f4" moduleId="3b499a55-f28b-4e99-9de4-0f78a75b490e" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="destination" />
+    </add>
+  </action>
+  <actionAnnotation actionId="b8bc9556-de25-4f01-9e1b-cffae8a4c0ef" date="" id="16729718-08fd-402f-b5f5-10281b1d21c7" key="__tag__" user="" value="float chain" />
+  <actionAnnotation actionId="708ef973-2ba3-478a-87f0-7141fcf6f52a" date="" id="0d9c2aa3-b6f7-4fe5-a9c7-629a69121eef" key="__tag__" user="" value="final" />
+  <actionAnnotation actionId="62f1e904-508d-4a61-9837-70f675921750" date="" id="891a40ac-3dd8-4304-86db-8b0f1f442b30" key="__tag__" user="" value="int chain" />
+  <actionAnnotation actionId="cda2baa6-05e3-4206-bec1-33fd729c5f2d" date="2016-08-15 12:31:56" id="0b55cdd7-6031-40b4-bd0f-06f6d89ec6a9" key="__upgrade__" user="dkoop" value="24694655-fa9e-483a-8286-a2ba4ca97426" />
+</vistrail>

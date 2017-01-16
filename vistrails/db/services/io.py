@@ -46,6 +46,8 @@ from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
 import vistrails.core.requirements
 
 from datetime import datetime
+from distutils.version import LooseVersion
+from itertools import izip
 import os.path
 import shutil
 import tempfile
@@ -59,13 +61,17 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
 import vistrails.db.services.log
+import vistrails.db.services.mashup
 import vistrails.db.services.opm
 import vistrails.db.services.prov
 import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
-from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_vistrail, translate_workflow, translate_log, translate_registry, translate_startup
+from vistrails.db.versions import getVersionDAO, get_current_version, \
+    getVersionSchemaDir, translate_vistrail, translate_workflow, translate_log, \
+    translate_registry, translate_startup, translate_bundle, translate_mashup
+from vistrails.db.versions.common.translate import ExternalData, GroupExternalData
+from vistrails.db.versions.common.bundle import SaveBundle
 
 import unittest
 import vistrails.core.system
@@ -89,83 +95,6 @@ def get_db_lib():
 def set_db_lib(lib):
     global _db_lib
     _db_lib = lib
-
-
-class SaveBundle(object):
-    """Transient bundle of objects to be saved or loaded.
-       The bundle type MUST be specified in the constructor; it should be
-       the the vtType of the primary object in the bundle. This parameter
-       identifies which object is the primary object when mutiple objects
-       are stored in the bundle.
-
-       Args is the (unordered) list of objects to be included in the bundle
-       (vistrail, workflow, log, registry, opm_graph).  Any args without a
-       'vtType' attribute are explicitly ignored (including any args=None).
-
-       As kwargs, you can specify 'abstractions=[]' or 'thumbnails=[]',
-       both of which should be a list of filenames as strings.  You can also
-       specify the other bundle objects as kwargs, but abstractions and
-       thumbnails cannot be args, since they are both lists, and there is no
-       vtType to differentiate between them.
-
-       As a final option, you can directly set the objects in the bundle,
-       self.vistrail = vistrail_object, self.thumbnails = thumbs_list, etc.,
-       before passing the SaveBundle to a locator.  Both abstractions and
-       thumbnails are intialized for convenience so that you can directly
-       append to them when using this step-by-step bundle creation method.
-
-    """
-
-    def __init__(self, bundle_type, *args, **kwargs):
-        self.bundle_type = bundle_type
-        self.vistrail = None
-        self.workflow = None
-        self.log = None
-        self.registry = None
-        self.opm_graph = None
-        self.abstractions = []
-        self.thumbnails = []
-        self.mashups = []
-        # Make all args into attrs using vtType as attr name
-        # This requires that attr names in this class match the vtTypes
-        # i.e. if arg's vtType is 'vistrail', self.vistrail = arg, etc...
-        for arg in args:
-            if hasattr(arg, 'vtType'):
-                setattr(self, arg.vtType, arg)
-        # Make all keyword args directly into attrs
-        for (k,v) in kwargs.iteritems():
-            setattr(self, k, v)
-
-    def get_db_objs(self):
-        """Gets a list containing only the DB* objects in the bundle"""
-        return [obj for obj in self.__dict__.itervalues() if obj is not None and not isinstance(obj, (list, basestring))]
-
-    def get_primary_obj(self):
-        """get_primary_obj() -> DB*
-           Gets the bundle's primary DB* object based on the bundle type.
-        """
-        return getattr(self, self.bundle_type)
-
-    def __copy__(self):
-        return SaveBundle.do_copy(self)
-    
-    def do_copy(self):
-        cp = SaveBundle(self.bundle_type)
-        cp.vistrail = copy.copy(self.vistrail)
-        cp.workflow = copy.copy(self.workflow)
-        cp.log = copy.copy(self.log)
-        cp.registry = copy.copy(self.registry)
-        cp.opm_graph = copy.copy(self.opm_graph)
-        for a in self.abstractions:
-            cp.abstractions.append(a)
-        
-        for t in self.thumbnails:
-            cp.thumbnails.append(t)
-
-        for m in self.mashups:
-            cp.mashups.append(m)
-        
-        return cp
 
 def format_prepared_statement(statement):
     """format_prepared_statement(statement: str) -> str
@@ -324,8 +253,8 @@ def get_db_object_version(db_connection, obj_id, obj_type):
 
     try:
         c = db_connection.cursor()
-        #print command % (translate_to_tbl_name(obj_type), obj_id)
-        c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
+        c.execute(command % (translate_to_tbl_name(obj_type),
+                             db_connection.escape(obj_id, get_db_lib().converters.conversions)))
         version = c.fetchall()[0][0]
         c.close()
     except get_db_lib().Error, e:
@@ -374,7 +303,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
                 raise VistrailsDBException(msg)
         else:
             c.close()
-            return int(rows[0][0])
+            return rows[0][0]
     except get_db_lib().Error, e:
         c.close()
         msg = "Connection error when trying to get db id from name"
@@ -486,9 +415,9 @@ def get_matching_abstraction_id(db_connection, abstraction):
         raise VistrailsDBException(msg)
     return id
 
-def setup_db_tables(db_connection, version=None, old_version=None):
+def setup_db_tables(db_connection, version=None, old_version=None, only_drop=False):
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if old_version is None:
         old_version = version
     try:
@@ -515,7 +444,7 @@ def setup_db_tables(db_connection, version=None, old_version=None):
                     cmd = cmd.rstrip()
 #                     if cmd.endswith(engine_str):
 #                         cmd = cmd[:-len(engine_str)] + ';'
-                    #print cmd
+#                     print cmd
                     c.execute(cmd)
                     cmd = ""
 
@@ -529,30 +458,31 @@ def setup_db_tables(db_connection, version=None, old_version=None):
         c.close()
         f.close()
 
-        # create tables        
-        c = db_connection.cursor()
-        schemaDir = getVersionSchemaDir(version)
-        f = open(os.path.join(schemaDir, 'vistrails.sql'))
-        execute_file(c, f)
-#         db_script = f.read()
-#         c.execute(db_script)
-        f.close()
-        c.close()
+        if not only_drop:
+            # create tables
+            c = db_connection.cursor()
+            schemaDir = getVersionSchemaDir(version)
+            f = open(os.path.join(schemaDir, 'vistrails.sql'))
+            execute_file(c, f)
+    #         db_script = f.read()
+    #         c.execute(db_script)
+            f.close()
+            c.close()
     except get_db_lib().Error, e:
         raise VistrailsDBException("unable to create tables: " + str(e))
 
 ##############################################################################
 # General I/O
 
-def open_from_xml(filename, type):
+def open_from_xml(filename, type, do_translate=True):
     if type == DBVistrail.vtType:
-        return open_vistrail_from_xml(filename)
+        return open_vistrail_from_xml(filename, do_translate)
     elif type == DBWorkflow.vtType:
-        return open_workflow_from_xml(filename)
+        return open_workflow_from_xml(filename, do_translate)
     elif type == DBLog.vtType:
-        return open_log_from_xml(filename)
+        return open_log_from_xml(filename, do_translate)
     elif type == DBRegistry.vtType:
-        return open_registry_from_xml(filename)
+        return open_registry_from_xml(filename, do_translate)
     else:
         raise VistrailsDBException("cannot open object of type "
                                    "'%s' from xml" % type)
@@ -672,26 +602,35 @@ def close_zip_xml(temp_dir):
         raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, str(e)))
 
 def serialize(object):
-    daoList = getVersionDAO(currentVersion)
+    daoList = getVersionDAO(get_current_version())
     return daoList.serialize(object)
 
 def unserialize(str, obj_type):
-    daoList = getVersionDAO(currentVersion)
+    daoList = getVersionDAO(get_current_version())
     return daoList.unserialize(str, obj_type)
  
 ##############################################################################
 # Vistrail I/O
 
-def open_vistrail_from_xml(filename):
-    """open_vistrail_from_xml(filename) -> Vistrail"""
+def open_vistrail_from_xml(filename, do_translate=True, target_version=None):
+    """open_vistrail_from_xml reads a Vistrail stored as xml and updates
+    it to the latest version by default
+        :param str filename:
+        :param bool do_translate: do translation to latest version?
+        :return vistrails.db.domain.DBVistrail
+    """
+
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
+    if do_translate and target_version is None:
+        target_version = get_current_version()
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
         if vistrail is None:
             raise VistrailsDBException("Couldn't read vistrail from XML")
-        vistrail = translate_vistrail(vistrail, version)
+        if do_translate:
+            vistrail = translate_vistrail(vistrail, version, target_version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
@@ -702,7 +641,7 @@ def open_vistrail_from_xml(filename):
 
     return vistrail
 
-def open_vistrail_bundle_from_zip_xml(filename):
+def open_vistrail_bundle_from_zip_xml(filename, do_translate=True):
     """open_vistrail_bundle_from_zip_xml(filename) -> SaveBundle
     Open a vistrail from a zip compressed format.
     It expects that the vistrail file inside archive has name 'vistrail',
@@ -730,7 +669,8 @@ def open_vistrail_bundle_from_zip_xml(filename):
         for root, dirs, files in os.walk(vt_save_dir):
             for fname in files:
                 if fname == 'vistrail' and root == vt_save_dir:
-                    vistrail = open_vistrail_from_xml(os.path.join(root, fname))
+                    vistrail = open_vistrail_from_xml(os.path.join(root, fname),
+                                                      False)
                 elif fname == 'log' and root == vt_save_dir:
                     # FIXME read log to get execution info
                     # right now, just ignore the file
@@ -747,7 +687,7 @@ def open_vistrail_bundle_from_zip_xml(filename):
                     thumbnail_files.append(thumbnail_file)
                 elif root == os.path.join(vt_save_dir,'mashups'):
                     mashup_file = os.path.join(root, fname)
-                    mashup = open_mashuptrail_from_xml(mashup_file)
+                    mashup = open_mashuptrail_from_xml(mashup_file, False)
                     mashups.append(mashup)
                 else:
                     handled = False
@@ -768,15 +708,34 @@ def open_vistrail_bundle_from_zip_xml(filename):
         raise VistrailsDBException("vt file does not contain vistrail")
     vistrail.db_log_filename = log_fname
 
-    # call package hooks
-    from vistrails.core.packagemanager import get_package_manager
-    pm = get_package_manager()
-    for package in pm.enabled_package_list():
-        package.loadVistrailFileHook(vistrail, vt_save_dir)
+    #FIXME do not like this here, this is core logic
+    # # call package hooks
+    # from vistrails.core.packagemanager import get_package_manager
+    # pm = get_package_manager()
+    # for package in pm.enabled_package_list():
+    #     package.loadVistrailFileHook(vistrail, vt_save_dir)
 
     save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
                              abstractions=abstraction_files, 
                              thumbnails=thumbnail_files, mashups=mashups)
+    if do_translate:
+        # only need to do this for the uuid transition, check 2.0.0 exact?
+        if LooseVersion(vistrail.db_version) < LooseVersion('2.0.0'):
+            # only translate to vistrail.db_version, **not current version**
+            # so bundle updates work as expected
+            if log_fname is not None:
+                save_bundle.log = open_log_from_xml(log_fname, True, True,
+                                                    vistrail.db_version)
+            save_bundle.subworkflows = []
+            for abstraction in save_bundle.abstractions:
+                subworkflow = open_vistrail_from_xml(abstraction, True,
+                                                     vistrail.db_version)
+                # FIXME should use common filename stuff from controller?
+                subworkflow.db_abstraction_fname = abstraction
+                save_bundle.subworkflows.append(subworkflow)
+        save_bundle = translate_bundle(save_bundle, vistrail.db_version)
+        for subworkflow in save_bundle.subworkflows:
+            save_vistrail_to_xml(subworkflow, subworkflow.db_abstraction_fname)
     return (save_bundle, vt_save_dir)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
@@ -816,7 +775,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
                       abstractions=abstractions, thumbnails=thumbnails,
                       mashups=mashuptrails)
 
-def open_vistrail_from_db(db_connection, id, lock=False, version=None):
+def open_vistrail_from_db(db_connection, id, lock=False, version=None,
+                          do_translate=True):
     """open_vistrail_from_db(db_connection, id : long, lock: bool, 
                              version: str) 
          -> DBVistrail 
@@ -830,9 +790,11 @@ def open_vistrail_from_db(db_connection, id, lock=False, version=None):
     dao_list = getVersionDAO(version)
     vistrail = \
         dao_list.open_from_db(db_connection, DBVistrail.vtType, id, lock)
-    vistrail = translate_vistrail(vistrail, version)
+    if do_translate:
+        vistrail = translate_vistrail(vistrail, version)
+    #FIXME don't want to sort this here probably
     for db_action in vistrail.db_get_actions():
-        db_action.db_operations.sort(key=lambda x: x.db_id)
+        db_action.db_operations.sort(key=lambda x: x.db_pos)
     vistrails.db.services.vistrail.update_id_scope(vistrail)
     return vistrail
 
@@ -841,12 +803,14 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/vistrail.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not vistrail.db_version:
-        vistrail.db_version = currentVersion
+        vistrail.db_version = get_current_version()
 
     # current_action holds the current action id 
     # (used by the controller--write_vistrail)
+    # FIXME this is brittle: consider uuid modification
+    # real use seems to be in vistrail.synchronize which may issue new id
     current_action = 0L
     if hasattr(vistrail, 'db_currentVersion'):
         current_action = vistrail.db_currentVersion
@@ -958,7 +922,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     for obj in save_bundle.mashups:
         #print "  ", obj
         try:
-            xml_fname = os.path.join(mashup_dir, str(obj.id))
+            xml_fname = os.path.join(mashup_dir, str(obj.db_id))
             save_mashuptrail_to_xml(obj, xml_fname)
             saved_mashups.append(obj)
         except Exception, e:
@@ -1029,16 +993,17 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
                       thumbnails=list(save_bundle.thumbnails),
                       mashups=list(save_bundle.mashups))
 
-def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
+def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None,
+                        save_wfs=True, do_translate=True):
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
         raise VistrailsDBException(msg)
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not vistrail.db_version:
-        vistrail.db_version = currentVersion
+        vistrail.db_version = get_current_version()
 
     dao_list = getVersionDAO(version)
 
@@ -1046,6 +1011,8 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     
     # current_action holds the current action id 
     # (used by the controller--write_vistrail)
+    # FIXME this is brittle: consider uuid modification
+    # real use seems to be in synchronize which may issue new id
     current_action = 0L
     if hasattr(vistrail, 'db_currentVersion'):
         current_action = vistrail.db_currentVersion
@@ -1072,37 +1039,39 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     workflowIds = get_saved_workflows(vistrail, db_connection)
     #print "Workflows already saved:", workflowIds
     dao_list.save_to_db(db_connection, vistrail, do_copy)
-    vistrail = translate_vistrail(vistrail, version)
+    if do_translate:
+        vistrail = translate_vistrail(vistrail, version)
     vistrail.db_currentVersion = current_action
 
     # update all missing tagged workflows
-    tagMap = {}
-    for annotation in vistrail.db_actionAnnotations:
-        if annotation.db_key == '__tag__':
-            tagMap[annotation.db_action_id] = annotation.db_value
-    wfToSave = []
-    for id, name in tagMap.iteritems():
-        if id not in workflowIds:
-            #print "creating workflow", vistrail.db_id, id, name,
-            workflow = vistrails.db.services.vistrail.materializeWorkflow(vistrail, id)
-            workflow.db_id = None
-            workflow.db_vistrail_id = vistrail.db_id
-            workflow.db_parent_id = id
-            workflow.db_group = id
-            workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
-            workflow.db_name = name
-            workflow = translate_workflow(workflow, currentVersion, version)
-            wfToSave.append(workflow)
-            #print "done"
-    if wfToSave:
-        dao_list.save_many_to_db(db_connection, wfToSave, True)
+    if save_wfs:
+        tagMap = {}
+        for annotation in vistrail.db_actionAnnotations:
+            if annotation.db_key == '__tag__':
+                tagMap[annotation.db_action_id] = annotation.db_value
+        wfToSave = []
+        for id, name in tagMap.iteritems():
+            if id not in workflowIds:
+                #print "creating workflow", vistrail.db_id, id, name,
+                workflow = vistrails.db.services.vistrail.materializeWorkflow(vistrail, id)
+                workflow.db_id = None
+                workflow.db_vistrail_id = vistrail.db_id
+                workflow.db_parent_id = id
+                workflow.db_group = id
+                workflow.db_last_modified=vistrail.db_get_action_by_id(id).db_date
+                workflow.db_name = name
+                workflow = translate_workflow(workflow, get_current_version(), version)
+                wfToSave.append(workflow)
+                #print "done"
+        if wfToSave:
+            dao_list.save_many_to_db(db_connection, wfToSave, True)
     db_connection.commit()
     return vistrail
 
 ##############################################################################
 # Workflow I/O
 
-def open_workflow_from_xml(filename):
+def open_workflow_from_xml(filename, do_translate=True):
     """open_workflow_from_xml(filename) -> DBWorkflow"""
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
@@ -1110,7 +1079,8 @@ def open_workflow_from_xml(filename):
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
     if workflow is None:
         raise VistrailsDBException("Couldn't read workflow from XML")
-    workflow = translate_workflow(workflow, version)
+    if do_translate:
+        workflow = translate_workflow(workflow, version)
     vistrails.db.services.workflow.update_id_scope(workflow)
     return workflow
 
@@ -1136,9 +1106,9 @@ def save_workflow_to_xml(workflow, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/workflow.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not workflow.db_version:
-        workflow.db_version = currentVersion
+        workflow.db_version = get_current_version()
     workflow = translate_workflow(workflow, workflow.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1160,9 +1130,9 @@ def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not workflow.db_version:
-        workflow.db_version = currentVersion
+        workflow.db_version = get_current_version()
     workflow = translate_workflow(workflow, workflow.db_version, version)
     dao_list = getVersionDAO(version)
 
@@ -1195,40 +1165,96 @@ def get_saved_workflows(vistrail, db_connection):
 ##############################################################################
 # Logging I/O
 
-def open_log_from_xml(filename, was_appended=False):
+def open_wf_execs_from_xml(filename):
+    parser = ElementTree.XMLTreeBuilder()
+    parser.feed("<log>\n")
+    f = open(filename, "rb")
+    parser.feed(f.read())
+    parser.feed("</log>\n")
+    root = parser.close()
+    workflow_execs = []
+    for node in root:
+        version = get_version_for_xml(node)
+        daoList = getVersionDAO(version)
+        workflow_exec = \
+            daoList.read_xml_object(DBWorkflowExec.vtType, node)
+        workflow_exec.db_version = version
+        workflow_execs.append(workflow_exec)
+    return workflow_execs
+
+def open_log_from_xml(filename, was_appended=False, do_translate=True,
+                      target_version=None):
     """open_log_from_xml(filename) -> DBLog"""
+
+    # do_translate=False cannot work for those that were appended, use
+    # open_wf_execs_from_xml for that
+    if target_version is None:
+        target_version = get_current_version()
     if was_appended:
-        parser = ElementTree.XMLTreeBuilder()
-        parser.feed("<log>\n")
-        f = open(filename, "rb")
-        parser.feed(f.read())
-        parser.feed("</log>\n")
-        root = parser.close()
-        workflow_execs = []
-        for node in root:
-            version = get_version_for_xml(node)
-            daoList = getVersionDAO(version)
-            workflow_exec = \
-                daoList.read_xml_object(DBWorkflowExec.vtType, node)
-            if version != currentVersion:
-                # if version is wrong, dump this into a dummy log object, 
-                # then translate, then get workflow_exec back
+        raw_wf_execs = open_wf_execs_from_xml(filename)
+        wf_execs = []
+        for wf_exec in raw_wf_execs:
+            # have to translate
+            version = wf_exec.db_version
+            if version != get_current_version():
                 log = DBLog()
-                translate_log(log, currentVersion, version)
-                log.db_add_workflow_exec(workflow_exec)
-                log = translate_log(log, version)
-                workflow_exec = log.db_workflow_execs[0]
-            workflow_execs.append(workflow_exec)
-        log = DBLog(workflow_execs=workflow_execs)
+                # we have to translate to put into one log
+                log = translate_log(log, get_current_version(), version)
+                log.db_add_workflow_exec(wf_exec)
+                log = translate_log(log, version, get_current_version())
+                wf_exec = log.db_workflow_execs[0]
+                wf_execs.append(wf_exec)
+            else:
+                wf_execs.append(wf_exec)
+        log = DBLog(workflow_execs=wf_execs)
+        log.db_version = get_current_version()
+        if do_translate and target_version != get_current_version():
+            log = translate_log(log, get_current_version(), target_version)
         vistrails.db.services.log.update_ids(log)
     else:
         tree = ElementTree.parse(filename)
         version = get_version_for_xml(tree.getroot())
         daoList = getVersionDAO(version)
         log = daoList.open_from_xml(filename, DBLog.vtType, tree)
-        log = translate_log(log, version)
+        if do_translate:
+            log = translate_log(log, version)
         vistrails.db.services.log.update_id_scope(log)
     return log
+
+    #     parser = ElementTree.XMLTreeBuilder()
+    #     parser.feed("<log>\n")
+    #     f = open(filename, "rb")
+    #     parser.feed(f.read())
+    #     parser.feed("</log>\n")
+    #     root = parser.close()
+    #     workflow_execs = []
+    #     for node in root:
+    #         version = get_version_for_xml(node)
+    #         daoList = getVersionDAO(version)
+    #         workflow_exec = \
+    #             daoList.read_xml_object(DBWorkflowExec.vtType, node)
+    #         if version != get_current_version():
+    #             # if version is wrong, dump this into a dummy log object,
+    #             # then translate, then get workflow_exec back
+    #             log = DBLog()
+    #             # we have to translate to put into one log
+    #             translate_log(log, get_current_version(), version)
+    #             log.db_add_workflow_exec(workflow_exec)
+    #             log = translate_log(log, version)
+    #             workflow_exec = log.db_workflow_execs[0]
+    #         workflow_execs.append(workflow_exec)
+    #     log = DBLog(workflow_execs=workflow_execs)
+    #     log.db_version = get_current_version()
+    #     vistrails.db.services.log.update_ids(log)
+    # else:
+    #     tree = ElementTree.parse(filename)
+    #     version = get_version_for_xml(tree.getroot())
+    #     daoList = getVersionDAO(version)
+    #     log = daoList.open_from_xml(filename, DBLog.vtType, tree)
+    #     if do_translate:
+    #         log = translate_log(log, version)
+    #     vistrails.db.services.log.update_id_scope(log)
+    # return log
 
 def open_log_from_db(db_connection, id, lock=False, version=None):
     """open_log_from_db(db_connection, id : long: lock: bool, version: str) 
@@ -1275,9 +1301,10 @@ def open_vt_log_from_db(db_connection, vt_id, version=None):
 
 def save_log_to_xml(log, filename, version=None, do_append=False):
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not log.db_version:
-        log.db_version = currentVersion
+        log.db_version = get_current_version()
+    # print "SAVING LOG:", version, log.db_version
     log = translate_log(log, log.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1314,9 +1341,9 @@ def save_log_to_db(log, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not log.db_version:
-        log.db_version = currentVersion
+        log.db_version = get_current_version()
     log = translate_log(log, log.db_version, version)
     dao_list = getVersionDAO(version)
 
@@ -1350,7 +1377,7 @@ def save_opm_to_xml(opm_graph, filename, version=None):
     # FIXME, we're using workflow, version, and log here...
     # which aren't in DBOpmGraph...
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     daoList = getVersionDAO(version)
     tags = {'xmlns': 'http://openprovenance.org/model/v1.01.a',
             }
@@ -1368,7 +1395,7 @@ def save_prov_to_xml(prov_document, filename, version=None):
     # FIXME, we're using workflow, version, and log here...
     # which aren't in DBProvDocument...
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     daoList = getVersionDAO(version)
     tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
             'xmlns:dcterms': 'http://purl.org/dc/terms/',
@@ -1414,9 +1441,9 @@ def save_registry_to_xml(registry, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/registry.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not registry.db_version:
-        registry.db_version = currentVersion
+        registry.db_version = get_current_version()
     registry = translate_registry(registry, registry.db_version, version)
 
     daoList = getVersionDAO(version)
@@ -1439,9 +1466,9 @@ def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
     if version is None:
         version = get_db_version(db_connection)
         if version is None:
-            version = currentVersion
+            version = get_current_version()
     if not registry.db_version:
-        registry.db_version = currentVersion
+        registry.db_version = get_current_version()
     registry = translate_registry(registry, registry.db_version, version)
     dao_list = getVersionDAO(version)
 
@@ -1496,9 +1523,9 @@ def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
             abs.db_id = None
             abs.db_last_modified = get_current_time(db_connection)
             version = get_db_version(db_connection)
-            version = version if version else currentVersion
+            version = version if version else get_current_version()
             if not abs.db_version:
-                abs.db_version = currentVersion
+                abs.db_version = get_current_version()
             abs = translate_vistrail(abs, abs.db_version, version)
             # Always copy for now
             getVersionDAO(version).save_to_db(db_connection, abs, True)
@@ -1636,7 +1663,7 @@ def save_thumbnails_to_db(absfnames, db_connection):
     return None
 ##############################################################################
 # Mashup I/O
-def open_mashuptrail_from_xml(filename):
+def open_mashuptrail_from_xml(filename, do_translate=True):
     """open_mashuptrail_from_xml(filename) -> Mashuptrail"""
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
@@ -1652,9 +1679,9 @@ def open_mashuptrail_from_xml(filename):
         mashuptrail = daoList.open_from_xml(filename, DBMashuptrail.vtType, tree)
         if old_version == "0.1.0":
             mashuptrail.db_version = version
-        Mashuptrail.convert(mashuptrail)
-        mashuptrail.currentVersion = mashuptrail.getLatestVersion()
-        mashuptrail.updateIdScope()
+        if do_translate:
+            mashuptrail = translate_mashup(mashuptrail, version)
+        vistrails.db.services.mashup.update_id_scope(mashuptrail)
     except VistrailsDBException, e:
         msg = "There was a problem when reading mashups from the xml file: "
         msg += str(e)
@@ -1666,7 +1693,7 @@ def save_mashuptrail_to_xml(mashuptrail, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/mashup.xsd'
             }
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     
     if not mashuptrail.db_version:
         mashuptrail.db_version = version
@@ -1725,9 +1752,9 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
             mashuptrail.db_last_modified = get_current_time(db_connection)
             mashuptrail.db_id = None
             version = get_db_version(db_connection)
-            version = version if version else currentVersion
+            version = version if version else get_current_version()
             if not mashuptrail.db_version:
-                mashuptrail.db_version = currentVersion
+                mashuptrail.db_version = get_current_version()
             #FIXME: This must be enabled at some point
             #mashuptrail = translate_vistrail(mashuptrail, mashuptrail.db_version, version)
             # Always copy for now
@@ -1753,9 +1780,9 @@ def open_startup_from_xml(filename):
 def save_startup_to_xml(startup, filename, version=None):
     tags = {}
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     if not startup.db_version:
-        startup.db_version = currentVersion
+        startup.db_version = get_current_version()
     # FIXME add translation, etc.
     # startup = translate_startup(startup, startup.db_version, version)
 
@@ -1774,7 +1801,7 @@ def delete_entity_from_db(db_connection, type, obj_id):
         raise VistrailsDBException(msg)
     version = get_db_version(db_connection)
     if version is None:
-        version = currentVersion
+        version = get_current_version()
     dao_list = getVersionDAO(version)
     dao_list.delete_from_db(db_connection, type, obj_id)
     db_connection.commit()
@@ -1835,49 +1862,675 @@ def remove_temp_folder(temp_dir):
 
 
 class TestDBIO(unittest.TestCase):
-    def test1(self):
-        """test importing an xml file"""
+    # def test1(self):
+    #     """test importing an xml file"""
 
-        vistrail = open_vistrail_from_xml( \
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy.xml'))
-        assert vistrail is not None
-        
-    def test2(self):
-        """test importing an xml file"""
+    #     vistrail = open_vistrail_from_xml( \
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy.xml'))
+    #     assert vistrail is not None
 
-        vistrail = open_vistrail_from_xml( \
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy_new.xml'))
-        assert vistrail is not None
+    # def test2(self):
+    #     """test importing an xml file"""
 
-    def test3(self):
-        """test importing a vt file"""
+    #     vistrail = open_vistrail_from_xml( \
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy_new.xml'))
+    #     assert vistrail is not None
 
-        # FIXME include abstractions
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
-            DBVistrail.vtType,
-            os.path.join(vistrails.core.system.vistrails_root_directory(),
-                         'tests/resources/dummy_new.vt'))
-        assert save_bundle.vistrail is not None
+    # def test3(self):
+    #     """test importing a vt file"""
 
-    def test4(self):
-        """ test saving a vt file """
+    #     # FIXME include abstractions
+    #     (save_bundle, vt_save_dir) = open_bundle_from_zip_xml( \
+    #         DBVistrail.vtType,
+    #         os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                      'tests/resources/dummy_new.vt'))
+    #     assert save_bundle.vistrail is not None
 
-        # FIXME include abstractions
-        testdir = tempfile.mkdtemp(prefix='vt_')
-        filename = os.path.join(testdir, 'dummy_new.vt')
+    # def test4(self):
+    #     """ test saving a vt file """
+
+    #     # FIXME include abstractions
+    #     testdir = tempfile.mkdtemp(prefix='vt_')
+    #     filename = os.path.join(testdir, 'dummy_new.vt')
+
+    #     try:
+    #         (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(
+    #             DBVistrail.vtType,
+    #             os.path.join(vistrails.core.system.vistrails_root_directory(),
+    #                          'tests/resources/dummy_new.vt'))
+    #         try:
+    #             save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
+    #             if os.path.isfile(filename):
+    #                 os.unlink(filename)
+    #         except Exception, e:
+    #             self.fail(str(e))
+    #     finally:
+    #         os.rmdir(testdir)
+
+    pass
+
+from vistrails.db.versions.v2_0_0.tests.auto_gen import \
+    DBVistrailTest, DBWorkflowTest, DBLogTest, DBRegistryTest, DBGroupTest, \
+    DBActionAnnotationTest, DBMashuptrailTest
+
+# helper function for translation tests
+def get_alternate_tests(version):
+    from vistrails.db.versions import get_version_path
+    def test_actionAnnotations(vt1, vt2, test_class, alternate_tests):
+        vt1_action_annotations = {}
+        for a in vt1.db_actionAnnotations:
+            a_t = (a.db_key, a.db_action_id)
+            if a_t in vt1_action_annotations:
+                raise AssertionError("Action annotation %s duplicated" %
+                                     unicode(a_t))
+            vt1_action_annotations[a_t] = a
+        for a2 in vt2.db_actionAnnotations:
+            a_t = (a2.db_key, a2.db_action_id)
+            if a_t not in vt1_action_annotations:
+                raise AssertionError("Action annotation %s not matched" %
+                                     unicode(a_t))
+            a1 = vt1_action_annotations[a_t]
+            DBActionAnnotationTest.deep_eq_test(a1, a2, test_class, alternate_tests)
+            del vt1_action_annotations[a_t]
+        if len(vt1_action_annotations) > 0:
+            a_t = vt1_action_annotations.iterkeys().next()
+            raise AssertionError("Action annotation %s not matched" %
+                                 unicode(a_t))
+
+    # this works around the fact that sql backend needs to persist the
+    # workflow with an id while the xml version doesn't
+    def test_group_workflow(g1, g2, test_class, alternate_tests):
+        self_func = alternate_tests[('DBGroup', 'db_workflow')]
+        del alternate_tests[('DBGroup', 'db_workflow')]
+
+        sql_only_fields = ['db_id', 'db_entity_type', 'db_entity_id']
+        old_tests = {}
+        for field in sql_only_fields:
+            field_t = ('DBWorkflow', field)
+            if field_t in alternate_tests:
+                old_tests[field] = alternate_tests[field_t]
+            alternate_tests[field_t] = None
+        try:
+            DBGroupTest.deep_eq_test(g1, g2, test_class, alternate_tests)
+        finally:
+            alternate_tests[('DBGroup', 'db_workflow')] = self_func
+            for field in sql_only_fields:
+                if field in old_tests:
+                    alternate_tests[('DBWorkflow', field)] = old_tests[field]
+                else:
+                    del alternate_tests[('DBWorkflow', field)]
+
+    alternate_dict = {None:
+                      {('DBVistrail', 'db_entity_type'): None,
+                       ('DBVistrail', 'db_last_modified'): None,
+                       #FIXME add session upgrade logic
+                       ('DBAction', 'db_session'): None,
+                       ('DBGroup', 'db_workflow'): test_group_workflow},
+                      ('1.0.4','2.0.0'): {
+                          ('DBPortSpec', 'db_union'): None,
+                      },
+                      ('1.0.3', '1.0.4'):
+                      {('DBPortSpec', 'db_depth'): None,
+                       #FIXME find a better way to deal with machine_id changes
+                       ('DBMachine', 'db_id'): None,
+                       ('DBModuleExec', 'db_machine_id'): None,
+                       ('DBGroupExec', 'db_machine_id'): None},
+                      ('1.0.2', '1.0.3'):
+                      {('DBPortSpecItem', 'db_id'): None,
+                       ('DBPortSpecItem', 'db_values'): None,
+                       ('DBPortSpecItem', 'db_entry_type'): None,
+                       ('DBPortSpec', 'db_min_conns'): None,
+                       ('DBPortSpec', 'db_max_conns'): None,
+                       ('DBVistrail', 'db_parameter_explorations'): None},
+                      ('1.0.1', '1.0.2'):
+                      {('DBActionAnnotation', 'db_date'): None,
+                       ('DBActionAnnotation', 'db_user'): None,
+                       ('DBActionAnnotation', 'db_id'): None,
+                       ('DBVistrail', 'db_actionAnnotations'): \
+                           test_actionAnnotations,
+                       ('DBWorkflowExec', 'db_annotations'): None},
+                      ('1.0.0', '1.0.1'):
+                      {('DBPortSpecItem', 'db_default'): None,
+                       ('DBPortSpecItem', 'db_label'): None},
+                      ('0.9.4', '0.9.5'):
+                      # FIXME should really test the module execs...
+                      {('DBWorkflowExec', 'db_item_execs'): None},
+                      ('0.9.3', '0.9.4'):
+                      {('DBPortSpec', 'db_sort_key'): None,
+                       ('DBAbstraction', 'db_namespace'): None,
+                       ('DBAbstraction', 'db_package'): None,
+                       ('DBAbstraction', 'db_version'): None}
+                      }
+
+    path = get_version_path(version, get_current_version())
+    alternate_tests = {}
+    alternate_tests.update(alternate_dict[None])
+    for t in path:
+        if t in alternate_dict:
+            alternate_tests.update(alternate_dict[t])
+    return alternate_tests
+
+class TranslationMixin(object):
+    # @staticmethod
+    # def create_external_data():
+    #     return ExternalData()
+    #
+    # @staticmethod
+    # def invert_remaps(external_data):
+    #     # reverse the maps
+    #     id_remap = external_data['id_remap']
+    #     group_remaps = external_data['group_remaps']
+    #     group_remaps = {id_remap[('module', gid)]:
+    #                         {(t, k2): k1 for ((t, k1), k2) in
+    #                          remap.iteritems()}
+    #                     for (gid, remap) in group_remaps.iteritems()}
+    #     external_data["group_remaps"] = group_remaps
+    #     id_remap = {(t, k2): k1 for ((t, k1), k2) in id_remap.iteritems()}
+    #     external_data["id_remap"] = id_remap
+    #
+    # @staticmethod
+    # def remove_non_unique(external_data):
+    #     non_unique = set(['annotation'])
+    #     new_remap = {}
+    #     for ((t, k1), k2) in external_data["id_remap"].iteritems():
+    #         if t not in non_unique:
+    #             new_remap[(t, k1)] = k2
+    #     external_data["id_remap"] = new_remap
+    #
+    # @staticmethod
+    # def duplicate_extdata(external_data):
+    #     return {k: copy.copy(v) for k,v in external_data.iteritems()}
+    pass
+
+import itertools
+import os
+
+class TestMeta(type):
+    # Based on http://stackoverflow.com/a/20870875
+
+    @classmethod
+    def get_tests(mcs):
+        raise NotImplementedError("Child metaclass should implement this")
+
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        raise NotImplementedError("Child metaclass should implement this")
+
+    def __new__(mcs, name, bases, dict):
+        all_tests = mcs.get_tests()
+        for obj_type, params_list in all_tests:
+            # print "__NEW__:", obj_type, params_list
+            for params in params_list:
+                params_str = ""
+                # print version, obj_type, params
+                if params:
+                    short_params = []
+                    for p in params:
+                        if isinstance(p, basestring) and os.path.exists(p):
+                            p = os.path.splitext(os.path.basename(p))[0]
+                        p = p.replace(' ', '_').replace('.', '_')
+                        short_params.append(p)
+                    params_str = "_" + "_".join(str(x) for x in short_params)
+                test_name = "test_{}{}".format(obj_type, params_str)
+                # # hack to run only one test
+                # if test_name == "test_vistrail_0_9_3_test_basics":
+                #     dict[test_name] = mcs.gen_test(obj_type, *params)
+                dict[test_name] = mcs.gen_test(obj_type, *params)
+        return type.__new__(mcs, name, bases, dict)
+
+class TestXMLMeta(TestMeta):
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        if obj_type == 'vistrail':
+            def test(self):
+                self.run_save_and_reload_vistrail(*args, **kwargs)
+        elif obj_type == 'workflow':
+            def test(self):
+                self.run_save_and_reload_workflow(*args, **kwargs)
+        else:
+            raise ValueError(
+                'Test not defined for object type "{}"'.format(obj_type))
+        return test
+
+    @classmethod
+    def get_tests(mcs):
+        from vistrails.core.system import vistrails_root_directory
+        terminator_fname = os.path.join(vistrails_root_directory(),
+                                        'tests', 'resources',
+                                        'terminator-new.vt')
+        basics_fname = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources',
+                                    'test_basics.vt')
+        filenames = [basics_fname, terminator_fname]
+        tags = [['pasted',], ['Image Slices HW',]]
+        versions = ['0.9.3', '0.9.5', '1.0.1', '1.0.4']
+        params = [('vistrail', [(f,) for f in filenames]),
+                  ('workflow', [(f, t)
+                                for f, tlist in itertools.izip(filenames, tags)
+                                for t in tlist]),
+                  # ('log', [(f,) for f in filenames]),
+                  # ('registry', [tuple(),]),
+                  # ('bundle', [(f,) for f in filenames])
+                  ]
+        all_tests = [(k2, [(k1,) + v for v in vlist])
+                     for (k1, (k2, vlist)) in itertools.product(versions, params)]
+        return all_tests
+
+
+class TestXMLFile(TranslationMixin, unittest.TestCase):
+    __metaclass__ = TestXMLMeta
+
+    def run_save_and_reload_vistrail(self, version, filename):
+        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+        vt1 = bundle.vistrail
+
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+        os.close(h)
 
         try:
-            (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(
-                DBVistrail.vtType,
-                os.path.join(vistrails.core.system.vistrails_root_directory(),
-                             'tests/resources/dummy_new.vt'))
-            try:
-                save_bundle_to_zip_xml(save_bundle, filename, vt_save_dir)
-                if os.path.isfile(filename):
-                    os.unlink(filename)
-            except Exception, e:
-                self.fail(str(e))
+            # do translate here to allow id remap
+            external_data = GroupExternalData()
+            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
+            external_data.invert_remaps()
+            # self.invert_remaps(external_data)
+            save_vistrail_to_xml(vt2, fname, version)
+            vt3 = open_vistrail_from_xml(fname, do_translate=False)
+            vt3 = translate_vistrail(vt2, version, get_current_version(), external_data)
+            DBVistrailTest.deep_eq_test(vt1, vt3, self, get_alternate_tests(version))
         finally:
-            os.rmdir(testdir)
+            os.unlink(fname)
+            shutil.rmtree(save_dir)
+
+    def run_save_and_reload_workflow(self, version, filename, tagname):
+        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+        vt = bundle.vistrail
+
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+        os.close(h)
+        try:
+            for aa in vt.db_actionAnnotations:
+                if aa.db_key == '__tag__' and aa.db_value == tagname:
+                    action_id = aa.db_action_id
+            wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt,
+                                                                     action_id)
+            #FIXME should this be done in materializeWorkflow?
+            wf1.db_version = get_current_version()
+            # do translate here to allow id remap
+            external_data = GroupExternalData()
+            wf2 = translate_workflow(wf1, get_current_version(), version, external_data)
+            save_workflow_to_xml(wf2, fname, version)
+            external_data.invert_remaps()
+            wf3 = open_workflow_from_xml(fname, do_translate=False)
+            wf3 = translate_workflow(wf2, version, get_current_version(), external_data)
+            DBWorkflowTest.deep_eq_test(wf1, wf3, self, get_alternate_tests(version))
+        finally:
+            os.unlink(fname)
+            shutil.rmtree(save_dir)
+
+class TestSQLDatabaseMeta(TestMeta):
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        if obj_type == 'vistrail':
+            def test(self):
+                self.run_save_and_reload_vistrail(*args, **kwargs)
+        else:
+            raise ValueError(
+                'Test not defined for object type "{}"'.format(obj_type))
+        return test
+
+    @classmethod
+    def get_tests(mcs):
+        from vistrails.core.system import vistrails_root_directory
+        terminator_fname = os.path.join(vistrails_root_directory(),
+                                        'tests', 'resources',
+                                        'terminator-new.vt')
+        basics_fname = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources',
+                                    'test_basics.vt')
+        filenames = [basics_fname, terminator_fname]
+        tags = [['pasted',], ['Image Slices HW',]]
+        params = [('vistrail', [(f,) for f in filenames]),
+                  # ('workflow', [(f, t)
+                  #               for f, tlist in itertools.izip(filenames, tags)
+                  #               for t in tlist]),
+                  # ('log', [(f,) for f in filenames]),
+                  # ('registry', [tuple(),]),
+                  # ('bundle', [(f,) for f in filenames])
+                  ]
+        all_tests = params
+        return all_tests
+
+class TestMySQLDatabase(TranslationMixin):
+    __metaclass__ = TestSQLDatabaseMeta
+
+    conn = None
+
+    @classmethod
+    def get_config(cls):
+        return {"user": "vt_test",
+                # "passwd": None,
+                "host": "localhost",
+                # "port": None,
+                "db": "vt_test",
+                "version": cls.db_version}
+
+    @classmethod
+    def get_version(cls):
+        c = cls.get_config()
+        if 'version' in c:
+            return c['version']
+        return None
+
+    @classmethod
+    def setUpClass(cls):
+        config = copy.copy(cls.get_config())
+        version = None
+        if 'version' in config:
+            version = config['version']
+            del config['version']
+        cls.conn = open_db_connection(config)
+        setup_db_tables(cls.conn, version)
+
+    @classmethod
+    def tearDownClass(cls):
+        version = cls.get_version()
+        setup_db_tables(cls.conn, version, only_drop=True)
+        close_db_connection(cls.conn)
+        cls.conn = None
+
+    # def test_save_bundle(self):
+    #     (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
+    #     try:
+    #         save_vistrail_bundle_to_db(bundle, self.conn, True, save_wfs=False)
+    #     finally:
+    #         shutil.rmtree(save_dir)
+
+    def run_save_and_reload_vistrail(self, filename):
+        version = self.get_version()
+        (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+        vt1 = bundle.vistrail
+        # print "VT1 version", vt1.db_version, vt1.db_id
+        try:
+            # do translate here to allow id remap
+            external_data = GroupExternalData()
+            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
+            # print "EXTERNAL_DATA:", external_data
+            external_data.invert_remaps()
+            # print "VT2 version", vt2.db_version, vt2.db_id
+            vt3 = save_vistrail_to_db(vt2, self.conn, True, version, save_wfs=False,
+                                      do_translate=False)
+            # HACK because db will autoinc vt3 id which doesn't match the id
+            # from original load
+            vt_start_k = None
+            for k, v in external_data.id_remap.iteritems():
+                if k[0] == 'vistrail':
+                    vt_start_k = k
+            if vt_start_k is not None:
+                external_data.id_remap[('vistrail', vt3.db_id)] = \
+                    external_data.id_remap[vt_start_k]
+            # print "VT3 version", vt3.db_version, vt3.db_id
+            vt_id = vt3.db_id
+            vt4 = open_vistrail_from_db(self.conn, vt_id, do_translate=False)
+            # print "VT4 version", vt4.db_version, vt4.db_id
+            # print "INV EXTERNAL_DATA:", external_data
+            vt4 = translate_vistrail(vt4, version, get_current_version(), external_data)
+            # print "VT5 version", vt4.db_version, vt4.db_id
+            DBVistrailTest.deep_eq_test(vt1, vt4, self, get_alternate_tests(version))
+        finally:
+            shutil.rmtree(save_dir)
+
+    # def test_z_get_db_object_list(self):
+    #     print get_db_object_list(self.conn, DBVistrail.vtType)
+
+    # def test_z_get_db_object_modification_time(self):
+    #     print "OBJ MOD TIME:", \
+    #         get_db_object_modification_time(self.conn, 1, DBVistrail.vtType)
+
+    # def test_z_get_db_object_version(self):
+    #     print "OBJ VERSION:", \
+    #         get_db_object_version(self.conn, 1, DBVistrail.vtType)
+
+    # def test_z_get_saved_workflows(self):
+    #     print get_saved_workflows(self.conn, 1)
+
+    # def test_z_get_db_id_from_name(self):
+    #     raise Exception("Need to implement this test")
+
+    # def test_z_get_db_abstraction_modification_time(self):
+    #     raise Exception("Need to implement this test")
+
+    # def test_z_get_db_ids_from_vistrail(self):
+    #     raise Exception("Need to implement this test")
+
+    # def test_z_get_matching_abstraction_id(self):
+    #     raise Exception("Need to implement this test")
+
+
+# class TestMySQLDatabase_v1_0_2(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '1.0.2'
+#
+# class TestMySQLDatabase_v1_0_3(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '1.0.3'
+
+# class TestMySQLDatabase_v1_0_4(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '1.0.4'
+
+class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
+    db_version = '2.0.0'
+
+# class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
+#     db_fname = None
+#
+#     @classmethod
+#     def get_db_fname(cls):
+#         if cls.db_fname is None:
+#             import os
+#             import tempfile
+#             (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+#             os.close(h)
+#             cls.db_fname = fname
+#         return cls.db_fname
+#
+#     @classmethod
+#     def get_config(cls):
+#         return {"dialect": "sqlite",
+#                 "db": cls.get_db_fname(),
+#                 "version": "1.0.5"}
+#
+#     @classmethod
+#     def tearDownClass(cls):
+#         super(TestSQLite3Database, cls).tearDownClass()
+#         os.unlink(cls.db_fname)
+
+class TestTranslationsMeta(TestMeta):
+    @classmethod
+    def gen_test(mcs, obj_type, *args, **kwargs):
+        if obj_type == 'vistrail':
+            def test(self):
+                self.run_vistrail_translation_test(*args, **kwargs)
+        elif obj_type == 'workflow':
+            def test(self):
+                self.run_workflow_translation_test(*args, **kwargs)
+        elif obj_type == 'log':
+            def test(self):
+                self.run_log_translation_test(*args, **kwargs)
+        elif obj_type == 'registry':
+            def test(self):
+                self.run_registry_translation_test(*args, **kwargs)
+        elif obj_type == 'bundle':
+            def test(self):
+                self.run_bundle_translation_test(*args, **kwargs)
+        else:
+            raise ValueError(
+                'Test not defined for object type "{}"'.format(obj_type))
+        return test
+
+    @classmethod
+    def get_tests(mcs):
+        from vistrails.core.system import vistrails_root_directory
+        terminator_fname = os.path.join(vistrails_root_directory(),
+                                        'tests', 'resources',
+                                        'terminator-new.vt')
+        basics_fname = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources',
+                                    'test_basics.vt')
+        filenames = [basics_fname, terminator_fname]
+        tags = [['pasted',], ['Image Slices HW',]]
+        versions = ['0.9.3', '0.9.5', '1.0.1', '1.0.4']
+        params = [('vistrail', [(f,) for f in filenames]),
+                  ('workflow', [(f, t)
+                                for f, tlist in itertools.izip(filenames, tags)
+                                for t in tlist]),
+                  ('log', [(f,) for f in filenames]),
+                  ('registry', [tuple(),]),
+                  ('bundle', [(f,) for f in filenames])]
+        all_tests = {(k1, k2): v
+                     for (k1, (k2, v)) in itertools.product(versions, params)}
+        del all_tests[('0.9.3', 'registry')]
+        del all_tests[('0.9.3', 'bundle')]
+        del all_tests[('0.9.5', 'bundle')]
+
+        # reformat to move version to parameter
+        all_tests = [(k2, [(k1,) + v for v in vlist])
+                     for (k1, k2), vlist in all_tests.iteritems()]
+        return all_tests
+
+class TestTranslations(TranslationMixin, unittest.TestCase):
+    """Metaclass will generate tests that look like:
+
+    test_vistrail_1_0_4_test_basics
+    test_workflow_0_9_5_terminator_Image_Slices_HW
+    """
+    __metaclass__ = TestTranslationsMeta
+
+    def run_vistrail_translation_test(self, version, filename):
+        save_dir = None
+        try:
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+            vt1 = bundle.vistrail
+            external_data = GroupExternalData()
+            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
+            external_data.invert_remaps()
+            vt2 = translate_vistrail(vt2, version, get_current_version(), external_data)
+            DBVistrailTest.deep_eq_test(vt1, vt2, self, get_alternate_tests(version))
+        finally:
+            if save_dir is not None:
+                shutil.rmtree(save_dir)
+
+    def run_workflow_translation_test(self, version, filename, tagname):
+        save_dir = None
+        try:
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+            vt = bundle.vistrail
+            # 258 is Image Slices HW in terminator.vt
+            # 20 is the executed version in test_basics.vt
+            for aa in vt.db_actionAnnotations:
+                if aa.db_key == '__tag__' and aa.db_value == tagname:
+                    action_id = aa.db_action_id
+            wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, action_id)
+            # FIXME may set db_version in materializeWorkflow?
+            wf1.db_version = get_current_version()
+            external_data = GroupExternalData()
+            wf2 = translate_workflow(wf1, get_current_version(), version, external_data)
+            external_data.invert_remaps()
+            wf2 = translate_workflow(wf2, version, get_current_version(), external_data)
+            DBWorkflowTest.deep_eq_test(wf1, wf2, self, get_alternate_tests(version))
+        finally:
+            if save_dir is not None:
+                shutil.rmtree(save_dir)
+
+    def run_log_translation_test(self, version, filename):
+        save_dir = None
+        try:
+            # have to translate the vistrail along with the log
+            (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+            log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True) # load
+            log1.db_id = log1.id_scope.getNewId(DBLog.vtType)
+            external_data = ExternalData()
+            log2 = translate_log(log1, get_current_version(), version, external_data)
+            external_data.invert_remaps()
+            log2 = translate_log(log2, version, get_current_version(), external_data)
+            DBLogTest.deep_eq_test(log1, log2, self, get_alternate_tests(version))
+        finally:
+            if save_dir is not None:
+                shutil.rmtree(save_dir)
+
+    def run_registry_translation_test(self, version):
+        from vistrails.core.modules.module_registry import get_module_registry
+
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+        os.close(h)
+        try:
+            out_fname = save_registry_to_xml(get_module_registry(), fname)
+            reg1 = open_registry_from_xml(fname)
+            external_data = ExternalData()
+            reg2 = translate_registry(reg1, get_current_version(), version, external_data)
+            # external_data.print_remaps()
+            external_data.invert_remaps()
+            reg2 = translate_registry(reg2, version, get_current_version(), external_data)
+            DBRegistryTest.deep_eq_test(reg1, reg2, self, get_alternate_tests(version))
+        finally:
+            os.unlink(fname)
+
+    def load_log(self, filename, target_version=None):
+        if target_version is None:
+            target_version = get_current_version()
+        raw_wf_execs = open_wf_execs_from_xml(filename)
+        wf_execs = []
+        for wf_exec in raw_wf_execs:
+            # have to translate
+            version = wf_exec.db_version
+            if version != target_version:
+                log = DBLog()
+                # we have to translate to put into one log
+                log = translate_log(log, get_current_version(), version)
+                log.db_add_workflow_exec(wf_exec)
+                log = translate_log(log, target_version, version)
+                wf_exec = log.db_workflow_execs[0]
+                wf_execs.append(wf_exec)
+            else:
+                wf_execs.append(wf_exec)
+        log = DBLog()
+        log = translate_log(log, get_current_version(), target_version)
+        for wf_exec in wf_execs:
+            log.db_add_workflow_exec(wf_exec)
+        log.db_version = target_version
+        vistrails.db.services.log.update_ids(log)
+        return log
+
+    def run_bundle_translation_test(self, version, filename):
+        save_dir = None
+        try:
+            #FIXME add mashups/abstractions/registry/workflow
+            # no current bundle contains registry or workflow
+            (bundle1, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
+            external_data = ExternalData()
+            bundle2 = translate_bundle(bundle1, get_current_version(), version, external_data)
+
+            # print "REMAPS:", external_data.print_remaps("S ")
+            external_data.invert_remaps()
+            # print "INV REMAPS:", external_data.print_remaps("I ")
+
+            bundle2 = translate_bundle(bundle2, version, get_current_version(), external_data)
+            # print "FINAL REMAPS:", external_data.print_remaps("F ")
+
+            DBVistrailTest.deep_eq_test(bundle1.vistrail, bundle2.vistrail,
+                                        self, get_alternate_tests(version))
+            DBLogTest.deep_eq_test(bundle1.log, bundle2.log,
+                                   self, get_alternate_tests(version))
+            for mashup1, mashup2 in izip(bundle1.mashups, bundle2.mashups):
+                DBMashuptrailTest.deep_eq_test(mashup1, mashup2,
+                                           self, get_alternate_tests(version))
+            for subwf1, subwf2 in izip(bundle1.subworkflows, bundle2.subworkflows):
+                DBVistrailTest.deep_eq_test(subwf1, subwf2, self,
+                                        get_alternate_tests(version))
+        finally:
+            if save_dir is not None:
+                shutil.rmtree(save_dir)
+
+if __name__ == '__main__':
+    import vistrails.core.application
+    vistrails.core.application.init()
+    unittest.main()

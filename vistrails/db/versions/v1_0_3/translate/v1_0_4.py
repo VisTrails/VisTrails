@@ -35,9 +35,10 @@
 ###############################################################################
 from __future__ import division
 
+import copy
 from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBAnnotation, \
-                                      DBWorkflow, DBLog, DBRegistry, \
-                                      DBPortSpec, DBAdd, DBChange, DBDelete
+    DBWorkflow, DBLog, DBRegistry, DBPortSpec, DBAdd, DBChange, DBDelete, \
+    DBMashuptrail, DBMachine
 from vistrails.core import debug
 from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
@@ -81,26 +82,37 @@ def translateVistrail(_vistrail):
     vistrail.db_version = '1.0.3'
     return vistrail
 
-def translateWorkflow(_workflow):
-    def update_workflow(old_obj, translate_dict):
-        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
-    translate_dict = {'DBGroup': {'workflow': update_workflow}}
-    workflow = DBWorkflow.update_version(_workflow, translate_dict)
-
-    workflow.db_version = '1.0.3'
-    return workflow
+machine_id = 1
+machine_id_remap = {}
 
 def translateLog(_log):
-    translate_dict = {}
+    global machine_id, machine_id_remap
+    machines = {}
+    def update_machines(old_obj, trans_dict):
+        global machine_id, machine_id_remap
+        machine_id_remap = {}
+        for m in old_obj.db_machines:
+            old_id = m.db_id
+            m_key = (m.db_name, m.db_os, m.db_architecture, m.db_processor,
+                     m.db_ram)
+            if m_key not in machines:
+                new_machine = DBMachine.update_version(m, trans_dict)
+                new_machine.db_id = machine_id
+                machines[m_key] = new_machine
+                machine_id_remap[old_id] = machine_id
+                machine_id += 1
+            else:
+                machine_id_remap[old_id] = machines[m_key].db_id
+        return old_obj.db_completed
+    def update_machine_id(old_obj, trans_dict):
+        if old_obj.db_machine_id in machine_id_remap:
+            return machine_id_remap[old_obj.db_machine_id]
+        return old_obj.db_machine_id
+    translate_dict = {'DBWorkflowExec': {'completed': update_machines},
+                      'DBModuleExec': {'machine_id': update_machine_id},
+                      'DBGroupExec': {'machine_id': update_machine_id}}
     log = DBLog.update_version(_log, translate_dict)
+    for m in machines.itervalues():
+        log.db_add_machine(m)
     log.db_version = '1.0.3'
     return log
-
-def translateRegistry(_registry):
-    global id_scope
-    translate_dict = {}
-    registry = DBRegistry()
-    id_scope = registry.idScope
-    vistrail = DBRegistry.update_version(_registry, translate_dict, registry)
-    registry.db_version = '1.0.3'
-    return registry

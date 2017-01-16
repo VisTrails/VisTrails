@@ -186,7 +186,7 @@ class VistrailEntity(Entity):
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
                            debug.format_exc())
-            workflow = self.vistrail.getPipeline(0)
+            workflow = self.vistrail.getPipeline(self.vistrail.ROOT_VERSION)
         if tag:
             workflow.name = tag
         # if workflow already exists, we want to update it...
@@ -257,7 +257,7 @@ class VistrailEntity(Entity):
             is_new = True
             # FIXME add new workflow entity for this version
             if version_id not in self.vistrail.actionMap:
-                raise LookupError("Version %d does not occur in vistrail." %
+                raise LookupError("Version %s does not occur in vistrail." %
                                   version_id)
             action = self.vistrail.actionMap[version_id]
             try:
@@ -270,7 +270,7 @@ class VistrailEntity(Entity):
                     tag_str = str(version_id)
                 debug.critical("Failed to construct pipeline '%s'" % tag_str,
                                debug.format_exc())
-                workflow = self.vistrail.getPipeline(0)
+                workflow = self.vistrail.getPipeline(self.vistrail.ROOT_VERSION)
             wf_entity = self.create_workflow_entity(workflow, action)
             self.wf_entity_map[version_id] = wf_entity
         else:

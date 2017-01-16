@@ -45,15 +45,16 @@ from IPython.utils.path import get_ipython_dir, locate_profile
 from IPython.parallel import Client
 from IPython.parallel import error
 
+import vistrails.core.requirements
 from vistrails.core.system import vistrails_root_directory
 
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    qt_available = False
-else:
+if vistrails.core.requirements.qt_available():
     qt_available = True
+
+    from PyQt4 import QtCore, QtGui
+else:
+    qt_available = False
 
 
 class ProfileItem(QtGui.QListWidgetItem):

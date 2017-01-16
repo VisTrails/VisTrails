@@ -181,11 +181,11 @@ class QExecutionListWidget(QtGui.QTreeWidget):
 
     def add_workflow_exec(self, workflow_exec):
         # mark as recent
-        workflow_exec.db_name = workflow_exec.db_name + '*' \
-                             if workflow_exec.db_name \
-          else '%s*' % self.controller.get_pipeline_name(
-                  workflow_exec.parent_version)
-        
+        if workflow_exec.db_name:
+            workflow_exec.db_name = workflow_exec.db_name + '*'
+        else:
+            workflow_exec.db_name = self.controller.get_pipeline_name(
+                workflow_exec.parent_version)        
         self.addTopLevelItem(QExecutionItem(workflow_exec))
        
     
@@ -461,8 +461,13 @@ class QLogView(QPipelineView):
         if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
             for e in self.controller.read_log().workflow_execs:
-                # set workflow names
-                e.db_name = controller.get_pipeline_name(e.parent_version)
+                # # set workflow names
+                # # FIXME this will not work without fixing link between
+                # # workflow and workflow_execs...
+                try:
+                    e.db_name = controller.get_pipeline_name(e.parent_version)
+                except:
+                    e.db_name = "Unknown"
                 self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
 
@@ -493,7 +498,7 @@ class QLogView(QPipelineView):
             return False
         try:
             workflow_execs = [e for e in self.log 
-                                if e.id == int(str(exec_id))]
+                                if e.id == exec_id]
         except ValueError:
             return False
         if len(workflow_execs):

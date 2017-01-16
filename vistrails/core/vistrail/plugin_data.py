@@ -88,7 +88,7 @@ class PluginData(DBPluginData):
 
 class TestPluginData(unittest.TestCase):
 
-    def create_data(self, id=1, data=""):
+    def create_data(self, id='066288ac-9b76-4ad5-ad2c-770d6c73611b', data=""):
         return PluginData(id=id, data=data)
 
     def test_create(self):

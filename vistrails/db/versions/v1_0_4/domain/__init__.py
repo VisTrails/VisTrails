@@ -37,6 +37,7 @@
 from __future__ import division
 
 from auto_gen import *
+from mashup import DBMashuptrail
 from registry import DBRegistry
 from workflow import DBWorkflow
 from vistrail import DBVistrail

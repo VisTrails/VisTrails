@@ -932,7 +932,7 @@ class TestCachedInterpreter(unittest.TestCase):
             controller = VistrailController(v, locator, abstractions,
                                             thumbnails,  mashups)
             p1 = v.getPipeline('int chain')
-            n = v.get_version_number('int chain')
+            n = v.get_version_id('int chain')
             controller.change_selected_version(n)
             controller.flush_delayed_actions()
             p1 = controller.current_pipeline

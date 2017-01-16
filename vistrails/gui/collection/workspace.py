@@ -111,8 +111,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
         app = vistrails.gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
-        args['version'] = locator.kwargs.get('version_node', None) or \
-                          locator.kwargs.get('version_tag', None)
+        args['version'] = locator.kwargs.get('version_node', None)
         if args['version']:
             # set vistrail name
             locator = widget_item.entity.parent.locator()
@@ -866,7 +865,7 @@ class QVistrailList(QtGui.QTreeWidget):
             if isinstance(version, str):
                 try:
                     version = \
-                        view.controller.vistrail.get_version_number(version)
+                        view.controller.vistrail.get_version_id(version)
                 except Exception:
                     version = None
             if self.searchMode:
@@ -884,8 +883,7 @@ class QVistrailList(QtGui.QTreeWidget):
             return
 
         args = {}
-        args['version'] = locator.kwargs.get('version_node', None) or \
-                          locator.kwargs.get('version_tag', None)
+        args['version'] = locator.kwargs.get('version_node', None)
         args['parameterExploration']=locator.kwargs.get('parameterExploration',
                                                         None)
         vistrail_widget = widget_item

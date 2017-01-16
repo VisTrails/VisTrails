@@ -766,7 +766,7 @@ class QVistrailView(QtGui.QWidget):
     def create_version_view(self):
         view = self.create_view(QVersionTreeView, False)
         self.connect(view.scene(), 
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                     QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
                      self.version_selected)
         self.connect(view.scene(),
                      QtCore.SIGNAL('diffRequested(int,int)'),
@@ -1168,10 +1168,6 @@ class QVistrailView(QtGui.QWidget):
         """
         for mashuptrail in self.controller._mashups:
             if str(mashuptrail.id) == mashuptrail_id:
-                try:
-                    mashupVersion = int(mashupVersion)
-                except ValueError:
-                    mashupVersion = mashuptrail.getTagMap()[mashupVersion]
                 mashup = mashuptrail.getMashup(mashupVersion)
                 return mashup
         return None
