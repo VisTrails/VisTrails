@@ -2931,6 +2931,8 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         optional = self.convertFromStr(data, 'int')
         data = node.get('depth', None)
         depth = self.convertFromStr(data, 'int')
+        data = node.get('union', None)
+        union = self.convertFromStr(data, 'str')
         data = node.get('sortKey', None)
         sort_key = self.convertFromStr(data, 'int')
         data = node.get('minConns', None)
@@ -2959,6 +2961,7 @@ class DBPortSpecXMLDAOBase(XMLDAO):
                          type=type,
                          optional=optional,
                          depth=depth,
+                         union=union,
                          sort_key=sort_key,
                          portSpecItems=portSpecItems,
                          min_conns=min_conns,
@@ -2976,6 +2979,7 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         node.set('type', self.convertToStr(portSpec.db_type, 'str'))
         node.set('optional', self.convertToStr(portSpec.db_optional, 'int'))
         node.set('depth', self.convertToStr(portSpec.db_depth, 'int'))
+        node.set('union', self.convertToStr(portSpec.db_union, 'str'))
         node.set('sortKey', self.convertToStr(portSpec.db_sort_key, 'int'))
         node.set('minConns', self.convertToStr(portSpec.db_min_conns, 'int'))
         node.set('maxConns', self.convertToStr(portSpec.db_max_conns, 'int'))

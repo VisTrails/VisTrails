@@ -3226,8 +3226,8 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns',
-                   'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
@@ -3242,18 +3242,20 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             type = self.convertFromDB(row[2], 'str', 'varchar(255)')
             optional = self.convertFromDB(row[3], 'int', 'int')
             depth = self.convertFromDB(row[4], 'int', 'int')
-            sort_key = self.convertFromDB(row[5], 'int', 'int')
-            min_conns = self.convertFromDB(row[6], 'int', 'int')
-            max_conns = self.convertFromDB(row[7], 'int', 'int')
-            parentType = self.convertFromDB(row[8], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[9], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[10], 'str', 'char(16)')
-            parent = self.convertFromDB(row[11], 'str', 'str')
+            union = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            sort_key = self.convertFromDB(row[6], 'int', 'int')
+            min_conns = self.convertFromDB(row[7], 'int', 'int')
+            max_conns = self.convertFromDB(row[8], 'int', 'int')
+            parentType = self.convertFromDB(row[9], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[10], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
+            parent = self.convertFromDB(row[12], 'str', 'str')
 
             portSpec = DBPortSpec(name=name,
                                   type=type,
                                   optional=optional,
                                   depth=depth,
+                                  union=union,
                                   sort_key=sort_key,
                                   min_conns=min_conns,
                                   max_conns=max_conns,
@@ -3267,8 +3269,8 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns',
-                   'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
@@ -3282,18 +3284,20 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             type = self.convertFromDB(row[2], 'str', 'varchar(255)')
             optional = self.convertFromDB(row[3], 'int', 'int')
             depth = self.convertFromDB(row[4], 'int', 'int')
-            sort_key = self.convertFromDB(row[5], 'int', 'int')
-            min_conns = self.convertFromDB(row[6], 'int', 'int')
-            max_conns = self.convertFromDB(row[7], 'int', 'int')
-            parentType = self.convertFromDB(row[8], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[9], 'str', 'char(36)')
-            entity_type = self.convertFromDB(row[10], 'str', 'char(16)')
-            parent = self.convertFromDB(row[11], 'str', 'str')
+            union = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            sort_key = self.convertFromDB(row[6], 'int', 'int')
+            min_conns = self.convertFromDB(row[7], 'int', 'int')
+            max_conns = self.convertFromDB(row[8], 'int', 'int')
+            parentType = self.convertFromDB(row[9], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[10], 'str', 'char(36)')
+            entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
+            parent = self.convertFromDB(row[12], 'str', 'str')
 
             portSpec = DBPortSpec(name=name,
                                   type=type,
                                   optional=optional,
                                   depth=depth,
+                                  union=union,
                                   sort_key=sort_key,
                                   min_conns=min_conns,
                                   max_conns=max_conns,
@@ -3323,8 +3327,8 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns',
-                   'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
         whereMap.update(global_props)
@@ -3347,6 +3351,9 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_depth') and obj.db_depth is not None:
             columnMap['depth'] = \
                 self.convertToDB(obj.db_depth, 'int', 'int')
+        if hasattr(obj, 'db_union') and obj.db_union is not None:
+            columnMap['union'] = \
+                self.convertToDB(obj.db_union, 'str', 'varchar(255)')
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
                 self.convertToDB(obj.db_sort_key, 'int', 'int')
@@ -3379,8 +3386,8 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns',
-                   'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
         whereMap.update(global_props)
@@ -3403,6 +3410,9 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_depth') and obj.db_depth is not None:
             columnMap['depth'] = \
                 self.convertToDB(obj.db_depth, 'int', 'int')
+        if hasattr(obj, 'db_union') and obj.db_union is not None:
+            columnMap['union'] = \
+                self.convertToDB(obj.db_union, 'str', 'varchar(255)')
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
                 self.convertToDB(obj.db_sort_key, 'int', 'int')

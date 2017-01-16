@@ -1779,6 +1779,11 @@
       <sql type="int"/>
     </property>
 
+    <property name="union" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
     <property name="sort_key" type="int">
       <xml name="sortKey" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>

@@ -2240,6 +2240,15 @@ class DBPortSpecTest(object):
         else:
             test_obj.assertEqual(obj1.db_depth,
                                  obj2.db_depth)
+        alternate_key = (obj1.__class__.__name__, 'db_union')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](
+                    obj1, obj2, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(obj1.db_union,
+                                 obj2.db_union)
         alternate_key = (obj1.__class__.__name__, 'db_sort_key')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
@@ -2256,9 +2265,6 @@ class DBPortSpecTest(object):
                 alternate_tests[alternate_key](
                     obj1, obj2, test_obj, alternate_tests)
         else:
-            if len(obj1.db_portSpecItems) != len(obj2.db_portSpecItems):
-                print "OBJ1 PORT SPEC ITEMS:", [(ps.db_id, ps.db_module, ps.db_package) for ps in obj1.db_portSpecItems]
-                print "OBJ2 PORT SPEC ITEMS:", [(ps.db_id, ps.db_module, ps.db_package) for ps in obj2.db_portSpecItems]
             test_obj.assertEqual(len(obj1.db_portSpecItems),
                                  len(obj2.db_portSpecItems))
             for child1, child2 in izip(sorted(obj1.db_portSpecItems, key=lambda x: x.db_id),

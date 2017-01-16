@@ -9390,12 +9390,13 @@ class DBPortSpec(object):
 
     vtType = 'portSpec'
 
-    def __init__(self, id=None, name=None, type=None, optional=None, depth=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
+    def __init__(self, id=None, name=None, type=None, optional=None, depth=None, union=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
         self._db_id = id
         self._db_name = name
         self._db_type = type
         self._db_optional = optional
         self._db_depth = depth
+        self._db_union = union
         self._db_sort_key = sort_key
         self.db_deleted_portSpecItems = []
         self.db_portSpecItems_id_index = {}
@@ -9419,6 +9420,7 @@ class DBPortSpec(object):
                         type=self._db_type,
                         optional=self._db_optional,
                         depth=self._db_depth,
+                        union=self._db_union,
                         sort_key=self._db_sort_key,
                         min_conns=self._db_min_conns,
                         max_conns=self._db_max_conns)
@@ -9479,6 +9481,11 @@ class DBPortSpec(object):
             new_obj.db_depth = res
         elif hasattr(old_obj, 'db_depth') and old_obj.db_depth is not None:
             new_obj.db_depth = old_obj.db_depth
+        if 'union' in class_dict:
+            res = class_dict['union'](old_obj, trans_dict)
+            new_obj.db_union = res
+        elif hasattr(old_obj, 'db_union') and old_obj.db_union is not None:
+            new_obj.db_union = old_obj.db_union
         if 'sort_key' in class_dict:
             res = class_dict['sort_key'](old_obj, trans_dict)
             new_obj.db_sort_key = res
@@ -9618,6 +9625,23 @@ class DBPortSpec(object):
 
     def db_delete_depth(self, depth):
         self._db_depth = None
+
+    def __get_db_union(self):
+        return self._db_union
+
+    def __set_db_union(self, union):
+        self._db_union = union
+        self.is_dirty = True
+    db_union = property(__get_db_union, __set_db_union)
+
+    def db_add_union(self, union):
+        self._db_union = union
+
+    def db_change_union(self, union):
+        self._db_union = union
+
+    def db_delete_union(self, union):
+        self._db_union = None
 
     def __get_db_sort_key(self):
         return self._db_sort_key
