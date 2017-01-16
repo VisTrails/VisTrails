@@ -47,6 +47,7 @@ import vistrails.core.requirements
 
 from datetime import datetime
 from distutils.version import LooseVersion
+from itertools import izip
 import os.path
 import shutil
 import tempfile
@@ -473,15 +474,15 @@ def setup_db_tables(db_connection, version=None, old_version=None, only_drop=Fal
 ##############################################################################
 # General I/O
 
-def open_from_xml(filename, type):
+def open_from_xml(filename, type, do_translate=True):
     if type == DBVistrail.vtType:
-        return open_vistrail_from_xml(filename)
+        return open_vistrail_from_xml(filename, do_translate)
     elif type == DBWorkflow.vtType:
-        return open_workflow_from_xml(filename)
+        return open_workflow_from_xml(filename, do_translate)
     elif type == DBLog.vtType:
-        return open_log_from_xml(filename)
+        return open_log_from_xml(filename, do_translate)
     elif type == DBRegistry.vtType:
-        return open_registry_from_xml(filename)
+        return open_registry_from_xml(filename, do_translate)
     else:
         raise VistrailsDBException("cannot open object of type "
                                    "'%s' from xml" % type)
@@ -1912,7 +1913,7 @@ class TestDBIO(unittest.TestCase):
 
 from vistrails.db.versions.v2_0_0.tests.auto_gen import \
     DBVistrailTest, DBWorkflowTest, DBLogTest, DBRegistryTest, DBGroupTest, \
-    DBActionAnnotationTest
+    DBActionAnnotationTest, DBMashuptrailTest
 
 # helper function for translation tests
 def get_alternate_tests(version):
@@ -2500,6 +2501,7 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         save_dir = None
         try:
             #FIXME add mashups/abstractions/registry/workflow
+            # no current bundle contains registry or workflow
             (bundle1, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
             external_data = ExternalData()
             bundle2 = translate_bundle(bundle1, get_current_version(), version, external_data)
@@ -2515,7 +2517,12 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
                                         self, get_alternate_tests(version))
             DBLogTest.deep_eq_test(bundle1.log, bundle2.log,
                                    self, get_alternate_tests(version))
-            #FIXME Add tests for abstractions, mashups, workflows, etc.
+            for mashup1, mashup2 in izip(bundle1.mashups, bundle2.mashups):
+                DBMashuptrailTest.deep_eq_test(mashup1, mashup2,
+                                           self, get_alternate_tests(version))
+            for subwf1, subwf2 in izip(bundle1.subworkflows, bundle2.subworkflows):
+                DBVistrailTest.deep_eq_test(subwf1, subwf2, self,
+                                        get_alternate_tests(version))
         finally:
             if save_dir is not None:
                 shutil.rmtree(save_dir)
