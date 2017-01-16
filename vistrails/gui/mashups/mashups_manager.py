@@ -113,9 +113,7 @@ class MashupsManager(object):
                                       date=vistrails.core.system.current_time())
                         mashuptrail.currentVersion = currVersion
                         mashuptrail.update_id_scope()
-                        p_tag = p_mashuptrail.getTagForActionId(mshpv)
-                        if p_tag == '':
-                            tag = "<latest>"
+                        p_tag = p_mashuptrail.getTagForActionId(mshpv) or "<latest>"
                         tag = "Copy from %s"%p_tag
                         MashupsManager.addMashuptrailtoVistrailController(vt_controller,
                                                                           mashuptrail)    

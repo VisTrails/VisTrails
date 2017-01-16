@@ -95,7 +95,7 @@ def run_and_get_results(w_list, parameters='',
             
                 if controller.current_pipeline.has_alias(key):
                     aliases[key] = value
-                elif 'mashup_id' in extra_info:
+                elif extra_info and 'mashup_id' in extra_info:
                     # new-style mashups can have aliases not existing in pipeline
                     for mashuptrail in mashups:
                         if mashuptrail.vtVersion == version:

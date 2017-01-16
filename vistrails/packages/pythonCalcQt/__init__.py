@@ -45,10 +45,17 @@ core/modules/vistrails_module.py.
 
 from __future__ import division
 
+
 identifier = 'org.vistrails.vistrails.pythoncalcqt'
 name = 'PythonCalcQt'
 version = '0.0.2'
 old_identifiers = ['edu.utah.sci.vistrails.pythoncalcqt']
 
+
 def package_dependencies():
     return ['org.vistrails.vistrails.pythoncalc']
+
+
+def package_requirements():
+    from vistrails.core.requirements import require_pyqt4_api2
+    require_pyqt4_api2()

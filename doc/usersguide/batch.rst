@@ -161,7 +161,7 @@ For example, offscreen pipeline in offscreen.vt always creates the file called i
 
 ``python vistrails/run.py -b examples/offscreen.vt:offscreen --parameters="filename=other.png"``
 
-filename in the example above is the alias name assigned to the parameter in the value method inside the String module. When running a pipeline from the command line, VisTrails will try to start the spreadsheet automatically if the pipeline requires it. For example, this other execution will also start the spreadsheet (attention to how $ characters are escaped when running on bash):
+filename in the example above is the alias name assigned to the parameter in the value method inside the String module. When running a pipeline from the command line, VisTrails will try to start the spreadsheet automatically if the pipeline requires it. For example, this other execution will also start the spreadsheet (note that $ characters need to be escaped when running on bash; if running on windows, you should remove the backslashes):
 
 ``python vistrails/run.py -b examples/head.vt:aliases --parameters="isovalue=30\$&\$diffuse_color=0.8, 0.4, 0.2"``
 

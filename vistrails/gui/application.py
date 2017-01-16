@@ -829,10 +829,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def parse_input_args_from_other_instance(self, msg):
         reportusage.record_feature('args_from_other_instance')
-        options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
-        if options_re.match(msg):
-            #it's safe to eval as a list
+        try:
             args = literal_eval(msg)
+        except Exception as e:
+            debug.critical("Invalid input: %s" % msg, e)
+        else:
             if isinstance(args, list):
                 try:
                     conf_options = self.read_options(args)
@@ -859,9 +860,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 finally:
                     self.startup.temp_configuration = old_temp_conf
             else:
-                debug.critical("Invalid string: %s" % msg)
-        else:
-            debug.critical("Invalid input: %s" % msg)
+                debug.critical("Invalid input: %s" % msg)
         return False
 
 def linux_default_application_set():

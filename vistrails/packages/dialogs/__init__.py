@@ -53,3 +53,8 @@ def package_dependencies():
         return ['org.vistrails.vistrails.spreadsheet']
     else:
         return []
+
+
+def package_requirements():
+    from vistrails.core.requirements import require_pyqt4_api2
+    require_pyqt4_api2()
