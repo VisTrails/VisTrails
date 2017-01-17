@@ -209,50 +209,6 @@ class ${obj.getClassName()}(object):
             cp.is_new = self.is_new
         return cp
 
-    def deep_eq_test(self, other, test_obj, alternate_tests={}):
-        test_obj.assertEqual(self.__class__, other.__class__)
-        % for field in obj.getPythonFields():
-        alternate_key = (self.__class__.__name__, '${field.getFieldName()}')
-        if alternate_key in alternate_tests:
-            # None means pass the test, else we should have a function
-            if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
-        else:
-            % if field.isReference():
-            % if field.isPlural():
-            test_obj.assertEqual(len(self.${field.getFieldName()}), 
-                             len(other.${field.getFieldName()}))
-            % if field.getReferencedObject().getKey() is not None:
-            for obj1, obj2 in izip(sorted(self.${field.getFieldName()}, key=lambda x: x.${field.getReferencedObject().getKey().getFieldName()}), 
-                                   sorted(other.${field.getFieldName()}, key=lambda x: x.${field.getReferencedObject().getKey().getFieldName()})):
-            % else:
-            for obj1, obj2 in izip(self.${field.getFieldName()}, 
-                                   other.${field.getFieldName()}):
-            % endif
-                obj1.deep_eq_test(obj2, test_obj, alternate_tests)
-            % else:
-            if self.${field.getFieldName()} is not None and other.${field.getFieldName()} is not None:
-                    self.${field.getFieldName()}.deep_eq_test(other.${field.getFieldName()}, test_obj, alternate_tests)
-            else:
-                % if field.getType() == 'float':
-                test_obj.assertAlmostEqual(self.${field.getFieldName()}, 
-                                           other.${field.getFieldName()})
-                % else:
-                test_obj.assertEqual(self.${field.getFieldName()}, 
-                                       other.${field.getFieldName()})
-                % endif
-            % endif
-            % else:
-            % if field.getType() == 'float':
-            test_obj.assertAlmostEqual(self.${field.getFieldName()}, 
-                                       other.${field.getFieldName()})
-            % else:
-            test_obj.assertEqual(self.${field.getFieldName()}, 
-                                   other.${field.getFieldName()})
-            % endif
-            % endif
-        % endfor
-
     ## create static update_version
     @staticmethod
     def update_version(old_obj, trans_dict, new_obj=None):
