@@ -265,6 +265,7 @@
       <xs:attribute name="type" type="xs:string"/>
       <xs:attribute name="optional" type="xs:int"/>
       <xs:attribute name="depth" type="xs:int"/>
+      <xs:attribute name="union" type="xs:string"/>
       <xs:attribute name="sortKey" type="xs:int"/>
       <xs:attribute name="minConns" type="xs:int"/>
       <xs:attribute name="maxConns" type="xs:int"/>
