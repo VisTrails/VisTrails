@@ -1,0 +1,68 @@
+<!--###############################################################################
+##
+## Copyright (C) 2006-2011, University of Utah. 
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without 
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice, 
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright 
+##    notice, this list of conditions and the following disclaimer in the 
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the University of Utah nor the names of its 
+##    contributors may be used to endorse or promote products derived from 
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="vtlink">
+<xs:complexType>
+<!-- if the vistrail is in a DB use host, database, port and vtid -->
+<xs:attribute name="host" type="xs:string"></xs:attribute>
+<xs:attribute name="database" type="xs:string"></xs:attribute>
+<xs:attribute name="port" type="xs:int"></xs:attribute>
+<xs:attribute name="vtid" type="xs:int"></xs:attribute>
+<!-- if the vistrail is a file use filename below -->
+<xs:attribute name="filename" type="xs:string"></xs:attribute>
+<!-- this is the workflow version -->
+<xs:attribute name="version" type="xs:int"></xs:attribute>
+<!-- this is the workflow tag -->
+<xs:attribute name="tag" type="xs:string"></xs:attribute>
+<xs:attribute name="url" type="xs:string"></xs:attribute>
+<!--  vtcontent can be a workflow in xml or a .vt file base64 encoded -->
+<xs:attribute name="vtcontent" type="xs:string"></xs:attribute>
+<!--  if execute is true the workflow will be executed -->
+<xs:attribute name="execute" type="xs:boolean"></xs:attribute>
+<!--  if showSpreadsheetOnly is True we will hide the builder -->
+<xs:attribute name="showSpreadsheetOnly" type="xs:boolean"></xs:attribute>
+<!--  if there's database information and a workflow is embedded, it will
+force loading from the db instead of using the emebedded version -->
+<xs:attribute name="forceDB" type="xs:boolean"></xs:attribute>
+<!--  if mashuptrail and mashupVersion are set, VisTrails will execute the
+mashup -->
+<xs:attribute name="mashuptrail" type="xs:string"></xs:attribute>
+<xs:attribute name="mashupVersion" type="xs:int"></xs:attribute>
+</xs:complexType>
+</xs:element>
+
+</xs:schema>

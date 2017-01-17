@@ -41,15 +41,18 @@ import functools
 import logging
 import os
 import pdb
+import random
 import sys
 import traceback
 import unittest
+import uuid
 
 try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
 
+from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.modules.vistrails_module import Module
 
 
@@ -241,9 +244,9 @@ def run_file(filename, tag_filter=lambda x: True):
     errors = []
     for version, name in controller.vistrail.get_tagMap().iteritems():
         if tag_filter(name):
-            controller.change_selected_version(0)
+            controller.change_selected_version(Vistrail.ROOT_VERSION)
             controller.change_selected_version(version)
-            assert controller.current_version != 0
+            assert controller.current_version != Vistrail.ROOT_VERSION
             (result,), _ = controller.execute_current_workflow()
             if result.errors:
                 errors.append(("%d: %s" % (version, name), result.errors))
@@ -376,6 +379,45 @@ class MockLogHandler(logging.Handler):
         finally:
             if hasattr(logging, '_acquireLock'):
                 logging._releaseLock()
+
+class ReproducibleUUIDsContext(object):
+    def __enter__(self):
+        self._random_state = random.getstate()
+        # python 3.2 may need to standardize version here...
+        random.seed('vistrails')
+        # uuid tries to use better sources of randomness so need to override this for tests
+        def uuid4():
+            bytes = [chr(random.randrange(256)) for i in range(16)]
+            return uuid.UUID(bytes=bytes, version=4)
+
+        # override uuid4 to be reproducible
+        self._sys_uuid4 = uuid.uuid4
+        uuid.uuid4 = uuid4
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        uuid.uuid4 = self._sys_uuid4
+        random.setstate(self._random_state)
+
+reproducible_uuid_context = ReproducibleUUIDsContext()
+
+def uuids_sim(id1, id2):
+    if id1 == id2:
+        return True
+
+    if not isinstance(id1, uuid.UUID):
+        (id1, id2) = (id2, id1)
+    if isinstance(id2, uuid.UUID):
+        # know both are uuids, eq catches
+        return False
+    elif isinstance(id1, uuid.UUID) and isinstance(id2, basestring):
+        return id1.hex.startswith(id2.replace('-',''))
+    elif isinstance(id1, basestring) and isinstance(id2, basestring):
+        s1 = id1.replace('-','')
+        s2 = id2.replace('-','')
+        if (len(s1) < len(s2)):
+            (s1,s2) = (s2,s1)
+        return s1.startswith(s2)
+    return False
 
 
 def debug_func(f):

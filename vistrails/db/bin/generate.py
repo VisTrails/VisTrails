@@ -37,14 +37,13 @@
 ###############################################################################
 """auto-generates code given specs"""
 
-# requires mako python package (easy_install Mako) and 
-# uses emacs via subprocess call for python indentation
-# the emacs call is slow because it checks all of the indentation
+# requires mako python package (easy_install Mako) and
 
 from __future__ import division
 
 from mako.template import Template
 
+import autopep8
 import os
 import re
 import shutil
@@ -147,7 +146,6 @@ def preprocess_template(in_fname, out_fname=None):
     in_file.close()
 
 def indent_python(fname):
-    import autopep8
     autopep8.fix_file(fname, options=autopep8.parse_args([fname, '-i']))
 
 def run_template(template_fname, objects, version, version_string, output_file,
@@ -200,6 +198,7 @@ def dirStructure(baseDir):
     dirs['sqlPersistence'] = os.path.join(dirs['persistence'], 'sql')
     dirs['xmlSchema'] = os.path.join(dirs['schemas'], 'xml')
     dirs['sqlSchema'] = os.path.join(dirs['schemas'], 'sql')
+    dirs['tests'] = os.path.join(dirs['base'], 'tests')
     return dirs
 
 def makeAllDirs(dirs):
@@ -232,6 +231,9 @@ def main(argv=None):
                     'p': ('generate python domain classes', False),
                     's': ('generate sql schema and persistence classes', False),
                     'x': ('generate xml schema and persistence classes', False),
+                    't': ('generate test classes', False),
+                    'j:': ('generate object children', False, 'object'),
+                    'f:': ('generate foreign key refs', False, 'object'),
                     'c': ('generate sqlalchemy classes', False),
                     'v:': ('vistrail version tag', True, 'version'),
                     'm': ('make all directories', False),
@@ -382,12 +384,20 @@ def main(argv=None):
             parser = AutoGenParser()
             objects = parser.parse(versionDirs['specs'])
         sql_objects = sql_gen_objects.convert(objects)
-            
-        run_template('templates/sql_alchemy.py.mako', sql_objects, 
+
+        run_template('templates/sql_alchemy.py.mako', sql_objects,
                      version, versionName,
                      os.path.join(versionDirs['sqlPersistence'], 'alchemy.py'),
                      False)
 
+    if options['t']:
+        print "generating test objects..."
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        run_template('templates/test.py.mako', objects, version, versionName,
+                     os.path.join(versionDirs['tests'], 'auto_gen.py'),
+                     True)
 
     if not options['n']:
         domainFile = os.path.join(baseDirs['persistence'], '__init__.py')
@@ -396,6 +406,26 @@ def main(argv=None):
         f.write('from vistrails.db.versions.%s.persistence import *\n' % \
                     versionName)
         f.close()
-            
+
+    if options['j']:
+        obj = options['j']
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        for o in objects:
+            if o.getName() == obj:
+                for name in sorted(o.getChildObjs(True)):
+                    print name
+
+    if options['f']:
+        obj = options['f']
+        if objects is None:
+            parser = AutoGenParser()
+            objects = parser.parse(versionDirs['specs'])
+        for o in objects:
+            if o.getName() == obj:
+                for name in sorted(o.getForeignKeyRefs(True)):
+                    print name
+
 if __name__ == '__main__':
     main()

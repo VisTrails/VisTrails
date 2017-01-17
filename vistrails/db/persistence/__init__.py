@@ -34,4 +34,4 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v1_0_5.persistence import *
+from vistrails.db.versions.v2_0_0.persistence import *

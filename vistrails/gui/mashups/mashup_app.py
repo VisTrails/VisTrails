@@ -681,7 +681,7 @@ class TestMashupApp(TestVisTrailsGUI):
         import vistrails.core.system
         filename = os.path.join(
                 vistrails.core.system.vistrails_root_directory(),
-                'tests/resources/spx_loop.vt')
+                'tests/resources/spx-loop-uuid.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
         # Execute workflow to trigger upgrades
         view.controller.execute_current_workflow()

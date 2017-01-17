@@ -38,6 +38,7 @@ from vistrails.gui.application import get_vistrails_application
 import unittest
 import copy
 import random
+from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.gui.utils
 
 ##############################################################################
@@ -145,7 +146,7 @@ def add_module(x, y, identifier, name, namespace, controller=None):
     if controller is None:
         controller = get_current_controller()
     if controller.current_version==-1:
-        controller.change_selected_version(0)
+        controller.change_selected_version(Vistrail.ROOT_VERSION)
     result = controller.add_module(identifier, name, namespace, x, y)
     controller.updatePipelineScene()
     result = controller.current_pipeline.modules[result.id]
@@ -156,7 +157,7 @@ def add_module_from_descriptor(descriptor, x=0.0, y=0.0,
     if controller is None:
         controller = get_current_controller()
     if controller.current_version==-1:
-        controller.change_selected_version(0)
+        controller.change_selected_version(Vistrail.ROOT_VERSION)
     result = controller.add_module_from_descriptor(descriptor, x, y, 
                                                    internal_version)
     controller.updatePipelineScene()
@@ -282,9 +283,8 @@ def select_version(version, ctrl=None):
     if ctrl is None:
         ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    if isinstance(version, str):
-        version = vistrail.get_tag_str(version).action_id
-    ctrl.change_selected_version(version)
+    version_id = vistrail.get_version_id(version)
+    ctrl.change_selected_version(version_id)
     ctrl.invalidate_version_tree(False)
 
 def undo():

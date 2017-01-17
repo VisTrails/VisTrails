@@ -180,7 +180,7 @@ class QueryController(object):
     def reset_search(self):
         self.search = None
         self.search_pipeline = None
-        self.query_view.pipeline_view.controller.change_selected_version(0)
+        self.query_view.pipeline_view.controller.change_selected_version(Vistrail.ROOT_VERSION)
         self.query_view.pipeline_view.scene().setupScene(
             self.query_view.pipeline_view.controller.current_pipeline)
         self.query_view.set_to_search_mode()
@@ -497,7 +497,7 @@ class QQueryView(QtGui.QWidget, BaseView):
             self.stacked_widget.addWidget(self.global_result_view)
         self.version_result_view = QQueryResultVersionView()
         self.connect(self.version_result_view.scene(), 
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
+                     QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
                      self.result_version_selected)
         # self.version_result_view.set_controller(self.vt_controller)
         QQueryView.VERSION_RESULT_VIEW = \

@@ -35,11 +35,13 @@
 ###############################################################################
 
 from __future__ import division
+from collections import OrderedDict
+from vistrails.db.domain import DBVistrail, DBChange
 
-def getActionChain(obj, version, start=0):
+def getActionChain(obj, version, start=DBVistrail.ROOT_VERSION):
     result = []
     currentId = version
-    while currentId > start: #and currentId > 0:
+    while currentId != start:
         action = obj.db_get_action_by_id(currentId)
         result.append(action)
         currentId = action.db_prevId
@@ -47,8 +49,8 @@ def getActionChain(obj, version, start=0):
     return result
 
 def simplify_ops(ops):
-    addDict = {}
-    deleteDict = {}
+    addDict = OrderedDict()
+    deleteDict = OrderedDict()
     for op_count, op in enumerate(ops):
         op.db_id = -op_count - 1
         if op.vtType == 'add':
@@ -64,27 +66,79 @@ def simplify_ops(ops):
             except KeyError:
                 addDict[(op.db_what, op.db_newObjId)] = op
             else:
-                old_old_id = getOldObjId(k)
                 del addDict[(op.db_what, op.db_oldObjId)]
                 addDict[(op.db_what, op.db_newObjId)] = \
-                    DBChange(id=opCount,
+                    DBChange(id=-1,
                              what=op.db_what,
-                             oldObjId=old_old_id,
+                             oldObjId=op.db_oldObjId,
                              newObjId=op.db_newObjId,
                              parentObjId=op.db_parentObjId,
                              parentObjType=op.db_parentObjType,
                              data=op.db_data,
                              )
 
-    deletes = deleteDict.values()
-    deletes.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
-    adds = addDict.values()
-    adds.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
-    return deletes + adds
+    return deleteDict.values() + addDict.values()
 
-def getCurrentOperationDict(actions, currentOperations=None):
+def get_reduced_operations(actions):
+    current_ops = OrderedDict()
+    
+    for action in actions:
+        for op in action.db_operations:
+            add_t = None
+            del_t = None
+            if op.vtType == 'add':
+                add_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'delete':
+                del_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'change':
+                del_t = (op.db_what, op.db_oldObjId)
+                add_t = (op.db_what, op.db_newObjId)
+            else:
+                raise Exception('Unrecognized operation "%s"' % op.vtType)
+            
+            if del_t is not None:
+                if del_t in current_ops:
+                    del current_ops[del_t]
+            if add_t is not None:
+                current_ops[add_t] = op
+
+    return current_ops
+
+    # return [op for op in current_ops if op is not None]
+
+def get_operation_diff(actions, ops):
+    add_ops = OrderedDict()
+    del_ops = OrderedDict()
+
+    for action in actions:
+        for op in action.db_operations:
+            add_t = None
+            del_t = None
+            if op.vtType == 'add':
+                add_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'delete':
+                del_t = (op.db_what, op.db_objectId)
+            elif op.vtType == 'change':
+                del_t = (op.what, op.db_oldObjId)
+                add_t = (op.what, op.db_newObjId)
+            else:
+                raise Exception('Unrecognized operation "%s"' % op.vtType)
+
+            if del_t is not None:
+                if del_t in ops:
+                    del_ops[del_t] = op
+                elif del_t in add_ops:
+                    del add_ops[del_t]
+            if add_t is not None:
+                add_ops[add_t] = op
+
+
+    return (add_ops, del_ops)
+
+
+def get_current_operation_dict(actions, currentOperations=None):
     if currentOperations is None:
-        currentOperations = {}
+        currentOperations = OrderedDict()
 
     # note that this operation assumes unique ids for each operation's data
     # any add adds to the dict, delete removes from the dict, and
@@ -124,8 +178,5 @@ def getCurrentOperationDict(actions, currentOperations=None):
     return currentOperations
 
 def getCurrentOperations(actions):
-    # sort the values left in the hash and return the list
-    sortedOperations = getCurrentOperationDict(actions).values()
-    sortedOperations.sort(key=lambda x: x.db_id)
-    return sortedOperations
-
+    # return the list of sorted values
+    return get_reduced_operations(actions).values()

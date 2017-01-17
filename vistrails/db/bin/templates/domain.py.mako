@@ -157,15 +157,19 @@ class ${obj.getClassName()}(object):
         % endif
         % endif
         % endfor
-        
+
+        % if obj.getKey() is not None or len(obj.getForeignKeys()) > 0:
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            % if obj.getKey() is not None:
+            type_key = id_scope.remap[self.vtType] if self.vtType in id_scope.remap else self.vtType
+            if (type_key, self.${obj.getKey().getPrivateName()}) in id_remap:
+                cp.${obj.getKey().getPrivateName()} = id_remap[(type_key, self.${obj.getKey().getPrivateName()})]
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
+                new_id = id_scope.getNewId(self.vtType)
+                id_remap[(type_key, self.${obj.getKey().getPrivateName()})] = new_id
+                cp.${obj.getKey().getPrivateName()} = new_id
+            % endif
             % if len(obj.getForeignKeys()) > 0:
             % for field in obj.getForeignKeys():
             <% 
@@ -177,14 +181,19 @@ class ${obj.getClassName()}(object):
                 ref_obj = field.getReferencedObject()
                 lookup_str = "'%s'" % ref_obj.getRegularName()
             %> \\
+            if ${lookup_str} in id_scope.remap:
+                fkey_type = id_scope.remap[${lookup_str}]
+            else:
+                fkey_type = ${lookup_str}
             if hasattr(self, '${field.getFieldName()}') and \
-                    (${lookup_str}, self.${field.getPrivateName()}) in id_remap:
+                    (fkey_type, self.${field.getPrivateName()}) in id_remap:
                 cp.${field.getPrivateName()} = \
-                         id_remap[(${lookup_str}, \
+                         id_remap[(fkey_type, \
                                         self.${field.getPrivateName()})]
             % endfor
             % endif
-        
+        % endif
+
         # recreate indices and set flags
         % for field in obj.getPythonFields():
         % if len(field.getAllIndices()) > 0:

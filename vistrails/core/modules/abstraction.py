@@ -100,7 +100,7 @@ def initialize(*args, **kwargs):
                         # Use a "dummy" controller to handle the upgrade
                         controller = vistrails.core.vistrail.controller.VistrailController(abs_vistrail)
                         (new_version, new_pipeline) = \
-                            controller.handle_invalid_pipeline(e, long(module_version), 
+                            controller.handle_invalid_pipeline(e, module_version,
                                                                abs_vistrail, False, True)
                         del controller
                         save_abstraction(abs_vistrail, abs_fname)
@@ -128,7 +128,7 @@ def initialize(*args, **kwargs):
                                                         {'package': identifier,
                                                          'package_version': version,
                                                          'namespace': ns,
-                                                         'version': str(module_version),
+                                                         'version': module_version,
                                                          'hide_namespace': True,
                                                          'hide_descriptor': hide_descriptor,
                                                          }))

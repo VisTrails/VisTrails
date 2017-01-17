@@ -111,7 +111,7 @@ class VistrailsViewerWindow(StoreViewerWindow):
         if ':' in workflow:
             filename, version = workflow.rsplit(':', 1)
             try:
-                version = int(version)
+                version = version
             except ValueError:
                 filename, version = workflow, None
         else:

@@ -77,7 +77,7 @@ def run_and_get_results(w_list, parameters='',
         controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
         if isinstance(workflow, basestring):
-            version = v.get_version_number(workflow)
+            version = v.get_version_id(workflow)
         elif isinstance(workflow, (int, long)):
             version = workflow
         elif workflow is None:
@@ -116,7 +116,7 @@ def run_and_get_results(w_list, parameters='',
                     job_version = int(job.version)
                 except ValueError:
                     try:
-                        job_version =  v.get_version_number(job.version)
+                        job_version =  v.get_version_id(job.version)
                     except KeyError:
                         # this is a PE or mashup
                         continue
@@ -181,7 +181,7 @@ def get_wf_graph(w_list, output_dir, pdf=False):
 
                 version = None
                 if isinstance(workflow, basestring):
-                    version = v.get_version_number(workflow)
+                    version = v.get_version_id(workflow)
                 elif isinstance(workflow, (int, long)):
                     version = workflow
                 elif workflow is None:

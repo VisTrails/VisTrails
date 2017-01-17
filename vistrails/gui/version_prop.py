@@ -56,6 +56,7 @@ from vistrails.core.utils import all
 from vistrails.core.vistrail.controller import custom_color_key, \
     parse_custom_color
 from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.common_widgets import QElideLabel
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ###############################################################################
@@ -170,7 +171,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         idLabel = QtGui.QLabel('ID:', self)
         gLayout.addWidget(idLabel, 3, 0, 1, 1)
         
-        self.idEdit = QtGui.QLabel('', self)
+        self.idEdit = QElideLabel('', self)
         gLayout.addWidget(self.idEdit, 3, 2, 1, 1)
 
         self.notesLabel = QtGui.QLabel('Notes:')

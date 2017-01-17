@@ -101,6 +101,7 @@ class CoreLocator(object):
         from vistrails.core.vistrail.vistrail import Vistrail
         from vistrails.core.vistrail.pipeline import Pipeline
         from vistrails.core.log.log import Log
+        from vistrails.core.mashup.mashup_trail import Mashuptrail
         from vistrails.core.modules.module_registry import ModuleRegistry
         from vistrails.core.log.opm_graph import OpmGraph
         
@@ -108,6 +109,7 @@ class CoreLocator(object):
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
                      ModuleRegistry.vtType: ModuleRegistry,
+                     Mashuptrail.vtType: Mashuptrail,
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
 
@@ -673,10 +675,6 @@ class FileLocator(CoreLocator):
         #if execute is False, we will show the builder too
         if showSpreadsheetOnly and not execute:
             showSpreadsheetOnly = False
-        try:
-            version = int(version)
-        except (ValueError, TypeError):
-            pass
 
         if tag is None:
             tag = ''
@@ -722,7 +720,9 @@ class FileLocator(CoreLocator):
                     f = open(fname,'wb')
                     f.write(vtcontent)
                     f.close()
-                return FileLocator(fname, version_node=version, version_tag=tag,
+                if not version and tag:
+                    version = tag
+                return FileLocator(fname, version_node=version,
                                    mashuptrail=mashuptrail,
                                    mashupVersion=mashupVersion,
                                    parameterExploration=parameterExploration)
@@ -733,7 +733,7 @@ class FileLocator(CoreLocator):
             return DBLocator(host, port, database,
                              user, passwd, None, obj_id=vt_id,
                              obj_type='vistrail',connection_id=None,
-                             version_node=version, version_tag=tag,
+                             version_node=version,
                              mashuptrail=mashuptrail,
                              mashupVersion=mashupVersion,
                              parameterExploration=parameterExploration)
@@ -747,7 +747,7 @@ class FileLocator(CoreLocator):
             #check for magic strings
             if "@examples" in vtname:
                 vtname=vtname.replace("@examples", vistrails_examples_directory())
-            return FileLocator(vtname, version_node=version, version_tag=tag,
+            return FileLocator(vtname, version_node=version,
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
@@ -755,36 +755,54 @@ class FileLocator(CoreLocator):
 
 import unittest
 
+class TestUsersGuideVTLMeta(type):
+    def __new__(mcs, name, bases, dict):
+        def gen_test(fname):
+            def test(self):
+                self.run_test(fname)
+            return test
+
+        vtl_path = os.path.join(vistrails_root_directory(), '..', 'doc',
+                                'usersguide', 'vtl')
+        if os.path.isdir(vtl_path):
+            for root, dirs, file_names in os.walk(vtl_path):
+                for file_name in sorted(file_names):
+                    if file_name.endswith('.vtl'):
+                        test_name = \
+                            "test_{}".format(os.path.splitext(file_name)[0])
+                        dict[test_name] = \
+                            gen_test(os.path.join(root, file_name))
+        return type.__new__(mcs, name, bases, dict)
+
 # Test vtl files in usersguide
 class TestUsersGuideVTL(unittest.TestCase):
-    vtl_path = os.path.join(vistrails_root_directory(), '..', 'doc',
-                            'usersguide', 'vtl')
-    @unittest.skipIf(not os.path.isdir(vtl_path), 'Could not find vtl dir')
-    def test_vtl_files(self):
+    __metaclass__ = TestUsersGuideVTLMeta
+
+    @classmethod
+    def setUpClass(cls):
+        from vistrails.core.packagemanager import get_package_manager
+        get_package_manager().build_available_package_names_list()
+
+    def run_test(self, fname):
         from vistrails.tests.utils import run_file
-        for root, dirs, file_names in os.walk(self.vtl_path):
-            for file_name in sorted(file_names):
-                if file_name.endswith('.vtl'):
-                    # update available packages
-                    from vistrails.core.packagemanager import get_package_manager
-                    get_package_manager().build_available_package_names_list()
-                    f = os.path.join(root, file_name)
-                    locator = FileLocator(f)
-                    version = locator._vnode
-                    # if there is a version specified try to execute it,
-                    # else just load the pipeline
-                    if version:
-                        errors = run_file(f, lambda x: x == version)
-                        self.assertEqual(errors, [], 'Errors processing %s: %s' % (f, str(errors)))
-                    else:
-                        import vistrails.core.db.io
-                        from vistrails.core.vistrail.controller import \
-                            VistrailController
-                        loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-                        controller = VistrailController(loaded_objs[0],
-                                                        locator,
-                                                        *loaded_objs[1:])
-                        controller.change_selected_version(
-                            controller.vistrail.get_latest_version())
-                        self.assertTrue(controller.current_pipeline.is_valid,
-                                        "Latest pipeline is invalid: %s" % f)
+
+        locator = FileLocator(fname)
+        version = locator._vnode
+        # if there is a version specified try to execute it,
+        # else just load the pipeline
+        if version:
+            errors = run_file(fname, lambda x: x == version)
+            self.assertEqual(errors, [],
+                             'Errors processing %s: %s' % (fname, str(errors)))
+        else:
+            import vistrails.core.db.io
+            from vistrails.core.vistrail.controller import \
+                VistrailController
+            loaded_objs = vistrails.core.db.io.load_vistrail(locator)
+            controller = VistrailController(loaded_objs[0],
+                                            locator,
+                                            *loaded_objs[1:])
+            controller.change_selected_version(
+                controller.vistrail.get_latest_version())
+            self.assertTrue(controller.current_pipeline.is_valid,
+                            "Latest pipeline is invalid: %s" % fname)

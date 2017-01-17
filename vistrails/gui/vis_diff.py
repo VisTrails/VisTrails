@@ -42,8 +42,12 @@ from vistrails.core import system, debug
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.db.domain import IdScope
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import TestVisTrailsGUI
@@ -524,10 +528,10 @@ class QDiffView(QPipelineView):
         # Set up the version name correctly
         v1_name = vistrail_a.getVersionName(version_a)
         if not v1_name:
-            v1_name = 'Version %d' % version_a
+            v1_name = 'Version %s' % version_a
         v2_name = vistrail_b.getVersionName(version_b)
         if not v2_name:
-            v2_name = 'Version %d' % version_b
+            v2_name = 'Version %s' % version_b
 
         # Add vistrail name if necessary
         if id(vistrail_a) != id(vistrail_b):
@@ -606,13 +610,6 @@ class QDiffView(QPipelineView):
                 
 #         controller = DummyController(p_both)
 #         scene.controller = controller
-
-        # Find the max version id from v1 and start the adding process
-        self.maxId1 = 0
-        for m1id in p1.modules.keys():
-            if m1id>self.maxId1:
-                self.maxId1 = m1id
-        shiftId = self.maxId1 + 1
 
         # First add all shared modules, just use v1 module id
         sum1_x = 0.0
@@ -736,10 +733,12 @@ class QDiffView(QPipelineView):
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Now add the ones for v2 only but must shift the ids away from v1
+        v2IdShift = {}
         for m2id in v2Only:
             p2_module = copy.copy(p2.modules[m2id])
-            p2_module.id = m2id + shiftId
-            # p2.modules[m2id].id = m2id + shiftId
+            new_id = vistrail_a.idScope.getNewId(Module.vtType)
+            v2IdShift[p2_module.id] = new_id
+            p2_module.id = new_id
             p2_module.location.x -= avg2_x - avg1_x
             p2_module.location.y -= avg2_y - avg1_y
             item = scene.addModule(p2_module, #p2.modules[m2id],
@@ -764,21 +763,17 @@ class QDiffView(QPipelineView):
 
         # Next we're going to add connections, only connections of
         # v2Only need to shift their ids
-        if p1.connections.keys():
-            connectionShift = max(p1.connections.keys())+1
-        else:
-            connectionShift = 0
         allConnections = copy.copy(p1.connections)
         sharedConnections = []
         v2OnlyConnections = []        
         for (cid2, connection2) in copy.copy(p2.connections.items()):
             if connection2.sourceId in v2Only:
-                connection2.sourceId += shiftId
+                connection2.sourceId = v2IdShift[connection2.sourceId]
             else:
                 connection2.sourceId = v2Tov1[connection2.sourceId]
                 
             if connection2.destinationId in v2Only:
-                connection2.destinationId += shiftId
+                connection2.destinationId = v2IdShift[connection2.destinationId]
             else:
                 connection2.destinationId = v2Tov1[connection2.destinationId]
 
@@ -793,9 +788,10 @@ class QDiffView(QPipelineView):
                     shared = True
                     break
             if not shared:
-                allConnections[cid2+connectionShift] = connection2
-                connection2.id = cid2+connectionShift
-                v2OnlyConnections.append(cid2+connectionShift)
+                new_id = vistrail_a.idScope.getNewId(Connection.vtType)
+                connection2.id = new_id
+                allConnections[new_id] = connection2
+                v2OnlyConnections.append(new_id)
 
         connectionItems = []
         for c in allConnections.values():
@@ -1103,13 +1099,6 @@ class QVisualDiff(QtGui.QMainWindow):
         controller = DummyController(p_both)
         scene.controller = controller
 
-        # Find the max version id from v1 and start the adding process
-        self.maxId1 = 0
-        for m1id in p1.modules.keys():
-            if m1id>self.maxId1:
-                self.maxId1 = m1id
-        shiftId = self.maxId1 + 1
-
         # First add all shared modules, just use v1 module id
         sum1_x = 0.0
         sum1_y = 0.0
@@ -1229,10 +1218,15 @@ class QVisualDiff(QtGui.QMainWindow):
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Now add the ones for v2 only but must shift the ids away from v1
+
+        v2IdShift = {}
+        # remaps don't matter with uuids
+        id_scope = IdScope()
         for m2id in v2Only:
             p2_module = copy.copy(p2.modules[m2id])
-            p2_module.id = m2id + shiftId
-            # p2.modules[m2id].id = m2id + shiftId
+            new_id = id_scope.getNewId(Module.vtType)
+            v2IdShift[p2_module.id] = new_id
+            p2_module.id = new_id
             p2_module.location.x -= avg2_x - avg1_x
             p2_module.location.y -= avg2_y - avg1_y
             item = scene.addModule(p2_module, #p2.modules[m2id],
@@ -1257,21 +1251,17 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Next we're going to add connections, only connections of
         # v2Only need to shift their ids
-        if p1.connections.keys():
-            connectionShift = max(p1.connections.keys())+1
-        else:
-            connectionShift = 0
         allConnections = copy.copy(p1.connections)
         sharedConnections = []
         v2OnlyConnections = []        
         for (cid2, connection2) in copy.copy(p2.connections.items()):
             if connection2.sourceId in v2Only:
-                connection2.sourceId += shiftId
+                connection2.sourceId = v2IdShift[connection2.sourceId]
             else:
                 connection2.sourceId = v2Tov1[connection2.sourceId]
                 
             if connection2.destinationId in v2Only:
-                connection2.destinationId += shiftId
+                connection2.destinationId = v2IdShift[connection2.destinationId]
             else:
                 connection2.destinationId = v2Tov1[connection2.destinationId]
 
@@ -1286,9 +1276,10 @@ class QVisualDiff(QtGui.QMainWindow):
                     shared = True
                     break
             if not shared:
-                allConnections[cid2+connectionShift] = connection2
-                connection2.id = cid2+connectionShift
-                v2OnlyConnections.append(cid2+connectionShift)
+                new_id = id_scope.getNewId(Connection.vtType)
+                connection2.id = new_id
+                allConnections[new_id] = connection2
+                v2OnlyConnections.append(new_id)
 
         connectionItems = []
         for c in allConnections.values():
@@ -1336,10 +1327,10 @@ class TestDiffView(TestVisTrailsGUI):
             vistrails.core.system.vistrails_root_directory(),
             'tests', 'resources', 'terminator.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
-        view.controller.change_selected_version(0)
+        view.controller.change_selected_version(Vistrail.ROOT_VERSION)
         # get tags
-        v1 = view.controller.vistrail.get_version_number('Volume Rendering HW')
-        v2 = view.controller.vistrail.get_version_number('Volume Rendering SW')
+        v1 = view.controller.vistrail.get_version_id('Volume Rendering HW')
+        v2 = view.controller.vistrail.get_version_id('Volume Rendering SW')
 
         hideUpgrades = getattr(get_vistrails_configuration(), 'hideUpgrades', True)
         # without upgrades

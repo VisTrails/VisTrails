@@ -184,7 +184,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
-            f_id = long(f.attributes['id'].value)
+            f_id = f.attributes['id'].value
             f_is_alias = (str(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
@@ -199,7 +199,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             if newEditor:
                 for p in f.getElementsByTagName('param'):
                     # Locate the param in the newly added param editor and set values
-                    p_id = long(p.attributes['id'].value)
+                    p_id = p.attributes['id'].value
                     for paramWidget in newEditor.paramWidgets:
                         if paramWidget.param.id == p_id:
                             # Set Parameter Dimension (radio button)

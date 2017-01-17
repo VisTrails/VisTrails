@@ -35,14 +35,16 @@
 ###############################################################################
 from __future__ import division
 
+import inspect
 from itertools import izip
 import os
 
 from vistrails.core import debug
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
+from .common import translate as common_translate
 
-currentVersion = '1.0.5'
+currentVersion = '2.0.0'
 
 version_map = {
     '0.3.0': '0.3.1',
@@ -63,9 +65,11 @@ version_map = {
     '1.0.2': '1.0.3',
     '1.0.3': '1.0.4',
     '1.0.4': '1.0.5',
-    }
+    '1.0.5': '2.0.0',
+}
 
 rev_version_map = {
+    '2.0.0': '1.0.5',
     '1.0.5': '1.0.4',
     '1.0.4': '1.0.3',
     '1.0.3': '1.0.2',
@@ -74,7 +78,10 @@ rev_version_map = {
     '1.0.0': '0.9.5',
     '0.9.5': '0.9.4',
     '0.9.4': '0.9.3',
-    }
+}
+
+def get_current_version():
+    return currentVersion
 
 def get_sql_schema(version=None):
     if version is None:
@@ -121,9 +128,10 @@ def getVersionDAO(version=None):
         raise VistrailsDBException(debug.format_exc())
     return persistence.DAOList()
 
+
 def get_version_path(version, target_version):
-    old_tuple = version.split('.')
-    new_tuple = target_version.split('.')
+    old_tuple = get_version_tuple(version)
+    new_tuple = get_version_tuple(target_version)
     used_map = version_map
     for i, j in izip(old_tuple, new_tuple):
         if i < j:
@@ -133,7 +141,7 @@ def get_version_path(version, target_version):
             # reverse
             used_map = rev_version_map
             break
-    
+
     path = []
     while version != target_version:
         next_version = used_map[version]
@@ -141,11 +149,18 @@ def get_version_path(version, target_version):
         version = next_version
     return path
 
-def translate_object(obj, method_name, version=None, target_version=None):
+def translate_object(obj, method_name, version=None, target_version=None,
+                     external_data=None):
     if version is None:
-        version = obj.version
+        try:
+            version = obj.version
+        except AttributeError:
+            version = obj.db_version
+
     if target_version is None:
         target_version = currentVersion
+    version = get_full_version_str(version)
+    target_version = get_full_version_str(target_version)
 
     def get_translate_module(map, start_version, end_version):
         translate_dir = 'vistrails.db.versions.' + \
@@ -153,8 +168,8 @@ def translate_object(obj, method_name, version=None, target_version=None):
             get_version_name(start_version)
         return __import__(translate_dir, {}, {}, [''])
 
-    old_tuple = version.split('.')
-    new_tuple = target_version.split('.')
+    old_tuple = get_version_tuple(version)
+    new_tuple = get_version_tuple(target_version)
     map = version_map
     for i, j in izip(old_tuple, new_tuple):
         if i < j:
@@ -171,18 +186,10 @@ def translate_object(obj, method_name, version=None, target_version=None):
         if count > len(map):
             break
         next_version = map[version]
-        try:
-            translate_module = get_translate_module(map, version, next_version)
-        except Exception, e:
-            import traceback
-            raise VistrailsDBException("Cannot translate version: "
-                                       "error loading translation version %s method '%s': %s" % \
-                                           (version, method_name, traceback.format_exc()))
-        if not hasattr(translate_module, method_name):
-            raise VistrailsDBException("Cannot translate version: "
-                                       "version %s missing method '%s'" % \
-                                           (version, method_name))
-        obj = getattr(translate_module, method_name)(obj)
+        obj_type = method_name[9].lower() + method_name[10:]
+        # print "TRANSLATING {} FROM {} TO {}".format(obj_type, version, next_version)
+        obj = common_translate.translate_object(obj, version, next_version,
+                                                external_data, obj_type)
         version = next_version
         count += 1
 
@@ -193,27 +200,44 @@ def translate_object(obj, method_name, version=None, target_version=None):
 
     return obj
 
-def translate_vistrail(vistrail, version=None, target_version=None):
+def translate_vistrail(vistrail, version=None, target_version=None, external_data=None):
     return translate_object(vistrail, 'translateVistrail', version, 
-                           target_version)
+                            target_version, external_data)
 
-def translate_workflow(workflow, version=None, target_version=None):
+def translate_workflow(workflow, version=None, target_version=None, external_data=None):
     return translate_object(workflow, 'translateWorkflow', version, 
-                            target_version)
+                            target_version, external_data)
 
-def translate_log(log, version=None, target_version=None):
-    return translate_object(log, 'translateLog', version, target_version)
+def translate_log(log, version=None, target_version=None, external_data=None):
+    return translate_object(log, 'translateLog', version, target_version,
+                            external_data)
 
-def translate_registry(registry, version=None, target_version=None):
+def translate_registry(registry, version=None, target_version=None, external_data=None):
     return translate_object(registry, 'translateRegistry', version, 
-                            target_version)
+                            target_version, external_data)
 
-def translate_startup(startup, version=None, target_version=None):
+def translate_mashup(mashup, version=None, target_version=None, external_data=None):
+    return translate_object(mashup, 'translateMashup', version,
+                            target_version, external_data)
+
+def translate_startup(startup, version=None, target_version=None, external_data=None):
     return translate_object(startup, 'translateStartup', version,
-                            target_version)
+                            target_version, external_data)
+
+def translate_bundle(bundle, version=None, target_version=None, external_data=None):
+    return translate_object(bundle, 'translateBundle', version, target_version,
+                            external_data)
+
+def get_full_version_str(version_str):
+    while len(version_str.split('.')) < 3:
+        version_str = version_str + '.0'
+    return version_str
 
 def get_version_name(version_no):
-    return 'v' + version_no.replace('.', '_')
+    return 'v' + get_full_version_str(version_no).replace('.', '_')
+
+def get_version_tuple(version_no):
+    return get_full_version_str(version_no).split('.')
 
 def getVersionSchemaDir(version=None):
     if version is None:

@@ -298,11 +298,12 @@ class Property(Field):
         return False
 
 class Object(object):
-    def __init__(self, params, properties, layouts, choices):
+    def __init__(self, params, properties, layouts, choices, fields):
         self.params = params
         self.properties = properties
         self.layouts = layouts
         self.choices = choices
+        self.fields = fields
 
     def __str__(self):
         propStr = ''
@@ -364,7 +365,8 @@ class Object(object):
         return [p for p in self.properties if p.isForeignKey()]
 
     def getReferences(self):
-        return self.getReferenceProperties() + self.getReferenceChoices()
+        # we want to retain the order these are specified in
+        return [f for f in self.fields if f.isReference()]
 
     def getNonInverseReferences(self):
         return [ref for ref in self.getReferences() if not ref.isInverse()]
@@ -388,8 +390,8 @@ class Object(object):
         return [field.getRegularName() for field in self.getPythonFields()]
 
     def getPythonFields(self):
-        return [c for c in self.choices if not c.isInverse()] + \
-            [p for p in self.properties if not p.isInverse()]
+        # we want to retain the order these are specified in
+        return [f for f in self.fields if not f.isInverse()]
 
     def getPythonPluralFields(self):
         return [f for f in self.getPythonFields() if f.isPlural()]
@@ -418,3 +420,52 @@ class Object(object):
         return [(f.getRegularName(), f.getPrivateName()) 
                 for f in self.getPythonFields() 
                 if not f.isPlural() and not f.isReference()]
+
+    def getChildObjs(self, recurse=True, children=None):
+        if children is None:
+            children = {}
+        for f in self.fields:
+            if f.isReference() and not f.isInverse():
+                if f.isChoice():
+                    properties = f.properties
+                else:
+                    properties = [f]
+                for p in properties:
+                    child = p.getReferencedObject()
+                    if child.getName() not in children:
+                        children[child.getName()] = child
+                        if recurse:
+                            child.getChildObjs(True, children)
+        return children
+
+    def getForeignKeyRefs(self, recurse=True, children=None):
+        refs = set()
+        if children is None:
+            children = {}
+        for f in self.fields:
+            if f.isChoice():
+                properties = f.properties
+            else:
+                properties = [f]
+            for p in properties:
+                if p.isForeignKey():
+                    if p.getReferencedObject() is None:
+                        refs.add("{}.{} -> [{}]".format(self.getName(),
+                                                    p.getName(),
+                                                    p.getDiscriminator()))
+                    else:
+                        refs.add("{}.{} -> {}".format(self.getName(),
+                                                      p.getName(),
+                                                      p.getReferencedObject().getName()))
+            if f.isReference() and not f.isInverse():
+                if f.isChoice():
+                    properties = f.properties
+                else:
+                    properties = [f]
+                for p in properties:
+                    child = p.getReferencedObject()
+                    if child.getName() not in children:
+                        children[child.getName()] = child
+                        if recurse:
+                            refs.update(child.getForeignKeyRefs(True, children))
+        return refs

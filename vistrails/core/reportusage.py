@@ -148,7 +148,7 @@ def record_vistrail(what, vistrail):
         for annotation in vistrail.action_annotations:
             if annotation.key == Vistrail.UPGRADE_ANNOTATION:
                 upgrade_from.add(annotation.action_id)
-                upgrade_to.add(int(annotation.value))
+                upgrade_to.add(annotation.value)
             elif annotation.key == Vistrail.NOTES_ANNOTATION:
                 nb_notes += 1
             elif annotation.key == Vistrail.PARAMEXP_ANNOTATION:

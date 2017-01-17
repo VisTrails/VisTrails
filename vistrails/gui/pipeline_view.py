@@ -118,7 +118,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         # local lookups are faster than global lookups..
         self._rect = CurrentTheme.PORT_RECT.translated(x,y)
         QtGui.QAbstractGraphicsShapeItem.__init__(self, parent)
-        self.setZValue(1)
+        # self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.controller = None
         self.port = port
@@ -379,7 +379,9 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         """
         if self.dragging:
             if not self.tmp_connection_item:
-                z_val = max(self.controller.current_pipeline.modules) + 1
+                z_val = max(m.zValue()
+                            for m in self.scene().modules.itervalues()) + 1
+                # z_val = max(self.controller.current_pipeline.modules) + 1
                 self.tmp_connection_item = \
                     QGraphicsTmpConnItem(self,
                                          self.union_group or [self],
@@ -581,7 +583,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         _brush = CurrentTheme.CONFIGURE_BRUSH
         _shape = CurrentTheme.CONFIGURE_SHAPE
         QtGui.QGraphicsPolygonItem.__init__(self, _shape, parent, scene)
-        self.setZValue(1)
+        # self.setZValue(1)
         self.setPen(_pen)
         self.setBrush(_brush)
         self.ghosted = False
@@ -870,8 +872,8 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         QtGui.QGraphicsPathItem.__init__(self, path, parent)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         # Bump it slightly higher than the highest module
-        self.setZValue(max(srcModule.id,
-                           dstModule.id) + 0.1)
+        self.setZValue(max(srcModule.zValue(),
+                           dstModule.zValue()) + 0.1)
         self.connectionPen = CurrentTheme.CONNECTION_PEN
         self.connectingModules = (srcModule, dstModule)
         self.ghosted = False
@@ -1487,7 +1489,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         # Update module info and visual
         self.id = module.id
-        self.setZValue(float(self.id))
+        # FIXME determine how z-value should work...
+        # self.setZValue(float(self.id))
+        self.setZValue(0.5)
         self.module = module
         self.union_ports = module.unionPorts() if module.is_valid else {}
 
@@ -2415,7 +2419,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 ("Package '%s' is missing (or module '%s' is not present " +
                 "in that package)") % (e._identifier, e._name))
             self.clear()
-            self.controller.change_selected_version(0)
+            self.controller.change_selected_version(Vistrail.ROOT_VERSION)
         finally:
             self.skip_update = False
             self.update_connections()
@@ -3953,7 +3957,7 @@ class TestPipelineView(vistrails.gui.utils.TestVisTrailsGUI):
 #         assert src.name == 'value_as_string'
 #         dst = r.module_destination_ports(True, basic_pkg, 'File', '')[1]
 #         assert dst.name == 'name'
-        vistrails.api.add_connection(m1.id, src, m2.id, dst)
-        vistrails.api.add_connection(m2.id, src, m3.id, dst)
-        vistrails.api.create_group([0, 1, 2], [0, 1])
+        c1 = vistrails.api.add_connection(m1.id, src, m2.id, dst)
+        c2 = vistrails.api.add_connection(m2.id, src, m3.id, dst)
+        vistrails.api.create_group([m1.id, m2.id, m3.id], [c1.id, c2.id])
 

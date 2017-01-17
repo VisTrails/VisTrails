@@ -574,7 +574,7 @@ def run(vistrail_xml, version, log_xml, output_fname):
     vistrail = vistrails.db.services.io.open_vistrail_from_xml(vistrail_xml)
     log = vistrails.db.services.io.open_log_from_xml(log_xml, was_appended=True)
     version_id = vistrail.db_get_actionAnnotation_by_key((Vistrail.TAG_ANNOTATION, version)).db_action_id
-    prov_document = create_prov_from_vistrail(vistrail, int(version_id), log)
+    prov_document = create_prov_from_vistrail(vistrail, version_id, log)
     dao_list = DAOList()
     tags = {'xmlns:prov': 'http://www.w3.org/ns/prov#',
             'xmlns:dcterms': 'http://purl.org/dc/terms/',
