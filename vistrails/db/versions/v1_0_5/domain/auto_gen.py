@@ -1,35 +1,36 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
-## All rights reserved.
-## Contact: contact@vistrails.org
+# Copyright (C) 2014-2016, New York University.
+# Copyright (C) 2011-2014, NYU-Poly.
+# Copyright (C) 2006-2011, University of Utah.
+# All rights reserved.
+# Contact: contact@vistrails.org
 ##
-## This file is part of VisTrails.
+# This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
-## modification, are permitted provided that the following conditions are met:
+# "Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
-##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
-##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
-##    this software without specific prior written permission.
+# - Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# - Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# - Neither the name of the New York University nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
@@ -37,6 +38,7 @@
 
 import copy
 from itertools import izip
+
 
 class DBOpmWasGeneratedBy(object):
 
@@ -61,14 +63,15 @@ class DBOpmWasGeneratedBy(object):
             self._db_opm_times = opm_times
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmWasGeneratedBy.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmWasGeneratedBy()
         if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+            cp._db_effect = self._db_effect.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_role is not None:
             cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
         if self._db_cause is not None:
@@ -76,12 +79,14 @@ class DBOpmWasGeneratedBy(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
         if self._db_opm_times is None:
             cp._db_opm_times = []
         else:
-            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
+            cp._db_opm_times = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -90,7 +95,7 @@ class DBOpmWasGeneratedBy(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -103,55 +108,63 @@ class DBOpmWasGeneratedBy(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_effect is not None and other.db_effect is not None:
-                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+                self.db_effect.deep_eq_test(
+                    other.db_effect, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_effect, 
+                test_obj.assertEqual(self.db_effect,
                                      other.db_effect)
         alternate_key = (self.__class__.__name__, 'db_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_role is not None and other.db_role is not None:
-                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+                self.db_role.deep_eq_test(
+                    other.db_role, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_role, 
+                test_obj.assertEqual(self.db_role,
                                      other.db_role)
         alternate_key = (self.__class__.__name__, 'db_cause')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_cause is not None and other.db_cause is not None:
-                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+                self.db_cause.deep_eq_test(
+                    other.db_cause, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_cause, 
+                test_obj.assertEqual(self.db_cause,
                                      other.db_cause)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_opm_times), 
+            test_obj.assertEqual(len(self.db_opm_times),
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(self.db_opm_times, 
+            for obj1, obj2 in izip(self.db_opm_times,
                                    other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -167,7 +180,8 @@ class DBOpmWasGeneratedBy(object):
             new_obj.db_effect = res
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmArtifactIdEffect.update_version(obj, trans_dict))
+            new_obj.db_add_effect(
+                DBOpmArtifactIdEffect.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
             for obj in old_obj.db_deleted_effect:
                 n_obj = DBOpmArtifactIdEffect.update_version(obj, trans_dict)
@@ -187,7 +201,8 @@ class DBOpmWasGeneratedBy(object):
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
-            new_obj.db_add_cause(DBOpmProcessIdCause.update_version(obj, trans_dict))
+            new_obj.db_add_cause(
+                DBOpmProcessIdCause.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
             for obj in old_obj.db_deleted_cause:
                 n_obj = DBOpmProcessIdCause.update_version(obj, trans_dict)
@@ -198,7 +213,8 @@ class DBOpmWasGeneratedBy(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -209,7 +225,8 @@ class DBOpmWasGeneratedBy(object):
                 new_obj.db_add_opm_time(obj)
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
-                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+                new_obj.db_add_opm_time(
+                    DBOpmTime.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
             for obj in old_obj.db_deleted_opm_times:
                 n_obj = DBOpmTime.update_version(obj, trans_dict)
@@ -218,36 +235,42 @@ class DBOpmWasGeneratedBy(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_effect.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_role.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_cause.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_opm_time(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_effect)
@@ -262,6 +285,7 @@ class DBOpmWasGeneratedBy(object):
             self.db_deleted_accounts = []
             self.db_deleted_opm_times = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -278,91 +302,115 @@ class DBOpmWasGeneratedBy(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_effect(self):
         return self._db_effect
+
     def __set_db_effect(self, effect):
         self._db_effect = effect
         self.is_dirty = True
     db_effect = property(__get_db_effect, __set_db_effect)
+
     def db_add_effect(self, effect):
         self._db_effect = effect
+
     def db_change_effect(self, effect):
         self._db_effect = effect
+
     def db_delete_effect(self, effect):
         if not self.is_new:
             self.db_deleted_effect.append(self._db_effect)
         self._db_effect = None
-    
+
     def __get_db_role(self):
         return self._db_role
+
     def __set_db_role(self, role):
         self._db_role = role
         self.is_dirty = True
     db_role = property(__get_db_role, __set_db_role)
+
     def db_add_role(self, role):
         self._db_role = role
+
     def db_change_role(self, role):
         self._db_role = role
+
     def db_delete_role(self, role):
         if not self.is_new:
             self.db_deleted_role.append(self._db_role)
         self._db_role = None
-    
+
     def __get_db_cause(self):
         return self._db_cause
+
     def __set_db_cause(self, cause):
         self._db_cause = cause
         self.is_dirty = True
     db_cause = property(__get_db_cause, __set_db_cause)
+
     def db_add_cause(self, cause):
         self._db_cause = cause
+
     def db_change_cause(self, cause):
         self._db_cause = cause
+
     def db_delete_cause(self, cause):
         if not self.is_new:
             self.db_deleted_cause.append(self._db_cause)
         self._db_cause = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def __get_db_opm_times(self):
         return self._db_opm_times
+
     def __set_db_opm_times(self, opm_times):
         self._db_opm_times = opm_times
         self.is_dirty = True
     db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
+
     def db_get_opm_times(self):
         return self._db_opm_times
+
     def db_add_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_change_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_delete_opm_time(self, opm_time):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_opm_time(self, key):
         return None
-    
 
 
 class DBConfigKey(object):
@@ -375,7 +423,7 @@ class DBConfigKey(object):
         self._db_name = name
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConfigKey.do_copy(self)
 
@@ -383,7 +431,7 @@ class DBConfigKey(object):
         cp = DBConfigKey(name=self._db_name)
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -392,7 +440,7 @@ class DBConfigKey(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -405,20 +453,23 @@ class DBConfigKey(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_value is not None and other.db_value is not None:
-                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+                self.db_value.deep_eq_test(
+                    other.db_value, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_value, 
+                test_obj.assertEqual(self.db_value,
                                      other.db_value)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
 
     @staticmethod
@@ -434,15 +485,20 @@ class DBConfigKey(object):
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
             if obj.vtType == 'config_str':
-                new_obj.db_add_value(DBConfigStr.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBConfigStr.update_version(obj, trans_dict))
             elif obj.vtType == 'config_int':
-                new_obj.db_add_value(DBConfigInt.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBConfigInt.update_version(obj, trans_dict))
             elif obj.vtType == 'config_float':
-                new_obj.db_add_value(DBConfigFloat.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBConfigFloat.update_version(obj, trans_dict))
             elif obj.vtType == 'config_bool':
-                new_obj.db_add_value(DBConfigBool.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBConfigBool.update_version(obj, trans_dict))
             elif obj.vtType == 'configuration':
-                new_obj.db_add_value(DBConfiguration.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBConfiguration.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
             for obj in old_obj.db_deleted_value:
                 if obj.vtType == 'config_str':
@@ -469,54 +525,68 @@ class DBConfigKey(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_value.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_value)
         if remove:
             self.db_deleted_value = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_value is not None and self._db_value.has_changes():
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         if not self.is_new:
             self.db_deleted_value.append(self._db_value)
         self._db_value = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
+    def getPrimaryKey(self):
+        return self._db_name
 
 
 class DBMashupAlias(object):
@@ -530,7 +600,7 @@ class DBMashupAlias(object):
         self._db_component = component
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMashupAlias.do_copy(self)
 
@@ -538,8 +608,9 @@ class DBMashupAlias(object):
         cp = DBMashupAlias(id=self._db_id,
                            name=self._db_name)
         if self._db_component is not None:
-            cp._db_component = self._db_component.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_component = self._db_component.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -548,7 +619,7 @@ class DBMashupAlias(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -561,28 +632,32 @@ class DBMashupAlias(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_component')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_component is not None and other.db_component is not None:
-                self.db_component.deep_eq_test(other.db_component, test_obj, alternate_tests)
+                self.db_component.deep_eq_test(
+                    other.db_component, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_component, 
+                test_obj.assertEqual(self.db_component,
                                      other.db_component)
 
     @staticmethod
@@ -607,7 +682,8 @@ class DBMashupAlias(object):
             new_obj.db_component = res
         elif hasattr(old_obj, 'db_component') and old_obj.db_component is not None:
             obj = old_obj.db_component
-            new_obj.db_add_component(DBMashupComponent.update_version(obj, trans_dict))
+            new_obj.db_add_component(
+                DBMashupComponent.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_component') and hasattr(new_obj, 'db_deleted_component'):
             for obj in old_obj.db_deleted_component:
                 n_obj = DBMashupComponent.update_version(obj, trans_dict)
@@ -616,69 +692,86 @@ class DBMashupAlias(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_component is not None:
-            children.extend(self._db_component.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_component.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_component = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_component)
         if remove:
             self.db_deleted_component = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_component is not None and self._db_component.has_changes():
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_component(self):
         return self._db_component
+
     def __set_db_component(self, component):
         self._db_component = component
         self.is_dirty = True
     db_component = property(__get_db_component, __set_db_component)
+
     def db_add_component(self, component):
         self._db_component = component
+
     def db_change_component(self, component):
         self._db_component = component
+
     def db_delete_component(self, component):
         if not self.is_new:
             self.db_deleted_component.append(self._db_component)
         self._db_component = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBGroup(object):
 
@@ -725,7 +818,7 @@ class DBGroup(object):
                 self.db_controlParameters_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBGroup.do_copy(self)
 
@@ -739,20 +832,24 @@ class DBGroup(object):
         if self._db_workflow is not None:
             cp._db_workflow = self._db_workflow.do_copy()
         if self._db_location is not None:
-            cp._db_location = self._db_location.do_copy(new_ids, id_scope, id_remap)
+            cp._db_location = self._db_location.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_functions is None:
             cp._db_functions = []
         else:
-            cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
+            cp._db_functions = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_controlParameters is None:
             cp._db_controlParameters = []
         else:
-            cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
-        
+            cp._db_controlParameters = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -761,13 +858,17 @@ class DBGroup(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
-        cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(
+            (v.db_key, v) for v in cp._db_annotations)
+        cp.db_controlParameters_id_index = dict(
+            (v.db_id, v) for v in cp._db_controlParameters)
+        cp.db_controlParameters_name_index = dict(
+            (v.db_name, v) for v in cp._db_controlParameters)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -779,103 +880,116 @@ class DBGroup(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_workflow')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_workflow is not None and other.db_workflow is not None:
-                self.db_workflow.deep_eq_test(other.db_workflow, test_obj, alternate_tests)
+                self.db_workflow.deep_eq_test(
+                    other.db_workflow, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_workflow, 
+                test_obj.assertEqual(self.db_workflow,
                                      other.db_workflow)
         alternate_key = (self.__class__.__name__, 'db_cache')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_cache, 
+            test_obj.assertEqual(self.db_cache,
                                  other.db_cache)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_namespace')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_namespace, 
+            test_obj.assertEqual(self.db_namespace,
                                  other.db_namespace)
         alternate_key = (self.__class__.__name__, 'db_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package, 
+            test_obj.assertEqual(self.db_package,
                                  other.db_package)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_location')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_location is not None and other.db_location is not None:
-                self.db_location.deep_eq_test(other.db_location, test_obj, alternate_tests)
+                self.db_location.deep_eq_test(
+                    other.db_location, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_location, 
+                test_obj.assertEqual(self.db_location,
                                      other.db_location)
         alternate_key = (self.__class__.__name__, 'db_functions')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_functions), 
+            test_obj.assertEqual(len(self.db_functions),
                                  len(other.db_functions))
-            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id),
                                    sorted(other.db_functions, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_controlParameters')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_controlParameters), 
+            test_obj.assertEqual(len(self.db_controlParameters),
                                  len(other.db_controlParameters))
-            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id),
                                    sorted(other.db_controlParameters, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -942,7 +1056,8 @@ class DBGroup(object):
                 new_obj.db_add_function(obj)
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
-                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+                new_obj.db_add_function(
+                    DBFunction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
             for obj in old_obj.db_deleted_functions:
                 n_obj = DBFunction.update_version(obj, trans_dict)
@@ -953,7 +1068,8 @@ class DBGroup(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -964,7 +1080,8 @@ class DBGroup(object):
                 new_obj.db_add_controlParameter(obj)
         elif hasattr(old_obj, 'db_controlParameters') and old_obj.db_controlParameters is not None:
             for obj in old_obj.db_controlParameters:
-                new_obj.db_add_controlParameter(DBControlParameter.update_version(obj, trans_dict))
+                new_obj.db_add_controlParameter(
+                    DBControlParameter.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_controlParameters') and hasattr(new_obj, 'db_deleted_controlParameters'):
             for obj in old_obj.db_deleted_controlParameters:
                 n_obj = DBControlParameter.update_version(obj, trans_dict)
@@ -973,35 +1090,40 @@ class DBGroup(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_location is not None:
-            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_location.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_controlParameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_controlParameter(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_workflow)
@@ -1016,6 +1138,7 @@ class DBGroup(object):
             self.db_deleted_annotations = []
             self.db_deleted_controlParameters = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -1033,126 +1156,163 @@ class DBGroup(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_workflow(self):
         return self._db_workflow
+
     def __set_db_workflow(self, workflow):
         self._db_workflow = workflow
         self.is_dirty = True
     db_workflow = property(__get_db_workflow, __set_db_workflow)
+
     def db_add_workflow(self, workflow):
         self._db_workflow = workflow
+
     def db_change_workflow(self, workflow):
         self._db_workflow = workflow
+
     def db_delete_workflow(self, workflow):
         if not self.is_new:
             self.db_deleted_workflow.append(self._db_workflow)
         self._db_workflow = None
-    
+
     def __get_db_cache(self):
         return self._db_cache
+
     def __set_db_cache(self, cache):
         self._db_cache = cache
         self.is_dirty = True
     db_cache = property(__get_db_cache, __set_db_cache)
+
     def db_add_cache(self, cache):
         self._db_cache = cache
+
     def db_change_cache(self, cache):
         self._db_cache = cache
+
     def db_delete_cache(self, cache):
         self._db_cache = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_namespace(self):
         return self._db_namespace
+
     def __set_db_namespace(self, namespace):
         self._db_namespace = namespace
         self.is_dirty = True
     db_namespace = property(__get_db_namespace, __set_db_namespace)
+
     def db_add_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_change_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
-    
+
     def __get_db_package(self):
         return self._db_package
+
     def __set_db_package(self, package):
         self._db_package = package
         self.is_dirty = True
     db_package = property(__get_db_package, __set_db_package)
+
     def db_add_package(self, package):
         self._db_package = package
+
     def db_change_package(self, package):
         self._db_package = package
+
     def db_delete_package(self, package):
         self._db_package = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_location(self):
         return self._db_location
+
     def __set_db_location(self, location):
         self._db_location = location
         self.is_dirty = True
     db_location = property(__get_db_location, __set_db_location)
+
     def db_add_location(self, location):
         self._db_location = location
+
     def db_change_location(self, location):
         self._db_location = location
+
     def db_delete_location(self, location):
         if not self.is_new:
             self.db_deleted_location.append(self._db_location)
         self._db_location = None
-    
+
     def __get_db_functions(self):
         return self._db_functions
+
     def __set_db_functions(self, functions):
         self._db_functions = functions
         self.is_dirty = True
     db_functions = property(__get_db_functions, __set_db_functions)
+
     def db_get_functions(self):
         return self._db_functions
+
     def db_add_function(self, function):
         self.is_dirty = True
         self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
@@ -1164,6 +1324,7 @@ class DBGroup(object):
         if not found:
             self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_delete_function(self, function):
         self.is_dirty = True
         for i in xrange(len(self._db_functions)):
@@ -1173,29 +1334,36 @@ class DBGroup(object):
                 del self._db_functions[i]
                 break
         del self.db_functions_id_index[function.db_id]
+
     def db_get_function(self, key):
         for i in xrange(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
+
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
+
     def db_has_function_with_id(self, key):
         return key in self.db_functions_id_index
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -1208,6 +1376,7 @@ class DBGroup(object):
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -1218,33 +1387,45 @@ class DBGroup(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
+
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
-    
+
     def __get_db_controlParameters(self):
         return self._db_controlParameters
+
     def __set_db_controlParameters(self, controlParameters):
         self._db_controlParameters = controlParameters
         self.is_dirty = True
-    db_controlParameters = property(__get_db_controlParameters, __set_db_controlParameters)
+    db_controlParameters = property(
+        __get_db_controlParameters, __set_db_controlParameters)
+
     def db_get_controlParameters(self):
         return self._db_controlParameters
+
     def db_add_controlParameter(self, controlParameter):
         self.is_dirty = True
         self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_change_controlParameter(self, controlParameter):
         self.is_dirty = True
         found = False
@@ -1255,34 +1436,44 @@ class DBGroup(object):
                 break
         if not found:
             self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_delete_controlParameter(self, controlParameter):
         self.is_dirty = True
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == controlParameter.db_id:
                 if not self._db_controlParameters[i].is_new:
-                    self.db_deleted_controlParameters.append(self._db_controlParameters[i])
+                    self.db_deleted_controlParameters.append(
+                        self._db_controlParameters[i])
                 del self._db_controlParameters[i]
                 break
         del self.db_controlParameters_id_index[controlParameter.db_id]
         del self.db_controlParameters_name_index[controlParameter.db_name]
+
     def db_get_controlParameter(self, key):
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == key:
                 return self._db_controlParameters[i]
         return None
+
     def db_get_controlParameter_by_id(self, key):
         return self.db_controlParameters_id_index[key]
+
     def db_has_controlParameter_with_id(self, key):
         return key in self.db_controlParameters_id_index
+
     def db_get_controlParameter_by_name(self, key):
         return self.db_controlParameters_name_index[key]
+
     def db_has_controlParameter_with_name(self, key):
         return key in self.db_controlParameters_name_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmWasControlledBy(object):
 
@@ -1312,14 +1503,15 @@ class DBOpmWasControlledBy(object):
             self._db_ends = ends
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmWasControlledBy.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmWasControlledBy()
         if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+            cp._db_effect = self._db_effect.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_role is not None:
             cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
         if self._db_cause is not None:
@@ -1327,16 +1519,19 @@ class DBOpmWasControlledBy(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
         if self._db_starts is None:
             cp._db_starts = []
         else:
-            cp._db_starts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_starts]
+            cp._db_starts = [v.do_copy(new_ids, id_scope, id_remap)
+                             for v in self._db_starts]
         if self._db_ends is None:
             cp._db_ends = []
         else:
-            cp._db_ends = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_ends]
-        
+            cp._db_ends = [v.do_copy(new_ids, id_scope, id_remap)
+                           for v in self._db_ends]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -1345,7 +1540,7 @@ class DBOpmWasControlledBy(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1358,66 +1553,75 @@ class DBOpmWasControlledBy(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_effect is not None and other.db_effect is not None:
-                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+                self.db_effect.deep_eq_test(
+                    other.db_effect, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_effect, 
+                test_obj.assertEqual(self.db_effect,
                                      other.db_effect)
         alternate_key = (self.__class__.__name__, 'db_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_role is not None and other.db_role is not None:
-                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+                self.db_role.deep_eq_test(
+                    other.db_role, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_role, 
+                test_obj.assertEqual(self.db_role,
                                      other.db_role)
         alternate_key = (self.__class__.__name__, 'db_cause')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_cause is not None and other.db_cause is not None:
-                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+                self.db_cause.deep_eq_test(
+                    other.db_cause, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_cause, 
+                test_obj.assertEqual(self.db_cause,
                                      other.db_cause)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_starts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_starts), 
+            test_obj.assertEqual(len(self.db_starts),
                                  len(other.db_starts))
-            for obj1, obj2 in izip(self.db_starts, 
+            for obj1, obj2 in izip(self.db_starts,
                                    other.db_starts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_ends')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_ends), 
+            test_obj.assertEqual(len(self.db_ends),
                                  len(other.db_ends))
-            for obj1, obj2 in izip(self.db_ends, 
+            for obj1, obj2 in izip(self.db_ends,
                                    other.db_ends):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -1433,7 +1637,8 @@ class DBOpmWasControlledBy(object):
             new_obj.db_effect = res
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+            new_obj.db_add_effect(
+                DBOpmProcessIdEffect.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
             for obj in old_obj.db_deleted_effect:
                 n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
@@ -1464,7 +1669,8 @@ class DBOpmWasControlledBy(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -1495,43 +1701,50 @@ class DBOpmWasControlledBy(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_effect.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_role.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_cause.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_starts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_start(child)
         to_del = []
         for child in self.db_ends:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_end(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_effect)
@@ -1548,6 +1761,7 @@ class DBOpmWasControlledBy(object):
             self.db_deleted_starts = []
             self.db_deleted_ends = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -1567,111 +1781,141 @@ class DBOpmWasControlledBy(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_effect(self):
         return self._db_effect
+
     def __set_db_effect(self, effect):
         self._db_effect = effect
         self.is_dirty = True
     db_effect = property(__get_db_effect, __set_db_effect)
+
     def db_add_effect(self, effect):
         self._db_effect = effect
+
     def db_change_effect(self, effect):
         self._db_effect = effect
+
     def db_delete_effect(self, effect):
         if not self.is_new:
             self.db_deleted_effect.append(self._db_effect)
         self._db_effect = None
-    
+
     def __get_db_role(self):
         return self._db_role
+
     def __set_db_role(self, role):
         self._db_role = role
         self.is_dirty = True
     db_role = property(__get_db_role, __set_db_role)
+
     def db_add_role(self, role):
         self._db_role = role
+
     def db_change_role(self, role):
         self._db_role = role
+
     def db_delete_role(self, role):
         if not self.is_new:
             self.db_deleted_role.append(self._db_role)
         self._db_role = None
-    
+
     def __get_db_cause(self):
         return self._db_cause
+
     def __set_db_cause(self, cause):
         self._db_cause = cause
         self.is_dirty = True
     db_cause = property(__get_db_cause, __set_db_cause)
+
     def db_add_cause(self, cause):
         self._db_cause = cause
+
     def db_change_cause(self, cause):
         self._db_cause = cause
+
     def db_delete_cause(self, cause):
         if not self.is_new:
             self.db_deleted_cause.append(self._db_cause)
         self._db_cause = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def __get_db_starts(self):
         return self._db_starts
+
     def __set_db_starts(self, starts):
         self._db_starts = starts
         self.is_dirty = True
     db_starts = property(__get_db_starts, __set_db_starts)
+
     def db_get_starts(self):
         return self._db_starts
+
     def db_add_start(self, start):
         self.is_dirty = True
         self._db_starts.append(start)
+
     def db_change_start(self, start):
         self.is_dirty = True
         self._db_starts.append(start)
+
     def db_delete_start(self, start):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_start(self, key):
         return None
-    
+
     def __get_db_ends(self):
         return self._db_ends
+
     def __set_db_ends(self, ends):
         self._db_ends = ends
         self.is_dirty = True
     db_ends = property(__get_db_ends, __set_db_ends)
+
     def db_get_ends(self):
         return self._db_ends
+
     def db_add_end(self, end):
         self.is_dirty = True
         self._db_ends.append(end)
+
     def db_change_end(self, end):
         self.is_dirty = True
         self._db_ends.append(end)
+
     def db_delete_end(self, end):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_end(self, key):
         return None
-    
 
 
 class DBAdd(object):
@@ -1688,7 +1932,7 @@ class DBAdd(object):
         self._db_parentObjType = parentObjType
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBAdd.do_copy(self)
 
@@ -1700,7 +1944,7 @@ class DBAdd(object):
                    parentObjType=self._db_parentObjType)
         if self._db_data is not None:
             cp._db_data = self._db_data.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -1712,8 +1956,9 @@ class DBAdd(object):
             if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
                 cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
             if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+                cp._db_parentObjId = id_remap[
+                    (self._db_parentObjType, self._db_parentObjId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1726,52 +1971,59 @@ class DBAdd(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_data is not None and other.db_data is not None:
-                self.db_data.deep_eq_test(other.db_data, test_obj, alternate_tests)
+                self.db_data.deep_eq_test(
+                    other.db_data, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_data, 
+                test_obj.assertEqual(self.db_data,
                                      other.db_data)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_what')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_what, 
+            test_obj.assertEqual(self.db_what,
                                  other.db_what)
         alternate_key = (self.__class__.__name__, 'db_objectId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_objectId, 
+            test_obj.assertEqual(self.db_objectId,
                                  other.db_objectId)
         alternate_key = (self.__class__.__name__, 'db_parentObjId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parentObjId, 
+            test_obj.assertEqual(self.db_parentObjId,
                                  other.db_parentObjId)
         alternate_key = (self.__class__.__name__, 'db_parentObjType')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parentObjType, 
+            test_obj.assertEqual(self.db_parentObjType,
                                  other.db_parentObjType)
 
     @staticmethod
@@ -1791,27 +2043,33 @@ class DBAdd(object):
             elif obj.vtType == 'location':
                 new_obj.db_add_data(DBLocation.update_version(obj, trans_dict))
             elif obj.vtType == 'annotation':
-                new_obj.db_add_data(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBAnnotation.update_version(obj, trans_dict))
             elif obj.vtType == 'controlParameter':
-                new_obj.db_add_data(DBControlParameter.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBControlParameter.update_version(obj, trans_dict))
             elif obj.vtType == 'function':
                 new_obj.db_add_data(DBFunction.update_version(obj, trans_dict))
             elif obj.vtType == 'connection':
-                new_obj.db_add_data(DBConnection.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBConnection.update_version(obj, trans_dict))
             elif obj.vtType == 'port':
                 new_obj.db_add_data(DBPort.update_version(obj, trans_dict))
             elif obj.vtType == 'parameter':
-                new_obj.db_add_data(DBParameter.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBParameter.update_version(obj, trans_dict))
             elif obj.vtType == 'portSpec':
                 new_obj.db_add_data(DBPortSpec.update_version(obj, trans_dict))
             elif obj.vtType == 'abstraction':
-                new_obj.db_add_data(DBAbstraction.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBAbstraction.update_version(obj, trans_dict))
             elif obj.vtType == 'group':
                 new_obj.db_add_data(DBGroup.update_version(obj, trans_dict))
             elif obj.vtType == 'other':
                 new_obj.db_add_data(DBOther.update_version(obj, trans_dict))
             elif obj.vtType == 'plugin_data':
-                new_obj.db_add_data(DBPluginData.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBPluginData.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_data') and hasattr(new_obj, 'db_deleted_data'):
             for obj in old_obj.db_deleted_data:
                 if obj.vtType == 'module':
@@ -1882,108 +2140,137 @@ class DBAdd(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_data is not None:
-            children.extend(self._db_data.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_data.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_data = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_data)
         if remove:
             self.db_deleted_data = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_data is not None and self._db_data.has_changes():
             return True
         return False
+
     def __get_db_data(self):
         return self._db_data
+
     def __set_db_data(self, data):
         self._db_data = data
         self.is_dirty = True
     db_data = property(__get_db_data, __set_db_data)
+
     def db_add_data(self, data):
         self._db_data = data
+
     def db_change_data(self, data):
         self._db_data = data
+
     def db_delete_data(self, data):
         if not self.is_new:
             self.db_deleted_data.append(self._db_data)
         self._db_data = None
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_what(self):
         return self._db_what
+
     def __set_db_what(self, what):
         self._db_what = what
         self.is_dirty = True
     db_what = property(__get_db_what, __set_db_what)
+
     def db_add_what(self, what):
         self._db_what = what
+
     def db_change_what(self, what):
         self._db_what = what
+
     def db_delete_what(self, what):
         self._db_what = None
-    
+
     def __get_db_objectId(self):
         return self._db_objectId
+
     def __set_db_objectId(self, objectId):
         self._db_objectId = objectId
         self.is_dirty = True
     db_objectId = property(__get_db_objectId, __set_db_objectId)
+
     def db_add_objectId(self, objectId):
         self._db_objectId = objectId
+
     def db_change_objectId(self, objectId):
         self._db_objectId = objectId
+
     def db_delete_objectId(self, objectId):
         self._db_objectId = None
-    
+
     def __get_db_parentObjId(self):
         return self._db_parentObjId
+
     def __set_db_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
         self.is_dirty = True
     db_parentObjId = property(__get_db_parentObjId, __set_db_parentObjId)
+
     def db_add_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
+
     def db_change_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
+
     def db_delete_parentObjId(self, parentObjId):
         self._db_parentObjId = None
-    
+
     def __get_db_parentObjType(self):
         return self._db_parentObjType
+
     def __set_db_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
         self.is_dirty = True
     db_parentObjType = property(__get_db_parentObjType, __set_db_parentObjType)
+
     def db_add_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
+
     def db_change_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
+
     def db_delete_parentObjType(self, parentObjType):
         self._db_parentObjType = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBProvGeneration(object):
 
@@ -1997,17 +2284,19 @@ class DBProvGeneration(object):
         self._db_prov_role = prov_role
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvGeneration.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBProvGeneration(prov_role=self._db_prov_role)
         if self._db_prov_entity is not None:
-            cp._db_prov_entity = self._db_prov_entity.do_copy(new_ids, id_scope, id_remap)
+            cp._db_prov_entity = self._db_prov_entity.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_prov_activity is not None:
-            cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_prov_activity = self._db_prov_activity.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -2016,7 +2305,7 @@ class DBProvGeneration(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2029,31 +2318,36 @@ class DBProvGeneration(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_entity is not None and other.db_prov_entity is not None:
-                self.db_prov_entity.deep_eq_test(other.db_prov_entity, test_obj, alternate_tests)
+                self.db_prov_entity.deep_eq_test(
+                    other.db_prov_entity, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_entity, 
+                test_obj.assertEqual(self.db_prov_entity,
                                      other.db_prov_entity)
         alternate_key = (self.__class__.__name__, 'db_prov_activity')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_activity is not None and other.db_prov_activity is not None:
-                self.db_prov_activity.deep_eq_test(other.db_prov_activity, test_obj, alternate_tests)
+                self.db_prov_activity.deep_eq_test(
+                    other.db_prov_activity, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_activity, 
+                test_obj.assertEqual(self.db_prov_activity,
                                      other.db_prov_activity)
         alternate_key = (self.__class__.__name__, 'db_prov_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_role, 
+            test_obj.assertEqual(self.db_prov_role,
                                  other.db_prov_role)
 
     @staticmethod
@@ -2068,7 +2362,8 @@ class DBProvGeneration(object):
             new_obj.db_prov_entity = res
         elif hasattr(old_obj, 'db_prov_entity') and old_obj.db_prov_entity is not None:
             obj = old_obj.db_prov_entity
-            new_obj.db_add_prov_entity(DBRefProvEntity.update_version(obj, trans_dict))
+            new_obj.db_add_prov_entity(
+                DBRefProvEntity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_entity') and hasattr(new_obj, 'db_deleted_prov_entity'):
             for obj in old_obj.db_deleted_prov_entity:
                 n_obj = DBRefProvEntity.update_version(obj, trans_dict)
@@ -2078,7 +2373,8 @@ class DBProvGeneration(object):
             new_obj.db_prov_activity = res
         elif hasattr(old_obj, 'db_prov_activity') and old_obj.db_prov_activity is not None:
             obj = old_obj.db_prov_activity
-            new_obj.db_add_prov_activity(DBRefProvActivity.update_version(obj, trans_dict))
+            new_obj.db_add_prov_activity(
+                DBRefProvActivity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_activity') and hasattr(new_obj, 'db_deleted_prov_activity'):
             for obj in old_obj.db_deleted_prov_activity:
                 n_obj = DBRefProvActivity.update_version(obj, trans_dict)
@@ -2092,18 +2388,21 @@ class DBProvGeneration(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_prov_entity is not None:
-            children.extend(self._db_prov_entity.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_entity.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_entity = None
         if self._db_prov_activity is not None:
-            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_activity.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_prov_entity)
@@ -2112,6 +2411,7 @@ class DBProvGeneration(object):
             self.db_deleted_prov_entity = []
             self.db_deleted_prov_activity = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -2120,49 +2420,61 @@ class DBProvGeneration(object):
         if self._db_prov_activity is not None and self._db_prov_activity.has_changes():
             return True
         return False
+
     def __get_db_prov_entity(self):
         return self._db_prov_entity
+
     def __set_db_prov_entity(self, prov_entity):
         self._db_prov_entity = prov_entity
         self.is_dirty = True
     db_prov_entity = property(__get_db_prov_entity, __set_db_prov_entity)
+
     def db_add_prov_entity(self, prov_entity):
         self._db_prov_entity = prov_entity
+
     def db_change_prov_entity(self, prov_entity):
         self._db_prov_entity = prov_entity
+
     def db_delete_prov_entity(self, prov_entity):
         if not self.is_new:
             self.db_deleted_prov_entity.append(self._db_prov_entity)
         self._db_prov_entity = None
-    
+
     def __get_db_prov_activity(self):
         return self._db_prov_activity
+
     def __set_db_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
         self.is_dirty = True
     db_prov_activity = property(__get_db_prov_activity, __set_db_prov_activity)
+
     def db_add_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
+
     def db_change_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
+
     def db_delete_prov_activity(self, prov_activity):
         if not self.is_new:
             self.db_deleted_prov_activity.append(self._db_prov_activity)
         self._db_prov_activity = None
-    
+
     def __get_db_prov_role(self):
         return self._db_prov_role
+
     def __set_db_prov_role(self, prov_role):
         self._db_prov_role = prov_role
         self.is_dirty = True
     db_prov_role = property(__get_db_prov_role, __set_db_prov_role)
+
     def db_add_prov_role(self, prov_role):
         self._db_prov_role = prov_role
+
     def db_change_prov_role(self, prov_role):
         self._db_prov_role = prov_role
+
     def db_delete_prov_role(self, prov_role):
         self._db_prov_role = None
-    
 
 
 class DBOpmUsed(object):
@@ -2188,14 +2500,15 @@ class DBOpmUsed(object):
             self._db_opm_times = opm_times
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmUsed.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmUsed()
         if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+            cp._db_effect = self._db_effect.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_role is not None:
             cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
         if self._db_cause is not None:
@@ -2203,12 +2516,14 @@ class DBOpmUsed(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
         if self._db_opm_times is None:
             cp._db_opm_times = []
         else:
-            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
+            cp._db_opm_times = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -2217,7 +2532,7 @@ class DBOpmUsed(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2230,55 +2545,63 @@ class DBOpmUsed(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_effect is not None and other.db_effect is not None:
-                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+                self.db_effect.deep_eq_test(
+                    other.db_effect, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_effect, 
+                test_obj.assertEqual(self.db_effect,
                                      other.db_effect)
         alternate_key = (self.__class__.__name__, 'db_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_role is not None and other.db_role is not None:
-                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+                self.db_role.deep_eq_test(
+                    other.db_role, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_role, 
+                test_obj.assertEqual(self.db_role,
                                      other.db_role)
         alternate_key = (self.__class__.__name__, 'db_cause')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_cause is not None and other.db_cause is not None:
-                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+                self.db_cause.deep_eq_test(
+                    other.db_cause, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_cause, 
+                test_obj.assertEqual(self.db_cause,
                                      other.db_cause)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_opm_times), 
+            test_obj.assertEqual(len(self.db_opm_times),
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(self.db_opm_times, 
+            for obj1, obj2 in izip(self.db_opm_times,
                                    other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -2294,7 +2617,8 @@ class DBOpmUsed(object):
             new_obj.db_effect = res
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+            new_obj.db_add_effect(
+                DBOpmProcessIdEffect.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
             for obj in old_obj.db_deleted_effect:
                 n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
@@ -2314,7 +2638,8 @@ class DBOpmUsed(object):
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
-            new_obj.db_add_cause(DBOpmArtifactIdCause.update_version(obj, trans_dict))
+            new_obj.db_add_cause(
+                DBOpmArtifactIdCause.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
             for obj in old_obj.db_deleted_cause:
                 n_obj = DBOpmArtifactIdCause.update_version(obj, trans_dict)
@@ -2325,7 +2650,8 @@ class DBOpmUsed(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -2336,7 +2662,8 @@ class DBOpmUsed(object):
                 new_obj.db_add_opm_time(obj)
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
-                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+                new_obj.db_add_opm_time(
+                    DBOpmTime.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
             for obj in old_obj.db_deleted_opm_times:
                 n_obj = DBOpmTime.update_version(obj, trans_dict)
@@ -2345,36 +2672,42 @@ class DBOpmUsed(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_effect.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_role.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_cause.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_opm_time(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_effect)
@@ -2389,6 +2722,7 @@ class DBOpmUsed(object):
             self.db_deleted_accounts = []
             self.db_deleted_opm_times = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -2405,91 +2739,115 @@ class DBOpmUsed(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_effect(self):
         return self._db_effect
+
     def __set_db_effect(self, effect):
         self._db_effect = effect
         self.is_dirty = True
     db_effect = property(__get_db_effect, __set_db_effect)
+
     def db_add_effect(self, effect):
         self._db_effect = effect
+
     def db_change_effect(self, effect):
         self._db_effect = effect
+
     def db_delete_effect(self, effect):
         if not self.is_new:
             self.db_deleted_effect.append(self._db_effect)
         self._db_effect = None
-    
+
     def __get_db_role(self):
         return self._db_role
+
     def __set_db_role(self, role):
         self._db_role = role
         self.is_dirty = True
     db_role = property(__get_db_role, __set_db_role)
+
     def db_add_role(self, role):
         self._db_role = role
+
     def db_change_role(self, role):
         self._db_role = role
+
     def db_delete_role(self, role):
         if not self.is_new:
             self.db_deleted_role.append(self._db_role)
         self._db_role = None
-    
+
     def __get_db_cause(self):
         return self._db_cause
+
     def __set_db_cause(self, cause):
         self._db_cause = cause
         self.is_dirty = True
     db_cause = property(__get_db_cause, __set_db_cause)
+
     def db_add_cause(self, cause):
         self._db_cause = cause
+
     def db_change_cause(self, cause):
         self._db_cause = cause
+
     def db_delete_cause(self, cause):
         if not self.is_new:
             self.db_deleted_cause.append(self._db_cause)
         self._db_cause = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def __get_db_opm_times(self):
         return self._db_opm_times
+
     def __set_db_opm_times(self, opm_times):
         self._db_opm_times = opm_times
         self.is_dirty = True
     db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
+
     def db_get_opm_times(self):
         return self._db_opm_times
+
     def db_add_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_change_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_delete_opm_time(self, opm_time):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_opm_time(self, key):
         return None
-    
 
 
 class DBOpmArtifactIdCause(object):
@@ -2500,13 +2858,13 @@ class DBOpmArtifactIdCause(object):
         self._db_id = id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmArtifactIdCause.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmArtifactIdCause(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -2517,7 +2875,7 @@ class DBOpmArtifactIdCause(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_artifact', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2530,9 +2888,10 @@ class DBOpmArtifactIdCause(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
 
     @staticmethod
@@ -2551,28 +2910,34 @@ class DBOpmArtifactIdCause(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
 
 
 class DBRefProvEntity(object):
@@ -2583,13 +2948,13 @@ class DBRefProvEntity(object):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBRefProvEntity.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvEntity(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -2600,7 +2965,7 @@ class DBRefProvEntity(object):
             cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2613,9 +2978,10 @@ class DBRefProvEntity(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_ref, 
+            test_obj.assertEqual(self.db_prov_ref,
                                  other.db_prov_ref)
 
     @staticmethod
@@ -2634,28 +3000,34 @@ class DBRefProvEntity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_prov_ref(self):
         return self._db_prov_ref
+
     def __set_db_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
     db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+
     def db_add_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_change_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_delete_prov_ref(self, prov_ref):
         self._db_prov_ref = None
-    
 
 
 class DBVtConnection(object):
@@ -2672,7 +3044,7 @@ class DBVtConnection(object):
         self._db_vt_dest_signature = vt_dest_signature
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBVtConnection.do_copy(self)
 
@@ -2684,7 +3056,7 @@ class DBVtConnection(object):
                             vt_dest_port=self._db_vt_dest_port,
                             vt_source_signature=self._db_vt_source_signature,
                             vt_dest_signature=self._db_vt_dest_signature)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -2693,7 +3065,7 @@ class DBVtConnection(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2706,57 +3078,64 @@ class DBVtConnection(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_vt_source')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_source, 
+            test_obj.assertEqual(self.db_vt_source,
                                  other.db_vt_source)
         alternate_key = (self.__class__.__name__, 'db_vt_dest')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_dest, 
+            test_obj.assertEqual(self.db_vt_dest,
                                  other.db_vt_dest)
         alternate_key = (self.__class__.__name__, 'db_vt_source_port')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_source_port, 
+            test_obj.assertEqual(self.db_vt_source_port,
                                  other.db_vt_source_port)
         alternate_key = (self.__class__.__name__, 'db_vt_dest_port')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_dest_port, 
+            test_obj.assertEqual(self.db_vt_dest_port,
                                  other.db_vt_dest_port)
         alternate_key = (self.__class__.__name__, 'db_vt_source_signature')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_source_signature, 
+            test_obj.assertEqual(self.db_vt_source_signature,
                                  other.db_vt_source_signature)
         alternate_key = (self.__class__.__name__, 'db_vt_dest_signature')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_dest_signature, 
+            test_obj.assertEqual(self.db_vt_dest_signature,
                                  other.db_vt_dest_signature)
 
     @staticmethod
@@ -2805,108 +3184,143 @@ class DBVtConnection(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_vt_source(self):
         return self._db_vt_source
+
     def __set_db_vt_source(self, vt_source):
         self._db_vt_source = vt_source
         self.is_dirty = True
     db_vt_source = property(__get_db_vt_source, __set_db_vt_source)
+
     def db_add_vt_source(self, vt_source):
         self._db_vt_source = vt_source
+
     def db_change_vt_source(self, vt_source):
         self._db_vt_source = vt_source
+
     def db_delete_vt_source(self, vt_source):
         self._db_vt_source = None
-    
+
     def __get_db_vt_dest(self):
         return self._db_vt_dest
+
     def __set_db_vt_dest(self, vt_dest):
         self._db_vt_dest = vt_dest
         self.is_dirty = True
     db_vt_dest = property(__get_db_vt_dest, __set_db_vt_dest)
+
     def db_add_vt_dest(self, vt_dest):
         self._db_vt_dest = vt_dest
+
     def db_change_vt_dest(self, vt_dest):
         self._db_vt_dest = vt_dest
+
     def db_delete_vt_dest(self, vt_dest):
         self._db_vt_dest = None
-    
+
     def __get_db_vt_source_port(self):
         return self._db_vt_source_port
+
     def __set_db_vt_source_port(self, vt_source_port):
         self._db_vt_source_port = vt_source_port
         self.is_dirty = True
-    db_vt_source_port = property(__get_db_vt_source_port, __set_db_vt_source_port)
+    db_vt_source_port = property(
+        __get_db_vt_source_port, __set_db_vt_source_port)
+
     def db_add_vt_source_port(self, vt_source_port):
         self._db_vt_source_port = vt_source_port
+
     def db_change_vt_source_port(self, vt_source_port):
         self._db_vt_source_port = vt_source_port
+
     def db_delete_vt_source_port(self, vt_source_port):
         self._db_vt_source_port = None
-    
+
     def __get_db_vt_dest_port(self):
         return self._db_vt_dest_port
+
     def __set_db_vt_dest_port(self, vt_dest_port):
         self._db_vt_dest_port = vt_dest_port
         self.is_dirty = True
     db_vt_dest_port = property(__get_db_vt_dest_port, __set_db_vt_dest_port)
+
     def db_add_vt_dest_port(self, vt_dest_port):
         self._db_vt_dest_port = vt_dest_port
+
     def db_change_vt_dest_port(self, vt_dest_port):
         self._db_vt_dest_port = vt_dest_port
+
     def db_delete_vt_dest_port(self, vt_dest_port):
         self._db_vt_dest_port = None
-    
+
     def __get_db_vt_source_signature(self):
         return self._db_vt_source_signature
+
     def __set_db_vt_source_signature(self, vt_source_signature):
         self._db_vt_source_signature = vt_source_signature
         self.is_dirty = True
-    db_vt_source_signature = property(__get_db_vt_source_signature, __set_db_vt_source_signature)
+    db_vt_source_signature = property(
+        __get_db_vt_source_signature, __set_db_vt_source_signature)
+
     def db_add_vt_source_signature(self, vt_source_signature):
         self._db_vt_source_signature = vt_source_signature
+
     def db_change_vt_source_signature(self, vt_source_signature):
         self._db_vt_source_signature = vt_source_signature
+
     def db_delete_vt_source_signature(self, vt_source_signature):
         self._db_vt_source_signature = None
-    
+
     def __get_db_vt_dest_signature(self):
         return self._db_vt_dest_signature
+
     def __set_db_vt_dest_signature(self, vt_dest_signature):
         self._db_vt_dest_signature = vt_dest_signature
         self.is_dirty = True
-    db_vt_dest_signature = property(__get_db_vt_dest_signature, __set_db_vt_dest_signature)
+    db_vt_dest_signature = property(
+        __get_db_vt_dest_signature, __set_db_vt_dest_signature)
+
     def db_add_vt_dest_signature(self, vt_dest_signature):
         self._db_vt_dest_signature = vt_dest_signature
+
     def db_change_vt_dest_signature(self, vt_dest_signature):
         self._db_vt_dest_signature = vt_dest_signature
+
     def db_delete_vt_dest_signature(self, vt_dest_signature):
         self._db_vt_dest_signature = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmAccount(object):
 
@@ -2917,14 +3331,14 @@ class DBOpmAccount(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmAccount.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAccount(id=self._db_id,
                           value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -2933,7 +3347,7 @@ class DBOpmAccount(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2946,17 +3360,19 @@ class DBOpmAccount(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -2980,43 +3396,55 @@ class DBOpmAccount(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBGroupExec(object):
 
@@ -3051,7 +3479,7 @@ class DBGroupExec(object):
                 self.db_annotations_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBGroupExec.do_copy(self)
 
@@ -3069,12 +3497,14 @@ class DBGroupExec(object):
         if self._db_item_execs is None:
             cp._db_item_execs = []
         else:
-            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+            cp._db_item_execs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
-        
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -3087,10 +3517,12 @@ class DBGroupExec(object):
                 cp._db_module_id = id_remap[('module', self._db_module_id)]
             if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
                 cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
-        
+
         # recreate indices and set flags
-        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_item_execs_id_index = dict(
+            (v.db_id, v) for v in cp._db_item_execs)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -3102,102 +3534,114 @@ class DBGroupExec(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_item_execs), 
+            test_obj.assertEqual(len(self.db_item_execs),
                                  len(other.db_item_execs))
-            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id),
                                    sorted(other.db_item_execs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_ts_start')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_start, 
+            test_obj.assertEqual(self.db_ts_start,
                                  other.db_ts_start)
         alternate_key = (self.__class__.__name__, 'db_ts_end')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_end, 
+            test_obj.assertEqual(self.db_ts_end,
                                  other.db_ts_end)
         alternate_key = (self.__class__.__name__, 'db_cached')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_cached, 
+            test_obj.assertEqual(self.db_cached,
                                  other.db_cached)
         alternate_key = (self.__class__.__name__, 'db_module_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_module_id, 
+            test_obj.assertEqual(self.db_module_id,
                                  other.db_module_id)
         alternate_key = (self.__class__.__name__, 'db_group_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_group_name, 
+            test_obj.assertEqual(self.db_group_name,
                                  other.db_group_name)
         alternate_key = (self.__class__.__name__, 'db_group_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_group_type, 
+            test_obj.assertEqual(self.db_group_type,
                                  other.db_group_type)
         alternate_key = (self.__class__.__name__, 'db_completed')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_completed, 
+            test_obj.assertEqual(self.db_completed,
                                  other.db_completed)
         alternate_key = (self.__class__.__name__, 'db_error')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_error, 
+            test_obj.assertEqual(self.db_error,
                                  other.db_error)
         alternate_key = (self.__class__.__name__, 'db_machine_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_machine_id, 
+            test_obj.assertEqual(self.db_machine_id,
                                  other.db_machine_id)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -3215,11 +3659,14 @@ class DBGroupExec(object):
         elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
             for obj in old_obj.db_item_execs:
                 if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBModuleExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBGroupExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBLoopExec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
             for obj in old_obj.db_deleted_item_execs:
                 if obj.vtType == 'module_exec':
@@ -3287,7 +3734,8 @@ class DBGroupExec(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -3296,24 +3744,27 @@ class DBGroupExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_item_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_item_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_annotations)
@@ -3322,6 +3773,7 @@ class DBGroupExec(object):
             self.db_deleted_annotations = []
             self.db_deleted_item_execs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -3332,18 +3784,23 @@ class DBGroupExec(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_item_execs(self):
         return self._db_item_execs
+
     def __set_db_item_execs(self, item_execs):
         self._db_item_execs = item_execs
         self.is_dirty = True
     db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+
     def db_get_item_execs(self):
         return self._db_item_execs
+
     def db_add_item_exec(self, item_exec):
         self.is_dirty = True
         self._db_item_execs.append(item_exec)
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
+
     def db_change_item_exec(self, item_exec):
         self.is_dirty = True
         found = False
@@ -3355,6 +3812,7 @@ class DBGroupExec(object):
         if not found:
             self._db_item_execs.append(item_exec)
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
+
     def db_delete_item_exec(self, item_exec):
         self.is_dirty = True
         for i in xrange(len(self._db_item_execs)):
@@ -3364,158 +3822,205 @@ class DBGroupExec(object):
                 del self._db_item_execs[i]
                 break
         del self.db_item_execs_id_index[item_exec.db_id]
+
     def db_get_item_exec(self, key):
         for i in xrange(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == key:
                 return self._db_item_execs[i]
         return None
+
     def db_get_item_exec_by_id(self, key):
         return self.db_item_execs_id_index[key]
+
     def db_has_item_exec_with_id(self, key):
         return key in self.db_item_execs_id_index
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_ts_start(self):
         return self._db_ts_start
+
     def __set_db_ts_start(self, ts_start):
         self._db_ts_start = ts_start
         self.is_dirty = True
     db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+
     def db_add_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_change_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_delete_ts_start(self, ts_start):
         self._db_ts_start = None
-    
+
     def __get_db_ts_end(self):
         return self._db_ts_end
+
     def __set_db_ts_end(self, ts_end):
         self._db_ts_end = ts_end
         self.is_dirty = True
     db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+
     def db_add_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_change_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_delete_ts_end(self, ts_end):
         self._db_ts_end = None
-    
+
     def __get_db_cached(self):
         return self._db_cached
+
     def __set_db_cached(self, cached):
         self._db_cached = cached
         self.is_dirty = True
     db_cached = property(__get_db_cached, __set_db_cached)
+
     def db_add_cached(self, cached):
         self._db_cached = cached
+
     def db_change_cached(self, cached):
         self._db_cached = cached
+
     def db_delete_cached(self, cached):
         self._db_cached = None
-    
+
     def __get_db_module_id(self):
         return self._db_module_id
+
     def __set_db_module_id(self, module_id):
         self._db_module_id = module_id
         self.is_dirty = True
     db_module_id = property(__get_db_module_id, __set_db_module_id)
+
     def db_add_module_id(self, module_id):
         self._db_module_id = module_id
+
     def db_change_module_id(self, module_id):
         self._db_module_id = module_id
+
     def db_delete_module_id(self, module_id):
         self._db_module_id = None
-    
+
     def __get_db_group_name(self):
         return self._db_group_name
+
     def __set_db_group_name(self, group_name):
         self._db_group_name = group_name
         self.is_dirty = True
     db_group_name = property(__get_db_group_name, __set_db_group_name)
+
     def db_add_group_name(self, group_name):
         self._db_group_name = group_name
+
     def db_change_group_name(self, group_name):
         self._db_group_name = group_name
+
     def db_delete_group_name(self, group_name):
         self._db_group_name = None
-    
+
     def __get_db_group_type(self):
         return self._db_group_type
+
     def __set_db_group_type(self, group_type):
         self._db_group_type = group_type
         self.is_dirty = True
     db_group_type = property(__get_db_group_type, __set_db_group_type)
+
     def db_add_group_type(self, group_type):
         self._db_group_type = group_type
+
     def db_change_group_type(self, group_type):
         self._db_group_type = group_type
+
     def db_delete_group_type(self, group_type):
         self._db_group_type = None
-    
+
     def __get_db_completed(self):
         return self._db_completed
+
     def __set_db_completed(self, completed):
         self._db_completed = completed
         self.is_dirty = True
     db_completed = property(__get_db_completed, __set_db_completed)
+
     def db_add_completed(self, completed):
         self._db_completed = completed
+
     def db_change_completed(self, completed):
         self._db_completed = completed
+
     def db_delete_completed(self, completed):
         self._db_completed = None
-    
+
     def __get_db_error(self):
         return self._db_error
+
     def __set_db_error(self, error):
         self._db_error = error
         self.is_dirty = True
     db_error = property(__get_db_error, __set_db_error)
+
     def db_add_error(self, error):
         self._db_error = error
+
     def db_change_error(self, error):
         self._db_error = error
+
     def db_delete_error(self, error):
         self._db_error = None
-    
+
     def __get_db_machine_id(self):
         return self._db_machine_id
+
     def __set_db_machine_id(self, machine_id):
         self._db_machine_id = machine_id
         self.is_dirty = True
     db_machine_id = property(__get_db_machine_id, __set_db_machine_id)
+
     def db_add_machine_id(self, machine_id):
         self._db_machine_id = machine_id
+
     def db_change_machine_id(self, machine_id):
         self._db_machine_id = machine_id
+
     def db_delete_machine_id(self, machine_id):
         self._db_machine_id = None
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -3527,6 +4032,7 @@ class DBGroupExec(object):
         if not found:
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -3536,18 +4042,22 @@ class DBGroupExec(object):
                 del self._db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmAgentId(object):
 
@@ -3557,13 +4067,13 @@ class DBOpmAgentId(object):
         self._db_id = id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmAgentId.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAgentId(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -3574,7 +4084,7 @@ class DBOpmAgentId(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_agent', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_agent', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -3587,9 +4097,10 @@ class DBOpmAgentId(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
 
     @staticmethod
@@ -3608,28 +4119,34 @@ class DBOpmAgentId(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
 
 
 class DBParameter(object):
@@ -3645,7 +4162,7 @@ class DBParameter(object):
         self._db_alias = alias
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBParameter.do_copy(self)
 
@@ -3656,7 +4173,7 @@ class DBParameter(object):
                          type=self._db_type,
                          val=self._db_val,
                          alias=self._db_alias)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -3665,7 +4182,7 @@ class DBParameter(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -3678,49 +4195,55 @@ class DBParameter(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_pos')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_pos, 
+            test_obj.assertEqual(self.db_pos,
                                  other.db_pos)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_type, 
+            test_obj.assertEqual(self.db_type,
                                  other.db_type)
         alternate_key = (self.__class__.__name__, 'db_val')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_val, 
+            test_obj.assertEqual(self.db_val,
                                  other.db_val)
         alternate_key = (self.__class__.__name__, 'db_alias')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_alias, 
+            test_obj.assertEqual(self.db_alias,
                                  other.db_alias)
 
     @staticmethod
@@ -3764,95 +4287,123 @@ class DBParameter(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_pos(self):
         return self._db_pos
+
     def __set_db_pos(self, pos):
         self._db_pos = pos
         self.is_dirty = True
     db_pos = property(__get_db_pos, __set_db_pos)
+
     def db_add_pos(self, pos):
         self._db_pos = pos
+
     def db_change_pos(self, pos):
         self._db_pos = pos
+
     def db_delete_pos(self, pos):
         self._db_pos = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_type(self):
         return self._db_type
+
     def __set_db_type(self, type):
         self._db_type = type
         self.is_dirty = True
     db_type = property(__get_db_type, __set_db_type)
+
     def db_add_type(self, type):
         self._db_type = type
+
     def db_change_type(self, type):
         self._db_type = type
+
     def db_delete_type(self, type):
         self._db_type = None
-    
+
     def __get_db_val(self):
         return self._db_val
+
     def __set_db_val(self, val):
         self._db_val = val
         self.is_dirty = True
     db_val = property(__get_db_val, __set_db_val)
+
     def db_add_val(self, val):
         self._db_val = val
+
     def db_change_val(self, val):
         self._db_val = val
+
     def db_delete_val(self, val):
         self._db_val = None
-    
+
     def __get_db_alias(self):
         return self._db_alias
+
     def __set_db_alias(self, alias):
         self._db_alias = alias
         self.is_dirty = True
     db_alias = property(__get_db_alias, __set_db_alias)
+
     def db_add_alias(self, alias):
         self._db_alias = alias
+
     def db_change_alias(self, alias):
         self._db_alias = alias
+
     def db_delete_alias(self, alias):
         self._db_alias = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBVistrail(object):
 
@@ -3930,11 +4481,12 @@ class DBVistrail(object):
             self._db_actionAnnotations = actionAnnotations
             for v in self._db_actionAnnotations:
                 self.db_actionAnnotations_id_index[v.db_id] = v
-                self.db_actionAnnotations_action_id_index[(v.db_action_id,v.db_key)] = v
-                self.db_actionAnnotations_key_index[(v.db_key,v.db_value)] = v
+                self.db_actionAnnotations_action_id_index[
+                    (v.db_action_id, v.db_key)] = v
+                self.db_actionAnnotations_key_index[(v.db_key, v.db_value)] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBVistrail.do_copy(self)
 
@@ -3947,32 +4499,39 @@ class DBVistrail(object):
         if self._db_actions is None:
             cp._db_actions = []
         else:
-            cp._db_actions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actions]
+            cp._db_actions = [v.do_copy(new_ids, id_scope, id_remap)
+                              for v in self._db_actions]
         if self._db_tags is None:
             cp._db_tags = []
         else:
-            cp._db_tags = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_tags]
+            cp._db_tags = [v.do_copy(new_ids, id_scope, id_remap)
+                           for v in self._db_tags]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_controlParameters is None:
             cp._db_controlParameters = []
         else:
-            cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
+            cp._db_controlParameters = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
         if self._db_vistrailVariables is None:
             cp._db_vistrailVariables = []
         else:
-            cp._db_vistrailVariables = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vistrailVariables]
+            cp._db_vistrailVariables = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vistrailVariables]
         if self._db_parameter_explorations is None:
             cp._db_parameter_explorations = []
         else:
-            cp._db_parameter_explorations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameter_explorations]
+            cp._db_parameter_explorations = [v.do_copy(
+                new_ids, id_scope, id_remap) for v in self._db_parameter_explorations]
         if self._db_actionAnnotations is None:
             cp._db_actionAnnotations = []
         else:
-            cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
-        
+            cp._db_actionAnnotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -3981,21 +4540,31 @@ class DBVistrail(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_tags_id_index = dict((v.db_id, v) for v in cp._db_tags)
         cp.db_tags_name_index = dict((v.db_name, v) for v in cp._db_tags)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
-        cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
-        cp.db_vistrailVariables_name_index = dict((v.db_name, v) for v in cp._db_vistrailVariables)
-        cp.db_vistrailVariables_uuid_index = dict((v.db_uuid, v) for v in cp._db_vistrailVariables)
-        cp.db_parameter_explorations_id_index = dict((v.db_id, v) for v in cp._db_parameter_explorations)
-        cp.db_actionAnnotations_id_index = dict((v.db_id, v) for v in cp._db_actionAnnotations)
-        cp.db_actionAnnotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_actionAnnotations)
-        cp.db_actionAnnotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_actionAnnotations)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(
+            (v.db_key, v) for v in cp._db_annotations)
+        cp.db_controlParameters_id_index = dict(
+            (v.db_id, v) for v in cp._db_controlParameters)
+        cp.db_controlParameters_name_index = dict(
+            (v.db_name, v) for v in cp._db_controlParameters)
+        cp.db_vistrailVariables_name_index = dict(
+            (v.db_name, v) for v in cp._db_vistrailVariables)
+        cp.db_vistrailVariables_uuid_index = dict(
+            (v.db_uuid, v) for v in cp._db_vistrailVariables)
+        cp.db_parameter_explorations_id_index = dict(
+            (v.db_id, v) for v in cp._db_parameter_explorations)
+        cp.db_actionAnnotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_actionAnnotations)
+        cp.db_actionAnnotations_action_id_index = dict(
+            ((v.db_action_id, v.db_key), v) for v in cp._db_actionAnnotations)
+        cp.db_actionAnnotations_key_index = dict(
+            ((v.db_key, v.db_value), v) for v in cp._db_actionAnnotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -4007,117 +4576,129 @@ class DBVistrail(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_entity_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_entity_type, 
+            test_obj.assertEqual(self.db_entity_type,
                                  other.db_entity_type)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_last_modified')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_last_modified, 
+            test_obj.assertEqual(self.db_last_modified,
                                  other.db_last_modified)
         alternate_key = (self.__class__.__name__, 'db_actions')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_actions), 
+            test_obj.assertEqual(len(self.db_actions),
                                  len(other.db_actions))
-            for obj1, obj2 in izip(sorted(self.db_actions, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_actions, key=lambda x: x.db_id),
                                    sorted(other.db_actions, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_tags')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_tags), 
+            test_obj.assertEqual(len(self.db_tags),
                                  len(other.db_tags))
-            for obj1, obj2 in izip(sorted(self.db_tags, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_tags, key=lambda x: x.db_id),
                                    sorted(other.db_tags, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_controlParameters')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_controlParameters), 
+            test_obj.assertEqual(len(self.db_controlParameters),
                                  len(other.db_controlParameters))
-            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id),
                                    sorted(other.db_controlParameters, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_vistrailVariables')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_vistrailVariables), 
+            test_obj.assertEqual(len(self.db_vistrailVariables),
                                  len(other.db_vistrailVariables))
-            for obj1, obj2 in izip(sorted(self.db_vistrailVariables, key=lambda x: x.db_name), 
+            for obj1, obj2 in izip(sorted(self.db_vistrailVariables, key=lambda x: x.db_name),
                                    sorted(other.db_vistrailVariables, key=lambda x: x.db_name)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_parameter_explorations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_parameter_explorations), 
+            test_obj.assertEqual(len(self.db_parameter_explorations),
                                  len(other.db_parameter_explorations))
-            for obj1, obj2 in izip(sorted(self.db_parameter_explorations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_parameter_explorations, key=lambda x: x.db_id),
                                    sorted(other.db_parameter_explorations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_actionAnnotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_actionAnnotations), 
+            test_obj.assertEqual(len(self.db_actionAnnotations),
                                  len(other.db_actionAnnotations))
-            for obj1, obj2 in izip(sorted(self.db_actionAnnotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_actionAnnotations, key=lambda x: x.db_id),
                                    sorted(other.db_actionAnnotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -4181,7 +4762,8 @@ class DBVistrail(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -4192,7 +4774,8 @@ class DBVistrail(object):
                 new_obj.db_add_controlParameter(obj)
         elif hasattr(old_obj, 'db_controlParameters') and old_obj.db_controlParameters is not None:
             for obj in old_obj.db_controlParameters:
-                new_obj.db_add_controlParameter(DBControlParameter.update_version(obj, trans_dict))
+                new_obj.db_add_controlParameter(
+                    DBControlParameter.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_controlParameters') and hasattr(new_obj, 'db_deleted_controlParameters'):
             for obj in old_obj.db_deleted_controlParameters:
                 n_obj = DBControlParameter.update_version(obj, trans_dict)
@@ -4203,7 +4786,8 @@ class DBVistrail(object):
                 new_obj.db_add_vistrailVariable(obj)
         elif hasattr(old_obj, 'db_vistrailVariables') and old_obj.db_vistrailVariables is not None:
             for obj in old_obj.db_vistrailVariables:
-                new_obj.db_add_vistrailVariable(DBVistrailVariable.update_version(obj, trans_dict))
+                new_obj.db_add_vistrailVariable(
+                    DBVistrailVariable.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_vistrailVariables') and hasattr(new_obj, 'db_deleted_vistrailVariables'):
             for obj in old_obj.db_deleted_vistrailVariables:
                 n_obj = DBVistrailVariable.update_version(obj, trans_dict)
@@ -4214,7 +4798,8 @@ class DBVistrail(object):
                 new_obj.db_add_parameter_exploration(obj)
         elif hasattr(old_obj, 'db_parameter_explorations') and old_obj.db_parameter_explorations is not None:
             for obj in old_obj.db_parameter_explorations:
-                new_obj.db_add_parameter_exploration(DBParameterExploration.update_version(obj, trans_dict))
+                new_obj.db_add_parameter_exploration(
+                    DBParameterExploration.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_parameter_explorations') and hasattr(new_obj, 'db_deleted_parameter_explorations'):
             for obj in old_obj.db_deleted_parameter_explorations:
                 n_obj = DBParameterExploration.update_version(obj, trans_dict)
@@ -4225,7 +4810,8 @@ class DBVistrail(object):
                 new_obj.db_add_actionAnnotation(obj)
         elif hasattr(old_obj, 'db_actionAnnotations') and old_obj.db_actionAnnotations is not None:
             for obj in old_obj.db_actionAnnotations:
-                new_obj.db_add_actionAnnotation(DBActionAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_actionAnnotation(
+                    DBActionAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_actionAnnotations') and hasattr(new_obj, 'db_deleted_actionAnnotations'):
             for obj in old_obj.db_deleted_actionAnnotations:
                 n_obj = DBActionAnnotation.update_version(obj, trans_dict)
@@ -4234,59 +4820,67 @@ class DBVistrail(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_actions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_action(child)
         to_del = []
         for child in self.db_tags:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_tag(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_controlParameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_controlParameter(child)
         to_del = []
         for child in self.db_vistrailVariables:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_vistrailVariable(child)
         to_del = []
         for child in self.db_parameter_explorations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_parameter_exploration(child)
         to_del = []
         for child in self.db_actionAnnotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_actionAnnotation(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_actions)
@@ -4305,6 +4899,7 @@ class DBVistrail(object):
             self.db_deleted_parameter_explorations = []
             self.db_deleted_actionAnnotations = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -4330,83 +4925,108 @@ class DBVistrail(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_entity_type(self):
         return self._db_entity_type
+
     def __set_db_entity_type(self, entity_type):
         self._db_entity_type = entity_type
         self.is_dirty = True
     db_entity_type = property(__get_db_entity_type, __set_db_entity_type)
+
     def db_add_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_change_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_delete_entity_type(self, entity_type):
         self._db_entity_type = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_last_modified(self):
         return self._db_last_modified
+
     def __set_db_last_modified(self, last_modified):
         self._db_last_modified = last_modified
         self.is_dirty = True
     db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+
     def db_add_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_change_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
-    
+
     def __get_db_actions(self):
         return self._db_actions
+
     def __set_db_actions(self, actions):
         self._db_actions = actions
         self.is_dirty = True
     db_actions = property(__get_db_actions, __set_db_actions)
+
     def db_get_actions(self):
         return self._db_actions
+
     def db_add_action(self, action):
         self.is_dirty = True
         self._db_actions.append(action)
         self.db_actions_id_index[action.db_id] = action
+
     def db_change_action(self, action):
         self.is_dirty = True
         found = False
@@ -4418,6 +5038,7 @@ class DBVistrail(object):
         if not found:
             self._db_actions.append(action)
         self.db_actions_id_index[action.db_id] = action
+
     def db_delete_action(self, action):
         self.is_dirty = True
         for i in xrange(len(self._db_actions)):
@@ -4427,29 +5048,36 @@ class DBVistrail(object):
                 del self._db_actions[i]
                 break
         del self.db_actions_id_index[action.db_id]
+
     def db_get_action(self, key):
         for i in xrange(len(self._db_actions)):
             if self._db_actions[i].db_id == key:
                 return self._db_actions[i]
         return None
+
     def db_get_action_by_id(self, key):
         return self.db_actions_id_index[key]
+
     def db_has_action_with_id(self, key):
         return key in self.db_actions_id_index
-    
+
     def __get_db_tags(self):
         return self._db_tags
+
     def __set_db_tags(self, tags):
         self._db_tags = tags
         self.is_dirty = True
     db_tags = property(__get_db_tags, __set_db_tags)
+
     def db_get_tags(self):
         return self._db_tags
+
     def db_add_tag(self, tag):
         self.is_dirty = True
         self._db_tags.append(tag)
         self.db_tags_id_index[tag.db_id] = tag
         self.db_tags_name_index[tag.db_name] = tag
+
     def db_change_tag(self, tag):
         self.is_dirty = True
         found = False
@@ -4462,6 +5090,7 @@ class DBVistrail(object):
             self._db_tags.append(tag)
         self.db_tags_id_index[tag.db_id] = tag
         self.db_tags_name_index[tag.db_name] = tag
+
     def db_delete_tag(self, tag):
         self.is_dirty = True
         for i in xrange(len(self._db_tags)):
@@ -4472,33 +5101,42 @@ class DBVistrail(object):
                 break
         del self.db_tags_id_index[tag.db_id]
         del self.db_tags_name_index[tag.db_name]
+
     def db_get_tag(self, key):
         for i in xrange(len(self._db_tags)):
             if self._db_tags[i].db_id == key:
                 return self._db_tags[i]
         return None
+
     def db_get_tag_by_id(self, key):
         return self.db_tags_id_index[key]
+
     def db_has_tag_with_id(self, key):
         return key in self.db_tags_id_index
+
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
+
     def db_has_tag_with_name(self, key):
         return key in self.db_tags_name_index
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -4511,6 +5149,7 @@ class DBVistrail(object):
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -4521,33 +5160,45 @@ class DBVistrail(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
+
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
-    
+
     def __get_db_controlParameters(self):
         return self._db_controlParameters
+
     def __set_db_controlParameters(self, controlParameters):
         self._db_controlParameters = controlParameters
         self.is_dirty = True
-    db_controlParameters = property(__get_db_controlParameters, __set_db_controlParameters)
+    db_controlParameters = property(
+        __get_db_controlParameters, __set_db_controlParameters)
+
     def db_get_controlParameters(self):
         return self._db_controlParameters
+
     def db_add_controlParameter(self, controlParameter):
         self.is_dirty = True
         self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_change_controlParameter(self, controlParameter):
         self.is_dirty = True
         found = False
@@ -4558,45 +5209,61 @@ class DBVistrail(object):
                 break
         if not found:
             self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_delete_controlParameter(self, controlParameter):
         self.is_dirty = True
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == controlParameter.db_id:
                 if not self._db_controlParameters[i].is_new:
-                    self.db_deleted_controlParameters.append(self._db_controlParameters[i])
+                    self.db_deleted_controlParameters.append(
+                        self._db_controlParameters[i])
                 del self._db_controlParameters[i]
                 break
         del self.db_controlParameters_id_index[controlParameter.db_id]
         del self.db_controlParameters_name_index[controlParameter.db_name]
+
     def db_get_controlParameter(self, key):
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == key:
                 return self._db_controlParameters[i]
         return None
+
     def db_get_controlParameter_by_id(self, key):
         return self.db_controlParameters_id_index[key]
+
     def db_has_controlParameter_with_id(self, key):
         return key in self.db_controlParameters_id_index
+
     def db_get_controlParameter_by_name(self, key):
         return self.db_controlParameters_name_index[key]
+
     def db_has_controlParameter_with_name(self, key):
         return key in self.db_controlParameters_name_index
-    
+
     def __get_db_vistrailVariables(self):
         return self._db_vistrailVariables
+
     def __set_db_vistrailVariables(self, vistrailVariables):
         self._db_vistrailVariables = vistrailVariables
         self.is_dirty = True
-    db_vistrailVariables = property(__get_db_vistrailVariables, __set_db_vistrailVariables)
+    db_vistrailVariables = property(
+        __get_db_vistrailVariables, __set_db_vistrailVariables)
+
     def db_get_vistrailVariables(self):
         return self._db_vistrailVariables
+
     def db_add_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[vistrailVariable.db_name] = vistrailVariable
-        self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[
+            vistrailVariable.db_name] = vistrailVariable
+        self.db_vistrailVariables_uuid_index[
+            vistrailVariable.db_uuid] = vistrailVariable
+
     def db_change_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         found = False
@@ -4607,44 +5274,59 @@ class DBVistrail(object):
                 break
         if not found:
             self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[vistrailVariable.db_name] = vistrailVariable
-        self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[
+            vistrailVariable.db_name] = vistrailVariable
+        self.db_vistrailVariables_uuid_index[
+            vistrailVariable.db_uuid] = vistrailVariable
+
     def db_delete_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         for i in xrange(len(self._db_vistrailVariables)):
             if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
                 if not self._db_vistrailVariables[i].is_new:
-                    self.db_deleted_vistrailVariables.append(self._db_vistrailVariables[i])
+                    self.db_deleted_vistrailVariables.append(
+                        self._db_vistrailVariables[i])
                 del self._db_vistrailVariables[i]
                 break
         del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
         del self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid]
+
     def db_get_vistrailVariable(self, key):
         for i in xrange(len(self._db_vistrailVariables)):
             if self._db_vistrailVariables[i].db_name == key:
                 return self._db_vistrailVariables[i]
         return None
+
     def db_get_vistrailVariable_by_name(self, key):
         return self.db_vistrailVariables_name_index[key]
+
     def db_has_vistrailVariable_with_name(self, key):
         return key in self.db_vistrailVariables_name_index
+
     def db_get_vistrailVariable_by_uuid(self, key):
         return self.db_vistrailVariables_uuid_index[key]
+
     def db_has_vistrailVariable_with_uuid(self, key):
         return key in self.db_vistrailVariables_uuid_index
-    
+
     def __get_db_parameter_explorations(self):
         return self._db_parameter_explorations
+
     def __set_db_parameter_explorations(self, parameter_explorations):
         self._db_parameter_explorations = parameter_explorations
         self.is_dirty = True
-    db_parameter_explorations = property(__get_db_parameter_explorations, __set_db_parameter_explorations)
+    db_parameter_explorations = property(
+        __get_db_parameter_explorations, __set_db_parameter_explorations)
+
     def db_get_parameter_explorations(self):
         return self._db_parameter_explorations
+
     def db_add_parameter_exploration(self, parameter_exploration):
         self.is_dirty = True
         self._db_parameter_explorations.append(parameter_exploration)
-        self.db_parameter_explorations_id_index[parameter_exploration.db_id] = parameter_exploration
+        self.db_parameter_explorations_id_index[
+            parameter_exploration.db_id] = parameter_exploration
+
     def db_change_parameter_exploration(self, parameter_exploration):
         self.is_dirty = True
         found = False
@@ -4655,40 +5337,55 @@ class DBVistrail(object):
                 break
         if not found:
             self._db_parameter_explorations.append(parameter_exploration)
-        self.db_parameter_explorations_id_index[parameter_exploration.db_id] = parameter_exploration
+        self.db_parameter_explorations_id_index[
+            parameter_exploration.db_id] = parameter_exploration
+
     def db_delete_parameter_exploration(self, parameter_exploration):
         self.is_dirty = True
         for i in xrange(len(self._db_parameter_explorations)):
             if self._db_parameter_explorations[i].db_id == parameter_exploration.db_id:
                 if not self._db_parameter_explorations[i].is_new:
-                    self.db_deleted_parameter_explorations.append(self._db_parameter_explorations[i])
+                    self.db_deleted_parameter_explorations.append(
+                        self._db_parameter_explorations[i])
                 del self._db_parameter_explorations[i]
                 break
-        del self.db_parameter_explorations_id_index[parameter_exploration.db_id]
+        del self.db_parameter_explorations_id_index[
+            parameter_exploration.db_id]
+
     def db_get_parameter_exploration(self, key):
         for i in xrange(len(self._db_parameter_explorations)):
             if self._db_parameter_explorations[i].db_id == key:
                 return self._db_parameter_explorations[i]
         return None
+
     def db_get_parameter_exploration_by_id(self, key):
         return self.db_parameter_explorations_id_index[key]
+
     def db_has_parameter_exploration_with_id(self, key):
         return key in self.db_parameter_explorations_id_index
-    
+
     def __get_db_actionAnnotations(self):
         return self._db_actionAnnotations
+
     def __set_db_actionAnnotations(self, actionAnnotations):
         self._db_actionAnnotations = actionAnnotations
         self.is_dirty = True
-    db_actionAnnotations = property(__get_db_actionAnnotations, __set_db_actionAnnotations)
+    db_actionAnnotations = property(
+        __get_db_actionAnnotations, __set_db_actionAnnotations)
+
     def db_get_actionAnnotations(self):
         return self._db_actionAnnotations
+
     def db_add_actionAnnotation(self, actionAnnotation):
         self.is_dirty = True
         self._db_actionAnnotations.append(actionAnnotation)
-        self.db_actionAnnotations_id_index[actionAnnotation.db_id] = actionAnnotation
-        self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)] = actionAnnotation
-        self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)] = actionAnnotation
+        self.db_actionAnnotations_id_index[
+            actionAnnotation.db_id] = actionAnnotation
+        self.db_actionAnnotations_action_id_index[
+            (actionAnnotation.db_action_id, actionAnnotation.db_key)] = actionAnnotation
+        self.db_actionAnnotations_key_index[
+            (actionAnnotation.db_key, actionAnnotation.db_value)] = actionAnnotation
+
     def db_change_actionAnnotation(self, actionAnnotation):
         self.is_dirty = True
         found = False
@@ -4699,43 +5396,58 @@ class DBVistrail(object):
                 break
         if not found:
             self._db_actionAnnotations.append(actionAnnotation)
-        self.db_actionAnnotations_id_index[actionAnnotation.db_id] = actionAnnotation
-        self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)] = actionAnnotation
-        self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)] = actionAnnotation
+        self.db_actionAnnotations_id_index[
+            actionAnnotation.db_id] = actionAnnotation
+        self.db_actionAnnotations_action_id_index[
+            (actionAnnotation.db_action_id, actionAnnotation.db_key)] = actionAnnotation
+        self.db_actionAnnotations_key_index[
+            (actionAnnotation.db_key, actionAnnotation.db_value)] = actionAnnotation
+
     def db_delete_actionAnnotation(self, actionAnnotation):
         self.is_dirty = True
         for i in xrange(len(self._db_actionAnnotations)):
             if self._db_actionAnnotations[i].db_id == actionAnnotation.db_id:
                 if not self._db_actionAnnotations[i].is_new:
-                    self.db_deleted_actionAnnotations.append(self._db_actionAnnotations[i])
+                    self.db_deleted_actionAnnotations.append(
+                        self._db_actionAnnotations[i])
                 del self._db_actionAnnotations[i]
                 break
         del self.db_actionAnnotations_id_index[actionAnnotation.db_id]
-        del self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)]
+        del self.db_actionAnnotations_action_id_index[
+            (actionAnnotation.db_action_id, actionAnnotation.db_key)]
         try:
-            del self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)]
+            del self.db_actionAnnotations_key_index[
+                (actionAnnotation.db_key, actionAnnotation.db_value)]
         except KeyError:
             pass
+
     def db_get_actionAnnotation(self, key):
         for i in xrange(len(self._db_actionAnnotations)):
             if self._db_actionAnnotations[i].db_id == key:
                 return self._db_actionAnnotations[i]
         return None
+
     def db_get_actionAnnotation_by_id(self, key):
         return self.db_actionAnnotations_id_index[key]
+
     def db_has_actionAnnotation_with_id(self, key):
         return key in self.db_actionAnnotations_id_index
+
     def db_get_actionAnnotation_by_action_id(self, key):
         return self.db_actionAnnotations_action_id_index[key]
+
     def db_has_actionAnnotation_with_action_id(self, key):
         return key in self.db_actionAnnotations_action_id_index
+
     def db_get_actionAnnotation_by_key(self, key):
         return self.db_actionAnnotations_key_index[key]
+
     def db_has_actionAnnotation_with_key(self, key):
         return key in self.db_actionAnnotations_key_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmArtifactValue(object):
 
@@ -4746,7 +5458,7 @@ class DBOpmArtifactValue(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmArtifactValue.do_copy(self)
 
@@ -4754,7 +5466,7 @@ class DBOpmArtifactValue(object):
         cp = DBOpmArtifactValue()
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -4763,7 +5475,7 @@ class DBOpmArtifactValue(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4776,12 +5488,14 @@ class DBOpmArtifactValue(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_value is not None and other.db_value is not None:
-                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+                self.db_value.deep_eq_test(
+                    other.db_value, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_value, 
+                test_obj.assertEqual(self.db_value,
                                      other.db_value)
 
     @staticmethod
@@ -4797,9 +5511,11 @@ class DBOpmArtifactValue(object):
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
             if obj.vtType == 'portSpec':
-                new_obj.db_add_value(DBPortSpec.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBPortSpec.update_version(obj, trans_dict))
             elif obj.vtType == 'function':
-                new_obj.db_add_value(DBFunction.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBFunction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
             for obj in old_obj.db_deleted_value:
                 if obj.vtType == 'portSpec':
@@ -4812,41 +5528,48 @@ class DBOpmArtifactValue(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_value.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_value)
         if remove:
             self.db_deleted_value = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_value is not None and self._db_value.has_changes():
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         if not self.is_new:
             self.db_deleted_value.append(self._db_value)
         self._db_value = None
-    
 
 
 class DBConfigStr(object):
@@ -4857,13 +5580,13 @@ class DBConfigStr(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConfigStr.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigStr(value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -4872,7 +5595,7 @@ class DBConfigStr(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4885,9 +5608,10 @@ class DBConfigStr(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -4906,28 +5630,34 @@ class DBConfigStr(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
 
 
 class DBStartup(object):
@@ -4944,19 +5674,22 @@ class DBStartup(object):
         self._db_disabled_packages = disabled_packages
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBStartup.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBStartup(version=self._db_version)
         if self._db_configuration is not None:
-            cp._db_configuration = self._db_configuration.do_copy(new_ids, id_scope, id_remap)
+            cp._db_configuration = self._db_configuration.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_enabled_packages is not None:
-            cp._db_enabled_packages = self._db_enabled_packages.do_copy(new_ids, id_scope, id_remap)
+            cp._db_enabled_packages = self._db_enabled_packages.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_disabled_packages is not None:
-            cp._db_disabled_packages = self._db_disabled_packages.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_disabled_packages = self._db_disabled_packages.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -4965,7 +5698,7 @@ class DBStartup(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4978,42 +5711,49 @@ class DBStartup(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_configuration')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_configuration is not None and other.db_configuration is not None:
-                self.db_configuration.deep_eq_test(other.db_configuration, test_obj, alternate_tests)
+                self.db_configuration.deep_eq_test(
+                    other.db_configuration, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_configuration, 
+                test_obj.assertEqual(self.db_configuration,
                                      other.db_configuration)
         alternate_key = (self.__class__.__name__, 'db_enabled_packages')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_enabled_packages is not None and other.db_enabled_packages is not None:
-                self.db_enabled_packages.deep_eq_test(other.db_enabled_packages, test_obj, alternate_tests)
+                self.db_enabled_packages.deep_eq_test(
+                    other.db_enabled_packages, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_enabled_packages, 
+                test_obj.assertEqual(self.db_enabled_packages,
                                      other.db_enabled_packages)
         alternate_key = (self.__class__.__name__, 'db_disabled_packages')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_disabled_packages is not None and other.db_disabled_packages is not None:
-                self.db_disabled_packages.deep_eq_test(other.db_disabled_packages, test_obj, alternate_tests)
+                self.db_disabled_packages.deep_eq_test(
+                    other.db_disabled_packages, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_disabled_packages, 
+                test_obj.assertEqual(self.db_disabled_packages,
                                      other.db_disabled_packages)
 
     @staticmethod
@@ -5033,7 +5773,8 @@ class DBStartup(object):
             new_obj.db_configuration = res
         elif hasattr(old_obj, 'db_configuration') and old_obj.db_configuration is not None:
             obj = old_obj.db_configuration
-            new_obj.db_add_configuration(DBConfiguration.update_version(obj, trans_dict))
+            new_obj.db_add_configuration(
+                DBConfiguration.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_configuration') and hasattr(new_obj, 'db_deleted_configuration'):
             for obj in old_obj.db_deleted_configuration:
                 n_obj = DBConfiguration.update_version(obj, trans_dict)
@@ -5043,7 +5784,8 @@ class DBStartup(object):
             new_obj.db_enabled_packages = res
         elif hasattr(old_obj, 'db_enabled_packages') and old_obj.db_enabled_packages is not None:
             obj = old_obj.db_enabled_packages
-            new_obj.db_add_enabled_packages(DBEnabledPackages.update_version(obj, trans_dict))
+            new_obj.db_add_enabled_packages(
+                DBEnabledPackages.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_enabled_packages') and hasattr(new_obj, 'db_deleted_enabled_packages'):
             for obj in old_obj.db_deleted_enabled_packages:
                 n_obj = DBEnabledPackages.update_version(obj, trans_dict)
@@ -5053,7 +5795,8 @@ class DBStartup(object):
             new_obj.db_disabled_packages = res
         elif hasattr(old_obj, 'db_disabled_packages') and old_obj.db_disabled_packages is not None:
             obj = old_obj.db_disabled_packages
-            new_obj.db_add_disabled_packages(DBDisabledPackages.update_version(obj, trans_dict))
+            new_obj.db_add_disabled_packages(
+                DBDisabledPackages.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_disabled_packages') and hasattr(new_obj, 'db_deleted_disabled_packages'):
             for obj in old_obj.db_deleted_disabled_packages:
                 n_obj = DBDisabledPackages.update_version(obj, trans_dict)
@@ -5062,22 +5805,26 @@ class DBStartup(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_configuration is not None:
-            children.extend(self._db_configuration.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_configuration.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_configuration = None
         if self._db_enabled_packages is not None:
-            children.extend(self._db_enabled_packages.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_enabled_packages.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_enabled_packages = None
         if self._db_disabled_packages is not None:
-            children.extend(self._db_disabled_packages.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_disabled_packages.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_disabled_packages = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_configuration)
@@ -5088,6 +5835,7 @@ class DBStartup(object):
             self.db_deleted_enabled_packages = []
             self.db_deleted_disabled_packages = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -5098,64 +5846,83 @@ class DBStartup(object):
         if self._db_disabled_packages is not None and self._db_disabled_packages.has_changes():
             return True
         return False
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_configuration(self):
         return self._db_configuration
+
     def __set_db_configuration(self, configuration):
         self._db_configuration = configuration
         self.is_dirty = True
     db_configuration = property(__get_db_configuration, __set_db_configuration)
+
     def db_add_configuration(self, configuration):
         self._db_configuration = configuration
+
     def db_change_configuration(self, configuration):
         self._db_configuration = configuration
+
     def db_delete_configuration(self, configuration):
         if not self.is_new:
             self.db_deleted_configuration.append(self._db_configuration)
         self._db_configuration = None
-    
+
     def __get_db_enabled_packages(self):
         return self._db_enabled_packages
+
     def __set_db_enabled_packages(self, enabled_packages):
         self._db_enabled_packages = enabled_packages
         self.is_dirty = True
-    db_enabled_packages = property(__get_db_enabled_packages, __set_db_enabled_packages)
+    db_enabled_packages = property(
+        __get_db_enabled_packages, __set_db_enabled_packages)
+
     def db_add_enabled_packages(self, enabled_packages):
         self._db_enabled_packages = enabled_packages
+
     def db_change_enabled_packages(self, enabled_packages):
         self._db_enabled_packages = enabled_packages
+
     def db_delete_enabled_packages(self, enabled_packages):
         if not self.is_new:
             self.db_deleted_enabled_packages.append(self._db_enabled_packages)
         self._db_enabled_packages = None
-    
+
     def __get_db_disabled_packages(self):
         return self._db_disabled_packages
+
     def __set_db_disabled_packages(self, disabled_packages):
         self._db_disabled_packages = disabled_packages
         self.is_dirty = True
-    db_disabled_packages = property(__get_db_disabled_packages, __set_db_disabled_packages)
+    db_disabled_packages = property(
+        __get_db_disabled_packages, __set_db_disabled_packages)
+
     def db_add_disabled_packages(self, disabled_packages):
         self._db_disabled_packages = disabled_packages
+
     def db_change_disabled_packages(self, disabled_packages):
         self._db_disabled_packages = disabled_packages
+
     def db_delete_disabled_packages(self, disabled_packages):
         if not self.is_new:
-            self.db_deleted_disabled_packages.append(self._db_disabled_packages)
+            self.db_deleted_disabled_packages.append(
+                self._db_disabled_packages)
         self._db_disabled_packages = None
-    
 
 
 class DBModule(object):
@@ -5208,10 +5975,10 @@ class DBModule(object):
             self._db_portSpecs = portSpecs
             for v in self._db_portSpecs:
                 self.db_portSpecs_id_index[v.db_id] = v
-                self.db_portSpecs_name_index[(v.db_name,v.db_type)] = v
+                self.db_portSpecs_name_index[(v.db_name, v.db_type)] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBModule.do_copy(self)
 
@@ -5223,24 +5990,29 @@ class DBModule(object):
                       package=self._db_package,
                       version=self._db_version)
         if self._db_location is not None:
-            cp._db_location = self._db_location.do_copy(new_ids, id_scope, id_remap)
+            cp._db_location = self._db_location.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_functions is None:
             cp._db_functions = []
         else:
-            cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
+            cp._db_functions = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_controlParameters is None:
             cp._db_controlParameters = []
         else:
-            cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
+            cp._db_controlParameters = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
         if self._db_portSpecs is None:
             cp._db_portSpecs = []
         else:
-            cp._db_portSpecs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
-        
+            cp._db_portSpecs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -5249,15 +6021,20 @@ class DBModule(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
-        cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(
+            (v.db_key, v) for v in cp._db_annotations)
+        cp.db_controlParameters_id_index = dict(
+            (v.db_id, v) for v in cp._db_controlParameters)
+        cp.db_controlParameters_name_index = dict(
+            (v.db_name, v) for v in cp._db_controlParameters)
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
-        cp.db_portSpecs_name_index = dict(((v.db_name,v.db_type), v) for v in cp._db_portSpecs)
+        cp.db_portSpecs_name_index = dict(
+            ((v.db_name, v.db_type), v) for v in cp._db_portSpecs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -5269,103 +6046,115 @@ class DBModule(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_cache')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_cache, 
+            test_obj.assertEqual(self.db_cache,
                                  other.db_cache)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_namespace')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_namespace, 
+            test_obj.assertEqual(self.db_namespace,
                                  other.db_namespace)
         alternate_key = (self.__class__.__name__, 'db_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package, 
+            test_obj.assertEqual(self.db_package,
                                  other.db_package)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_location')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_location is not None and other.db_location is not None:
-                self.db_location.deep_eq_test(other.db_location, test_obj, alternate_tests)
+                self.db_location.deep_eq_test(
+                    other.db_location, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_location, 
+                test_obj.assertEqual(self.db_location,
                                      other.db_location)
         alternate_key = (self.__class__.__name__, 'db_functions')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_functions), 
+            test_obj.assertEqual(len(self.db_functions),
                                  len(other.db_functions))
-            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id),
                                    sorted(other.db_functions, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_controlParameters')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_controlParameters), 
+            test_obj.assertEqual(len(self.db_controlParameters),
                                  len(other.db_controlParameters))
-            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id),
                                    sorted(other.db_controlParameters, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_portSpecs')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_portSpecs), 
+            test_obj.assertEqual(len(self.db_portSpecs),
                                  len(other.db_portSpecs))
-            for obj1, obj2 in izip(sorted(self.db_portSpecs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_portSpecs, key=lambda x: x.db_id),
                                    sorted(other.db_portSpecs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -5422,7 +6211,8 @@ class DBModule(object):
                 new_obj.db_add_function(obj)
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
-                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+                new_obj.db_add_function(
+                    DBFunction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
             for obj in old_obj.db_deleted_functions:
                 n_obj = DBFunction.update_version(obj, trans_dict)
@@ -5433,7 +6223,8 @@ class DBModule(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -5444,7 +6235,8 @@ class DBModule(object):
                 new_obj.db_add_controlParameter(obj)
         elif hasattr(old_obj, 'db_controlParameters') and old_obj.db_controlParameters is not None:
             for obj in old_obj.db_controlParameters:
-                new_obj.db_add_controlParameter(DBControlParameter.update_version(obj, trans_dict))
+                new_obj.db_add_controlParameter(
+                    DBControlParameter.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_controlParameters') and hasattr(new_obj, 'db_deleted_controlParameters'):
             for obj in old_obj.db_deleted_controlParameters:
                 n_obj = DBControlParameter.update_version(obj, trans_dict)
@@ -5455,7 +6247,8 @@ class DBModule(object):
                 new_obj.db_add_portSpec(obj)
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
-                new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+                new_obj.db_add_portSpec(
+                    DBPortSpec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_portSpecs') and hasattr(new_obj, 'db_deleted_portSpecs'):
             for obj in old_obj.db_deleted_portSpecs:
                 n_obj = DBPortSpec.update_version(obj, trans_dict)
@@ -5464,42 +6257,48 @@ class DBModule(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_location is not None:
-            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_location.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_controlParameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_controlParameter(child)
         to_del = []
         for child in self.db_portSpecs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_portSpec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_location)
@@ -5514,6 +6313,7 @@ class DBModule(object):
             self.db_deleted_controlParameters = []
             self.db_deleted_portSpecs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -5532,111 +6332,144 @@ class DBModule(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_cache(self):
         return self._db_cache
+
     def __set_db_cache(self, cache):
         self._db_cache = cache
         self.is_dirty = True
     db_cache = property(__get_db_cache, __set_db_cache)
+
     def db_add_cache(self, cache):
         self._db_cache = cache
+
     def db_change_cache(self, cache):
         self._db_cache = cache
+
     def db_delete_cache(self, cache):
         self._db_cache = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_namespace(self):
         return self._db_namespace
+
     def __set_db_namespace(self, namespace):
         self._db_namespace = namespace
         self.is_dirty = True
     db_namespace = property(__get_db_namespace, __set_db_namespace)
+
     def db_add_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_change_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
-    
+
     def __get_db_package(self):
         return self._db_package
+
     def __set_db_package(self, package):
         self._db_package = package
         self.is_dirty = True
     db_package = property(__get_db_package, __set_db_package)
+
     def db_add_package(self, package):
         self._db_package = package
+
     def db_change_package(self, package):
         self._db_package = package
+
     def db_delete_package(self, package):
         self._db_package = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_location(self):
         return self._db_location
+
     def __set_db_location(self, location):
         self._db_location = location
         self.is_dirty = True
     db_location = property(__get_db_location, __set_db_location)
+
     def db_add_location(self, location):
         self._db_location = location
+
     def db_change_location(self, location):
         self._db_location = location
+
     def db_delete_location(self, location):
         if not self.is_new:
             self.db_deleted_location.append(self._db_location)
         self._db_location = None
-    
+
     def __get_db_functions(self):
         return self._db_functions
+
     def __set_db_functions(self, functions):
         self._db_functions = functions
         self.is_dirty = True
     db_functions = property(__get_db_functions, __set_db_functions)
+
     def db_get_functions(self):
         return self._db_functions
+
     def db_add_function(self, function):
         self.is_dirty = True
         self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
@@ -5648,6 +6481,7 @@ class DBModule(object):
         if not found:
             self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_delete_function(self, function):
         self.is_dirty = True
         for i in xrange(len(self._db_functions)):
@@ -5657,29 +6491,36 @@ class DBModule(object):
                 del self._db_functions[i]
                 break
         del self.db_functions_id_index[function.db_id]
+
     def db_get_function(self, key):
         for i in xrange(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
+
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
+
     def db_has_function_with_id(self, key):
         return key in self.db_functions_id_index
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -5692,6 +6533,7 @@ class DBModule(object):
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -5702,33 +6544,45 @@ class DBModule(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
+
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
-    
+
     def __get_db_controlParameters(self):
         return self._db_controlParameters
+
     def __set_db_controlParameters(self, controlParameters):
         self._db_controlParameters = controlParameters
         self.is_dirty = True
-    db_controlParameters = property(__get_db_controlParameters, __set_db_controlParameters)
+    db_controlParameters = property(
+        __get_db_controlParameters, __set_db_controlParameters)
+
     def db_get_controlParameters(self):
         return self._db_controlParameters
+
     def db_add_controlParameter(self, controlParameter):
         self.is_dirty = True
         self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_change_controlParameter(self, controlParameter):
         self.is_dirty = True
         found = False
@@ -5739,45 +6593,59 @@ class DBModule(object):
                 break
         if not found:
             self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_delete_controlParameter(self, controlParameter):
         self.is_dirty = True
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == controlParameter.db_id:
                 if not self._db_controlParameters[i].is_new:
-                    self.db_deleted_controlParameters.append(self._db_controlParameters[i])
+                    self.db_deleted_controlParameters.append(
+                        self._db_controlParameters[i])
                 del self._db_controlParameters[i]
                 break
         del self.db_controlParameters_id_index[controlParameter.db_id]
         del self.db_controlParameters_name_index[controlParameter.db_name]
+
     def db_get_controlParameter(self, key):
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == key:
                 return self._db_controlParameters[i]
         return None
+
     def db_get_controlParameter_by_id(self, key):
         return self.db_controlParameters_id_index[key]
+
     def db_has_controlParameter_with_id(self, key):
         return key in self.db_controlParameters_id_index
+
     def db_get_controlParameter_by_name(self, key):
         return self.db_controlParameters_name_index[key]
+
     def db_has_controlParameter_with_name(self, key):
         return key in self.db_controlParameters_name_index
-    
+
     def __get_db_portSpecs(self):
         return self._db_portSpecs
+
     def __set_db_portSpecs(self, portSpecs):
         self._db_portSpecs = portSpecs
         self.is_dirty = True
     db_portSpecs = property(__get_db_portSpecs, __set_db_portSpecs)
+
     def db_get_portSpecs(self):
         return self._db_portSpecs
+
     def db_add_portSpec(self, portSpec):
         self.is_dirty = True
         self._db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
+        self.db_portSpecs_name_index[
+            (portSpec.db_name, portSpec.db_type)] = portSpec
+
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
@@ -5789,7 +6657,9 @@ class DBModule(object):
         if not found:
             self._db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
+        self.db_portSpecs_name_index[
+            (portSpec.db_name, portSpec.db_type)] = portSpec
+
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
         for i in xrange(len(self._db_portSpecs)):
@@ -5799,23 +6669,29 @@ class DBModule(object):
                 del self._db_portSpecs[i]
                 break
         del self.db_portSpecs_id_index[portSpec.db_id]
-        del self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)]
+        del self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)]
+
     def db_get_portSpec(self, key):
         for i in xrange(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == key:
                 return self._db_portSpecs[i]
         return None
+
     def db_get_portSpec_by_id(self, key):
         return self.db_portSpecs_id_index[key]
+
     def db_has_portSpec_with_id(self, key):
         return key in self.db_portSpecs_id_index
+
     def db_get_portSpec_by_name(self, key):
         return self.db_portSpecs_name_index[key]
+
     def db_has_portSpec_with_name(self, key):
         return key in self.db_portSpecs_name_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBPort(object):
 
@@ -5830,7 +6706,7 @@ class DBPort(object):
         self._db_signature = signature
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPort.do_copy(self)
 
@@ -5841,7 +6717,7 @@ class DBPort(object):
                     moduleName=self._db_moduleName,
                     name=self._db_name,
                     signature=self._db_signature)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -5852,7 +6728,7 @@ class DBPort(object):
             cp.db_id = new_id
             if hasattr(self, 'db_moduleId') and ('module', self._db_moduleId) in id_remap:
                 cp._db_moduleId = id_remap[('module', self._db_moduleId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -5865,49 +6741,55 @@ class DBPort(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_type, 
+            test_obj.assertEqual(self.db_type,
                                  other.db_type)
         alternate_key = (self.__class__.__name__, 'db_moduleId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_moduleId, 
+            test_obj.assertEqual(self.db_moduleId,
                                  other.db_moduleId)
         alternate_key = (self.__class__.__name__, 'db_moduleName')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_moduleName, 
+            test_obj.assertEqual(self.db_moduleName,
                                  other.db_moduleName)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_signature')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_signature, 
+            test_obj.assertEqual(self.db_signature,
                                  other.db_signature)
 
     @staticmethod
@@ -5951,95 +6833,123 @@ class DBPort(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_type(self):
         return self._db_type
+
     def __set_db_type(self, type):
         self._db_type = type
         self.is_dirty = True
     db_type = property(__get_db_type, __set_db_type)
+
     def db_add_type(self, type):
         self._db_type = type
+
     def db_change_type(self, type):
         self._db_type = type
+
     def db_delete_type(self, type):
         self._db_type = None
-    
+
     def __get_db_moduleId(self):
         return self._db_moduleId
+
     def __set_db_moduleId(self, moduleId):
         self._db_moduleId = moduleId
         self.is_dirty = True
     db_moduleId = property(__get_db_moduleId, __set_db_moduleId)
+
     def db_add_moduleId(self, moduleId):
         self._db_moduleId = moduleId
+
     def db_change_moduleId(self, moduleId):
         self._db_moduleId = moduleId
+
     def db_delete_moduleId(self, moduleId):
         self._db_moduleId = None
-    
+
     def __get_db_moduleName(self):
         return self._db_moduleName
+
     def __set_db_moduleName(self, moduleName):
         self._db_moduleName = moduleName
         self.is_dirty = True
     db_moduleName = property(__get_db_moduleName, __set_db_moduleName)
+
     def db_add_moduleName(self, moduleName):
         self._db_moduleName = moduleName
+
     def db_change_moduleName(self, moduleName):
         self._db_moduleName = moduleName
+
     def db_delete_moduleName(self, moduleName):
         self._db_moduleName = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_signature(self):
         return self._db_signature
+
     def __set_db_signature(self, signature):
         self._db_signature = signature
         self.is_dirty = True
     db_signature = property(__get_db_signature, __set_db_signature)
+
     def db_add_signature(self, signature):
         self._db_signature = signature
+
     def db_change_signature(self, signature):
         self._db_signature = signature
+
     def db_delete_signature(self, signature):
         self._db_signature = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmAgents(object):
 
@@ -6056,7 +6966,7 @@ class DBOpmAgents(object):
                 self.db_agents_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmAgents.do_copy(self)
 
@@ -6065,8 +6975,9 @@ class DBOpmAgents(object):
         if self._db_agents is None:
             cp._db_agents = []
         else:
-            cp._db_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_agents]
-        
+            cp._db_agents = [v.do_copy(new_ids, id_scope, id_remap)
+                             for v in self._db_agents]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -6075,7 +6986,7 @@ class DBOpmAgents(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_agents_id_index = dict((v.db_id, v) for v in cp._db_agents)
         if not new_ids:
@@ -6089,11 +7000,12 @@ class DBOpmAgents(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_agents), 
+            test_obj.assertEqual(len(self.db_agents),
                                  len(other.db_agents))
-            for obj1, obj2 in izip(sorted(self.db_agents, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_agents, key=lambda x: x.db_id),
                                    sorted(other.db_agents, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -6110,7 +7022,8 @@ class DBOpmAgents(object):
                 new_obj.db_add_agent(obj)
         elif hasattr(old_obj, 'db_agents') and old_obj.db_agents is not None:
             for obj in old_obj.db_agents:
-                new_obj.db_add_agent(DBOpmAgent.update_version(obj, trans_dict))
+                new_obj.db_add_agent(
+                    DBOpmAgent.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_agents') and hasattr(new_obj, 'db_deleted_agents'):
             for obj in old_obj.db_deleted_agents:
                 n_obj = DBOpmAgent.update_version(obj, trans_dict)
@@ -6119,23 +7032,26 @@ class DBOpmAgents(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_agents:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_agent(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_agents)
         if remove:
             self.db_deleted_agents = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -6143,18 +7059,23 @@ class DBOpmAgents(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_agents(self):
         return self._db_agents
+
     def __set_db_agents(self, agents):
         self._db_agents = agents
         self.is_dirty = True
     db_agents = property(__get_db_agents, __set_db_agents)
+
     def db_get_agents(self):
         return self._db_agents
+
     def db_add_agent(self, agent):
         self.is_dirty = True
         self._db_agents.append(agent)
         self.db_agents_id_index[agent.db_id] = agent
+
     def db_change_agent(self, agent):
         self.is_dirty = True
         found = False
@@ -6166,6 +7087,7 @@ class DBOpmAgents(object):
         if not found:
             self._db_agents.append(agent)
         self.db_agents_id_index[agent.db_id] = agent
+
     def db_delete_agent(self, agent):
         self.is_dirty = True
         for i in xrange(len(self._db_agents)):
@@ -6175,16 +7097,18 @@ class DBOpmAgents(object):
                 del self._db_agents[i]
                 break
         del self.db_agents_id_index[agent.db_id]
+
     def db_get_agent(self, key):
         for i in xrange(len(self._db_agents)):
             if self._db_agents[i].db_id == key:
                 return self._db_agents[i]
         return None
+
     def db_get_agent_by_id(self, key):
         return self.db_agents_id_index[key]
+
     def db_has_agent_with_id(self, key):
         return key in self.db_agents_id_index
-    
 
 
 class DBOpmDependencies(object):
@@ -6199,7 +7123,7 @@ class DBOpmDependencies(object):
             self._db_dependencys = dependencys
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmDependencies.do_copy(self)
 
@@ -6208,8 +7132,9 @@ class DBOpmDependencies(object):
         if self._db_dependencys is None:
             cp._db_dependencys = []
         else:
-            cp._db_dependencys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_dependencys]
-        
+            cp._db_dependencys = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_dependencys]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -6218,7 +7143,7 @@ class DBOpmDependencies(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -6231,11 +7156,12 @@ class DBOpmDependencies(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_dependencys), 
+            test_obj.assertEqual(len(self.db_dependencys),
                                  len(other.db_dependencys))
-            for obj1, obj2 in izip(self.db_dependencys, 
+            for obj1, obj2 in izip(self.db_dependencys,
                                    other.db_dependencys):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -6253,15 +7179,20 @@ class DBOpmDependencies(object):
         elif hasattr(old_obj, 'db_dependencys') and old_obj.db_dependencys is not None:
             for obj in old_obj.db_dependencys:
                 if obj.vtType == 'opm_used':
-                    new_obj.db_add_dependency(DBOpmUsed.update_version(obj, trans_dict))
+                    new_obj.db_add_dependency(
+                        DBOpmUsed.update_version(obj, trans_dict))
                 elif obj.vtType == 'opm_was_generated_by':
-                    new_obj.db_add_dependency(DBOpmWasGeneratedBy.update_version(obj, trans_dict))
+                    new_obj.db_add_dependency(
+                        DBOpmWasGeneratedBy.update_version(obj, trans_dict))
                 elif obj.vtType == 'opm_was_triggered_by':
-                    new_obj.db_add_dependency(DBOpmWasTriggeredBy.update_version(obj, trans_dict))
+                    new_obj.db_add_dependency(
+                        DBOpmWasTriggeredBy.update_version(obj, trans_dict))
                 elif obj.vtType == 'opm_was_derived_from':
-                    new_obj.db_add_dependency(DBOpmWasDerivedFrom.update_version(obj, trans_dict))
+                    new_obj.db_add_dependency(
+                        DBOpmWasDerivedFrom.update_version(obj, trans_dict))
                 elif obj.vtType == 'opm_was_controlled_by':
-                    new_obj.db_add_dependency(DBOpmWasControlledBy.update_version(obj, trans_dict))
+                    new_obj.db_add_dependency(
+                        DBOpmWasControlledBy.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_dependencys') and hasattr(new_obj, 'db_deleted_dependencys'):
             for obj in old_obj.db_deleted_dependencys:
                 if obj.vtType == 'opm_used':
@@ -6277,29 +7208,33 @@ class DBOpmDependencies(object):
                     n_obj = DBOpmWasDerivedFrom.update_version(obj, trans_dict)
                     new_obj.db_deleted_dependencys.append(n_obj)
                 elif obj.vtType == 'opm_was_controlled_by':
-                    n_obj = DBOpmWasControlledBy.update_version(obj, trans_dict)
+                    n_obj = DBOpmWasControlledBy.update_version(
+                        obj, trans_dict)
                     new_obj.db_deleted_dependencys.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_dependencys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_dependency(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_dependencys)
         if remove:
             self.db_deleted_dependencys = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -6307,26 +7242,32 @@ class DBOpmDependencies(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_dependencys(self):
         return self._db_dependencys
+
     def __set_db_dependencys(self, dependencys):
         self._db_dependencys = dependencys
         self.is_dirty = True
     db_dependencys = property(__get_db_dependencys, __set_db_dependencys)
+
     def db_get_dependencys(self):
         return self._db_dependencys
+
     def db_add_dependency(self, dependency):
         self.is_dirty = True
         self._db_dependencys.append(dependency)
+
     def db_change_dependency(self, dependency):
         self.is_dirty = True
         self._db_dependencys.append(dependency)
+
     def db_delete_dependency(self, dependency):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_dependency(self, key):
         return None
-    
 
 
 class DBPEFunction(object):
@@ -6348,7 +7289,7 @@ class DBPEFunction(object):
                 self.db_parameters_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPEFunction.do_copy(self)
 
@@ -6360,8 +7301,9 @@ class DBPEFunction(object):
         if self._db_parameters is None:
             cp._db_parameters = []
         else:
-            cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
-        
+            cp._db_parameters = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -6372,9 +7314,10 @@ class DBPEFunction(object):
             cp.db_id = new_id
             if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
                 cp._db_module_id = id_remap[('module', self._db_module_id)]
-        
+
         # recreate indices and set flags
-        cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
+        cp.db_parameters_id_index = dict(
+            (v.db_id, v) for v in cp._db_parameters)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -6386,43 +7329,48 @@ class DBPEFunction(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_module_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_module_id, 
+            test_obj.assertEqual(self.db_module_id,
                                  other.db_module_id)
         alternate_key = (self.__class__.__name__, 'db_port_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_port_name, 
+            test_obj.assertEqual(self.db_port_name,
                                  other.db_port_name)
         alternate_key = (self.__class__.__name__, 'db_is_alias')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_is_alias, 
+            test_obj.assertEqual(self.db_is_alias,
                                  other.db_is_alias)
         alternate_key = (self.__class__.__name__, 'db_parameters')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_parameters), 
+            test_obj.assertEqual(len(self.db_parameters),
                                  len(other.db_parameters))
-            for obj1, obj2 in izip(sorted(self.db_parameters, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_parameters, key=lambda x: x.db_id),
                                    sorted(other.db_parameters, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -6459,7 +7407,8 @@ class DBPEFunction(object):
                 new_obj.db_add_parameter(obj)
         elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
             for obj in old_obj.db_parameters:
-                new_obj.db_add_parameter(DBPEParameter.update_version(obj, trans_dict))
+                new_obj.db_add_parameter(
+                    DBPEParameter.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_parameters') and hasattr(new_obj, 'db_deleted_parameters'):
             for obj in old_obj.db_deleted_parameters:
                 n_obj = DBPEParameter.update_version(obj, trans_dict)
@@ -6468,23 +7417,26 @@ class DBPEFunction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_parameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_parameter(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_parameters)
         if remove:
             self.db_deleted_parameters = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -6492,70 +7444,91 @@ class DBPEFunction(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_module_id(self):
         return self._db_module_id
+
     def __set_db_module_id(self, module_id):
         self._db_module_id = module_id
         self.is_dirty = True
     db_module_id = property(__get_db_module_id, __set_db_module_id)
+
     def db_add_module_id(self, module_id):
         self._db_module_id = module_id
+
     def db_change_module_id(self, module_id):
         self._db_module_id = module_id
+
     def db_delete_module_id(self, module_id):
         self._db_module_id = None
-    
+
     def __get_db_port_name(self):
         return self._db_port_name
+
     def __set_db_port_name(self, port_name):
         self._db_port_name = port_name
         self.is_dirty = True
     db_port_name = property(__get_db_port_name, __set_db_port_name)
+
     def db_add_port_name(self, port_name):
         self._db_port_name = port_name
+
     def db_change_port_name(self, port_name):
         self._db_port_name = port_name
+
     def db_delete_port_name(self, port_name):
         self._db_port_name = None
-    
+
     def __get_db_is_alias(self):
         return self._db_is_alias
+
     def __set_db_is_alias(self, is_alias):
         self._db_is_alias = is_alias
         self.is_dirty = True
     db_is_alias = property(__get_db_is_alias, __set_db_is_alias)
+
     def db_add_is_alias(self, is_alias):
         self._db_is_alias = is_alias
+
     def db_change_is_alias(self, is_alias):
         self._db_is_alias = is_alias
+
     def db_delete_is_alias(self, is_alias):
         self._db_is_alias = None
-    
+
     def __get_db_parameters(self):
         return self._db_parameters
+
     def __set_db_parameters(self, parameters):
         self._db_parameters = parameters
         self.is_dirty = True
     db_parameters = property(__get_db_parameters, __set_db_parameters)
+
     def db_get_parameters(self):
         return self._db_parameters
+
     def db_add_parameter(self, parameter):
         self.is_dirty = True
         self._db_parameters.append(parameter)
         self.db_parameters_id_index[parameter.db_id] = parameter
+
     def db_change_parameter(self, parameter):
         self.is_dirty = True
         found = False
@@ -6567,6 +7540,7 @@ class DBPEFunction(object):
         if not found:
             self._db_parameters.append(parameter)
         self.db_parameters_id_index[parameter.db_id] = parameter
+
     def db_delete_parameter(self, parameter):
         self.is_dirty = True
         for i in xrange(len(self._db_parameters)):
@@ -6576,18 +7550,22 @@ class DBPEFunction(object):
                 del self._db_parameters[i]
                 break
         del self.db_parameters_id_index[parameter.db_id]
+
     def db_get_parameter(self, key):
         for i in xrange(len(self._db_parameters)):
             if self._db_parameters[i].db_id == key:
                 return self._db_parameters[i]
         return None
+
     def db_get_parameter_by_id(self, key):
         return self.db_parameters_id_index[key]
+
     def db_has_parameter_with_id(self, key):
         return key in self.db_parameters_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBWorkflow(object):
 
@@ -6642,7 +7620,7 @@ class DBWorkflow(object):
         self._db_vistrail_id = vistrail_id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBWorkflow.do_copy(self)
 
@@ -6656,24 +7634,29 @@ class DBWorkflow(object):
         if self._db_modules is None:
             cp._db_modules = []
         else:
-            cp._db_modules = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_modules]
+            cp._db_modules = [v.do_copy(new_ids, id_scope, id_remap)
+                              for v in self._db_modules]
         if self._db_connections is None:
             cp._db_connections = []
         else:
-            cp._db_connections = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_connections]
+            cp._db_connections = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_connections]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_plugin_datas is None:
             cp._db_plugin_datas = []
         else:
-            cp._db_plugin_datas = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_plugin_datas]
+            cp._db_plugin_datas = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_plugin_datas]
         if self._db_others is None:
             cp._db_others = []
         else:
-            cp._db_others = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_others]
-        
+            cp._db_others = [v.do_copy(new_ids, id_scope, id_remap)
+                             for v in self._db_others]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -6683,13 +7666,17 @@ class DBWorkflow(object):
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
             if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
-                cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
-        
+                cp._db_vistrail_id = id_remap[
+                    ('vistrail', self._db_vistrail_id)]
+
         # recreate indices and set flags
         cp.db_modules_id_index = dict((v.db_id, v) for v in cp._db_modules)
-        cp.db_connections_id_index = dict((v.db_id, v) for v in cp._db_connections)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_plugin_datas_id_index = dict((v.db_id, v) for v in cp._db_plugin_datas)
+        cp.db_connections_id_index = dict(
+            (v.db_id, v) for v in cp._db_connections)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_plugin_datas_id_index = dict(
+            (v.db_id, v) for v in cp._db_plugin_datas)
         cp.db_others_id_index = dict((v.db_id, v) for v in cp._db_others)
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -6702,104 +7689,115 @@ class DBWorkflow(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_modules), 
+            test_obj.assertEqual(len(self.db_modules),
                                  len(other.db_modules))
-            for obj1, obj2 in izip(sorted(self.db_modules, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_modules, key=lambda x: x.db_id),
                                    sorted(other.db_modules, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_entity_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_entity_type, 
+            test_obj.assertEqual(self.db_entity_type,
                                  other.db_entity_type)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_last_modified')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_last_modified, 
+            test_obj.assertEqual(self.db_last_modified,
                                  other.db_last_modified)
         alternate_key = (self.__class__.__name__, 'db_connections')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_connections), 
+            test_obj.assertEqual(len(self.db_connections),
                                  len(other.db_connections))
-            for obj1, obj2 in izip(sorted(self.db_connections, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_connections, key=lambda x: x.db_id),
                                    sorted(other.db_connections, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_plugin_datas')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_plugin_datas), 
+            test_obj.assertEqual(len(self.db_plugin_datas),
                                  len(other.db_plugin_datas))
-            for obj1, obj2 in izip(sorted(self.db_plugin_datas, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_plugin_datas, key=lambda x: x.db_id),
                                    sorted(other.db_plugin_datas, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_others')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_others), 
+            test_obj.assertEqual(len(self.db_others),
                                  len(other.db_others))
-            for obj1, obj2 in izip(sorted(self.db_others, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_others, key=lambda x: x.db_id),
                                    sorted(other.db_others, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_vistrail_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vistrail_id, 
+            test_obj.assertEqual(self.db_vistrail_id,
                                  other.db_vistrail_id)
 
     @staticmethod
@@ -6816,11 +7814,14 @@ class DBWorkflow(object):
         elif hasattr(old_obj, 'db_modules') and old_obj.db_modules is not None:
             for obj in old_obj.db_modules:
                 if obj.vtType == 'module':
-                    new_obj.db_add_module(DBModule.update_version(obj, trans_dict))
+                    new_obj.db_add_module(
+                        DBModule.update_version(obj, trans_dict))
                 elif obj.vtType == 'abstraction':
-                    new_obj.db_add_module(DBAbstraction.update_version(obj, trans_dict))
+                    new_obj.db_add_module(
+                        DBAbstraction.update_version(obj, trans_dict))
                 elif obj.vtType == 'group':
-                    new_obj.db_add_module(DBGroup.update_version(obj, trans_dict))
+                    new_obj.db_add_module(
+                        DBGroup.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_modules') and hasattr(new_obj, 'db_deleted_modules'):
             for obj in old_obj.db_deleted_modules:
                 if obj.vtType == 'module':
@@ -6863,7 +7864,8 @@ class DBWorkflow(object):
                 new_obj.db_add_connection(obj)
         elif hasattr(old_obj, 'db_connections') and old_obj.db_connections is not None:
             for obj in old_obj.db_connections:
-                new_obj.db_add_connection(DBConnection.update_version(obj, trans_dict))
+                new_obj.db_add_connection(
+                    DBConnection.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_connections') and hasattr(new_obj, 'db_deleted_connections'):
             for obj in old_obj.db_deleted_connections:
                 n_obj = DBConnection.update_version(obj, trans_dict)
@@ -6874,7 +7876,8 @@ class DBWorkflow(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -6885,7 +7888,8 @@ class DBWorkflow(object):
                 new_obj.db_add_plugin_data(obj)
         elif hasattr(old_obj, 'db_plugin_datas') and old_obj.db_plugin_datas is not None:
             for obj in old_obj.db_plugin_datas:
-                new_obj.db_add_plugin_data(DBPluginData.update_version(obj, trans_dict))
+                new_obj.db_add_plugin_data(
+                    DBPluginData.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_plugin_datas') and hasattr(new_obj, 'db_deleted_plugin_datas'):
             for obj in old_obj.db_deleted_plugin_datas:
                 n_obj = DBPluginData.update_version(obj, trans_dict)
@@ -6910,45 +7914,51 @@ class DBWorkflow(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_connections:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_connection(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_plugin_datas:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_plugin_data(child)
         to_del = []
         for child in self.db_others:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_other(child)
         to_del = []
         for child in self.db_modules:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_module(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_connections)
@@ -6963,6 +7973,7 @@ class DBWorkflow(object):
             self.db_deleted_others = []
             self.db_deleted_modules = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -6982,18 +7993,23 @@ class DBWorkflow(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_modules(self):
         return self._db_modules
+
     def __set_db_modules(self, modules):
         self._db_modules = modules
         self.is_dirty = True
     db_modules = property(__get_db_modules, __set_db_modules)
+
     def db_get_modules(self):
         return self._db_modules
+
     def db_add_module(self, module):
         self.is_dirty = True
         self._db_modules.append(module)
         self.db_modules_id_index[module.db_id] = module
+
     def db_change_module(self, module):
         self.is_dirty = True
         found = False
@@ -7005,6 +8021,7 @@ class DBWorkflow(object):
         if not found:
             self._db_modules.append(module)
         self.db_modules_id_index[module.db_id] = module
+
     def db_delete_module(self, module):
         self.is_dirty = True
         for i in xrange(len(self._db_modules)):
@@ -7014,93 +8031,120 @@ class DBWorkflow(object):
                 del self._db_modules[i]
                 break
         del self.db_modules_id_index[module.db_id]
+
     def db_get_module(self, key):
         for i in xrange(len(self._db_modules)):
             if self._db_modules[i].db_id == key:
                 return self._db_modules[i]
         return None
+
     def db_get_module_by_id(self, key):
         return self.db_modules_id_index[key]
+
     def db_has_module_with_id(self, key):
         return key in self.db_modules_id_index
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_entity_type(self):
         return self._db_entity_type
+
     def __set_db_entity_type(self, entity_type):
         self._db_entity_type = entity_type
         self.is_dirty = True
     db_entity_type = property(__get_db_entity_type, __set_db_entity_type)
+
     def db_add_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_change_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_delete_entity_type(self, entity_type):
         self._db_entity_type = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_last_modified(self):
         return self._db_last_modified
+
     def __set_db_last_modified(self, last_modified):
         self._db_last_modified = last_modified
         self.is_dirty = True
     db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+
     def db_add_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_change_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
-    
+
     def __get_db_connections(self):
         return self._db_connections
+
     def __set_db_connections(self, connections):
         self._db_connections = connections
         self.is_dirty = True
     db_connections = property(__get_db_connections, __set_db_connections)
+
     def db_get_connections(self):
         return self._db_connections
+
     def db_add_connection(self, connection):
         self.is_dirty = True
         self._db_connections.append(connection)
         self.db_connections_id_index[connection.db_id] = connection
+
     def db_change_connection(self, connection):
         self.is_dirty = True
         found = False
@@ -7112,6 +8156,7 @@ class DBWorkflow(object):
         if not found:
             self._db_connections.append(connection)
         self.db_connections_id_index[connection.db_id] = connection
+
     def db_delete_connection(self, connection):
         self.is_dirty = True
         for i in xrange(len(self._db_connections)):
@@ -7121,28 +8166,35 @@ class DBWorkflow(object):
                 del self._db_connections[i]
                 break
         del self.db_connections_id_index[connection.db_id]
+
     def db_get_connection(self, key):
         for i in xrange(len(self._db_connections)):
             if self._db_connections[i].db_id == key:
                 return self._db_connections[i]
         return None
+
     def db_get_connection_by_id(self, key):
         return self.db_connections_id_index[key]
+
     def db_has_connection_with_id(self, key):
         return key in self.db_connections_id_index
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -7154,6 +8206,7 @@ class DBWorkflow(object):
         if not found:
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -7163,28 +8216,35 @@ class DBWorkflow(object):
                 del self._db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
-    
+
     def __get_db_plugin_datas(self):
         return self._db_plugin_datas
+
     def __set_db_plugin_datas(self, plugin_datas):
         self._db_plugin_datas = plugin_datas
         self.is_dirty = True
     db_plugin_datas = property(__get_db_plugin_datas, __set_db_plugin_datas)
+
     def db_get_plugin_datas(self):
         return self._db_plugin_datas
+
     def db_add_plugin_data(self, plugin_data):
         self.is_dirty = True
         self._db_plugin_datas.append(plugin_data)
         self.db_plugin_datas_id_index[plugin_data.db_id] = plugin_data
+
     def db_change_plugin_data(self, plugin_data):
         self.is_dirty = True
         found = False
@@ -7196,37 +8256,46 @@ class DBWorkflow(object):
         if not found:
             self._db_plugin_datas.append(plugin_data)
         self.db_plugin_datas_id_index[plugin_data.db_id] = plugin_data
+
     def db_delete_plugin_data(self, plugin_data):
         self.is_dirty = True
         for i in xrange(len(self._db_plugin_datas)):
             if self._db_plugin_datas[i].db_id == plugin_data.db_id:
                 if not self._db_plugin_datas[i].is_new:
-                    self.db_deleted_plugin_datas.append(self._db_plugin_datas[i])
+                    self.db_deleted_plugin_datas.append(
+                        self._db_plugin_datas[i])
                 del self._db_plugin_datas[i]
                 break
         del self.db_plugin_datas_id_index[plugin_data.db_id]
+
     def db_get_plugin_data(self, key):
         for i in xrange(len(self._db_plugin_datas)):
             if self._db_plugin_datas[i].db_id == key:
                 return self._db_plugin_datas[i]
         return None
+
     def db_get_plugin_data_by_id(self, key):
         return self.db_plugin_datas_id_index[key]
+
     def db_has_plugin_data_with_id(self, key):
         return key in self.db_plugin_datas_id_index
-    
+
     def __get_db_others(self):
         return self._db_others
+
     def __set_db_others(self, others):
         self._db_others = others
         self.is_dirty = True
     db_others = property(__get_db_others, __set_db_others)
+
     def db_get_others(self):
         return self._db_others
+
     def db_add_other(self, other):
         self.is_dirty = True
         self._db_others.append(other)
         self.db_others_id_index[other.db_id] = other
+
     def db_change_other(self, other):
         self.is_dirty = True
         found = False
@@ -7238,6 +8307,7 @@ class DBWorkflow(object):
         if not found:
             self._db_others.append(other)
         self.db_others_id_index[other.db_id] = other
+
     def db_delete_other(self, other):
         self.is_dirty = True
         for i in xrange(len(self._db_others)):
@@ -7247,31 +8317,39 @@ class DBWorkflow(object):
                 del self._db_others[i]
                 break
         del self.db_others_id_index[other.db_id]
+
     def db_get_other(self, key):
         for i in xrange(len(self._db_others)):
             if self._db_others[i].db_id == key:
                 return self._db_others[i]
         return None
+
     def db_get_other_by_id(self, key):
         return self.db_others_id_index[key]
+
     def db_has_other_with_id(self, key):
         return key in self.db_others_id_index
-    
+
     def __get_db_vistrail_id(self):
         return self._db_vistrail_id
+
     def __set_db_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = vistrail_id
         self.is_dirty = True
     db_vistrail_id = property(__get_db_vistrail_id, __set_db_vistrail_id)
+
     def db_add_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = vistrail_id
+
     def db_change_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = vistrail_id
+
     def db_delete_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBMashupAction(object):
 
@@ -7286,7 +8364,7 @@ class DBMashupAction(object):
         self._db_mashup = mashup
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMashupAction.do_copy(self)
 
@@ -7296,8 +8374,9 @@ class DBMashupAction(object):
                             date=self._db_date,
                             user=self._db_user)
         if self._db_mashup is not None:
-            cp._db_mashup = self._db_mashup.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_mashup = self._db_mashup.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -7308,7 +8387,7 @@ class DBMashupAction(object):
             cp.db_id = new_id
             if hasattr(self, 'db_prevId') and ('mashup_action', self._db_prevId) in id_remap:
                 cp._db_prevId = id_remap[('mashup_action', self._db_prevId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7321,44 +8400,50 @@ class DBMashupAction(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_prevId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prevId, 
+            test_obj.assertEqual(self.db_prevId,
                                  other.db_prevId)
         alternate_key = (self.__class__.__name__, 'db_date')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_date, 
+            test_obj.assertEqual(self.db_date,
                                  other.db_date)
         alternate_key = (self.__class__.__name__, 'db_user')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_user, 
+            test_obj.assertEqual(self.db_user,
                                  other.db_user)
         alternate_key = (self.__class__.__name__, 'db_mashup')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_mashup is not None and other.db_mashup is not None:
-                self.db_mashup.deep_eq_test(other.db_mashup, test_obj, alternate_tests)
+                self.db_mashup.deep_eq_test(
+                    other.db_mashup, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_mashup, 
+                test_obj.assertEqual(self.db_mashup,
                                      other.db_mashup)
 
     @staticmethod
@@ -7402,95 +8487,120 @@ class DBMashupAction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_mashup is not None:
-            children.extend(self._db_mashup.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_mashup.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_mashup = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_mashup)
         if remove:
             self.db_deleted_mashup = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_mashup is not None and self._db_mashup.has_changes():
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_prevId(self):
         return self._db_prevId
+
     def __set_db_prevId(self, prevId):
         self._db_prevId = prevId
         self.is_dirty = True
     db_prevId = property(__get_db_prevId, __set_db_prevId)
+
     def db_add_prevId(self, prevId):
         self._db_prevId = prevId
+
     def db_change_prevId(self, prevId):
         self._db_prevId = prevId
+
     def db_delete_prevId(self, prevId):
         self._db_prevId = None
-    
+
     def __get_db_date(self):
         return self._db_date
+
     def __set_db_date(self, date):
         self._db_date = date
         self.is_dirty = True
     db_date = property(__get_db_date, __set_db_date)
+
     def db_add_date(self, date):
         self._db_date = date
+
     def db_change_date(self, date):
         self._db_date = date
+
     def db_delete_date(self, date):
         self._db_date = None
-    
+
     def __get_db_user(self):
         return self._db_user
+
     def __set_db_user(self, user):
         self._db_user = user
         self.is_dirty = True
     db_user = property(__get_db_user, __set_db_user)
+
     def db_add_user(self, user):
         self._db_user = user
+
     def db_change_user(self, user):
         self._db_user = user
+
     def db_delete_user(self, user):
         self._db_user = None
-    
+
     def __get_db_mashup(self):
         return self._db_mashup
+
     def __set_db_mashup(self, mashup):
         self._db_mashup = mashup
         self.is_dirty = True
     db_mashup = property(__get_db_mashup, __set_db_mashup)
+
     def db_add_mashup(self, mashup):
         self._db_mashup = mashup
+
     def db_change_mashup(self, mashup):
         self._db_mashup = mashup
+
     def db_delete_mashup(self, mashup):
         if not self.is_new:
             self.db_deleted_mashup.append(self._db_mashup)
         self._db_mashup = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBConfiguration(object):
 
@@ -7507,7 +8617,7 @@ class DBConfiguration(object):
                 self.db_config_keys_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConfiguration.do_copy(self)
 
@@ -7516,8 +8626,9 @@ class DBConfiguration(object):
         if self._db_config_keys is None:
             cp._db_config_keys = []
         else:
-            cp._db_config_keys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_config_keys]
-        
+            cp._db_config_keys = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_config_keys]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -7526,9 +8637,10 @@ class DBConfiguration(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_config_keys_name_index = dict((v.db_name, v) for v in cp._db_config_keys)
+        cp.db_config_keys_name_index = dict(
+            (v.db_name, v) for v in cp._db_config_keys)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -7540,12 +8652,13 @@ class DBConfiguration(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_config_keys), 
+            test_obj.assertEqual(len(self.db_config_keys),
                                  len(other.db_config_keys))
-            for obj1, obj2 in izip(self.db_config_keys, 
-                                   other.db_config_keys):
+            for obj1, obj2 in izip(sorted(self.db_config_keys, key=lambda x: x.db_name),
+                                   sorted(other.db_config_keys, key=lambda x: x.db_name)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -7561,7 +8674,8 @@ class DBConfiguration(object):
                 new_obj.db_add_config_key(obj)
         elif hasattr(old_obj, 'db_config_keys') and old_obj.db_config_keys is not None:
             for obj in old_obj.db_config_keys:
-                new_obj.db_add_config_key(DBConfigKey.update_version(obj, trans_dict))
+                new_obj.db_add_config_key(
+                    DBConfigKey.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_config_keys') and hasattr(new_obj, 'db_deleted_config_keys'):
             for obj in old_obj.db_deleted_config_keys:
                 n_obj = DBConfigKey.update_version(obj, trans_dict)
@@ -7570,23 +8684,26 @@ class DBConfiguration(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_config_keys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_config_key(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_config_keys)
         if remove:
             self.db_deleted_config_keys = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -7594,32 +8711,56 @@ class DBConfiguration(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_config_keys(self):
         return self._db_config_keys
+
     def __set_db_config_keys(self, config_keys):
         self._db_config_keys = config_keys
         self.is_dirty = True
     db_config_keys = property(__get_db_config_keys, __set_db_config_keys)
+
     def db_get_config_keys(self):
         return self._db_config_keys
+
     def db_add_config_key(self, config_key):
         self.is_dirty = True
         self._db_config_keys.append(config_key)
         self.db_config_keys_name_index[config_key.db_name] = config_key
+
     def db_change_config_key(self, config_key):
         self.is_dirty = True
-        self._db_config_keys.append(config_key)
+        found = False
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == config_key.db_name:
+                self._db_config_keys[i] = config_key
+                found = True
+                break
+        if not found:
+            self._db_config_keys.append(config_key)
         self.db_config_keys_name_index[config_key.db_name] = config_key
+
     def db_delete_config_key(self, config_key):
         self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == config_key.db_name:
+                if not self._db_config_keys[i].is_new:
+                    self.db_deleted_config_keys.append(self._db_config_keys[i])
+                del self._db_config_keys[i]
+                break
+        del self.db_config_keys_name_index[config_key.db_name]
+
     def db_get_config_key(self, key):
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == key:
+                return self._db_config_keys[i]
         return None
+
     def db_get_config_key_by_name(self, key):
         return self.db_config_keys_name_index[key]
+
     def db_has_config_key_with_name(self, key):
         return key in self.db_config_keys_name_index
-    
 
 
 class DBChange(object):
@@ -7637,7 +8778,7 @@ class DBChange(object):
         self._db_parentObjType = parentObjType
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBChange.do_copy(self)
 
@@ -7650,7 +8791,7 @@ class DBChange(object):
                       parentObjType=self._db_parentObjType)
         if self._db_data is not None:
             cp._db_data = self._db_data.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -7664,8 +8805,9 @@ class DBChange(object):
             if hasattr(self, 'db_newObjId') and (self._db_what, self._db_newObjId) in id_remap:
                 cp._db_newObjId = id_remap[(self._db_what, self._db_newObjId)]
             if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+                cp._db_parentObjId = id_remap[
+                    (self._db_parentObjType, self._db_parentObjId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7678,60 +8820,68 @@ class DBChange(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_data is not None and other.db_data is not None:
-                self.db_data.deep_eq_test(other.db_data, test_obj, alternate_tests)
+                self.db_data.deep_eq_test(
+                    other.db_data, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_data, 
+                test_obj.assertEqual(self.db_data,
                                      other.db_data)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_what')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_what, 
+            test_obj.assertEqual(self.db_what,
                                  other.db_what)
         alternate_key = (self.__class__.__name__, 'db_oldObjId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_oldObjId, 
+            test_obj.assertEqual(self.db_oldObjId,
                                  other.db_oldObjId)
         alternate_key = (self.__class__.__name__, 'db_newObjId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_newObjId, 
+            test_obj.assertEqual(self.db_newObjId,
                                  other.db_newObjId)
         alternate_key = (self.__class__.__name__, 'db_parentObjId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parentObjId, 
+            test_obj.assertEqual(self.db_parentObjId,
                                  other.db_parentObjId)
         alternate_key = (self.__class__.__name__, 'db_parentObjType')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parentObjType, 
+            test_obj.assertEqual(self.db_parentObjType,
                                  other.db_parentObjType)
 
     @staticmethod
@@ -7751,27 +8901,33 @@ class DBChange(object):
             elif obj.vtType == 'location':
                 new_obj.db_add_data(DBLocation.update_version(obj, trans_dict))
             elif obj.vtType == 'annotation':
-                new_obj.db_add_data(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBAnnotation.update_version(obj, trans_dict))
             elif obj.vtType == 'controlParameter':
-                new_obj.db_add_data(DBControlParameter.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBControlParameter.update_version(obj, trans_dict))
             elif obj.vtType == 'function':
                 new_obj.db_add_data(DBFunction.update_version(obj, trans_dict))
             elif obj.vtType == 'connection':
-                new_obj.db_add_data(DBConnection.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBConnection.update_version(obj, trans_dict))
             elif obj.vtType == 'port':
                 new_obj.db_add_data(DBPort.update_version(obj, trans_dict))
             elif obj.vtType == 'parameter':
-                new_obj.db_add_data(DBParameter.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBParameter.update_version(obj, trans_dict))
             elif obj.vtType == 'portSpec':
                 new_obj.db_add_data(DBPortSpec.update_version(obj, trans_dict))
             elif obj.vtType == 'abstraction':
-                new_obj.db_add_data(DBAbstraction.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBAbstraction.update_version(obj, trans_dict))
             elif obj.vtType == 'group':
                 new_obj.db_add_data(DBGroup.update_version(obj, trans_dict))
             elif obj.vtType == 'other':
                 new_obj.db_add_data(DBOther.update_version(obj, trans_dict))
             elif obj.vtType == 'plugin_data':
-                new_obj.db_add_data(DBPluginData.update_version(obj, trans_dict))
+                new_obj.db_add_data(
+                    DBPluginData.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_data') and hasattr(new_obj, 'db_deleted_data'):
             for obj in old_obj.db_deleted_data:
                 if obj.vtType == 'module':
@@ -7847,121 +9003,154 @@ class DBChange(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_data is not None:
-            children.extend(self._db_data.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_data.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_data = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_data)
         if remove:
             self.db_deleted_data = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_data is not None and self._db_data.has_changes():
             return True
         return False
+
     def __get_db_data(self):
         return self._db_data
+
     def __set_db_data(self, data):
         self._db_data = data
         self.is_dirty = True
     db_data = property(__get_db_data, __set_db_data)
+
     def db_add_data(self, data):
         self._db_data = data
+
     def db_change_data(self, data):
         self._db_data = data
+
     def db_delete_data(self, data):
         if not self.is_new:
             self.db_deleted_data.append(self._db_data)
         self._db_data = None
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_what(self):
         return self._db_what
+
     def __set_db_what(self, what):
         self._db_what = what
         self.is_dirty = True
     db_what = property(__get_db_what, __set_db_what)
+
     def db_add_what(self, what):
         self._db_what = what
+
     def db_change_what(self, what):
         self._db_what = what
+
     def db_delete_what(self, what):
         self._db_what = None
-    
+
     def __get_db_oldObjId(self):
         return self._db_oldObjId
+
     def __set_db_oldObjId(self, oldObjId):
         self._db_oldObjId = oldObjId
         self.is_dirty = True
     db_oldObjId = property(__get_db_oldObjId, __set_db_oldObjId)
+
     def db_add_oldObjId(self, oldObjId):
         self._db_oldObjId = oldObjId
+
     def db_change_oldObjId(self, oldObjId):
         self._db_oldObjId = oldObjId
+
     def db_delete_oldObjId(self, oldObjId):
         self._db_oldObjId = None
-    
+
     def __get_db_newObjId(self):
         return self._db_newObjId
+
     def __set_db_newObjId(self, newObjId):
         self._db_newObjId = newObjId
         self.is_dirty = True
     db_newObjId = property(__get_db_newObjId, __set_db_newObjId)
+
     def db_add_newObjId(self, newObjId):
         self._db_newObjId = newObjId
+
     def db_change_newObjId(self, newObjId):
         self._db_newObjId = newObjId
+
     def db_delete_newObjId(self, newObjId):
         self._db_newObjId = None
-    
+
     def __get_db_parentObjId(self):
         return self._db_parentObjId
+
     def __set_db_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
         self.is_dirty = True
     db_parentObjId = property(__get_db_parentObjId, __set_db_parentObjId)
+
     def db_add_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
+
     def db_change_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
+
     def db_delete_parentObjId(self, parentObjId):
         self._db_parentObjId = None
-    
+
     def __get_db_parentObjType(self):
         return self._db_parentObjType
+
     def __set_db_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
         self.is_dirty = True
     db_parentObjType = property(__get_db_parentObjType, __set_db_parentObjType)
+
     def db_add_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
+
     def db_change_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
+
     def db_delete_parentObjType(self, parentObjType):
         self._db_parentObjType = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBPackage(object):
 
@@ -7984,10 +9173,11 @@ class DBPackage(object):
             self._db_module_descriptors = module_descriptors
             for v in self._db_module_descriptors:
                 self.db_module_descriptors_id_index[v.db_id] = v
-                self.db_module_descriptors_name_index[(v.db_name,v.db_namespace,v.db_version)] = v
+                self.db_module_descriptors_name_index[
+                    (v.db_name, v.db_namespace, v.db_version)] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPackage.do_copy(self)
 
@@ -8002,8 +9192,9 @@ class DBPackage(object):
         if self._db_module_descriptors is None:
             cp._db_module_descriptors = []
         else:
-            cp._db_module_descriptors = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_descriptors]
-        
+            cp._db_module_descriptors = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_descriptors]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -8012,10 +9203,12 @@ class DBPackage(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_module_descriptors_id_index = dict((v.db_id, v) for v in cp._db_module_descriptors)
-        cp.db_module_descriptors_name_index = dict(((v.db_name,v.db_namespace,v.db_version), v) for v in cp._db_module_descriptors)
+        cp.db_module_descriptors_id_index = dict(
+            (v.db_id, v) for v in cp._db_module_descriptors)
+        cp.db_module_descriptors_name_index = dict(
+            ((v.db_name, v.db_namespace, v.db_version), v) for v in cp._db_module_descriptors)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -8027,67 +9220,75 @@ class DBPackage(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_identifier')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_identifier, 
+            test_obj.assertEqual(self.db_identifier,
                                  other.db_identifier)
         alternate_key = (self.__class__.__name__, 'db_codepath')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_codepath, 
+            test_obj.assertEqual(self.db_codepath,
                                  other.db_codepath)
         alternate_key = (self.__class__.__name__, 'db_load_configuration')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_load_configuration, 
+            test_obj.assertEqual(self.db_load_configuration,
                                  other.db_load_configuration)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_description')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_description, 
+            test_obj.assertEqual(self.db_description,
                                  other.db_description)
         alternate_key = (self.__class__.__name__, 'db_module_descriptors')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_module_descriptors), 
+            test_obj.assertEqual(len(self.db_module_descriptors),
                                  len(other.db_module_descriptors))
-            for obj1, obj2 in izip(sorted(self.db_module_descriptors, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_module_descriptors, key=lambda x: x.db_id),
                                    sorted(other.db_module_descriptors, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -8139,7 +9340,8 @@ class DBPackage(object):
                 new_obj.db_add_module_descriptor(obj)
         elif hasattr(old_obj, 'db_module_descriptors') and old_obj.db_module_descriptors is not None:
             for obj in old_obj.db_module_descriptors:
-                new_obj.db_add_module_descriptor(DBModuleDescriptor.update_version(obj, trans_dict))
+                new_obj.db_add_module_descriptor(
+                    DBModuleDescriptor.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_module_descriptors') and hasattr(new_obj, 'db_deleted_module_descriptors'):
             for obj in old_obj.db_deleted_module_descriptors:
                 n_obj = DBModuleDescriptor.update_version(obj, trans_dict)
@@ -8148,23 +9350,26 @@ class DBPackage(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_module_descriptors:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_module_descriptor(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_module_descriptors)
         if remove:
             self.db_deleted_module_descriptors = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -8172,110 +9377,147 @@ class DBPackage(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_identifier(self):
         return self._db_identifier
+
     def __set_db_identifier(self, identifier):
         self._db_identifier = identifier
         self.is_dirty = True
     db_identifier = property(__get_db_identifier, __set_db_identifier)
+
     def db_add_identifier(self, identifier):
         self._db_identifier = identifier
+
     def db_change_identifier(self, identifier):
         self._db_identifier = identifier
+
     def db_delete_identifier(self, identifier):
         self._db_identifier = None
-    
+
     def __get_db_codepath(self):
         return self._db_codepath
+
     def __set_db_codepath(self, codepath):
         self._db_codepath = codepath
         self.is_dirty = True
     db_codepath = property(__get_db_codepath, __set_db_codepath)
+
     def db_add_codepath(self, codepath):
         self._db_codepath = codepath
+
     def db_change_codepath(self, codepath):
         self._db_codepath = codepath
+
     def db_delete_codepath(self, codepath):
         self._db_codepath = None
-    
+
     def __get_db_load_configuration(self):
         return self._db_load_configuration
+
     def __set_db_load_configuration(self, load_configuration):
         self._db_load_configuration = load_configuration
         self.is_dirty = True
-    db_load_configuration = property(__get_db_load_configuration, __set_db_load_configuration)
+    db_load_configuration = property(
+        __get_db_load_configuration, __set_db_load_configuration)
+
     def db_add_load_configuration(self, load_configuration):
         self._db_load_configuration = load_configuration
+
     def db_change_load_configuration(self, load_configuration):
         self._db_load_configuration = load_configuration
+
     def db_delete_load_configuration(self, load_configuration):
         self._db_load_configuration = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_description(self):
         return self._db_description
+
     def __set_db_description(self, description):
         self._db_description = description
         self.is_dirty = True
     db_description = property(__get_db_description, __set_db_description)
+
     def db_add_description(self, description):
         self._db_description = description
+
     def db_change_description(self, description):
         self._db_description = description
+
     def db_delete_description(self, description):
         self._db_description = None
-    
+
     def __get_db_module_descriptors(self):
         return self._db_module_descriptors
+
     def __set_db_module_descriptors(self, module_descriptors):
         self._db_module_descriptors = module_descriptors
         self.is_dirty = True
-    db_module_descriptors = property(__get_db_module_descriptors, __set_db_module_descriptors)
+    db_module_descriptors = property(
+        __get_db_module_descriptors, __set_db_module_descriptors)
+
     def db_get_module_descriptors(self):
         return self._db_module_descriptors
+
     def db_add_module_descriptor(self, module_descriptor):
         self.is_dirty = True
         self._db_module_descriptors.append(module_descriptor)
-        self.db_module_descriptors_id_index[module_descriptor.db_id] = module_descriptor
-        self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)] = module_descriptor
+        self.db_module_descriptors_id_index[
+            module_descriptor.db_id] = module_descriptor
+        self.db_module_descriptors_name_index[
+            (module_descriptor.db_name, module_descriptor.db_namespace, module_descriptor.db_version)] = module_descriptor
+
     def db_change_module_descriptor(self, module_descriptor):
         self.is_dirty = True
         found = False
@@ -8286,34 +9528,45 @@ class DBPackage(object):
                 break
         if not found:
             self._db_module_descriptors.append(module_descriptor)
-        self.db_module_descriptors_id_index[module_descriptor.db_id] = module_descriptor
-        self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)] = module_descriptor
+        self.db_module_descriptors_id_index[
+            module_descriptor.db_id] = module_descriptor
+        self.db_module_descriptors_name_index[
+            (module_descriptor.db_name, module_descriptor.db_namespace, module_descriptor.db_version)] = module_descriptor
+
     def db_delete_module_descriptor(self, module_descriptor):
         self.is_dirty = True
         for i in xrange(len(self._db_module_descriptors)):
             if self._db_module_descriptors[i].db_id == module_descriptor.db_id:
                 if not self._db_module_descriptors[i].is_new:
-                    self.db_deleted_module_descriptors.append(self._db_module_descriptors[i])
+                    self.db_deleted_module_descriptors.append(
+                        self._db_module_descriptors[i])
                 del self._db_module_descriptors[i]
                 break
         del self.db_module_descriptors_id_index[module_descriptor.db_id]
-        del self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)]
+        del self.db_module_descriptors_name_index[
+            (module_descriptor.db_name, module_descriptor.db_namespace, module_descriptor.db_version)]
+
     def db_get_module_descriptor(self, key):
         for i in xrange(len(self._db_module_descriptors)):
             if self._db_module_descriptors[i].db_id == key:
                 return self._db_module_descriptors[i]
         return None
+
     def db_get_module_descriptor_by_id(self, key):
         return self.db_module_descriptors_id_index[key]
+
     def db_has_module_descriptor_with_id(self, key):
         return key in self.db_module_descriptors_id_index
+
     def db_get_module_descriptor_by_name(self, key):
         return self.db_module_descriptors_name_index[key]
+
     def db_has_module_descriptor_with_name(self, key):
         return key in self.db_module_descriptors_name_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBLoopExec(object):
 
@@ -8333,7 +9586,7 @@ class DBLoopExec(object):
                 self.db_loop_iterations_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBLoopExec.do_copy(self)
 
@@ -8344,8 +9597,9 @@ class DBLoopExec(object):
         if self._db_loop_iterations is None:
             cp._db_loop_iterations = []
         else:
-            cp._db_loop_iterations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_iterations]
-        
+            cp._db_loop_iterations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_iterations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -8354,9 +9608,10 @@ class DBLoopExec(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_loop_iterations_id_index = dict((v.db_id, v) for v in cp._db_loop_iterations)
+        cp.db_loop_iterations_id_index = dict(
+            (v.db_id, v) for v in cp._db_loop_iterations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -8368,35 +9623,39 @@ class DBLoopExec(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_ts_start')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_start, 
+            test_obj.assertEqual(self.db_ts_start,
                                  other.db_ts_start)
         alternate_key = (self.__class__.__name__, 'db_ts_end')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_end, 
+            test_obj.assertEqual(self.db_ts_end,
                                  other.db_ts_end)
         alternate_key = (self.__class__.__name__, 'db_loop_iterations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_loop_iterations), 
+            test_obj.assertEqual(len(self.db_loop_iterations),
                                  len(other.db_loop_iterations))
-            for obj1, obj2 in izip(sorted(self.db_loop_iterations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_loop_iterations, key=lambda x: x.db_id),
                                    sorted(other.db_loop_iterations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -8428,7 +9687,8 @@ class DBLoopExec(object):
                 new_obj.db_add_loop_iteration(obj)
         elif hasattr(old_obj, 'db_loop_iterations') and old_obj.db_loop_iterations is not None:
             for obj in old_obj.db_loop_iterations:
-                new_obj.db_add_loop_iteration(DBLoopIteration.update_version(obj, trans_dict))
+                new_obj.db_add_loop_iteration(
+                    DBLoopIteration.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_loop_iterations') and hasattr(new_obj, 'db_deleted_loop_iterations'):
             for obj in old_obj.db_deleted_loop_iterations:
                 n_obj = DBLoopIteration.update_version(obj, trans_dict)
@@ -8437,23 +9697,26 @@ class DBLoopExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_loop_iterations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_loop_iteration(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_loop_iterations)
         if remove:
             self.db_deleted_loop_iterations = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -8461,57 +9724,75 @@ class DBLoopExec(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_ts_start(self):
         return self._db_ts_start
+
     def __set_db_ts_start(self, ts_start):
         self._db_ts_start = ts_start
         self.is_dirty = True
     db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+
     def db_add_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_change_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_delete_ts_start(self, ts_start):
         self._db_ts_start = None
-    
+
     def __get_db_ts_end(self):
         return self._db_ts_end
+
     def __set_db_ts_end(self, ts_end):
         self._db_ts_end = ts_end
         self.is_dirty = True
     db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+
     def db_add_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_change_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_delete_ts_end(self, ts_end):
         self._db_ts_end = None
-    
+
     def __get_db_loop_iterations(self):
         return self._db_loop_iterations
+
     def __set_db_loop_iterations(self, loop_iterations):
         self._db_loop_iterations = loop_iterations
         self.is_dirty = True
-    db_loop_iterations = property(__get_db_loop_iterations, __set_db_loop_iterations)
+    db_loop_iterations = property(
+        __get_db_loop_iterations, __set_db_loop_iterations)
+
     def db_get_loop_iterations(self):
         return self._db_loop_iterations
+
     def db_add_loop_iteration(self, loop_iteration):
         self.is_dirty = True
         self._db_loop_iterations.append(loop_iteration)
         self.db_loop_iterations_id_index[loop_iteration.db_id] = loop_iteration
+
     def db_change_loop_iteration(self, loop_iteration):
         self.is_dirty = True
         found = False
@@ -8523,27 +9804,33 @@ class DBLoopExec(object):
         if not found:
             self._db_loop_iterations.append(loop_iteration)
         self.db_loop_iterations_id_index[loop_iteration.db_id] = loop_iteration
+
     def db_delete_loop_iteration(self, loop_iteration):
         self.is_dirty = True
         for i in xrange(len(self._db_loop_iterations)):
             if self._db_loop_iterations[i].db_id == loop_iteration.db_id:
                 if not self._db_loop_iterations[i].is_new:
-                    self.db_deleted_loop_iterations.append(self._db_loop_iterations[i])
+                    self.db_deleted_loop_iterations.append(
+                        self._db_loop_iterations[i])
                 del self._db_loop_iterations[i]
                 break
         del self.db_loop_iterations_id_index[loop_iteration.db_id]
+
     def db_get_loop_iteration(self, key):
         for i in xrange(len(self._db_loop_iterations)):
             if self._db_loop_iterations[i].db_id == key:
                 return self._db_loop_iterations[i]
         return None
+
     def db_get_loop_iteration_by_id(self, key):
         return self.db_loop_iterations_id_index[key]
+
     def db_has_loop_iteration_with_id(self, key):
         return key in self.db_loop_iterations_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBConnection(object):
 
@@ -8563,7 +9850,7 @@ class DBConnection(object):
                 self.db_ports_type_index[v.db_type] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConnection.do_copy(self)
 
@@ -8572,8 +9859,9 @@ class DBConnection(object):
         if self._db_ports is None:
             cp._db_ports = []
         else:
-            cp._db_ports = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_ports]
-        
+            cp._db_ports = [v.do_copy(new_ids, id_scope, id_remap)
+                            for v in self._db_ports]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -8582,7 +9870,7 @@ class DBConnection(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_ports_id_index = dict((v.db_id, v) for v in cp._db_ports)
         cp.db_ports_type_index = dict((v.db_type, v) for v in cp._db_ports)
@@ -8597,19 +9885,21 @@ class DBConnection(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_ports')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_ports), 
+            test_obj.assertEqual(len(self.db_ports),
                                  len(other.db_ports))
-            for obj1, obj2 in izip(sorted(self.db_ports, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_ports, key=lambda x: x.db_id),
                                    sorted(other.db_ports, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -8640,23 +9930,26 @@ class DBConnection(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_ports:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_port(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_ports)
         if remove:
             self.db_deleted_ports = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -8664,32 +9957,41 @@ class DBConnection(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_ports(self):
         return self._db_ports
+
     def __set_db_ports(self, ports):
         self._db_ports = ports
         self.is_dirty = True
     db_ports = property(__get_db_ports, __set_db_ports)
+
     def db_get_ports(self):
         return self._db_ports
+
     def db_add_port(self, port):
         self.is_dirty = True
         self._db_ports.append(port)
         self.db_ports_id_index[port.db_id] = port
         self.db_ports_type_index[port.db_type] = port
+
     def db_change_port(self, port):
         self.is_dirty = True
         found = False
@@ -8702,6 +10004,7 @@ class DBConnection(object):
             self._db_ports.append(port)
         self.db_ports_id_index[port.db_id] = port
         self.db_ports_type_index[port.db_type] = port
+
     def db_delete_port(self, port):
         self.is_dirty = True
         for i in xrange(len(self._db_ports)):
@@ -8712,22 +10015,28 @@ class DBConnection(object):
                 break
         del self.db_ports_id_index[port.db_id]
         del self.db_ports_type_index[port.db_type]
+
     def db_get_port(self, key):
         for i in xrange(len(self._db_ports)):
             if self._db_ports[i].db_id == key:
                 return self._db_ports[i]
         return None
+
     def db_get_port_by_id(self, key):
         return self.db_ports_id_index[key]
+
     def db_has_port_with_id(self, key):
         return key in self.db_ports_id_index
+
     def db_get_port_by_type(self, key):
         return self.db_ports_type_index[key]
+
     def db_has_port_with_type(self, key):
         return key in self.db_ports_type_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBConfigBool(object):
 
@@ -8737,13 +10046,13 @@ class DBConfigBool(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConfigBool.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigBool(value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -8752,7 +10061,7 @@ class DBConfigBool(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8765,9 +10074,10 @@ class DBConfigBool(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -8786,28 +10096,34 @@ class DBConfigBool(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
 
 
 class DBAction(object):
@@ -8840,7 +10156,7 @@ class DBAction(object):
                 self.db_annotations_key_index[v.db_key] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBAction.do_copy(self)
 
@@ -8853,12 +10169,14 @@ class DBAction(object):
         if self._db_operations is None:
             cp._db_operations = []
         else:
-            cp._db_operations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_operations]
+            cp._db_operations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_operations]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
-        
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -8869,11 +10187,14 @@ class DBAction(object):
             cp.db_id = new_id
             if hasattr(self, 'db_prevId') and ('action', self._db_prevId) in id_remap:
                 cp._db_prevId = id_remap[('action', self._db_prevId)]
-        
+
         # recreate indices and set flags
-        cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
+        cp.db_operations_id_index = dict(
+            (v.db_id, v) for v in cp._db_operations)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(
+            (v.db_key, v) for v in cp._db_annotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -8885,62 +10206,69 @@ class DBAction(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_operations), 
+            test_obj.assertEqual(len(self.db_operations),
                                  len(other.db_operations))
-            for obj1, obj2 in izip(sorted(self.db_operations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_operations, key=lambda x: x.db_id),
                                    sorted(other.db_operations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_prevId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prevId, 
+            test_obj.assertEqual(self.db_prevId,
                                  other.db_prevId)
         alternate_key = (self.__class__.__name__, 'db_date')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_date, 
+            test_obj.assertEqual(self.db_date,
                                  other.db_date)
         alternate_key = (self.__class__.__name__, 'db_session')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_session, 
+            test_obj.assertEqual(self.db_session,
                                  other.db_session)
         alternate_key = (self.__class__.__name__, 'db_user')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_user, 
+            test_obj.assertEqual(self.db_user,
                                  other.db_user)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -8958,11 +10286,14 @@ class DBAction(object):
         elif hasattr(old_obj, 'db_operations') and old_obj.db_operations is not None:
             for obj in old_obj.db_operations:
                 if obj.vtType == 'add':
-                    new_obj.db_add_operation(DBAdd.update_version(obj, trans_dict))
+                    new_obj.db_add_operation(
+                        DBAdd.update_version(obj, trans_dict))
                 elif obj.vtType == 'delete':
-                    new_obj.db_add_operation(DBDelete.update_version(obj, trans_dict))
+                    new_obj.db_add_operation(
+                        DBDelete.update_version(obj, trans_dict))
                 elif obj.vtType == 'change':
-                    new_obj.db_add_operation(DBChange.update_version(obj, trans_dict))
+                    new_obj.db_add_operation(
+                        DBChange.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_operations') and hasattr(new_obj, 'db_deleted_operations'):
             for obj in old_obj.db_deleted_operations:
                 if obj.vtType == 'add':
@@ -9005,7 +10336,8 @@ class DBAction(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -9014,24 +10346,27 @@ class DBAction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_operations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_operation(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_annotations)
@@ -9040,6 +10375,7 @@ class DBAction(object):
             self.db_deleted_annotations = []
             self.db_deleted_operations = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -9050,18 +10386,23 @@ class DBAction(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_operations(self):
         return self._db_operations
+
     def __set_db_operations(self, operations):
         self._db_operations = operations
         self.is_dirty = True
     db_operations = property(__get_db_operations, __set_db_operations)
+
     def db_get_operations(self):
         return self._db_operations
+
     def db_add_operation(self, operation):
         self.is_dirty = True
         self._db_operations.append(operation)
         self.db_operations_id_index[operation.db_id] = operation
+
     def db_change_operation(self, operation):
         self.is_dirty = True
         found = False
@@ -9073,6 +10414,7 @@ class DBAction(object):
         if not found:
             self._db_operations.append(operation)
         self.db_operations_id_index[operation.db_id] = operation
+
     def db_delete_operation(self, operation):
         self.is_dirty = True
         for i in xrange(len(self._db_operations)):
@@ -9082,94 +10424,121 @@ class DBAction(object):
                 del self._db_operations[i]
                 break
         del self.db_operations_id_index[operation.db_id]
+
     def db_get_operation(self, key):
         for i in xrange(len(self._db_operations)):
             if self._db_operations[i].db_id == key:
                 return self._db_operations[i]
         return None
+
     def db_get_operation_by_id(self, key):
         return self.db_operations_id_index[key]
+
     def db_has_operation_with_id(self, key):
         return key in self.db_operations_id_index
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_prevId(self):
         return self._db_prevId
+
     def __set_db_prevId(self, prevId):
         self._db_prevId = prevId
         self.is_dirty = True
     db_prevId = property(__get_db_prevId, __set_db_prevId)
+
     def db_add_prevId(self, prevId):
         self._db_prevId = prevId
+
     def db_change_prevId(self, prevId):
         self._db_prevId = prevId
+
     def db_delete_prevId(self, prevId):
         self._db_prevId = None
-    
+
     def __get_db_date(self):
         return self._db_date
+
     def __set_db_date(self, date):
         self._db_date = date
         self.is_dirty = True
     db_date = property(__get_db_date, __set_db_date)
+
     def db_add_date(self, date):
         self._db_date = date
+
     def db_change_date(self, date):
         self._db_date = date
+
     def db_delete_date(self, date):
         self._db_date = None
-    
+
     def __get_db_session(self):
         return self._db_session
+
     def __set_db_session(self, session):
         self._db_session = session
         self.is_dirty = True
     db_session = property(__get_db_session, __set_db_session)
+
     def db_add_session(self, session):
         self._db_session = session
+
     def db_change_session(self, session):
         self._db_session = session
+
     def db_delete_session(self, session):
         self._db_session = None
-    
+
     def __get_db_user(self):
         return self._db_user
+
     def __set_db_user(self, user):
         self._db_user = user
         self.is_dirty = True
     db_user = property(__get_db_user, __set_db_user)
+
     def db_add_user(self, user):
         self._db_user = user
+
     def db_change_user(self, user):
         self._db_user = user
+
     def db_delete_user(self, user):
         self._db_user = None
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -9182,6 +10551,7 @@ class DBAction(object):
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -9192,22 +10562,28 @@ class DBAction(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
+
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBStartupPackage(object):
 
@@ -9219,15 +10595,16 @@ class DBStartupPackage(object):
         self._db_configuration = configuration
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBStartupPackage.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBStartupPackage(name=self._db_name)
         if self._db_configuration is not None:
-            cp._db_configuration = self._db_configuration.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_configuration = self._db_configuration.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9236,7 +10613,7 @@ class DBStartupPackage(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9249,20 +10626,23 @@ class DBStartupPackage(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_configuration')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_configuration is not None and other.db_configuration is not None:
-                self.db_configuration.deep_eq_test(other.db_configuration, test_obj, alternate_tests)
+                self.db_configuration.deep_eq_test(
+                    other.db_configuration, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_configuration, 
+                test_obj.assertEqual(self.db_configuration,
                                      other.db_configuration)
 
     @staticmethod
@@ -9282,7 +10662,8 @@ class DBStartupPackage(object):
             new_obj.db_configuration = res
         elif hasattr(old_obj, 'db_configuration') and old_obj.db_configuration is not None:
             obj = old_obj.db_configuration
-            new_obj.db_add_configuration(DBConfiguration.update_version(obj, trans_dict))
+            new_obj.db_add_configuration(
+                DBConfiguration.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_configuration') and hasattr(new_obj, 'db_deleted_configuration'):
             for obj in old_obj.db_deleted_configuration:
                 n_obj = DBConfiguration.update_version(obj, trans_dict)
@@ -9291,54 +10672,65 @@ class DBStartupPackage(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_configuration is not None:
-            children.extend(self._db_configuration.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_configuration.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_configuration = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_configuration)
         if remove:
             self.db_deleted_configuration = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_configuration is not None and self._db_configuration.has_changes():
             return True
         return False
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_configuration(self):
         return self._db_configuration
+
     def __set_db_configuration(self, configuration):
         self._db_configuration = configuration
         self.is_dirty = True
     db_configuration = property(__get_db_configuration, __set_db_configuration)
+
     def db_add_configuration(self, configuration):
         self._db_configuration = configuration
+
     def db_change_configuration(self, configuration):
         self._db_configuration = configuration
+
     def db_delete_configuration(self, configuration):
         if not self.is_new:
             self.db_deleted_configuration.append(self._db_configuration)
         self._db_configuration = None
-    
 
 
 class DBConfigInt(object):
@@ -9349,13 +10741,13 @@ class DBConfigInt(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConfigInt.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigInt(value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9364,7 +10756,7 @@ class DBConfigInt(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9377,9 +10769,10 @@ class DBConfigInt(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -9398,28 +10791,34 @@ class DBConfigInt(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
 
 
 class DBOpmProcessIdEffect(object):
@@ -9430,13 +10829,13 @@ class DBOpmProcessIdEffect(object):
         self._db_id = id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmProcessIdEffect.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmProcessIdEffect(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9447,7 +10846,7 @@ class DBOpmProcessIdEffect(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_process', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9460,9 +10859,10 @@ class DBOpmProcessIdEffect(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
 
     @staticmethod
@@ -9481,28 +10881,34 @@ class DBOpmProcessIdEffect(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
 
 
 class DBRefProvPlan(object):
@@ -9513,13 +10919,13 @@ class DBRefProvPlan(object):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBRefProvPlan.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvPlan(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9530,7 +10936,7 @@ class DBRefProvPlan(object):
             cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9543,9 +10949,10 @@ class DBRefProvPlan(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_ref, 
+            test_obj.assertEqual(self.db_prov_ref,
                                  other.db_prov_ref)
 
     @staticmethod
@@ -9564,28 +10971,34 @@ class DBRefProvPlan(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_prov_ref(self):
         return self._db_prov_ref
+
     def __set_db_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
     db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+
     def db_add_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_change_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_delete_prov_ref(self, prov_ref):
         self._db_prov_ref = None
-    
 
 
 class DBOpmAccounts(object):
@@ -9608,7 +11021,7 @@ class DBOpmAccounts(object):
             self._db_opm_overlapss = opm_overlapss
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmAccounts.do_copy(self)
 
@@ -9617,12 +11030,14 @@ class DBOpmAccounts(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
         if self._db_opm_overlapss is None:
             cp._db_opm_overlapss = []
         else:
-            cp._db_opm_overlapss = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_overlapss]
-        
+            cp._db_opm_overlapss = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_overlapss]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9631,7 +11046,7 @@ class DBOpmAccounts(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_accounts_id_index = dict((v.db_id, v) for v in cp._db_accounts)
         if not new_ids:
@@ -9645,22 +11060,24 @@ class DBOpmAccounts(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_accounts, key=lambda x: x.db_id),
                                    sorted(other.db_accounts, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_overlapss')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_opm_overlapss), 
+            test_obj.assertEqual(len(self.db_opm_overlapss),
                                  len(other.db_opm_overlapss))
-            for obj1, obj2 in izip(self.db_opm_overlapss, 
+            for obj1, obj2 in izip(self.db_opm_overlapss,
                                    other.db_opm_overlapss):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -9677,7 +11094,8 @@ class DBOpmAccounts(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccount.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccount.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccount.update_version(obj, trans_dict)
@@ -9688,7 +11106,8 @@ class DBOpmAccounts(object):
                 new_obj.db_add_opm_overlaps(obj)
         elif hasattr(old_obj, 'db_opm_overlapss') and old_obj.db_opm_overlapss is not None:
             for obj in old_obj.db_opm_overlapss:
-                new_obj.db_add_opm_overlaps(DBOpmOverlaps.update_version(obj, trans_dict))
+                new_obj.db_add_opm_overlaps(
+                    DBOpmOverlaps.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_opm_overlapss') and hasattr(new_obj, 'db_deleted_opm_overlapss'):
             for obj in old_obj.db_deleted_opm_overlapss:
                 n_obj = DBOpmOverlaps.update_version(obj, trans_dict)
@@ -9697,24 +11116,27 @@ class DBOpmAccounts(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_overlapss:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_opm_overlaps(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_accounts)
@@ -9723,6 +11145,7 @@ class DBOpmAccounts(object):
             self.db_deleted_accounts = []
             self.db_deleted_opm_overlapss = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -9733,18 +11156,23 @@ class DBOpmAccounts(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
         self.db_accounts_id_index[account.db_id] = account
+
     def db_change_account(self, account):
         self.is_dirty = True
         found = False
@@ -9756,6 +11184,7 @@ class DBOpmAccounts(object):
         if not found:
             self._db_accounts.append(account)
         self.db_accounts_id_index[account.db_id] = account
+
     def db_delete_account(self, account):
         self.is_dirty = True
         for i in xrange(len(self._db_accounts)):
@@ -9765,36 +11194,44 @@ class DBOpmAccounts(object):
                 del self._db_accounts[i]
                 break
         del self.db_accounts_id_index[account.db_id]
+
     def db_get_account(self, key):
         for i in xrange(len(self._db_accounts)):
             if self._db_accounts[i].db_id == key:
                 return self._db_accounts[i]
         return None
+
     def db_get_account_by_id(self, key):
         return self.db_accounts_id_index[key]
+
     def db_has_account_with_id(self, key):
         return key in self.db_accounts_id_index
-    
+
     def __get_db_opm_overlapss(self):
         return self._db_opm_overlapss
+
     def __set_db_opm_overlapss(self, opm_overlapss):
         self._db_opm_overlapss = opm_overlapss
         self.is_dirty = True
     db_opm_overlapss = property(__get_db_opm_overlapss, __set_db_opm_overlapss)
+
     def db_get_opm_overlapss(self):
         return self._db_opm_overlapss
+
     def db_add_opm_overlaps(self, opm_overlaps):
         self.is_dirty = True
         self._db_opm_overlapss.append(opm_overlaps)
+
     def db_change_opm_overlaps(self, opm_overlaps):
         self.is_dirty = True
         self._db_opm_overlapss.append(opm_overlaps)
+
     def db_delete_opm_overlaps(self, opm_overlaps):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_opm_overlaps(self, key):
         return None
-    
 
 
 class DBRefProvAgent(object):
@@ -9805,13 +11242,13 @@ class DBRefProvAgent(object):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBRefProvAgent.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvAgent(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9822,7 +11259,7 @@ class DBRefProvAgent(object):
             cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_agent', self._db_prov_ref) in id_remap:
                 cp._db_prov_ref = id_remap[('prov_agent', self._db_prov_ref)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9835,9 +11272,10 @@ class DBRefProvAgent(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_ref, 
+            test_obj.assertEqual(self.db_prov_ref,
                                  other.db_prov_ref)
 
     @staticmethod
@@ -9856,40 +11294,47 @@ class DBRefProvAgent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_prov_ref(self):
         return self._db_prov_ref
+
     def __set_db_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
     db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+
     def db_add_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_change_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_delete_prov_ref(self, prov_ref):
         self._db_prov_ref = None
-    
 
 
 class DBPortSpec(object):
 
     vtType = 'portSpec'
 
-    def __init__(self, id=None, name=None, type=None, optional=None, depth=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
+    def __init__(self, id=None, name=None, type=None, optional=None, depth=None, union=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
         self._db_id = id
         self._db_name = name
         self._db_type = type
         self._db_optional = optional
         self._db_depth = depth
+        self._db_union = union
         self._db_sort_key = sort_key
         self.db_deleted_portSpecItems = []
         self.db_portSpecItems_id_index = {}
@@ -9903,7 +11348,7 @@ class DBPortSpec(object):
         self._db_max_conns = max_conns
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPortSpec.do_copy(self)
 
@@ -9913,14 +11358,16 @@ class DBPortSpec(object):
                         type=self._db_type,
                         optional=self._db_optional,
                         depth=self._db_depth,
+                        union=self._db_union,
                         sort_key=self._db_sort_key,
                         min_conns=self._db_min_conns,
                         max_conns=self._db_max_conns)
         if self._db_portSpecItems is None:
             cp._db_portSpecItems = []
         else:
-            cp._db_portSpecItems = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecItems]
-        
+            cp._db_portSpecItems = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecItems]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -9929,9 +11376,10 @@ class DBPortSpec(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_portSpecItems_id_index = dict((v.db_id, v) for v in cp._db_portSpecItems)
+        cp.db_portSpecItems_id_index = dict(
+            (v.db_id, v) for v in cp._db_portSpecItems)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -9943,76 +11391,94 @@ class DBPortSpec(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_type, 
+            test_obj.assertEqual(self.db_type,
                                  other.db_type)
         alternate_key = (self.__class__.__name__, 'db_optional')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_optional, 
+            test_obj.assertEqual(self.db_optional,
                                  other.db_optional)
         alternate_key = (self.__class__.__name__, 'db_depth')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_depth, 
+            test_obj.assertEqual(self.db_depth,
                                  other.db_depth)
+        alternate_key = (self.__class__.__name__, 'db_union')
+        if alternate_key in alternate_tests:
+            # None means pass the test, else we should have a function
+            if alternate_tests[alternate_key] is not None:
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
+        else:
+            test_obj.assertEqual(self.db_union,
+                                 other.db_union)
         alternate_key = (self.__class__.__name__, 'db_sort_key')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_sort_key, 
+            test_obj.assertEqual(self.db_sort_key,
                                  other.db_sort_key)
         alternate_key = (self.__class__.__name__, 'db_portSpecItems')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_portSpecItems), 
+            test_obj.assertEqual(len(self.db_portSpecItems),
                                  len(other.db_portSpecItems))
-            for obj1, obj2 in izip(sorted(self.db_portSpecItems, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_portSpecItems, key=lambda x: x.db_id),
                                    sorted(other.db_portSpecItems, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_min_conns')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_min_conns, 
+            test_obj.assertEqual(self.db_min_conns,
                                  other.db_min_conns)
         alternate_key = (self.__class__.__name__, 'db_max_conns')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_max_conns, 
+            test_obj.assertEqual(self.db_max_conns,
                                  other.db_max_conns)
 
     @staticmethod
@@ -10047,6 +11513,11 @@ class DBPortSpec(object):
             new_obj.db_depth = res
         elif hasattr(old_obj, 'db_depth') and old_obj.db_depth is not None:
             new_obj.db_depth = old_obj.db_depth
+        if 'union' in class_dict:
+            res = class_dict['union'](old_obj, trans_dict)
+            new_obj.db_union = res
+        elif hasattr(old_obj, 'db_union') and old_obj.db_union is not None:
+            new_obj.db_union = old_obj.db_union
         if 'sort_key' in class_dict:
             res = class_dict['sort_key'](old_obj, trans_dict)
             new_obj.db_sort_key = res
@@ -10058,7 +11529,8 @@ class DBPortSpec(object):
                 new_obj.db_add_portSpecItem(obj)
         elif hasattr(old_obj, 'db_portSpecItems') and old_obj.db_portSpecItems is not None:
             for obj in old_obj.db_portSpecItems:
-                new_obj.db_add_portSpecItem(DBPortSpecItem.update_version(obj, trans_dict))
+                new_obj.db_add_portSpecItem(
+                    DBPortSpecItem.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_portSpecItems') and hasattr(new_obj, 'db_deleted_portSpecItems'):
             for obj in old_obj.db_deleted_portSpecItems:
                 n_obj = DBPortSpecItem.update_version(obj, trans_dict)
@@ -10077,19 +11549,22 @@ class DBPortSpec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if not for_action:
             for child in self.db_portSpecItems:
-                children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+                children.extend(child.db_children(
+                    (self.vtType, self.db_id), orphan, for_action))
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_portSpecItems)
         if remove:
             self.db_deleted_portSpecItems = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -10097,96 +11572,142 @@ class DBPortSpec(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_type(self):
         return self._db_type
+
     def __set_db_type(self, type):
         self._db_type = type
         self.is_dirty = True
     db_type = property(__get_db_type, __set_db_type)
+
     def db_add_type(self, type):
         self._db_type = type
+
     def db_change_type(self, type):
         self._db_type = type
+
     def db_delete_type(self, type):
         self._db_type = None
-    
+
     def __get_db_optional(self):
         return self._db_optional
+
     def __set_db_optional(self, optional):
         self._db_optional = optional
         self.is_dirty = True
     db_optional = property(__get_db_optional, __set_db_optional)
+
     def db_add_optional(self, optional):
         self._db_optional = optional
+
     def db_change_optional(self, optional):
         self._db_optional = optional
+
     def db_delete_optional(self, optional):
         self._db_optional = None
-    
+
     def __get_db_depth(self):
         return self._db_depth
+
     def __set_db_depth(self, depth):
         self._db_depth = depth
         self.is_dirty = True
     db_depth = property(__get_db_depth, __set_db_depth)
+
     def db_add_depth(self, depth):
         self._db_depth = depth
+
     def db_change_depth(self, depth):
         self._db_depth = depth
+
     def db_delete_depth(self, depth):
         self._db_depth = None
-    
+
+    def __get_db_union(self):
+        return self._db_union
+
+    def __set_db_union(self, union):
+        self._db_union = union
+        self.is_dirty = True
+    db_union = property(__get_db_union, __set_db_union)
+
+    def db_add_union(self, union):
+        self._db_union = union
+
+    def db_change_union(self, union):
+        self._db_union = union
+
+    def db_delete_union(self, union):
+        self._db_union = None
+
     def __get_db_sort_key(self):
         return self._db_sort_key
+
     def __set_db_sort_key(self, sort_key):
         self._db_sort_key = sort_key
         self.is_dirty = True
     db_sort_key = property(__get_db_sort_key, __set_db_sort_key)
+
     def db_add_sort_key(self, sort_key):
         self._db_sort_key = sort_key
+
     def db_change_sort_key(self, sort_key):
         self._db_sort_key = sort_key
+
     def db_delete_sort_key(self, sort_key):
         self._db_sort_key = None
-    
+
     def __get_db_portSpecItems(self):
         return self._db_portSpecItems
+
     def __set_db_portSpecItems(self, portSpecItems):
         self._db_portSpecItems = portSpecItems
         self.is_dirty = True
     db_portSpecItems = property(__get_db_portSpecItems, __set_db_portSpecItems)
+
     def db_get_portSpecItems(self):
         return self._db_portSpecItems
+
     def db_add_portSpecItem(self, portSpecItem):
         self.is_dirty = True
         self._db_portSpecItems.append(portSpecItem)
         self.db_portSpecItems_id_index[portSpecItem.db_id] = portSpecItem
+
     def db_change_portSpecItem(self, portSpecItem):
         self.is_dirty = True
         found = False
@@ -10198,53 +11719,67 @@ class DBPortSpec(object):
         if not found:
             self._db_portSpecItems.append(portSpecItem)
         self.db_portSpecItems_id_index[portSpecItem.db_id] = portSpecItem
+
     def db_delete_portSpecItem(self, portSpecItem):
         self.is_dirty = True
         for i in xrange(len(self._db_portSpecItems)):
             if self._db_portSpecItems[i].db_id == portSpecItem.db_id:
                 if not self._db_portSpecItems[i].is_new:
-                    self.db_deleted_portSpecItems.append(self._db_portSpecItems[i])
+                    self.db_deleted_portSpecItems.append(
+                        self._db_portSpecItems[i])
                 del self._db_portSpecItems[i]
                 break
         del self.db_portSpecItems_id_index[portSpecItem.db_id]
+
     def db_get_portSpecItem(self, key):
         for i in xrange(len(self._db_portSpecItems)):
             if self._db_portSpecItems[i].db_id == key:
                 return self._db_portSpecItems[i]
         return None
+
     def db_get_portSpecItem_by_id(self, key):
         return self.db_portSpecItems_id_index[key]
+
     def db_has_portSpecItem_with_id(self, key):
         return key in self.db_portSpecItems_id_index
-    
+
     def __get_db_min_conns(self):
         return self._db_min_conns
+
     def __set_db_min_conns(self, min_conns):
         self._db_min_conns = min_conns
         self.is_dirty = True
     db_min_conns = property(__get_db_min_conns, __set_db_min_conns)
+
     def db_add_min_conns(self, min_conns):
         self._db_min_conns = min_conns
+
     def db_change_min_conns(self, min_conns):
         self._db_min_conns = min_conns
+
     def db_delete_min_conns(self, min_conns):
         self._db_min_conns = None
-    
+
     def __get_db_max_conns(self):
         return self._db_max_conns
+
     def __set_db_max_conns(self, max_conns):
         self._db_max_conns = max_conns
         self.is_dirty = True
     db_max_conns = property(__get_db_max_conns, __set_db_max_conns)
+
     def db_add_max_conns(self, max_conns):
         self._db_max_conns = max_conns
+
     def db_change_max_conns(self, max_conns):
         self._db_max_conns = max_conns
+
     def db_delete_max_conns(self, max_conns):
         self._db_max_conns = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBEnabledPackages(object):
 
@@ -10261,7 +11796,7 @@ class DBEnabledPackages(object):
                 self.db_packages_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBEnabledPackages.do_copy(self)
 
@@ -10270,8 +11805,9 @@ class DBEnabledPackages(object):
         if self._db_packages is None:
             cp._db_packages = []
         else:
-            cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
+            cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_packages]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -10280,9 +11816,10 @@ class DBEnabledPackages(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_packages_name_index = dict((v.db_name, v) for v in cp._db_packages)
+        cp.db_packages_name_index = dict(
+            (v.db_name, v) for v in cp._db_packages)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -10294,11 +11831,12 @@ class DBEnabledPackages(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_packages), 
+            test_obj.assertEqual(len(self.db_packages),
                                  len(other.db_packages))
-            for obj1, obj2 in izip(self.db_packages, 
+            for obj1, obj2 in izip(self.db_packages,
                                    other.db_packages):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -10315,7 +11853,8 @@ class DBEnabledPackages(object):
                 new_obj.db_add_package(obj)
         elif hasattr(old_obj, 'db_packages') and old_obj.db_packages is not None:
             for obj in old_obj.db_packages:
-                new_obj.db_add_package(DBStartupPackage.update_version(obj, trans_dict))
+                new_obj.db_add_package(
+                    DBStartupPackage.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_packages') and hasattr(new_obj, 'db_deleted_packages'):
             for obj in old_obj.db_deleted_packages:
                 n_obj = DBStartupPackage.update_version(obj, trans_dict)
@@ -10324,23 +11863,26 @@ class DBEnabledPackages(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_packages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_package(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_packages)
         if remove:
             self.db_deleted_packages = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -10348,32 +11890,40 @@ class DBEnabledPackages(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_packages(self):
         return self._db_packages
+
     def __set_db_packages(self, packages):
         self._db_packages = packages
         self.is_dirty = True
     db_packages = property(__get_db_packages, __set_db_packages)
+
     def db_get_packages(self):
         return self._db_packages
+
     def db_add_package(self, package):
         self.is_dirty = True
         self._db_packages.append(package)
         self.db_packages_name_index[package.db_name] = package
+
     def db_change_package(self, package):
         self.is_dirty = True
         self._db_packages.append(package)
         self.db_packages_name_index[package.db_name] = package
+
     def db_delete_package(self, package):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_package(self, key):
         return None
+
     def db_get_package_by_name(self, key):
         return self.db_packages_name_index[key]
+
     def db_has_package_with_name(self, key):
         return key in self.db_packages_name_index
-    
 
 
 class DBOpmArtifact(object):
@@ -10391,7 +11941,7 @@ class DBOpmArtifact(object):
             self._db_accounts = accounts
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmArtifact.do_copy(self)
 
@@ -10402,8 +11952,9 @@ class DBOpmArtifact(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -10412,7 +11963,7 @@ class DBOpmArtifact(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -10425,30 +11976,34 @@ class DBOpmArtifact(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_value is not None and other.db_value is not None:
-                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+                self.db_value.deep_eq_test(
+                    other.db_value, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_value, 
+                test_obj.assertEqual(self.db_value,
                                      other.db_value)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -10469,7 +12024,8 @@ class DBOpmArtifact(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
-            new_obj.db_add_value(DBOpmArtifactValue.update_version(obj, trans_dict))
+            new_obj.db_add_value(
+                DBOpmArtifactValue.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
             for obj in old_obj.db_deleted_value:
                 n_obj = DBOpmArtifactValue.update_version(obj, trans_dict)
@@ -10480,7 +12036,8 @@ class DBOpmArtifact(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -10489,21 +12046,24 @@ class DBOpmArtifact(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_value.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_value)
@@ -10512,6 +12072,7 @@ class DBOpmArtifact(object):
             self.db_deleted_value = []
             self.db_deleted_accounts = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -10521,56 +12082,72 @@ class DBOpmArtifact(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         if not self.is_new:
             self.db_deleted_value.append(self._db_value)
         self._db_value = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBLog(object):
 
@@ -10593,7 +12170,7 @@ class DBLog(object):
         self._db_vistrail_id = vistrail_id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBLog.do_copy(self)
 
@@ -10607,8 +12184,9 @@ class DBLog(object):
         if self._db_workflow_execs is None:
             cp._db_workflow_execs = []
         else:
-            cp._db_workflow_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_workflow_execs]
-        
+            cp._db_workflow_execs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_workflow_execs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -10618,10 +12196,12 @@ class DBLog(object):
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
             if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
-                cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
-        
+                cp._db_vistrail_id = id_remap[
+                    ('vistrail', self._db_vistrail_id)]
+
         # recreate indices and set flags
-        cp.db_workflow_execs_id_index = dict((v.db_id, v) for v in cp._db_workflow_execs)
+        cp.db_workflow_execs_id_index = dict(
+            (v.db_id, v) for v in cp._db_workflow_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -10633,60 +12213,67 @@ class DBLog(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_entity_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_entity_type, 
+            test_obj.assertEqual(self.db_entity_type,
                                  other.db_entity_type)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_last_modified')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_last_modified, 
+            test_obj.assertEqual(self.db_last_modified,
                                  other.db_last_modified)
         alternate_key = (self.__class__.__name__, 'db_workflow_execs')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_workflow_execs), 
+            test_obj.assertEqual(len(self.db_workflow_execs),
                                  len(other.db_workflow_execs))
-            for obj1, obj2 in izip(sorted(self.db_workflow_execs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_workflow_execs, key=lambda x: x.db_id),
                                    sorted(other.db_workflow_execs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_vistrail_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vistrail_id, 
+            test_obj.assertEqual(self.db_vistrail_id,
                                  other.db_vistrail_id)
 
     @staticmethod
@@ -10727,7 +12314,8 @@ class DBLog(object):
                 new_obj.db_add_workflow_exec(obj)
         elif hasattr(old_obj, 'db_workflow_execs') and old_obj.db_workflow_execs is not None:
             for obj in old_obj.db_workflow_execs:
-                new_obj.db_add_workflow_exec(DBWorkflowExec.update_version(obj, trans_dict))
+                new_obj.db_add_workflow_exec(
+                    DBWorkflowExec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_workflow_execs') and hasattr(new_obj, 'db_deleted_workflow_execs'):
             for obj in old_obj.db_deleted_workflow_execs:
                 n_obj = DBWorkflowExec.update_version(obj, trans_dict)
@@ -10741,23 +12329,26 @@ class DBLog(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_workflow_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_workflow_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_workflow_execs)
         if remove:
             self.db_deleted_workflow_execs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -10765,83 +12356,109 @@ class DBLog(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_entity_type(self):
         return self._db_entity_type
+
     def __set_db_entity_type(self, entity_type):
         self._db_entity_type = entity_type
         self.is_dirty = True
     db_entity_type = property(__get_db_entity_type, __set_db_entity_type)
+
     def db_add_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_change_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_delete_entity_type(self, entity_type):
         self._db_entity_type = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_last_modified(self):
         return self._db_last_modified
+
     def __set_db_last_modified(self, last_modified):
         self._db_last_modified = last_modified
         self.is_dirty = True
     db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+
     def db_add_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_change_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
-    
+
     def __get_db_workflow_execs(self):
         return self._db_workflow_execs
+
     def __set_db_workflow_execs(self, workflow_execs):
         self._db_workflow_execs = workflow_execs
         self.is_dirty = True
-    db_workflow_execs = property(__get_db_workflow_execs, __set_db_workflow_execs)
+    db_workflow_execs = property(
+        __get_db_workflow_execs, __set_db_workflow_execs)
+
     def db_get_workflow_execs(self):
         return self._db_workflow_execs
+
     def db_add_workflow_exec(self, workflow_exec):
         self.is_dirty = True
         self._db_workflow_execs.append(workflow_exec)
         self.db_workflow_execs_id_index[workflow_exec.db_id] = workflow_exec
+
     def db_change_workflow_exec(self, workflow_exec):
         self.is_dirty = True
         found = False
@@ -10853,40 +12470,50 @@ class DBLog(object):
         if not found:
             self._db_workflow_execs.append(workflow_exec)
         self.db_workflow_execs_id_index[workflow_exec.db_id] = workflow_exec
+
     def db_delete_workflow_exec(self, workflow_exec):
         self.is_dirty = True
         for i in xrange(len(self._db_workflow_execs)):
             if self._db_workflow_execs[i].db_id == workflow_exec.db_id:
                 if not self._db_workflow_execs[i].is_new:
-                    self.db_deleted_workflow_execs.append(self._db_workflow_execs[i])
+                    self.db_deleted_workflow_execs.append(
+                        self._db_workflow_execs[i])
                 del self._db_workflow_execs[i]
                 break
         del self.db_workflow_execs_id_index[workflow_exec.db_id]
+
     def db_get_workflow_exec(self, key):
         for i in xrange(len(self._db_workflow_execs)):
             if self._db_workflow_execs[i].db_id == key:
                 return self._db_workflow_execs[i]
         return None
+
     def db_get_workflow_exec_by_id(self, key):
         return self.db_workflow_execs_id_index[key]
+
     def db_has_workflow_exec_with_id(self, key):
         return key in self.db_workflow_execs_id_index
-    
+
     def __get_db_vistrail_id(self):
         return self._db_vistrail_id
+
     def __set_db_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = vistrail_id
         self.is_dirty = True
     db_vistrail_id = property(__get_db_vistrail_id, __set_db_vistrail_id)
+
     def db_add_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = vistrail_id
+
     def db_change_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = vistrail_id
+
     def db_delete_vistrail_id(self, vistrail_id):
         self._db_vistrail_id = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBLoopIteration(object):
 
@@ -10909,7 +12536,7 @@ class DBLoopIteration(object):
         self._db_error = error
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBLoopIteration.do_copy(self)
 
@@ -10923,8 +12550,9 @@ class DBLoopIteration(object):
         if self._db_item_execs is None:
             cp._db_item_execs = []
         else:
-            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
-        
+            cp._db_item_execs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -10933,9 +12561,10 @@ class DBLoopIteration(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
+        cp.db_item_execs_id_index = dict(
+            (v.db_id, v) for v in cp._db_item_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -10947,60 +12576,67 @@ class DBLoopIteration(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_item_execs), 
+            test_obj.assertEqual(len(self.db_item_execs),
                                  len(other.db_item_execs))
-            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id),
                                    sorted(other.db_item_execs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_ts_start')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_start, 
+            test_obj.assertEqual(self.db_ts_start,
                                  other.db_ts_start)
         alternate_key = (self.__class__.__name__, 'db_ts_end')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_end, 
+            test_obj.assertEqual(self.db_ts_end,
                                  other.db_ts_end)
         alternate_key = (self.__class__.__name__, 'db_iteration')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_iteration, 
+            test_obj.assertEqual(self.db_iteration,
                                  other.db_iteration)
         alternate_key = (self.__class__.__name__, 'db_completed')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_completed, 
+            test_obj.assertEqual(self.db_completed,
                                  other.db_completed)
         alternate_key = (self.__class__.__name__, 'db_error')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_error, 
+            test_obj.assertEqual(self.db_error,
                                  other.db_error)
 
     @staticmethod
@@ -11017,11 +12653,14 @@ class DBLoopIteration(object):
         elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
             for obj in old_obj.db_item_execs:
                 if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBModuleExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBGroupExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBLoopExec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
             for obj in old_obj.db_deleted_item_execs:
                 if obj.vtType == 'module_exec':
@@ -11067,23 +12706,26 @@ class DBLoopIteration(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_item_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_item_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_item_execs)
         if remove:
             self.db_deleted_item_execs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -11091,18 +12733,23 @@ class DBLoopIteration(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_item_execs(self):
         return self._db_item_execs
+
     def __set_db_item_execs(self, item_execs):
         self._db_item_execs = item_execs
         self.is_dirty = True
     db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+
     def db_get_item_execs(self):
         return self._db_item_execs
+
     def db_add_item_exec(self, item_exec):
         self.is_dirty = True
         self._db_item_execs.append(item_exec)
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
+
     def db_change_item_exec(self, item_exec):
         self.is_dirty = True
         found = False
@@ -11114,6 +12761,7 @@ class DBLoopIteration(object):
         if not found:
             self._db_item_execs.append(item_exec)
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
+
     def db_delete_item_exec(self, item_exec):
         self.is_dirty = True
         for i in xrange(len(self._db_item_execs)):
@@ -11123,96 +12771,124 @@ class DBLoopIteration(object):
                 del self._db_item_execs[i]
                 break
         del self.db_item_execs_id_index[item_exec.db_id]
+
     def db_get_item_exec(self, key):
         for i in xrange(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == key:
                 return self._db_item_execs[i]
         return None
+
     def db_get_item_exec_by_id(self, key):
         return self.db_item_execs_id_index[key]
+
     def db_has_item_exec_with_id(self, key):
         return key in self.db_item_execs_id_index
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_ts_start(self):
         return self._db_ts_start
+
     def __set_db_ts_start(self, ts_start):
         self._db_ts_start = ts_start
         self.is_dirty = True
     db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+
     def db_add_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_change_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_delete_ts_start(self, ts_start):
         self._db_ts_start = None
-    
+
     def __get_db_ts_end(self):
         return self._db_ts_end
+
     def __set_db_ts_end(self, ts_end):
         self._db_ts_end = ts_end
         self.is_dirty = True
     db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+
     def db_add_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_change_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_delete_ts_end(self, ts_end):
         self._db_ts_end = None
-    
+
     def __get_db_iteration(self):
         return self._db_iteration
+
     def __set_db_iteration(self, iteration):
         self._db_iteration = iteration
         self.is_dirty = True
     db_iteration = property(__get_db_iteration, __set_db_iteration)
+
     def db_add_iteration(self, iteration):
         self._db_iteration = iteration
+
     def db_change_iteration(self, iteration):
         self._db_iteration = iteration
+
     def db_delete_iteration(self, iteration):
         self._db_iteration = None
-    
+
     def __get_db_completed(self):
         return self._db_completed
+
     def __set_db_completed(self, completed):
         self._db_completed = completed
         self.is_dirty = True
     db_completed = property(__get_db_completed, __set_db_completed)
+
     def db_add_completed(self, completed):
         self._db_completed = completed
+
     def db_change_completed(self, completed):
         self._db_completed = completed
+
     def db_delete_completed(self, completed):
         self._db_completed = None
-    
+
     def __get_db_error(self):
         return self._db_error
+
     def __set_db_error(self, error):
         self._db_error = error
         self.is_dirty = True
     db_error = property(__get_db_error, __set_db_error)
+
     def db_add_error(self, error):
         self._db_error = error
+
     def db_change_error(self, error):
         self._db_error = error
+
     def db_delete_error(self, error):
         self._db_error = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmProcessIdCause(object):
 
@@ -11222,13 +12898,13 @@ class DBOpmProcessIdCause(object):
         self._db_id = id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmProcessIdCause.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmProcessIdCause(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -11239,7 +12915,7 @@ class DBOpmProcessIdCause(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_process', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11252,9 +12928,10 @@ class DBOpmProcessIdCause(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
 
     @staticmethod
@@ -11273,28 +12950,34 @@ class DBOpmProcessIdCause(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
 
 
 class DBOpmArtifacts(object):
@@ -11312,7 +12995,7 @@ class DBOpmArtifacts(object):
                 self.db_artifacts_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmArtifacts.do_copy(self)
 
@@ -11321,8 +13004,9 @@ class DBOpmArtifacts(object):
         if self._db_artifacts is None:
             cp._db_artifacts = []
         else:
-            cp._db_artifacts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_artifacts]
-        
+            cp._db_artifacts = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_artifacts]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -11331,7 +13015,7 @@ class DBOpmArtifacts(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_artifacts_id_index = dict((v.db_id, v) for v in cp._db_artifacts)
         if not new_ids:
@@ -11345,11 +13029,12 @@ class DBOpmArtifacts(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_artifacts), 
+            test_obj.assertEqual(len(self.db_artifacts),
                                  len(other.db_artifacts))
-            for obj1, obj2 in izip(sorted(self.db_artifacts, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_artifacts, key=lambda x: x.db_id),
                                    sorted(other.db_artifacts, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -11366,7 +13051,8 @@ class DBOpmArtifacts(object):
                 new_obj.db_add_artifact(obj)
         elif hasattr(old_obj, 'db_artifacts') and old_obj.db_artifacts is not None:
             for obj in old_obj.db_artifacts:
-                new_obj.db_add_artifact(DBOpmArtifact.update_version(obj, trans_dict))
+                new_obj.db_add_artifact(
+                    DBOpmArtifact.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_artifacts') and hasattr(new_obj, 'db_deleted_artifacts'):
             for obj in old_obj.db_deleted_artifacts:
                 n_obj = DBOpmArtifact.update_version(obj, trans_dict)
@@ -11375,23 +13061,26 @@ class DBOpmArtifacts(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_artifacts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_artifact(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_artifacts)
         if remove:
             self.db_deleted_artifacts = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -11399,18 +13088,23 @@ class DBOpmArtifacts(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_artifacts(self):
         return self._db_artifacts
+
     def __set_db_artifacts(self, artifacts):
         self._db_artifacts = artifacts
         self.is_dirty = True
     db_artifacts = property(__get_db_artifacts, __set_db_artifacts)
+
     def db_get_artifacts(self):
         return self._db_artifacts
+
     def db_add_artifact(self, artifact):
         self.is_dirty = True
         self._db_artifacts.append(artifact)
         self.db_artifacts_id_index[artifact.db_id] = artifact
+
     def db_change_artifact(self, artifact):
         self.is_dirty = True
         found = False
@@ -11422,6 +13116,7 @@ class DBOpmArtifacts(object):
         if not found:
             self._db_artifacts.append(artifact)
         self.db_artifacts_id_index[artifact.db_id] = artifact
+
     def db_delete_artifact(self, artifact):
         self.is_dirty = True
         for i in xrange(len(self._db_artifacts)):
@@ -11431,16 +13126,18 @@ class DBOpmArtifacts(object):
                 del self._db_artifacts[i]
                 break
         del self.db_artifacts_id_index[artifact.db_id]
+
     def db_get_artifact(self, key):
         for i in xrange(len(self._db_artifacts)):
             if self._db_artifacts[i].db_id == key:
                 return self._db_artifacts[i]
         return None
+
     def db_get_artifact_by_id(self, key):
         return self.db_artifacts_id_index[key]
+
     def db_has_artifact_with_id(self, key):
         return key in self.db_artifacts_id_index
-    
 
 
 class DBPEParameter(object):
@@ -11455,7 +13152,7 @@ class DBPEParameter(object):
         self._db_dimension = dimension
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPEParameter.do_copy(self)
 
@@ -11465,7 +13162,7 @@ class DBPEParameter(object):
                            interpolator=self._db_interpolator,
                            value=self._db_value,
                            dimension=self._db_dimension)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -11474,7 +13171,7 @@ class DBPEParameter(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11487,41 +13184,46 @@ class DBPEParameter(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_pos')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_pos, 
+            test_obj.assertEqual(self.db_pos,
                                  other.db_pos)
         alternate_key = (self.__class__.__name__, 'db_interpolator')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_interpolator, 
+            test_obj.assertEqual(self.db_interpolator,
                                  other.db_interpolator)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
         alternate_key = (self.__class__.__name__, 'db_dimension')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_dimension, 
+            test_obj.assertEqual(self.db_dimension,
                                  other.db_dimension)
 
     @staticmethod
@@ -11560,82 +13262,106 @@ class DBPEParameter(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_pos(self):
         return self._db_pos
+
     def __set_db_pos(self, pos):
         self._db_pos = pos
         self.is_dirty = True
     db_pos = property(__get_db_pos, __set_db_pos)
+
     def db_add_pos(self, pos):
         self._db_pos = pos
+
     def db_change_pos(self, pos):
         self._db_pos = pos
+
     def db_delete_pos(self, pos):
         self._db_pos = None
-    
+
     def __get_db_interpolator(self):
         return self._db_interpolator
+
     def __set_db_interpolator(self, interpolator):
         self._db_interpolator = interpolator
         self.is_dirty = True
     db_interpolator = property(__get_db_interpolator, __set_db_interpolator)
+
     def db_add_interpolator(self, interpolator):
         self._db_interpolator = interpolator
+
     def db_change_interpolator(self, interpolator):
         self._db_interpolator = interpolator
+
     def db_delete_interpolator(self, interpolator):
         self._db_interpolator = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def __get_db_dimension(self):
         return self._db_dimension
+
     def __set_db_dimension(self, dimension):
         self._db_dimension = dimension
         self.is_dirty = True
     db_dimension = property(__get_db_dimension, __set_db_dimension)
+
     def db_add_dimension(self, dimension):
         self._db_dimension = dimension
+
     def db_change_dimension(self, dimension):
         self._db_dimension = dimension
+
     def db_delete_dimension(self, dimension):
         self._db_dimension = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBWorkflowExec(object):
 
@@ -11680,7 +13406,7 @@ class DBWorkflowExec(object):
                 self.db_machines_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBWorkflowExec.do_copy(self)
 
@@ -11700,16 +13426,19 @@ class DBWorkflowExec(object):
         if self._db_item_execs is None:
             cp._db_item_execs = []
         else:
-            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+            cp._db_item_execs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_machines is None:
             cp._db_machines = []
         else:
-            cp._db_machines = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_machines]
-        
+            cp._db_machines = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_machines]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -11718,10 +13447,12 @@ class DBWorkflowExec(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_item_execs_id_index = dict(
+            (v.db_id, v) for v in cp._db_item_execs)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
         cp.db_machines_id_index = dict((v.db_id, v) for v in cp._db_machines)
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11734,129 +13465,144 @@ class DBWorkflowExec(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_item_execs), 
+            test_obj.assertEqual(len(self.db_item_execs),
                                  len(other.db_item_execs))
-            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_item_execs, key=lambda x: x.db_id),
                                    sorted(other.db_item_execs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_user')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_user, 
+            test_obj.assertEqual(self.db_user,
                                  other.db_user)
         alternate_key = (self.__class__.__name__, 'db_ip')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ip, 
+            test_obj.assertEqual(self.db_ip,
                                  other.db_ip)
         alternate_key = (self.__class__.__name__, 'db_session')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_session, 
+            test_obj.assertEqual(self.db_session,
                                  other.db_session)
         alternate_key = (self.__class__.__name__, 'db_vt_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_version, 
+            test_obj.assertEqual(self.db_vt_version,
                                  other.db_vt_version)
         alternate_key = (self.__class__.__name__, 'db_ts_start')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_start, 
+            test_obj.assertEqual(self.db_ts_start,
                                  other.db_ts_start)
         alternate_key = (self.__class__.__name__, 'db_ts_end')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_end, 
+            test_obj.assertEqual(self.db_ts_end,
                                  other.db_ts_end)
         alternate_key = (self.__class__.__name__, 'db_parent_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parent_id, 
+            test_obj.assertEqual(self.db_parent_id,
                                  other.db_parent_id)
         alternate_key = (self.__class__.__name__, 'db_parent_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parent_type, 
+            test_obj.assertEqual(self.db_parent_type,
                                  other.db_parent_type)
         alternate_key = (self.__class__.__name__, 'db_parent_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parent_version, 
+            test_obj.assertEqual(self.db_parent_version,
                                  other.db_parent_version)
         alternate_key = (self.__class__.__name__, 'db_completed')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_completed, 
+            test_obj.assertEqual(self.db_completed,
                                  other.db_completed)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_machines')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_machines), 
+            test_obj.assertEqual(len(self.db_machines),
                                  len(other.db_machines))
-            for obj1, obj2 in izip(sorted(self.db_machines, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_machines, key=lambda x: x.db_id),
                                    sorted(other.db_machines, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -11874,11 +13620,14 @@ class DBWorkflowExec(object):
         elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
             for obj in old_obj.db_item_execs:
                 if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBModuleExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBGroupExec.update_version(obj, trans_dict))
                 elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+                    new_obj.db_add_item_exec(
+                        DBLoopExec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
             for obj in old_obj.db_deleted_item_execs:
                 if obj.vtType == 'module_exec':
@@ -11956,7 +13705,8 @@ class DBWorkflowExec(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -11967,7 +13717,8 @@ class DBWorkflowExec(object):
                 new_obj.db_add_machine(obj)
         elif hasattr(old_obj, 'db_machines') and old_obj.db_machines is not None:
             for obj in old_obj.db_machines:
-                new_obj.db_add_machine(DBMachine.update_version(obj, trans_dict))
+                new_obj.db_add_machine(
+                    DBMachine.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_machines') and hasattr(new_obj, 'db_deleted_machines'):
             for obj in old_obj.db_deleted_machines:
                 n_obj = DBMachine.update_version(obj, trans_dict)
@@ -11976,31 +13727,35 @@ class DBWorkflowExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_machines:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_machine(child)
         to_del = []
         for child in self.db_item_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_item_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_annotations)
@@ -12011,6 +13766,7 @@ class DBWorkflowExec(object):
             self.db_deleted_machines = []
             self.db_deleted_item_execs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -12024,18 +13780,23 @@ class DBWorkflowExec(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_item_execs(self):
         return self._db_item_execs
+
     def __set_db_item_execs(self, item_execs):
         self._db_item_execs = item_execs
         self.is_dirty = True
     db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+
     def db_get_item_execs(self):
         return self._db_item_execs
+
     def db_add_item_exec(self, item_exec):
         self.is_dirty = True
         self._db_item_execs.append(item_exec)
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
+
     def db_change_item_exec(self, item_exec):
         self.is_dirty = True
         found = False
@@ -12047,6 +13808,7 @@ class DBWorkflowExec(object):
         if not found:
             self._db_item_execs.append(item_exec)
         self.db_item_execs_id_index[item_exec.db_id] = item_exec
+
     def db_delete_item_exec(self, item_exec):
         self.is_dirty = True
         for i in xrange(len(self._db_item_execs)):
@@ -12056,184 +13818,240 @@ class DBWorkflowExec(object):
                 del self._db_item_execs[i]
                 break
         del self.db_item_execs_id_index[item_exec.db_id]
+
     def db_get_item_exec(self, key):
         for i in xrange(len(self._db_item_execs)):
             if self._db_item_execs[i].db_id == key:
                 return self._db_item_execs[i]
         return None
+
     def db_get_item_exec_by_id(self, key):
         return self.db_item_execs_id_index[key]
+
     def db_has_item_exec_with_id(self, key):
         return key in self.db_item_execs_id_index
-    
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_user(self):
         return self._db_user
+
     def __set_db_user(self, user):
         self._db_user = user
         self.is_dirty = True
     db_user = property(__get_db_user, __set_db_user)
+
     def db_add_user(self, user):
         self._db_user = user
+
     def db_change_user(self, user):
         self._db_user = user
+
     def db_delete_user(self, user):
         self._db_user = None
-    
+
     def __get_db_ip(self):
         return self._db_ip
+
     def __set_db_ip(self, ip):
         self._db_ip = ip
         self.is_dirty = True
     db_ip = property(__get_db_ip, __set_db_ip)
+
     def db_add_ip(self, ip):
         self._db_ip = ip
+
     def db_change_ip(self, ip):
         self._db_ip = ip
+
     def db_delete_ip(self, ip):
         self._db_ip = None
-    
+
     def __get_db_session(self):
         return self._db_session
+
     def __set_db_session(self, session):
         self._db_session = session
         self.is_dirty = True
     db_session = property(__get_db_session, __set_db_session)
+
     def db_add_session(self, session):
         self._db_session = session
+
     def db_change_session(self, session):
         self._db_session = session
+
     def db_delete_session(self, session):
         self._db_session = None
-    
+
     def __get_db_vt_version(self):
         return self._db_vt_version
+
     def __set_db_vt_version(self, vt_version):
         self._db_vt_version = vt_version
         self.is_dirty = True
     db_vt_version = property(__get_db_vt_version, __set_db_vt_version)
+
     def db_add_vt_version(self, vt_version):
         self._db_vt_version = vt_version
+
     def db_change_vt_version(self, vt_version):
         self._db_vt_version = vt_version
+
     def db_delete_vt_version(self, vt_version):
         self._db_vt_version = None
-    
+
     def __get_db_ts_start(self):
         return self._db_ts_start
+
     def __set_db_ts_start(self, ts_start):
         self._db_ts_start = ts_start
         self.is_dirty = True
     db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+
     def db_add_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_change_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_delete_ts_start(self, ts_start):
         self._db_ts_start = None
-    
+
     def __get_db_ts_end(self):
         return self._db_ts_end
+
     def __set_db_ts_end(self, ts_end):
         self._db_ts_end = ts_end
         self.is_dirty = True
     db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+
     def db_add_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_change_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_delete_ts_end(self, ts_end):
         self._db_ts_end = None
-    
+
     def __get_db_parent_id(self):
         return self._db_parent_id
+
     def __set_db_parent_id(self, parent_id):
         self._db_parent_id = parent_id
         self.is_dirty = True
     db_parent_id = property(__get_db_parent_id, __set_db_parent_id)
+
     def db_add_parent_id(self, parent_id):
         self._db_parent_id = parent_id
+
     def db_change_parent_id(self, parent_id):
         self._db_parent_id = parent_id
+
     def db_delete_parent_id(self, parent_id):
         self._db_parent_id = None
-    
+
     def __get_db_parent_type(self):
         return self._db_parent_type
+
     def __set_db_parent_type(self, parent_type):
         self._db_parent_type = parent_type
         self.is_dirty = True
     db_parent_type = property(__get_db_parent_type, __set_db_parent_type)
+
     def db_add_parent_type(self, parent_type):
         self._db_parent_type = parent_type
+
     def db_change_parent_type(self, parent_type):
         self._db_parent_type = parent_type
+
     def db_delete_parent_type(self, parent_type):
         self._db_parent_type = None
-    
+
     def __get_db_parent_version(self):
         return self._db_parent_version
+
     def __set_db_parent_version(self, parent_version):
         self._db_parent_version = parent_version
         self.is_dirty = True
-    db_parent_version = property(__get_db_parent_version, __set_db_parent_version)
+    db_parent_version = property(
+        __get_db_parent_version, __set_db_parent_version)
+
     def db_add_parent_version(self, parent_version):
         self._db_parent_version = parent_version
+
     def db_change_parent_version(self, parent_version):
         self._db_parent_version = parent_version
+
     def db_delete_parent_version(self, parent_version):
         self._db_parent_version = None
-    
+
     def __get_db_completed(self):
         return self._db_completed
+
     def __set_db_completed(self, completed):
         self._db_completed = completed
         self.is_dirty = True
     db_completed = property(__get_db_completed, __set_db_completed)
+
     def db_add_completed(self, completed):
         self._db_completed = completed
+
     def db_change_completed(self, completed):
         self._db_completed = completed
+
     def db_delete_completed(self, completed):
         self._db_completed = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -12245,6 +14063,7 @@ class DBWorkflowExec(object):
         if not found:
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -12254,28 +14073,35 @@ class DBWorkflowExec(object):
                 del self._db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
-    
+
     def __get_db_machines(self):
         return self._db_machines
+
     def __set_db_machines(self, machines):
         self._db_machines = machines
         self.is_dirty = True
     db_machines = property(__get_db_machines, __set_db_machines)
+
     def db_get_machines(self):
         return self._db_machines
+
     def db_add_machine(self, machine):
         self.is_dirty = True
         self._db_machines.append(machine)
         self.db_machines_id_index[machine.db_id] = machine
+
     def db_change_machine(self, machine):
         self.is_dirty = True
         found = False
@@ -12287,6 +14113,7 @@ class DBWorkflowExec(object):
         if not found:
             self._db_machines.append(machine)
         self.db_machines_id_index[machine.db_id] = machine
+
     def db_delete_machine(self, machine):
         self.is_dirty = True
         for i in xrange(len(self._db_machines)):
@@ -12296,18 +14123,22 @@ class DBWorkflowExec(object):
                 del self._db_machines[i]
                 break
         del self.db_machines_id_index[machine.db_id]
+
     def db_get_machine(self, key):
         for i in xrange(len(self._db_machines)):
             if self._db_machines[i].db_id == key:
                 return self._db_machines[i]
         return None
+
     def db_get_machine_by_id(self, key):
         return self.db_machines_id_index[key]
+
     def db_has_machine_with_id(self, key):
         return key in self.db_machines_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBLocation(object):
 
@@ -12319,7 +14150,7 @@ class DBLocation(object):
         self._db_y = y
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBLocation.do_copy(self)
 
@@ -12327,7 +14158,7 @@ class DBLocation(object):
         cp = DBLocation(id=self._db_id,
                         x=self._db_x,
                         y=self._db_y)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -12336,7 +14167,7 @@ class DBLocation(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12349,25 +14180,28 @@ class DBLocation(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_x')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertAlmostEqual(self.db_x, 
+            test_obj.assertAlmostEqual(self.db_x,
                                        other.db_x)
         alternate_key = (self.__class__.__name__, 'db_y')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertAlmostEqual(self.db_y, 
+            test_obj.assertAlmostEqual(self.db_y,
                                        other.db_y)
 
     @staticmethod
@@ -12396,56 +14230,72 @@ class DBLocation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_x(self):
         return self._db_x
+
     def __set_db_x(self, x):
         self._db_x = x
         self.is_dirty = True
     db_x = property(__get_db_x, __set_db_x)
+
     def db_add_x(self, x):
         self._db_x = x
+
     def db_change_x(self, x):
         self._db_x = x
+
     def db_delete_x(self, x):
         self._db_x = None
-    
+
     def __get_db_y(self):
         return self._db_y
+
     def __set_db_y(self, y):
         self._db_y = y
         self.is_dirty = True
     db_y = property(__get_db_y, __set_db_y)
+
     def db_add_y(self, y):
         self._db_y = y
+
     def db_change_y(self, y):
         self._db_y = y
+
     def db_delete_y(self, y):
         self._db_y = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBFunction(object):
 
@@ -12465,7 +14315,7 @@ class DBFunction(object):
                 self.db_parameters_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBFunction.do_copy(self)
 
@@ -12476,8 +14326,9 @@ class DBFunction(object):
         if self._db_parameters is None:
             cp._db_parameters = []
         else:
-            cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
-        
+            cp._db_parameters = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -12486,9 +14337,10 @@ class DBFunction(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
+        cp.db_parameters_id_index = dict(
+            (v.db_id, v) for v in cp._db_parameters)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -12500,35 +14352,39 @@ class DBFunction(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_pos')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_pos, 
+            test_obj.assertEqual(self.db_pos,
                                  other.db_pos)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_parameters')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_parameters), 
+            test_obj.assertEqual(len(self.db_parameters),
                                  len(other.db_parameters))
-            for obj1, obj2 in izip(sorted(self.db_parameters, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_parameters, key=lambda x: x.db_id),
                                    sorted(other.db_parameters, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -12560,7 +14416,8 @@ class DBFunction(object):
                 new_obj.db_add_parameter(obj)
         elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
             for obj in old_obj.db_parameters:
-                new_obj.db_add_parameter(DBParameter.update_version(obj, trans_dict))
+                new_obj.db_add_parameter(
+                    DBParameter.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_parameters') and hasattr(new_obj, 'db_deleted_parameters'):
             for obj in old_obj.db_deleted_parameters:
                 n_obj = DBParameter.update_version(obj, trans_dict)
@@ -12569,23 +14426,26 @@ class DBFunction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_parameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_parameter(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_parameters)
         if remove:
             self.db_deleted_parameters = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -12593,57 +14453,74 @@ class DBFunction(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_pos(self):
         return self._db_pos
+
     def __set_db_pos(self, pos):
         self._db_pos = pos
         self.is_dirty = True
     db_pos = property(__get_db_pos, __set_db_pos)
+
     def db_add_pos(self, pos):
         self._db_pos = pos
+
     def db_change_pos(self, pos):
         self._db_pos = pos
+
     def db_delete_pos(self, pos):
         self._db_pos = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_parameters(self):
         return self._db_parameters
+
     def __set_db_parameters(self, parameters):
         self._db_parameters = parameters
         self.is_dirty = True
     db_parameters = property(__get_db_parameters, __set_db_parameters)
+
     def db_get_parameters(self):
         return self._db_parameters
+
     def db_add_parameter(self, parameter):
         self.is_dirty = True
         self._db_parameters.append(parameter)
         self.db_parameters_id_index[parameter.db_id] = parameter
+
     def db_change_parameter(self, parameter):
         self.is_dirty = True
         found = False
@@ -12655,6 +14532,7 @@ class DBFunction(object):
         if not found:
             self._db_parameters.append(parameter)
         self.db_parameters_id_index[parameter.db_id] = parameter
+
     def db_delete_parameter(self, parameter):
         self.is_dirty = True
         for i in xrange(len(self._db_parameters)):
@@ -12664,18 +14542,22 @@ class DBFunction(object):
                 del self._db_parameters[i]
                 break
         del self.db_parameters_id_index[parameter.db_id]
+
     def db_get_parameter(self, key):
         for i in xrange(len(self._db_parameters)):
             if self._db_parameters[i].db_id == key:
                 return self._db_parameters[i]
         return None
+
     def db_get_parameter_by_id(self, key):
         return self.db_parameters_id_index[key]
+
     def db_has_parameter_with_id(self, key):
         return key in self.db_parameters_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBActionAnnotation(object):
 
@@ -12690,7 +14572,7 @@ class DBActionAnnotation(object):
         self._db_user = user
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBActionAnnotation.do_copy(self)
 
@@ -12701,7 +14583,7 @@ class DBActionAnnotation(object):
                                 action_id=self._db_action_id,
                                 date=self._db_date,
                                 user=self._db_user)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -12712,7 +14594,7 @@ class DBActionAnnotation(object):
             cp.db_id = new_id
             if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
                 cp._db_action_id = id_remap[('action', self._db_action_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12725,49 +14607,55 @@ class DBActionAnnotation(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_key')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_key, 
+            test_obj.assertEqual(self.db_key,
                                  other.db_key)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
         alternate_key = (self.__class__.__name__, 'db_action_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_action_id, 
+            test_obj.assertEqual(self.db_action_id,
                                  other.db_action_id)
         alternate_key = (self.__class__.__name__, 'db_date')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_date, 
+            test_obj.assertEqual(self.db_date,
                                  other.db_date)
         alternate_key = (self.__class__.__name__, 'db_user')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_user, 
+            test_obj.assertEqual(self.db_user,
                                  other.db_user)
 
     @staticmethod
@@ -12811,95 +14699,123 @@ class DBActionAnnotation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_key(self):
         return self._db_key
+
     def __set_db_key(self, key):
         self._db_key = key
         self.is_dirty = True
     db_key = property(__get_db_key, __set_db_key)
+
     def db_add_key(self, key):
         self._db_key = key
+
     def db_change_key(self, key):
         self._db_key = key
+
     def db_delete_key(self, key):
         self._db_key = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def __get_db_action_id(self):
         return self._db_action_id
+
     def __set_db_action_id(self, action_id):
         self._db_action_id = action_id
         self.is_dirty = True
     db_action_id = property(__get_db_action_id, __set_db_action_id)
+
     def db_add_action_id(self, action_id):
         self._db_action_id = action_id
+
     def db_change_action_id(self, action_id):
         self._db_action_id = action_id
+
     def db_delete_action_id(self, action_id):
         self._db_action_id = None
-    
+
     def __get_db_date(self):
         return self._db_date
+
     def __set_db_date(self, date):
         self._db_date = date
         self.is_dirty = True
     db_date = property(__get_db_date, __set_db_date)
+
     def db_add_date(self, date):
         self._db_date = date
+
     def db_change_date(self, date):
         self._db_date = date
+
     def db_delete_date(self, date):
         self._db_date = None
-    
+
     def __get_db_user(self):
         return self._db_user
+
     def __set_db_user(self, user):
         self._db_user = user
         self.is_dirty = True
     db_user = property(__get_db_user, __set_db_user)
+
     def db_add_user(self, user):
         self._db_user = user
+
     def db_change_user(self, user):
         self._db_user = user
+
     def db_delete_user(self, user):
         self._db_user = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBProvActivity(object):
 
@@ -12919,7 +14835,7 @@ class DBProvActivity(object):
         self._db_is_part_of = is_part_of
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvActivity.do_copy(self)
 
@@ -12934,8 +14850,9 @@ class DBProvActivity(object):
                             vt_machine_id=self._db_vt_machine_id,
                             vt_error=self._db_vt_error)
         if self._db_is_part_of is not None:
-            cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_is_part_of = self._db_is_part_of.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -12944,7 +14861,7 @@ class DBProvActivity(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12957,84 +14874,95 @@ class DBProvActivity(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_startTime')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_startTime, 
+            test_obj.assertEqual(self.db_startTime,
                                  other.db_startTime)
         alternate_key = (self.__class__.__name__, 'db_endTime')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_endTime, 
+            test_obj.assertEqual(self.db_endTime,
                                  other.db_endTime)
         alternate_key = (self.__class__.__name__, 'db_vt_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_id, 
+            test_obj.assertEqual(self.db_vt_id,
                                  other.db_vt_id)
         alternate_key = (self.__class__.__name__, 'db_vt_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_type, 
+            test_obj.assertEqual(self.db_vt_type,
                                  other.db_vt_type)
         alternate_key = (self.__class__.__name__, 'db_vt_cached')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_cached, 
+            test_obj.assertEqual(self.db_vt_cached,
                                  other.db_vt_cached)
         alternate_key = (self.__class__.__name__, 'db_vt_completed')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_completed, 
+            test_obj.assertEqual(self.db_vt_completed,
                                  other.db_vt_completed)
         alternate_key = (self.__class__.__name__, 'db_vt_machine_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_machine_id, 
+            test_obj.assertEqual(self.db_vt_machine_id,
                                  other.db_vt_machine_id)
         alternate_key = (self.__class__.__name__, 'db_vt_error')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_error, 
+            test_obj.assertEqual(self.db_vt_error,
                                  other.db_vt_error)
         alternate_key = (self.__class__.__name__, 'db_is_part_of')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_is_part_of is not None and other.db_is_part_of is not None:
-                self.db_is_part_of.deep_eq_test(other.db_is_part_of, test_obj, alternate_tests)
+                self.db_is_part_of.deep_eq_test(
+                    other.db_is_part_of, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_is_part_of, 
+                test_obj.assertEqual(self.db_is_part_of,
                                      other.db_is_part_of)
 
     @staticmethod
@@ -13094,7 +15022,8 @@ class DBProvActivity(object):
             new_obj.db_is_part_of = res
         elif hasattr(old_obj, 'db_is_part_of') and old_obj.db_is_part_of is not None:
             obj = old_obj.db_is_part_of
-            new_obj.db_add_is_part_of(DBIsPartOf.update_version(obj, trans_dict))
+            new_obj.db_add_is_part_of(
+                DBIsPartOf.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_is_part_of') and hasattr(new_obj, 'db_deleted_is_part_of'):
             for obj in old_obj.db_deleted_is_part_of:
                 n_obj = DBIsPartOf.update_version(obj, trans_dict)
@@ -13103,160 +15032,205 @@ class DBProvActivity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_is_part_of is not None:
-            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_is_part_of.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_is_part_of = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_is_part_of)
         if remove:
             self.db_deleted_is_part_of = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_is_part_of is not None and self._db_is_part_of.has_changes():
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_startTime(self):
         return self._db_startTime
+
     def __set_db_startTime(self, startTime):
         self._db_startTime = startTime
         self.is_dirty = True
     db_startTime = property(__get_db_startTime, __set_db_startTime)
+
     def db_add_startTime(self, startTime):
         self._db_startTime = startTime
+
     def db_change_startTime(self, startTime):
         self._db_startTime = startTime
+
     def db_delete_startTime(self, startTime):
         self._db_startTime = None
-    
+
     def __get_db_endTime(self):
         return self._db_endTime
+
     def __set_db_endTime(self, endTime):
         self._db_endTime = endTime
         self.is_dirty = True
     db_endTime = property(__get_db_endTime, __set_db_endTime)
+
     def db_add_endTime(self, endTime):
         self._db_endTime = endTime
+
     def db_change_endTime(self, endTime):
         self._db_endTime = endTime
+
     def db_delete_endTime(self, endTime):
         self._db_endTime = None
-    
+
     def __get_db_vt_id(self):
         return self._db_vt_id
+
     def __set_db_vt_id(self, vt_id):
         self._db_vt_id = vt_id
         self.is_dirty = True
     db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
+
     def db_add_vt_id(self, vt_id):
         self._db_vt_id = vt_id
+
     def db_change_vt_id(self, vt_id):
         self._db_vt_id = vt_id
+
     def db_delete_vt_id(self, vt_id):
         self._db_vt_id = None
-    
+
     def __get_db_vt_type(self):
         return self._db_vt_type
+
     def __set_db_vt_type(self, vt_type):
         self._db_vt_type = vt_type
         self.is_dirty = True
     db_vt_type = property(__get_db_vt_type, __set_db_vt_type)
+
     def db_add_vt_type(self, vt_type):
         self._db_vt_type = vt_type
+
     def db_change_vt_type(self, vt_type):
         self._db_vt_type = vt_type
+
     def db_delete_vt_type(self, vt_type):
         self._db_vt_type = None
-    
+
     def __get_db_vt_cached(self):
         return self._db_vt_cached
+
     def __set_db_vt_cached(self, vt_cached):
         self._db_vt_cached = vt_cached
         self.is_dirty = True
     db_vt_cached = property(__get_db_vt_cached, __set_db_vt_cached)
+
     def db_add_vt_cached(self, vt_cached):
         self._db_vt_cached = vt_cached
+
     def db_change_vt_cached(self, vt_cached):
         self._db_vt_cached = vt_cached
+
     def db_delete_vt_cached(self, vt_cached):
         self._db_vt_cached = None
-    
+
     def __get_db_vt_completed(self):
         return self._db_vt_completed
+
     def __set_db_vt_completed(self, vt_completed):
         self._db_vt_completed = vt_completed
         self.is_dirty = True
     db_vt_completed = property(__get_db_vt_completed, __set_db_vt_completed)
+
     def db_add_vt_completed(self, vt_completed):
         self._db_vt_completed = vt_completed
+
     def db_change_vt_completed(self, vt_completed):
         self._db_vt_completed = vt_completed
+
     def db_delete_vt_completed(self, vt_completed):
         self._db_vt_completed = None
-    
+
     def __get_db_vt_machine_id(self):
         return self._db_vt_machine_id
+
     def __set_db_vt_machine_id(self, vt_machine_id):
         self._db_vt_machine_id = vt_machine_id
         self.is_dirty = True
     db_vt_machine_id = property(__get_db_vt_machine_id, __set_db_vt_machine_id)
+
     def db_add_vt_machine_id(self, vt_machine_id):
         self._db_vt_machine_id = vt_machine_id
+
     def db_change_vt_machine_id(self, vt_machine_id):
         self._db_vt_machine_id = vt_machine_id
+
     def db_delete_vt_machine_id(self, vt_machine_id):
         self._db_vt_machine_id = None
-    
+
     def __get_db_vt_error(self):
         return self._db_vt_error
+
     def __set_db_vt_error(self, vt_error):
         self._db_vt_error = vt_error
         self.is_dirty = True
     db_vt_error = property(__get_db_vt_error, __set_db_vt_error)
+
     def db_add_vt_error(self, vt_error):
         self._db_vt_error = vt_error
+
     def db_change_vt_error(self, vt_error):
         self._db_vt_error = vt_error
+
     def db_delete_vt_error(self, vt_error):
         self._db_vt_error = None
-    
+
     def __get_db_is_part_of(self):
         return self._db_is_part_of
+
     def __set_db_is_part_of(self, is_part_of):
         self._db_is_part_of = is_part_of
         self.is_dirty = True
     db_is_part_of = property(__get_db_is_part_of, __set_db_is_part_of)
+
     def db_add_is_part_of(self, is_part_of):
         self._db_is_part_of = is_part_of
+
     def db_change_is_part_of(self, is_part_of):
         self._db_is_part_of = is_part_of
+
     def db_delete_is_part_of(self, is_part_of):
         if not self.is_new:
             self.db_deleted_is_part_of.append(self._db_is_part_of)
         self._db_is_part_of = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBProvUsage(object):
 
@@ -13270,17 +15244,19 @@ class DBProvUsage(object):
         self._db_prov_role = prov_role
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvUsage.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBProvUsage(prov_role=self._db_prov_role)
         if self._db_prov_activity is not None:
-            cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
+            cp._db_prov_activity = self._db_prov_activity.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_prov_entity is not None:
-            cp._db_prov_entity = self._db_prov_entity.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_prov_entity = self._db_prov_entity.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -13289,7 +15265,7 @@ class DBProvUsage(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13302,31 +15278,36 @@ class DBProvUsage(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_activity is not None and other.db_prov_activity is not None:
-                self.db_prov_activity.deep_eq_test(other.db_prov_activity, test_obj, alternate_tests)
+                self.db_prov_activity.deep_eq_test(
+                    other.db_prov_activity, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_activity, 
+                test_obj.assertEqual(self.db_prov_activity,
                                      other.db_prov_activity)
         alternate_key = (self.__class__.__name__, 'db_prov_entity')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_entity is not None and other.db_prov_entity is not None:
-                self.db_prov_entity.deep_eq_test(other.db_prov_entity, test_obj, alternate_tests)
+                self.db_prov_entity.deep_eq_test(
+                    other.db_prov_entity, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_entity, 
+                test_obj.assertEqual(self.db_prov_entity,
                                      other.db_prov_entity)
         alternate_key = (self.__class__.__name__, 'db_prov_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_role, 
+            test_obj.assertEqual(self.db_prov_role,
                                  other.db_prov_role)
 
     @staticmethod
@@ -13341,7 +15322,8 @@ class DBProvUsage(object):
             new_obj.db_prov_activity = res
         elif hasattr(old_obj, 'db_prov_activity') and old_obj.db_prov_activity is not None:
             obj = old_obj.db_prov_activity
-            new_obj.db_add_prov_activity(DBRefProvActivity.update_version(obj, trans_dict))
+            new_obj.db_add_prov_activity(
+                DBRefProvActivity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_activity') and hasattr(new_obj, 'db_deleted_prov_activity'):
             for obj in old_obj.db_deleted_prov_activity:
                 n_obj = DBRefProvActivity.update_version(obj, trans_dict)
@@ -13351,7 +15333,8 @@ class DBProvUsage(object):
             new_obj.db_prov_entity = res
         elif hasattr(old_obj, 'db_prov_entity') and old_obj.db_prov_entity is not None:
             obj = old_obj.db_prov_entity
-            new_obj.db_add_prov_entity(DBRefProvEntity.update_version(obj, trans_dict))
+            new_obj.db_add_prov_entity(
+                DBRefProvEntity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_entity') and hasattr(new_obj, 'db_deleted_prov_entity'):
             for obj in old_obj.db_deleted_prov_entity:
                 n_obj = DBRefProvEntity.update_version(obj, trans_dict)
@@ -13365,18 +15348,21 @@ class DBProvUsage(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_prov_activity is not None:
-            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_activity.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         if self._db_prov_entity is not None:
-            children.extend(self._db_prov_entity.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_entity.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_entity = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_prov_activity)
@@ -13385,6 +15371,7 @@ class DBProvUsage(object):
             self.db_deleted_prov_activity = []
             self.db_deleted_prov_entity = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -13393,49 +15380,61 @@ class DBProvUsage(object):
         if self._db_prov_entity is not None and self._db_prov_entity.has_changes():
             return True
         return False
+
     def __get_db_prov_activity(self):
         return self._db_prov_activity
+
     def __set_db_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
         self.is_dirty = True
     db_prov_activity = property(__get_db_prov_activity, __set_db_prov_activity)
+
     def db_add_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
+
     def db_change_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
+
     def db_delete_prov_activity(self, prov_activity):
         if not self.is_new:
             self.db_deleted_prov_activity.append(self._db_prov_activity)
         self._db_prov_activity = None
-    
+
     def __get_db_prov_entity(self):
         return self._db_prov_entity
+
     def __set_db_prov_entity(self, prov_entity):
         self._db_prov_entity = prov_entity
         self.is_dirty = True
     db_prov_entity = property(__get_db_prov_entity, __set_db_prov_entity)
+
     def db_add_prov_entity(self, prov_entity):
         self._db_prov_entity = prov_entity
+
     def db_change_prov_entity(self, prov_entity):
         self._db_prov_entity = prov_entity
+
     def db_delete_prov_entity(self, prov_entity):
         if not self.is_new:
             self.db_deleted_prov_entity.append(self._db_prov_entity)
         self._db_prov_entity = None
-    
+
     def __get_db_prov_role(self):
         return self._db_prov_role
+
     def __set_db_prov_role(self, prov_role):
         self._db_prov_role = prov_role
         self.is_dirty = True
     db_prov_role = property(__get_db_prov_role, __set_db_prov_role)
+
     def db_add_prov_role(self, prov_role):
         self._db_prov_role = prov_role
+
     def db_change_prov_role(self, prov_role):
         self._db_prov_role = prov_role
+
     def db_delete_prov_role(self, prov_role):
         self._db_prov_role = None
-    
 
 
 class DBOpmArtifactIdEffect(object):
@@ -13446,13 +15445,13 @@ class DBOpmArtifactIdEffect(object):
         self._db_id = id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmArtifactIdEffect.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmArtifactIdEffect(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -13463,7 +15462,7 @@ class DBOpmArtifactIdEffect(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_artifact', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13476,9 +15475,10 @@ class DBOpmArtifactIdEffect(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
 
     @staticmethod
@@ -13497,28 +15497,34 @@ class DBOpmArtifactIdEffect(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
 
 
 class DBOpmGraph(object):
@@ -13538,23 +15544,28 @@ class DBOpmGraph(object):
         self._db_dependencies = dependencies
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmGraph.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmGraph()
         if self._db_accounts is not None:
-            cp._db_accounts = self._db_accounts.do_copy(new_ids, id_scope, id_remap)
+            cp._db_accounts = self._db_accounts.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_processes is not None:
-            cp._db_processes = self._db_processes.do_copy(new_ids, id_scope, id_remap)
+            cp._db_processes = self._db_processes.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_artifacts is not None:
-            cp._db_artifacts = self._db_artifacts.do_copy(new_ids, id_scope, id_remap)
+            cp._db_artifacts = self._db_artifacts.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_agents is not None:
-            cp._db_agents = self._db_agents.do_copy(new_ids, id_scope, id_remap)
+            cp._db_agents = self._db_agents.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_dependencies is not None:
-            cp._db_dependencies = self._db_dependencies.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_dependencies = self._db_dependencies.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -13563,7 +15574,7 @@ class DBOpmGraph(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13576,56 +15587,66 @@ class DBOpmGraph(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_accounts is not None and other.db_accounts is not None:
-                self.db_accounts.deep_eq_test(other.db_accounts, test_obj, alternate_tests)
+                self.db_accounts.deep_eq_test(
+                    other.db_accounts, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_accounts, 
+                test_obj.assertEqual(self.db_accounts,
                                      other.db_accounts)
         alternate_key = (self.__class__.__name__, 'db_processes')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_processes is not None and other.db_processes is not None:
-                self.db_processes.deep_eq_test(other.db_processes, test_obj, alternate_tests)
+                self.db_processes.deep_eq_test(
+                    other.db_processes, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_processes, 
+                test_obj.assertEqual(self.db_processes,
                                      other.db_processes)
         alternate_key = (self.__class__.__name__, 'db_artifacts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_artifacts is not None and other.db_artifacts is not None:
-                self.db_artifacts.deep_eq_test(other.db_artifacts, test_obj, alternate_tests)
+                self.db_artifacts.deep_eq_test(
+                    other.db_artifacts, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_artifacts, 
+                test_obj.assertEqual(self.db_artifacts,
                                      other.db_artifacts)
         alternate_key = (self.__class__.__name__, 'db_agents')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_agents is not None and other.db_agents is not None:
-                self.db_agents.deep_eq_test(other.db_agents, test_obj, alternate_tests)
+                self.db_agents.deep_eq_test(
+                    other.db_agents, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_agents, 
+                test_obj.assertEqual(self.db_agents,
                                      other.db_agents)
         alternate_key = (self.__class__.__name__, 'db_dependencies')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_dependencies is not None and other.db_dependencies is not None:
-                self.db_dependencies.deep_eq_test(other.db_dependencies, test_obj, alternate_tests)
+                self.db_dependencies.deep_eq_test(
+                    other.db_dependencies, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_dependencies, 
+                test_obj.assertEqual(self.db_dependencies,
                                      other.db_dependencies)
 
     @staticmethod
@@ -13640,7 +15661,8 @@ class DBOpmGraph(object):
             new_obj.db_accounts = res
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             obj = old_obj.db_accounts
-            new_obj.db_add_accounts(DBOpmAccounts.update_version(obj, trans_dict))
+            new_obj.db_add_accounts(
+                DBOpmAccounts.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccounts.update_version(obj, trans_dict)
@@ -13650,7 +15672,8 @@ class DBOpmGraph(object):
             new_obj.db_processes = res
         elif hasattr(old_obj, 'db_processes') and old_obj.db_processes is not None:
             obj = old_obj.db_processes
-            new_obj.db_add_processes(DBOpmProcesses.update_version(obj, trans_dict))
+            new_obj.db_add_processes(
+                DBOpmProcesses.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_processes') and hasattr(new_obj, 'db_deleted_processes'):
             for obj in old_obj.db_deleted_processes:
                 n_obj = DBOpmProcesses.update_version(obj, trans_dict)
@@ -13660,7 +15683,8 @@ class DBOpmGraph(object):
             new_obj.db_artifacts = res
         elif hasattr(old_obj, 'db_artifacts') and old_obj.db_artifacts is not None:
             obj = old_obj.db_artifacts
-            new_obj.db_add_artifacts(DBOpmArtifacts.update_version(obj, trans_dict))
+            new_obj.db_add_artifacts(
+                DBOpmArtifacts.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_artifacts') and hasattr(new_obj, 'db_deleted_artifacts'):
             for obj in old_obj.db_deleted_artifacts:
                 n_obj = DBOpmArtifacts.update_version(obj, trans_dict)
@@ -13680,7 +15704,8 @@ class DBOpmGraph(object):
             new_obj.db_dependencies = res
         elif hasattr(old_obj, 'db_dependencies') and old_obj.db_dependencies is not None:
             obj = old_obj.db_dependencies
-            new_obj.db_add_dependencies(DBOpmDependencies.update_version(obj, trans_dict))
+            new_obj.db_add_dependencies(
+                DBOpmDependencies.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_dependencies') and hasattr(new_obj, 'db_deleted_dependencies'):
             for obj in old_obj.db_deleted_dependencies:
                 n_obj = DBOpmDependencies.update_version(obj, trans_dict)
@@ -13689,30 +15714,36 @@ class DBOpmGraph(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_accounts is not None:
-            children.extend(self._db_accounts.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_accounts.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_accounts = None
         if self._db_processes is not None:
-            children.extend(self._db_processes.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_processes.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_processes = None
         if self._db_artifacts is not None:
-            children.extend(self._db_artifacts.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_artifacts.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_artifacts = None
         if self._db_agents is not None:
-            children.extend(self._db_agents.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_agents.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_agents = None
         if self._db_dependencies is not None:
-            children.extend(self._db_dependencies.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_dependencies.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_dependencies = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_accounts)
@@ -13727,6 +15758,7 @@ class DBOpmGraph(object):
             self.db_deleted_agents = []
             self.db_deleted_dependencies = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -13741,81 +15773,101 @@ class DBOpmGraph(object):
         if self._db_dependencies is not None and self._db_dependencies.has_changes():
             return True
         return False
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_add_accounts(self, accounts):
         self._db_accounts = accounts
+
     def db_change_accounts(self, accounts):
         self._db_accounts = accounts
+
     def db_delete_accounts(self, accounts):
         if not self.is_new:
             self.db_deleted_accounts.append(self._db_accounts)
         self._db_accounts = None
-    
+
     def __get_db_processes(self):
         return self._db_processes
+
     def __set_db_processes(self, processes):
         self._db_processes = processes
         self.is_dirty = True
     db_processes = property(__get_db_processes, __set_db_processes)
+
     def db_add_processes(self, processes):
         self._db_processes = processes
+
     def db_change_processes(self, processes):
         self._db_processes = processes
+
     def db_delete_processes(self, processes):
         if not self.is_new:
             self.db_deleted_processes.append(self._db_processes)
         self._db_processes = None
-    
+
     def __get_db_artifacts(self):
         return self._db_artifacts
+
     def __set_db_artifacts(self, artifacts):
         self._db_artifacts = artifacts
         self.is_dirty = True
     db_artifacts = property(__get_db_artifacts, __set_db_artifacts)
+
     def db_add_artifacts(self, artifacts):
         self._db_artifacts = artifacts
+
     def db_change_artifacts(self, artifacts):
         self._db_artifacts = artifacts
+
     def db_delete_artifacts(self, artifacts):
         if not self.is_new:
             self.db_deleted_artifacts.append(self._db_artifacts)
         self._db_artifacts = None
-    
+
     def __get_db_agents(self):
         return self._db_agents
+
     def __set_db_agents(self, agents):
         self._db_agents = agents
         self.is_dirty = True
     db_agents = property(__get_db_agents, __set_db_agents)
+
     def db_add_agents(self, agents):
         self._db_agents = agents
+
     def db_change_agents(self, agents):
         self._db_agents = agents
+
     def db_delete_agents(self, agents):
         if not self.is_new:
             self.db_deleted_agents.append(self._db_agents)
         self._db_agents = None
-    
+
     def __get_db_dependencies(self):
         return self._db_dependencies
+
     def __set_db_dependencies(self, dependencies):
         self._db_dependencies = dependencies
         self.is_dirty = True
     db_dependencies = property(__get_db_dependencies, __set_db_dependencies)
+
     def db_add_dependencies(self, dependencies):
         self._db_dependencies = dependencies
+
     def db_change_dependencies(self, dependencies):
         self._db_dependencies = dependencies
+
     def db_delete_dependencies(self, dependencies):
         if not self.is_new:
             self.db_deleted_dependencies.append(self._db_dependencies)
         self._db_dependencies = None
-    
 
 
 class DBIsPartOf(object):
@@ -13826,13 +15878,13 @@ class DBIsPartOf(object):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBIsPartOf.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBIsPartOf(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -13841,7 +15893,7 @@ class DBIsPartOf(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13854,9 +15906,10 @@ class DBIsPartOf(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_ref, 
+            test_obj.assertEqual(self.db_prov_ref,
                                  other.db_prov_ref)
 
     @staticmethod
@@ -13875,28 +15928,34 @@ class DBIsPartOf(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_prov_ref(self):
         return self._db_prov_ref
+
     def __set_db_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
     db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+
     def db_add_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_change_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_delete_prov_ref(self, prov_ref):
         self._db_prov_ref = None
-    
 
 
 class DBOpmWasDerivedFrom(object):
@@ -13922,14 +15981,15 @@ class DBOpmWasDerivedFrom(object):
             self._db_opm_times = opm_times
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmWasDerivedFrom.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmWasDerivedFrom()
         if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+            cp._db_effect = self._db_effect.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_role is not None:
             cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
         if self._db_cause is not None:
@@ -13937,12 +15997,14 @@ class DBOpmWasDerivedFrom(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
         if self._db_opm_times is None:
             cp._db_opm_times = []
         else:
-            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
+            cp._db_opm_times = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -13951,7 +16013,7 @@ class DBOpmWasDerivedFrom(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13964,55 +16026,63 @@ class DBOpmWasDerivedFrom(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_effect is not None and other.db_effect is not None:
-                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+                self.db_effect.deep_eq_test(
+                    other.db_effect, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_effect, 
+                test_obj.assertEqual(self.db_effect,
                                      other.db_effect)
         alternate_key = (self.__class__.__name__, 'db_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_role is not None and other.db_role is not None:
-                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+                self.db_role.deep_eq_test(
+                    other.db_role, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_role, 
+                test_obj.assertEqual(self.db_role,
                                      other.db_role)
         alternate_key = (self.__class__.__name__, 'db_cause')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_cause is not None and other.db_cause is not None:
-                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+                self.db_cause.deep_eq_test(
+                    other.db_cause, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_cause, 
+                test_obj.assertEqual(self.db_cause,
                                      other.db_cause)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_opm_times), 
+            test_obj.assertEqual(len(self.db_opm_times),
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(self.db_opm_times, 
+            for obj1, obj2 in izip(self.db_opm_times,
                                    other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -14028,7 +16098,8 @@ class DBOpmWasDerivedFrom(object):
             new_obj.db_effect = res
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmArtifactIdEffect.update_version(obj, trans_dict))
+            new_obj.db_add_effect(
+                DBOpmArtifactIdEffect.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
             for obj in old_obj.db_deleted_effect:
                 n_obj = DBOpmArtifactIdEffect.update_version(obj, trans_dict)
@@ -14048,7 +16119,8 @@ class DBOpmWasDerivedFrom(object):
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
-            new_obj.db_add_cause(DBOpmArtifactIdCause.update_version(obj, trans_dict))
+            new_obj.db_add_cause(
+                DBOpmArtifactIdCause.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
             for obj in old_obj.db_deleted_cause:
                 n_obj = DBOpmArtifactIdCause.update_version(obj, trans_dict)
@@ -14059,7 +16131,8 @@ class DBOpmWasDerivedFrom(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -14070,7 +16143,8 @@ class DBOpmWasDerivedFrom(object):
                 new_obj.db_add_opm_time(obj)
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
-                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+                new_obj.db_add_opm_time(
+                    DBOpmTime.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
             for obj in old_obj.db_deleted_opm_times:
                 n_obj = DBOpmTime.update_version(obj, trans_dict)
@@ -14079,36 +16153,42 @@ class DBOpmWasDerivedFrom(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_effect.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_role.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_cause.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_opm_time(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_effect)
@@ -14123,6 +16203,7 @@ class DBOpmWasDerivedFrom(object):
             self.db_deleted_accounts = []
             self.db_deleted_opm_times = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -14139,91 +16220,115 @@ class DBOpmWasDerivedFrom(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_effect(self):
         return self._db_effect
+
     def __set_db_effect(self, effect):
         self._db_effect = effect
         self.is_dirty = True
     db_effect = property(__get_db_effect, __set_db_effect)
+
     def db_add_effect(self, effect):
         self._db_effect = effect
+
     def db_change_effect(self, effect):
         self._db_effect = effect
+
     def db_delete_effect(self, effect):
         if not self.is_new:
             self.db_deleted_effect.append(self._db_effect)
         self._db_effect = None
-    
+
     def __get_db_role(self):
         return self._db_role
+
     def __set_db_role(self, role):
         self._db_role = role
         self.is_dirty = True
     db_role = property(__get_db_role, __set_db_role)
+
     def db_add_role(self, role):
         self._db_role = role
+
     def db_change_role(self, role):
         self._db_role = role
+
     def db_delete_role(self, role):
         if not self.is_new:
             self.db_deleted_role.append(self._db_role)
         self._db_role = None
-    
+
     def __get_db_cause(self):
         return self._db_cause
+
     def __set_db_cause(self, cause):
         self._db_cause = cause
         self.is_dirty = True
     db_cause = property(__get_db_cause, __set_db_cause)
+
     def db_add_cause(self, cause):
         self._db_cause = cause
+
     def db_change_cause(self, cause):
         self._db_cause = cause
+
     def db_delete_cause(self, cause):
         if not self.is_new:
             self.db_deleted_cause.append(self._db_cause)
         self._db_cause = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def __get_db_opm_times(self):
         return self._db_opm_times
+
     def __set_db_opm_times(self, opm_times):
         self._db_opm_times = opm_times
         self.is_dirty = True
     db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
+
     def db_get_opm_times(self):
         return self._db_opm_times
+
     def db_add_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_change_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_delete_opm_time(self, opm_time):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_opm_time(self, key):
         return None
-    
 
 
 class DBControlParameter(object):
@@ -14236,7 +16341,7 @@ class DBControlParameter(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBControlParameter.do_copy(self)
 
@@ -14244,7 +16349,7 @@ class DBControlParameter(object):
         cp = DBControlParameter(id=self._db_id,
                                 name=self._db_name,
                                 value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -14253,7 +16358,7 @@ class DBControlParameter(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14266,25 +16371,28 @@ class DBControlParameter(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -14313,56 +16421,72 @@ class DBControlParameter(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBPluginData(object):
 
@@ -14373,14 +16497,14 @@ class DBPluginData(object):
         self._db_data = data
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPluginData.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPluginData(id=self._db_id,
                           data=self._db_data)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -14389,7 +16513,7 @@ class DBPluginData(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14402,17 +16526,19 @@ class DBPluginData(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_data')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_data, 
+            test_obj.assertEqual(self.db_data,
                                  other.db_data)
 
     @staticmethod
@@ -14436,43 +16562,55 @@ class DBPluginData(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_data(self):
         return self._db_data
+
     def __set_db_data(self, data):
         self._db_data = data
         self.is_dirty = True
     db_data = property(__get_db_data, __set_db_data)
+
     def db_add_data(self, data):
         self._db_data = data
+
     def db_change_data(self, data):
         self._db_data = data
+
     def db_delete_data(self, data):
         self._db_data = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBDelete(object):
 
@@ -14486,7 +16624,7 @@ class DBDelete(object):
         self._db_parentObjType = parentObjType
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBDelete.do_copy(self)
 
@@ -14496,7 +16634,7 @@ class DBDelete(object):
                       objectId=self._db_objectId,
                       parentObjId=self._db_parentObjId,
                       parentObjType=self._db_parentObjType)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -14508,8 +16646,9 @@ class DBDelete(object):
             if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
                 cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
             if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+                cp._db_parentObjId = id_remap[
+                    (self._db_parentObjType, self._db_parentObjId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14522,41 +16661,46 @@ class DBDelete(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_what')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_what, 
+            test_obj.assertEqual(self.db_what,
                                  other.db_what)
         alternate_key = (self.__class__.__name__, 'db_objectId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_objectId, 
+            test_obj.assertEqual(self.db_objectId,
                                  other.db_objectId)
         alternate_key = (self.__class__.__name__, 'db_parentObjId')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parentObjId, 
+            test_obj.assertEqual(self.db_parentObjId,
                                  other.db_parentObjId)
         alternate_key = (self.__class__.__name__, 'db_parentObjType')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parentObjType, 
+            test_obj.assertEqual(self.db_parentObjType,
                                  other.db_parentObjType)
 
     @staticmethod
@@ -14595,82 +16739,106 @@ class DBDelete(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_what(self):
         return self._db_what
+
     def __set_db_what(self, what):
         self._db_what = what
         self.is_dirty = True
     db_what = property(__get_db_what, __set_db_what)
+
     def db_add_what(self, what):
         self._db_what = what
+
     def db_change_what(self, what):
         self._db_what = what
+
     def db_delete_what(self, what):
         self._db_what = None
-    
+
     def __get_db_objectId(self):
         return self._db_objectId
+
     def __set_db_objectId(self, objectId):
         self._db_objectId = objectId
         self.is_dirty = True
     db_objectId = property(__get_db_objectId, __set_db_objectId)
+
     def db_add_objectId(self, objectId):
         self._db_objectId = objectId
+
     def db_change_objectId(self, objectId):
         self._db_objectId = objectId
+
     def db_delete_objectId(self, objectId):
         self._db_objectId = None
-    
+
     def __get_db_parentObjId(self):
         return self._db_parentObjId
+
     def __set_db_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
         self.is_dirty = True
     db_parentObjId = property(__get_db_parentObjId, __set_db_parentObjId)
+
     def db_add_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
+
     def db_change_parentObjId(self, parentObjId):
         self._db_parentObjId = parentObjId
+
     def db_delete_parentObjId(self, parentObjId):
         self._db_parentObjId = None
-    
+
     def __get_db_parentObjType(self):
         return self._db_parentObjType
+
     def __set_db_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
         self.is_dirty = True
     db_parentObjType = property(__get_db_parentObjType, __set_db_parentObjType)
+
     def db_add_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
+
     def db_change_parentObjType(self, parentObjType):
         self._db_parentObjType = parentObjType
+
     def db_delete_parentObjType(self, parentObjType):
         self._db_parentObjType = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBVistrailVariable(object):
 
@@ -14685,7 +16853,7 @@ class DBVistrailVariable(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBVistrailVariable.do_copy(self)
 
@@ -14696,7 +16864,7 @@ class DBVistrailVariable(object):
                                 module=self._db_module,
                                 namespace=self._db_namespace,
                                 value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -14705,7 +16873,7 @@ class DBVistrailVariable(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14718,49 +16886,55 @@ class DBVistrailVariable(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_uuid')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_uuid, 
+            test_obj.assertEqual(self.db_uuid,
                                  other.db_uuid)
         alternate_key = (self.__class__.__name__, 'db_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package, 
+            test_obj.assertEqual(self.db_package,
                                  other.db_package)
         alternate_key = (self.__class__.__name__, 'db_module')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_module, 
+            test_obj.assertEqual(self.db_module,
                                  other.db_module)
         alternate_key = (self.__class__.__name__, 'db_namespace')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_namespace, 
+            test_obj.assertEqual(self.db_namespace,
                                  other.db_namespace)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -14804,95 +16978,123 @@ class DBVistrailVariable(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_uuid(self):
         return self._db_uuid
+
     def __set_db_uuid(self, uuid):
         self._db_uuid = uuid
         self.is_dirty = True
     db_uuid = property(__get_db_uuid, __set_db_uuid)
+
     def db_add_uuid(self, uuid):
         self._db_uuid = uuid
+
     def db_change_uuid(self, uuid):
         self._db_uuid = uuid
+
     def db_delete_uuid(self, uuid):
         self._db_uuid = None
-    
+
     def __get_db_package(self):
         return self._db_package
+
     def __set_db_package(self, package):
         self._db_package = package
         self.is_dirty = True
     db_package = property(__get_db_package, __set_db_package)
+
     def db_add_package(self, package):
         self._db_package = package
+
     def db_change_package(self, package):
         self._db_package = package
+
     def db_delete_package(self, package):
         self._db_package = None
-    
+
     def __get_db_module(self):
         return self._db_module
+
     def __set_db_module(self, module):
         self._db_module = module
         self.is_dirty = True
     db_module = property(__get_db_module, __set_db_module)
+
     def db_add_module(self, module):
         self._db_module = module
+
     def db_change_module(self, module):
         self._db_module = module
+
     def db_delete_module(self, module):
         self._db_module = None
-    
+
     def __get_db_namespace(self):
         return self._db_namespace
+
     def __set_db_namespace(self, namespace):
         self._db_namespace = namespace
         self.is_dirty = True
     db_namespace = property(__get_db_namespace, __set_db_namespace)
+
     def db_add_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_change_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def getPrimaryKey(self):
         return self._db_name
+
 
 class DBOpmOverlaps(object):
 
@@ -14906,7 +17108,7 @@ class DBOpmOverlaps(object):
             self._db_opm_account_ids = opm_account_ids
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmOverlaps.do_copy(self)
 
@@ -14915,8 +17117,9 @@ class DBOpmOverlaps(object):
         if self._db_opm_account_ids is None:
             cp._db_opm_account_ids = []
         else:
-            cp._db_opm_account_ids = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_account_ids]
-        
+            cp._db_opm_account_ids = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_account_ids]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -14925,7 +17128,7 @@ class DBOpmOverlaps(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14938,11 +17141,12 @@ class DBOpmOverlaps(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_opm_account_ids), 
+            test_obj.assertEqual(len(self.db_opm_account_ids),
                                  len(other.db_opm_account_ids))
-            for obj1, obj2 in izip(self.db_opm_account_ids, 
+            for obj1, obj2 in izip(self.db_opm_account_ids,
                                    other.db_opm_account_ids):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -14959,7 +17163,8 @@ class DBOpmOverlaps(object):
                 new_obj.db_add_opm_account_id(obj)
         elif hasattr(old_obj, 'db_opm_account_ids') and old_obj.db_opm_account_ids is not None:
             for obj in old_obj.db_opm_account_ids:
-                new_obj.db_add_opm_account_id(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_opm_account_id(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_opm_account_ids') and hasattr(new_obj, 'db_deleted_opm_account_ids'):
             for obj in old_obj.db_deleted_opm_account_ids:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -14968,23 +17173,26 @@ class DBOpmOverlaps(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_opm_account_ids:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_opm_account_id(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_opm_account_ids)
         if remove:
             self.db_deleted_opm_account_ids = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -14992,26 +17200,33 @@ class DBOpmOverlaps(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_opm_account_ids(self):
         return self._db_opm_account_ids
+
     def __set_db_opm_account_ids(self, opm_account_ids):
         self._db_opm_account_ids = opm_account_ids
         self.is_dirty = True
-    db_opm_account_ids = property(__get_db_opm_account_ids, __set_db_opm_account_ids)
+    db_opm_account_ids = property(
+        __get_db_opm_account_ids, __set_db_opm_account_ids)
+
     def db_get_opm_account_ids(self):
         return self._db_opm_account_ids
+
     def db_add_opm_account_id(self, opm_account_id):
         self.is_dirty = True
         self._db_opm_account_ids.append(opm_account_id)
+
     def db_change_opm_account_id(self, opm_account_id):
         self.is_dirty = True
         self._db_opm_account_ids.append(opm_account_id)
+
     def db_delete_opm_account_id(self, opm_account_id):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_opm_account_id(self, key):
         return None
-    
 
 
 class DBOpmWasTriggeredBy(object):
@@ -15037,14 +17252,15 @@ class DBOpmWasTriggeredBy(object):
             self._db_opm_times = opm_times
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmWasTriggeredBy.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmWasTriggeredBy()
         if self._db_effect is not None:
-            cp._db_effect = self._db_effect.do_copy(new_ids, id_scope, id_remap)
+            cp._db_effect = self._db_effect.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_role is not None:
             cp._db_role = self._db_role.do_copy(new_ids, id_scope, id_remap)
         if self._db_cause is not None:
@@ -15052,12 +17268,14 @@ class DBOpmWasTriggeredBy(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
         if self._db_opm_times is None:
             cp._db_opm_times = []
         else:
-            cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
+            cp._db_opm_times = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -15066,7 +17284,7 @@ class DBOpmWasTriggeredBy(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15079,55 +17297,63 @@ class DBOpmWasTriggeredBy(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_effect is not None and other.db_effect is not None:
-                self.db_effect.deep_eq_test(other.db_effect, test_obj, alternate_tests)
+                self.db_effect.deep_eq_test(
+                    other.db_effect, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_effect, 
+                test_obj.assertEqual(self.db_effect,
                                      other.db_effect)
         alternate_key = (self.__class__.__name__, 'db_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_role is not None and other.db_role is not None:
-                self.db_role.deep_eq_test(other.db_role, test_obj, alternate_tests)
+                self.db_role.deep_eq_test(
+                    other.db_role, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_role, 
+                test_obj.assertEqual(self.db_role,
                                      other.db_role)
         alternate_key = (self.__class__.__name__, 'db_cause')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_cause is not None and other.db_cause is not None:
-                self.db_cause.deep_eq_test(other.db_cause, test_obj, alternate_tests)
+                self.db_cause.deep_eq_test(
+                    other.db_cause, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_cause, 
+                test_obj.assertEqual(self.db_cause,
                                      other.db_cause)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_opm_times')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_opm_times), 
+            test_obj.assertEqual(len(self.db_opm_times),
                                  len(other.db_opm_times))
-            for obj1, obj2 in izip(self.db_opm_times, 
+            for obj1, obj2 in izip(self.db_opm_times,
                                    other.db_opm_times):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -15143,7 +17369,8 @@ class DBOpmWasTriggeredBy(object):
             new_obj.db_effect = res
         elif hasattr(old_obj, 'db_effect') and old_obj.db_effect is not None:
             obj = old_obj.db_effect
-            new_obj.db_add_effect(DBOpmProcessIdEffect.update_version(obj, trans_dict))
+            new_obj.db_add_effect(
+                DBOpmProcessIdEffect.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_effect') and hasattr(new_obj, 'db_deleted_effect'):
             for obj in old_obj.db_deleted_effect:
                 n_obj = DBOpmProcessIdEffect.update_version(obj, trans_dict)
@@ -15163,7 +17390,8 @@ class DBOpmWasTriggeredBy(object):
             new_obj.db_cause = res
         elif hasattr(old_obj, 'db_cause') and old_obj.db_cause is not None:
             obj = old_obj.db_cause
-            new_obj.db_add_cause(DBOpmProcessIdCause.update_version(obj, trans_dict))
+            new_obj.db_add_cause(
+                DBOpmProcessIdCause.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_cause') and hasattr(new_obj, 'db_deleted_cause'):
             for obj in old_obj.db_deleted_cause:
                 n_obj = DBOpmProcessIdCause.update_version(obj, trans_dict)
@@ -15174,7 +17402,8 @@ class DBOpmWasTriggeredBy(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -15185,7 +17414,8 @@ class DBOpmWasTriggeredBy(object):
                 new_obj.db_add_opm_time(obj)
         elif hasattr(old_obj, 'db_opm_times') and old_obj.db_opm_times is not None:
             for obj in old_obj.db_opm_times:
-                new_obj.db_add_opm_time(DBOpmTime.update_version(obj, trans_dict))
+                new_obj.db_add_opm_time(
+                    DBOpmTime.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_opm_times') and hasattr(new_obj, 'db_deleted_opm_times'):
             for obj in old_obj.db_deleted_opm_times:
                 n_obj = DBOpmTime.update_version(obj, trans_dict)
@@ -15194,36 +17424,42 @@ class DBOpmWasTriggeredBy(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_effect is not None:
-            children.extend(self._db_effect.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_effect.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
-            children.extend(self._db_role.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_role.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
-            children.extend(self._db_cause.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_cause.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         to_del = []
         for child in self.db_opm_times:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_opm_time(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_effect)
@@ -15238,6 +17474,7 @@ class DBOpmWasTriggeredBy(object):
             self.db_deleted_accounts = []
             self.db_deleted_opm_times = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -15254,91 +17491,115 @@ class DBOpmWasTriggeredBy(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_effect(self):
         return self._db_effect
+
     def __set_db_effect(self, effect):
         self._db_effect = effect
         self.is_dirty = True
     db_effect = property(__get_db_effect, __set_db_effect)
+
     def db_add_effect(self, effect):
         self._db_effect = effect
+
     def db_change_effect(self, effect):
         self._db_effect = effect
+
     def db_delete_effect(self, effect):
         if not self.is_new:
             self.db_deleted_effect.append(self._db_effect)
         self._db_effect = None
-    
+
     def __get_db_role(self):
         return self._db_role
+
     def __set_db_role(self, role):
         self._db_role = role
         self.is_dirty = True
     db_role = property(__get_db_role, __set_db_role)
+
     def db_add_role(self, role):
         self._db_role = role
+
     def db_change_role(self, role):
         self._db_role = role
+
     def db_delete_role(self, role):
         if not self.is_new:
             self.db_deleted_role.append(self._db_role)
         self._db_role = None
-    
+
     def __get_db_cause(self):
         return self._db_cause
+
     def __set_db_cause(self, cause):
         self._db_cause = cause
         self.is_dirty = True
     db_cause = property(__get_db_cause, __set_db_cause)
+
     def db_add_cause(self, cause):
         self._db_cause = cause
+
     def db_change_cause(self, cause):
         self._db_cause = cause
+
     def db_delete_cause(self, cause):
         if not self.is_new:
             self.db_deleted_cause.append(self._db_cause)
         self._db_cause = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def __get_db_opm_times(self):
         return self._db_opm_times
+
     def __set_db_opm_times(self, opm_times):
         self._db_opm_times = opm_times
         self.is_dirty = True
     db_opm_times = property(__get_db_opm_times, __set_db_opm_times)
+
     def db_get_opm_times(self):
         return self._db_opm_times
+
     def db_add_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_change_opm_time(self, opm_time):
         self.is_dirty = True
         self._db_opm_times.append(opm_time)
+
     def db_delete_opm_time(self, opm_time):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_opm_time(self, key):
         return None
-    
 
 
 class DBModuleDescriptor(object):
@@ -15362,10 +17623,10 @@ class DBModuleDescriptor(object):
             self._db_portSpecs = portSpecs
             for v in self._db_portSpecs:
                 self.db_portSpecs_id_index[v.db_id] = v
-                self.db_portSpecs_name_index[(v.db_name,v.db_type)] = v
+                self.db_portSpecs_name_index[(v.db_name, v.db_type)] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBModuleDescriptor.do_copy(self)
 
@@ -15380,8 +17641,9 @@ class DBModuleDescriptor(object):
         if self._db_portSpecs is None:
             cp._db_portSpecs = []
         else:
-            cp._db_portSpecs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
-        
+            cp._db_portSpecs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -15391,11 +17653,13 @@ class DBModuleDescriptor(object):
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
             if hasattr(self, 'db_base_descriptor_id') and ('module_descriptor', self._db_base_descriptor_id) in id_remap:
-                cp._db_base_descriptor_id = id_remap[('module_descriptor', self._db_base_descriptor_id)]
-        
+                cp._db_base_descriptor_id = id_remap[
+                    ('module_descriptor', self._db_base_descriptor_id)]
+
         # recreate indices and set flags
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
-        cp.db_portSpecs_name_index = dict(((v.db_name,v.db_type), v) for v in cp._db_portSpecs)
+        cp.db_portSpecs_name_index = dict(
+            ((v.db_name, v.db_type), v) for v in cp._db_portSpecs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -15407,67 +17671,75 @@ class DBModuleDescriptor(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package, 
+            test_obj.assertEqual(self.db_package,
                                  other.db_package)
         alternate_key = (self.__class__.__name__, 'db_namespace')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_namespace, 
+            test_obj.assertEqual(self.db_namespace,
                                  other.db_namespace)
         alternate_key = (self.__class__.__name__, 'db_package_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package_version, 
+            test_obj.assertEqual(self.db_package_version,
                                  other.db_package_version)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_base_descriptor_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_base_descriptor_id, 
+            test_obj.assertEqual(self.db_base_descriptor_id,
                                  other.db_base_descriptor_id)
         alternate_key = (self.__class__.__name__, 'db_portSpecs')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_portSpecs), 
+            test_obj.assertEqual(len(self.db_portSpecs),
                                  len(other.db_portSpecs))
-            for obj1, obj2 in izip(sorted(self.db_portSpecs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_portSpecs, key=lambda x: x.db_id),
                                    sorted(other.db_portSpecs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -15519,7 +17791,8 @@ class DBModuleDescriptor(object):
                 new_obj.db_add_portSpec(obj)
         elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
-                new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+                new_obj.db_add_portSpec(
+                    DBPortSpec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_portSpecs') and hasattr(new_obj, 'db_deleted_portSpecs'):
             for obj in old_obj.db_deleted_portSpecs:
                 n_obj = DBPortSpec.update_version(obj, trans_dict)
@@ -15528,23 +17801,26 @@ class DBModuleDescriptor(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_portSpecs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_portSpec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_portSpecs)
         if remove:
             self.db_deleted_portSpecs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -15552,110 +17828,146 @@ class DBModuleDescriptor(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_package(self):
         return self._db_package
+
     def __set_db_package(self, package):
         self._db_package = package
         self.is_dirty = True
     db_package = property(__get_db_package, __set_db_package)
+
     def db_add_package(self, package):
         self._db_package = package
+
     def db_change_package(self, package):
         self._db_package = package
+
     def db_delete_package(self, package):
         self._db_package = None
-    
+
     def __get_db_namespace(self):
         return self._db_namespace
+
     def __set_db_namespace(self, namespace):
         self._db_namespace = namespace
         self.is_dirty = True
     db_namespace = property(__get_db_namespace, __set_db_namespace)
+
     def db_add_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_change_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
-    
+
     def __get_db_package_version(self):
         return self._db_package_version
+
     def __set_db_package_version(self, package_version):
         self._db_package_version = package_version
         self.is_dirty = True
-    db_package_version = property(__get_db_package_version, __set_db_package_version)
+    db_package_version = property(
+        __get_db_package_version, __set_db_package_version)
+
     def db_add_package_version(self, package_version):
         self._db_package_version = package_version
+
     def db_change_package_version(self, package_version):
         self._db_package_version = package_version
+
     def db_delete_package_version(self, package_version):
         self._db_package_version = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_base_descriptor_id(self):
         return self._db_base_descriptor_id
+
     def __set_db_base_descriptor_id(self, base_descriptor_id):
         self._db_base_descriptor_id = base_descriptor_id
         self.is_dirty = True
-    db_base_descriptor_id = property(__get_db_base_descriptor_id, __set_db_base_descriptor_id)
+    db_base_descriptor_id = property(
+        __get_db_base_descriptor_id, __set_db_base_descriptor_id)
+
     def db_add_base_descriptor_id(self, base_descriptor_id):
         self._db_base_descriptor_id = base_descriptor_id
+
     def db_change_base_descriptor_id(self, base_descriptor_id):
         self._db_base_descriptor_id = base_descriptor_id
+
     def db_delete_base_descriptor_id(self, base_descriptor_id):
         self._db_base_descriptor_id = None
-    
+
     def __get_db_portSpecs(self):
         return self._db_portSpecs
+
     def __set_db_portSpecs(self, portSpecs):
         self._db_portSpecs = portSpecs
         self.is_dirty = True
     db_portSpecs = property(__get_db_portSpecs, __set_db_portSpecs)
+
     def db_get_portSpecs(self):
         return self._db_portSpecs
+
     def db_add_portSpec(self, portSpec):
         self.is_dirty = True
         self._db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
+        self.db_portSpecs_name_index[
+            (portSpec.db_name, portSpec.db_type)] = portSpec
+
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
@@ -15667,7 +17979,9 @@ class DBModuleDescriptor(object):
         if not found:
             self._db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
+        self.db_portSpecs_name_index[
+            (portSpec.db_name, portSpec.db_type)] = portSpec
+
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
         for i in xrange(len(self._db_portSpecs)):
@@ -15677,23 +17991,29 @@ class DBModuleDescriptor(object):
                 del self._db_portSpecs[i]
                 break
         del self.db_portSpecs_id_index[portSpec.db_id]
-        del self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)]
+        del self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)]
+
     def db_get_portSpec(self, key):
         for i in xrange(len(self._db_portSpecs)):
             if self._db_portSpecs[i].db_id == key:
                 return self._db_portSpecs[i]
         return None
+
     def db_get_portSpec_by_id(self, key):
         return self.db_portSpecs_id_index[key]
+
     def db_has_portSpec_with_id(self, key):
         return key in self.db_portSpecs_id_index
+
     def db_get_portSpec_by_name(self, key):
         return self.db_portSpecs_name_index[key]
+
     def db_has_portSpec_with_name(self, key):
         return key in self.db_portSpecs_name_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBTag(object):
 
@@ -15704,14 +18024,14 @@ class DBTag(object):
         self._db_name = name
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBTag.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBTag(id=self._db_id,
                    name=self._db_name)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -15722,7 +18042,7 @@ class DBTag(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('action', self._db_id) in id_remap:
                 cp._db_id = id_remap[('action', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15735,17 +18055,19 @@ class DBTag(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
 
     @staticmethod
@@ -15769,43 +18091,55 @@ class DBTag(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmRole(object):
 
@@ -15815,13 +18149,13 @@ class DBOpmRole(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmRole.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmRole(value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -15830,7 +18164,7 @@ class DBOpmRole(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15843,9 +18177,10 @@ class DBOpmRole(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -15864,28 +18199,34 @@ class DBOpmRole(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
 
 
 class DBProvDocument(object):
@@ -15942,7 +18283,7 @@ class DBProvDocument(object):
             self._db_prov_associations = prov_associations
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvDocument.do_copy(self)
 
@@ -15951,32 +18292,39 @@ class DBProvDocument(object):
         if self._db_prov_entitys is None:
             cp._db_prov_entitys = []
         else:
-            cp._db_prov_entitys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_entitys]
+            cp._db_prov_entitys = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_entitys]
         if self._db_prov_activitys is None:
             cp._db_prov_activitys = []
         else:
-            cp._db_prov_activitys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_activitys]
+            cp._db_prov_activitys = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_activitys]
         if self._db_prov_agents is None:
             cp._db_prov_agents = []
         else:
-            cp._db_prov_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_agents]
+            cp._db_prov_agents = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_agents]
         if self._db_vt_connections is None:
             cp._db_vt_connections = []
         else:
-            cp._db_vt_connections = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vt_connections]
+            cp._db_vt_connections = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_vt_connections]
         if self._db_prov_usages is None:
             cp._db_prov_usages = []
         else:
-            cp._db_prov_usages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_usages]
+            cp._db_prov_usages = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_usages]
         if self._db_prov_generations is None:
             cp._db_prov_generations = []
         else:
-            cp._db_prov_generations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_generations]
+            cp._db_prov_generations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_generations]
         if self._db_prov_associations is None:
             cp._db_prov_associations = []
         else:
-            cp._db_prov_associations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
-        
+            cp._db_prov_associations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -15985,12 +18333,16 @@ class DBProvDocument(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_prov_entitys_id_index = dict((v.db_id, v) for v in cp._db_prov_entitys)
-        cp.db_prov_activitys_id_index = dict((v.db_id, v) for v in cp._db_prov_activitys)
-        cp.db_prov_agents_id_index = dict((v.db_id, v) for v in cp._db_prov_agents)
-        cp.db_vt_connections_id_index = dict((v.db_id, v) for v in cp._db_vt_connections)
+        cp.db_prov_entitys_id_index = dict(
+            (v.db_id, v) for v in cp._db_prov_entitys)
+        cp.db_prov_activitys_id_index = dict(
+            (v.db_id, v) for v in cp._db_prov_activitys)
+        cp.db_prov_agents_id_index = dict(
+            (v.db_id, v) for v in cp._db_prov_agents)
+        cp.db_vt_connections_id_index = dict(
+            (v.db_id, v) for v in cp._db_vt_connections)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -16002,77 +18354,84 @@ class DBProvDocument(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_prov_entitys), 
+            test_obj.assertEqual(len(self.db_prov_entitys),
                                  len(other.db_prov_entitys))
-            for obj1, obj2 in izip(sorted(self.db_prov_entitys, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_prov_entitys, key=lambda x: x.db_id),
                                    sorted(other.db_prov_entitys, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_activitys')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_prov_activitys), 
+            test_obj.assertEqual(len(self.db_prov_activitys),
                                  len(other.db_prov_activitys))
-            for obj1, obj2 in izip(sorted(self.db_prov_activitys, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_prov_activitys, key=lambda x: x.db_id),
                                    sorted(other.db_prov_activitys, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_agents')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_prov_agents), 
+            test_obj.assertEqual(len(self.db_prov_agents),
                                  len(other.db_prov_agents))
-            for obj1, obj2 in izip(sorted(self.db_prov_agents, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_prov_agents, key=lambda x: x.db_id),
                                    sorted(other.db_prov_agents, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_vt_connections')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_vt_connections), 
+            test_obj.assertEqual(len(self.db_vt_connections),
                                  len(other.db_vt_connections))
-            for obj1, obj2 in izip(sorted(self.db_vt_connections, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_vt_connections, key=lambda x: x.db_id),
                                    sorted(other.db_vt_connections, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_usages')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_prov_usages), 
+            test_obj.assertEqual(len(self.db_prov_usages),
                                  len(other.db_prov_usages))
-            for obj1, obj2 in izip(self.db_prov_usages, 
+            for obj1, obj2 in izip(self.db_prov_usages,
                                    other.db_prov_usages):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_generations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_prov_generations), 
+            test_obj.assertEqual(len(self.db_prov_generations),
                                  len(other.db_prov_generations))
-            for obj1, obj2 in izip(self.db_prov_generations, 
+            for obj1, obj2 in izip(self.db_prov_generations,
                                    other.db_prov_generations):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_prov_associations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_prov_associations), 
+            test_obj.assertEqual(len(self.db_prov_associations),
                                  len(other.db_prov_associations))
-            for obj1, obj2 in izip(self.db_prov_associations, 
+            for obj1, obj2 in izip(self.db_prov_associations,
                                    other.db_prov_associations):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -16089,7 +18448,8 @@ class DBProvDocument(object):
                 new_obj.db_add_prov_entity(obj)
         elif hasattr(old_obj, 'db_prov_entitys') and old_obj.db_prov_entitys is not None:
             for obj in old_obj.db_prov_entitys:
-                new_obj.db_add_prov_entity(DBProvEntity.update_version(obj, trans_dict))
+                new_obj.db_add_prov_entity(
+                    DBProvEntity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_entitys') and hasattr(new_obj, 'db_deleted_prov_entitys'):
             for obj in old_obj.db_deleted_prov_entitys:
                 n_obj = DBProvEntity.update_version(obj, trans_dict)
@@ -16100,7 +18460,8 @@ class DBProvDocument(object):
                 new_obj.db_add_prov_activity(obj)
         elif hasattr(old_obj, 'db_prov_activitys') and old_obj.db_prov_activitys is not None:
             for obj in old_obj.db_prov_activitys:
-                new_obj.db_add_prov_activity(DBProvActivity.update_version(obj, trans_dict))
+                new_obj.db_add_prov_activity(
+                    DBProvActivity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_activitys') and hasattr(new_obj, 'db_deleted_prov_activitys'):
             for obj in old_obj.db_deleted_prov_activitys:
                 n_obj = DBProvActivity.update_version(obj, trans_dict)
@@ -16111,7 +18472,8 @@ class DBProvDocument(object):
                 new_obj.db_add_prov_agent(obj)
         elif hasattr(old_obj, 'db_prov_agents') and old_obj.db_prov_agents is not None:
             for obj in old_obj.db_prov_agents:
-                new_obj.db_add_prov_agent(DBProvAgent.update_version(obj, trans_dict))
+                new_obj.db_add_prov_agent(
+                    DBProvAgent.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_agents') and hasattr(new_obj, 'db_deleted_prov_agents'):
             for obj in old_obj.db_deleted_prov_agents:
                 n_obj = DBProvAgent.update_version(obj, trans_dict)
@@ -16122,7 +18484,8 @@ class DBProvDocument(object):
                 new_obj.db_add_vt_connection(obj)
         elif hasattr(old_obj, 'db_vt_connections') and old_obj.db_vt_connections is not None:
             for obj in old_obj.db_vt_connections:
-                new_obj.db_add_vt_connection(DBVtConnection.update_version(obj, trans_dict))
+                new_obj.db_add_vt_connection(
+                    DBVtConnection.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_vt_connections') and hasattr(new_obj, 'db_deleted_vt_connections'):
             for obj in old_obj.db_deleted_vt_connections:
                 n_obj = DBVtConnection.update_version(obj, trans_dict)
@@ -16133,7 +18496,8 @@ class DBProvDocument(object):
                 new_obj.db_add_prov_usage(obj)
         elif hasattr(old_obj, 'db_prov_usages') and old_obj.db_prov_usages is not None:
             for obj in old_obj.db_prov_usages:
-                new_obj.db_add_prov_usage(DBProvUsage.update_version(obj, trans_dict))
+                new_obj.db_add_prov_usage(
+                    DBProvUsage.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_usages') and hasattr(new_obj, 'db_deleted_prov_usages'):
             for obj in old_obj.db_deleted_prov_usages:
                 n_obj = DBProvUsage.update_version(obj, trans_dict)
@@ -16144,7 +18508,8 @@ class DBProvDocument(object):
                 new_obj.db_add_prov_generation(obj)
         elif hasattr(old_obj, 'db_prov_generations') and old_obj.db_prov_generations is not None:
             for obj in old_obj.db_prov_generations:
-                new_obj.db_add_prov_generation(DBProvGeneration.update_version(obj, trans_dict))
+                new_obj.db_add_prov_generation(
+                    DBProvGeneration.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_generations') and hasattr(new_obj, 'db_deleted_prov_generations'):
             for obj in old_obj.db_deleted_prov_generations:
                 n_obj = DBProvGeneration.update_version(obj, trans_dict)
@@ -16155,7 +18520,8 @@ class DBProvDocument(object):
                 new_obj.db_add_prov_association(obj)
         elif hasattr(old_obj, 'db_prov_associations') and old_obj.db_prov_associations is not None:
             for obj in old_obj.db_prov_associations:
-                new_obj.db_add_prov_association(DBProvAssociation.update_version(obj, trans_dict))
+                new_obj.db_add_prov_association(
+                    DBProvAssociation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_associations') and hasattr(new_obj, 'db_deleted_prov_associations'):
             for obj in old_obj.db_deleted_prov_associations:
                 n_obj = DBProvAssociation.update_version(obj, trans_dict)
@@ -16164,59 +18530,67 @@ class DBProvDocument(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_prov_entitys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_entity(child)
         to_del = []
         for child in self.db_prov_activitys:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_activity(child)
         to_del = []
         for child in self.db_prov_agents:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_agent(child)
         to_del = []
         for child in self.db_vt_connections:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_vt_connection(child)
         to_del = []
         for child in self.db_prov_usages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_usage(child)
         to_del = []
         for child in self.db_prov_generations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_generation(child)
         to_del = []
         for child in self.db_prov_associations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_prov_association(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_prov_entitys)
@@ -16235,6 +18609,7 @@ class DBProvDocument(object):
             self.db_deleted_prov_generations = []
             self.db_deleted_prov_associations = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -16260,18 +18635,23 @@ class DBProvDocument(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_prov_entitys(self):
         return self._db_prov_entitys
+
     def __set_db_prov_entitys(self, prov_entitys):
         self._db_prov_entitys = prov_entitys
         self.is_dirty = True
     db_prov_entitys = property(__get_db_prov_entitys, __set_db_prov_entitys)
+
     def db_get_prov_entitys(self):
         return self._db_prov_entitys
+
     def db_add_prov_entity(self, prov_entity):
         self.is_dirty = True
         self._db_prov_entitys.append(prov_entity)
         self.db_prov_entitys_id_index[prov_entity.db_id] = prov_entity
+
     def db_change_prov_entity(self, prov_entity):
         self.is_dirty = True
         found = False
@@ -16283,37 +18663,47 @@ class DBProvDocument(object):
         if not found:
             self._db_prov_entitys.append(prov_entity)
         self.db_prov_entitys_id_index[prov_entity.db_id] = prov_entity
+
     def db_delete_prov_entity(self, prov_entity):
         self.is_dirty = True
         for i in xrange(len(self._db_prov_entitys)):
             if self._db_prov_entitys[i].db_id == prov_entity.db_id:
                 if not self._db_prov_entitys[i].is_new:
-                    self.db_deleted_prov_entitys.append(self._db_prov_entitys[i])
+                    self.db_deleted_prov_entitys.append(
+                        self._db_prov_entitys[i])
                 del self._db_prov_entitys[i]
                 break
         del self.db_prov_entitys_id_index[prov_entity.db_id]
+
     def db_get_prov_entity(self, key):
         for i in xrange(len(self._db_prov_entitys)):
             if self._db_prov_entitys[i].db_id == key:
                 return self._db_prov_entitys[i]
         return None
+
     def db_get_prov_entity_by_id(self, key):
         return self.db_prov_entitys_id_index[key]
+
     def db_has_prov_entity_with_id(self, key):
         return key in self.db_prov_entitys_id_index
-    
+
     def __get_db_prov_activitys(self):
         return self._db_prov_activitys
+
     def __set_db_prov_activitys(self, prov_activitys):
         self._db_prov_activitys = prov_activitys
         self.is_dirty = True
-    db_prov_activitys = property(__get_db_prov_activitys, __set_db_prov_activitys)
+    db_prov_activitys = property(
+        __get_db_prov_activitys, __set_db_prov_activitys)
+
     def db_get_prov_activitys(self):
         return self._db_prov_activitys
+
     def db_add_prov_activity(self, prov_activity):
         self.is_dirty = True
         self._db_prov_activitys.append(prov_activity)
         self.db_prov_activitys_id_index[prov_activity.db_id] = prov_activity
+
     def db_change_prov_activity(self, prov_activity):
         self.is_dirty = True
         found = False
@@ -16325,37 +18715,46 @@ class DBProvDocument(object):
         if not found:
             self._db_prov_activitys.append(prov_activity)
         self.db_prov_activitys_id_index[prov_activity.db_id] = prov_activity
+
     def db_delete_prov_activity(self, prov_activity):
         self.is_dirty = True
         for i in xrange(len(self._db_prov_activitys)):
             if self._db_prov_activitys[i].db_id == prov_activity.db_id:
                 if not self._db_prov_activitys[i].is_new:
-                    self.db_deleted_prov_activitys.append(self._db_prov_activitys[i])
+                    self.db_deleted_prov_activitys.append(
+                        self._db_prov_activitys[i])
                 del self._db_prov_activitys[i]
                 break
         del self.db_prov_activitys_id_index[prov_activity.db_id]
+
     def db_get_prov_activity(self, key):
         for i in xrange(len(self._db_prov_activitys)):
             if self._db_prov_activitys[i].db_id == key:
                 return self._db_prov_activitys[i]
         return None
+
     def db_get_prov_activity_by_id(self, key):
         return self.db_prov_activitys_id_index[key]
+
     def db_has_prov_activity_with_id(self, key):
         return key in self.db_prov_activitys_id_index
-    
+
     def __get_db_prov_agents(self):
         return self._db_prov_agents
+
     def __set_db_prov_agents(self, prov_agents):
         self._db_prov_agents = prov_agents
         self.is_dirty = True
     db_prov_agents = property(__get_db_prov_agents, __set_db_prov_agents)
+
     def db_get_prov_agents(self):
         return self._db_prov_agents
+
     def db_add_prov_agent(self, prov_agent):
         self.is_dirty = True
         self._db_prov_agents.append(prov_agent)
         self.db_prov_agents_id_index[prov_agent.db_id] = prov_agent
+
     def db_change_prov_agent(self, prov_agent):
         self.is_dirty = True
         found = False
@@ -16367,6 +18766,7 @@ class DBProvDocument(object):
         if not found:
             self._db_prov_agents.append(prov_agent)
         self.db_prov_agents_id_index[prov_agent.db_id] = prov_agent
+
     def db_delete_prov_agent(self, prov_agent):
         self.is_dirty = True
         for i in xrange(len(self._db_prov_agents)):
@@ -16376,28 +18776,36 @@ class DBProvDocument(object):
                 del self._db_prov_agents[i]
                 break
         del self.db_prov_agents_id_index[prov_agent.db_id]
+
     def db_get_prov_agent(self, key):
         for i in xrange(len(self._db_prov_agents)):
             if self._db_prov_agents[i].db_id == key:
                 return self._db_prov_agents[i]
         return None
+
     def db_get_prov_agent_by_id(self, key):
         return self.db_prov_agents_id_index[key]
+
     def db_has_prov_agent_with_id(self, key):
         return key in self.db_prov_agents_id_index
-    
+
     def __get_db_vt_connections(self):
         return self._db_vt_connections
+
     def __set_db_vt_connections(self, vt_connections):
         self._db_vt_connections = vt_connections
         self.is_dirty = True
-    db_vt_connections = property(__get_db_vt_connections, __set_db_vt_connections)
+    db_vt_connections = property(
+        __get_db_vt_connections, __set_db_vt_connections)
+
     def db_get_vt_connections(self):
         return self._db_vt_connections
+
     def db_add_vt_connection(self, vt_connection):
         self.is_dirty = True
         self._db_vt_connections.append(vt_connection)
         self.db_vt_connections_id_index[vt_connection.db_id] = vt_connection
+
     def db_change_vt_connection(self, vt_connection):
         self.is_dirty = True
         found = False
@@ -16409,85 +18817,109 @@ class DBProvDocument(object):
         if not found:
             self._db_vt_connections.append(vt_connection)
         self.db_vt_connections_id_index[vt_connection.db_id] = vt_connection
+
     def db_delete_vt_connection(self, vt_connection):
         self.is_dirty = True
         for i in xrange(len(self._db_vt_connections)):
             if self._db_vt_connections[i].db_id == vt_connection.db_id:
                 if not self._db_vt_connections[i].is_new:
-                    self.db_deleted_vt_connections.append(self._db_vt_connections[i])
+                    self.db_deleted_vt_connections.append(
+                        self._db_vt_connections[i])
                 del self._db_vt_connections[i]
                 break
         del self.db_vt_connections_id_index[vt_connection.db_id]
+
     def db_get_vt_connection(self, key):
         for i in xrange(len(self._db_vt_connections)):
             if self._db_vt_connections[i].db_id == key:
                 return self._db_vt_connections[i]
         return None
+
     def db_get_vt_connection_by_id(self, key):
         return self.db_vt_connections_id_index[key]
+
     def db_has_vt_connection_with_id(self, key):
         return key in self.db_vt_connections_id_index
-    
+
     def __get_db_prov_usages(self):
         return self._db_prov_usages
+
     def __set_db_prov_usages(self, prov_usages):
         self._db_prov_usages = prov_usages
         self.is_dirty = True
     db_prov_usages = property(__get_db_prov_usages, __set_db_prov_usages)
+
     def db_get_prov_usages(self):
         return self._db_prov_usages
+
     def db_add_prov_usage(self, prov_usage):
         self.is_dirty = True
         self._db_prov_usages.append(prov_usage)
+
     def db_change_prov_usage(self, prov_usage):
         self.is_dirty = True
         self._db_prov_usages.append(prov_usage)
+
     def db_delete_prov_usage(self, prov_usage):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_prov_usage(self, key):
         return None
-    
+
     def __get_db_prov_generations(self):
         return self._db_prov_generations
+
     def __set_db_prov_generations(self, prov_generations):
         self._db_prov_generations = prov_generations
         self.is_dirty = True
-    db_prov_generations = property(__get_db_prov_generations, __set_db_prov_generations)
+    db_prov_generations = property(
+        __get_db_prov_generations, __set_db_prov_generations)
+
     def db_get_prov_generations(self):
         return self._db_prov_generations
+
     def db_add_prov_generation(self, prov_generation):
         self.is_dirty = True
         self._db_prov_generations.append(prov_generation)
+
     def db_change_prov_generation(self, prov_generation):
         self.is_dirty = True
         self._db_prov_generations.append(prov_generation)
+
     def db_delete_prov_generation(self, prov_generation):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_prov_generation(self, key):
         return None
-    
+
     def __get_db_prov_associations(self):
         return self._db_prov_associations
+
     def __set_db_prov_associations(self, prov_associations):
         self._db_prov_associations = prov_associations
         self.is_dirty = True
-    db_prov_associations = property(__get_db_prov_associations, __set_db_prov_associations)
+    db_prov_associations = property(
+        __get_db_prov_associations, __set_db_prov_associations)
+
     def db_get_prov_associations(self):
         return self._db_prov_associations
+
     def db_add_prov_association(self, prov_association):
         self.is_dirty = True
         self._db_prov_associations.append(prov_association)
+
     def db_change_prov_association(self, prov_association):
         self.is_dirty = True
         self._db_prov_associations.append(prov_association)
+
     def db_delete_prov_association(self, prov_association):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_prov_association(self, key):
         return None
-    
 
 
 class DBOpmProcesses(object):
@@ -16505,7 +18937,7 @@ class DBOpmProcesses(object):
                 self.db_processs_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmProcesses.do_copy(self)
 
@@ -16514,8 +18946,9 @@ class DBOpmProcesses(object):
         if self._db_processs is None:
             cp._db_processs = []
         else:
-            cp._db_processs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_processs]
-        
+            cp._db_processs = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_processs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -16524,7 +18957,7 @@ class DBOpmProcesses(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_processs_id_index = dict((v.db_id, v) for v in cp._db_processs)
         if not new_ids:
@@ -16538,11 +18971,12 @@ class DBOpmProcesses(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_processs), 
+            test_obj.assertEqual(len(self.db_processs),
                                  len(other.db_processs))
-            for obj1, obj2 in izip(sorted(self.db_processs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_processs, key=lambda x: x.db_id),
                                    sorted(other.db_processs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -16559,7 +18993,8 @@ class DBOpmProcesses(object):
                 new_obj.db_add_process(obj)
         elif hasattr(old_obj, 'db_processs') and old_obj.db_processs is not None:
             for obj in old_obj.db_processs:
-                new_obj.db_add_process(DBOpmProcess.update_version(obj, trans_dict))
+                new_obj.db_add_process(
+                    DBOpmProcess.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_processs') and hasattr(new_obj, 'db_deleted_processs'):
             for obj in old_obj.db_deleted_processs:
                 n_obj = DBOpmProcess.update_version(obj, trans_dict)
@@ -16568,23 +19003,26 @@ class DBOpmProcesses(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_processs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_process(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_processs)
         if remove:
             self.db_deleted_processs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -16592,18 +19030,23 @@ class DBOpmProcesses(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_processs(self):
         return self._db_processs
+
     def __set_db_processs(self, processs):
         self._db_processs = processs
         self.is_dirty = True
     db_processs = property(__get_db_processs, __set_db_processs)
+
     def db_get_processs(self):
         return self._db_processs
+
     def db_add_process(self, process):
         self.is_dirty = True
         self._db_processs.append(process)
         self.db_processs_id_index[process.db_id] = process
+
     def db_change_process(self, process):
         self.is_dirty = True
         found = False
@@ -16615,6 +19058,7 @@ class DBOpmProcesses(object):
         if not found:
             self._db_processs.append(process)
         self.db_processs_id_index[process.db_id] = process
+
     def db_delete_process(self, process):
         self.is_dirty = True
         for i in xrange(len(self._db_processs)):
@@ -16624,16 +19068,18 @@ class DBOpmProcesses(object):
                 del self._db_processs[i]
                 break
         del self.db_processs_id_index[process.db_id]
+
     def db_get_process(self, key):
         for i in xrange(len(self._db_processs)):
             if self._db_processs[i].db_id == key:
                 return self._db_processs[i]
         return None
+
     def db_get_process_by_id(self, key):
         return self.db_processs_id_index[key]
+
     def db_has_process_with_id(self, key):
         return key in self.db_processs_id_index
-    
 
 
 class DBOpmAccountId(object):
@@ -16644,13 +19090,13 @@ class DBOpmAccountId(object):
         self._db_id = id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmAccountId.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAccountId(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -16661,7 +19107,7 @@ class DBOpmAccountId(object):
             cp.db_id = new_id
             if hasattr(self, 'db_id') and ('opm_account', self._db_id) in id_remap:
                 cp._db_id = id_remap[('opm_account', self._db_id)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -16674,9 +19120,10 @@ class DBOpmAccountId(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
 
     @staticmethod
@@ -16695,28 +19142,34 @@ class DBOpmAccountId(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
 
 
 class DBPortSpecItem(object):
@@ -16735,7 +19188,7 @@ class DBPortSpecItem(object):
         self._db_entry_type = entry_type
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBPortSpecItem.do_copy(self)
 
@@ -16749,7 +19202,7 @@ class DBPortSpecItem(object):
                             default=self._db_default,
                             values=self._db_values,
                             entry_type=self._db_entry_type)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -16758,7 +19211,7 @@ class DBPortSpecItem(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -16771,73 +19224,82 @@ class DBPortSpecItem(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_pos')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_pos, 
+            test_obj.assertEqual(self.db_pos,
                                  other.db_pos)
         alternate_key = (self.__class__.__name__, 'db_module')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_module, 
+            test_obj.assertEqual(self.db_module,
                                  other.db_module)
         alternate_key = (self.__class__.__name__, 'db_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package, 
+            test_obj.assertEqual(self.db_package,
                                  other.db_package)
         alternate_key = (self.__class__.__name__, 'db_namespace')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_namespace, 
+            test_obj.assertEqual(self.db_namespace,
                                  other.db_namespace)
         alternate_key = (self.__class__.__name__, 'db_label')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_label, 
+            test_obj.assertEqual(self.db_label,
                                  other.db_label)
         alternate_key = (self.__class__.__name__, 'db_default')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_default, 
+            test_obj.assertEqual(self.db_default,
                                  other.db_default)
         alternate_key = (self.__class__.__name__, 'db_values')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_values, 
+            test_obj.assertEqual(self.db_values,
                                  other.db_values)
         alternate_key = (self.__class__.__name__, 'db_entry_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_entry_type, 
+            test_obj.assertEqual(self.db_entry_type,
                                  other.db_entry_type)
 
     @staticmethod
@@ -16896,134 +19358,174 @@ class DBPortSpecItem(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_pos(self):
         return self._db_pos
+
     def __set_db_pos(self, pos):
         self._db_pos = pos
         self.is_dirty = True
     db_pos = property(__get_db_pos, __set_db_pos)
+
     def db_add_pos(self, pos):
         self._db_pos = pos
+
     def db_change_pos(self, pos):
         self._db_pos = pos
+
     def db_delete_pos(self, pos):
         self._db_pos = None
-    
+
     def __get_db_module(self):
         return self._db_module
+
     def __set_db_module(self, module):
         self._db_module = module
         self.is_dirty = True
     db_module = property(__get_db_module, __set_db_module)
+
     def db_add_module(self, module):
         self._db_module = module
+
     def db_change_module(self, module):
         self._db_module = module
+
     def db_delete_module(self, module):
         self._db_module = None
-    
+
     def __get_db_package(self):
         return self._db_package
+
     def __set_db_package(self, package):
         self._db_package = package
         self.is_dirty = True
     db_package = property(__get_db_package, __set_db_package)
+
     def db_add_package(self, package):
         self._db_package = package
+
     def db_change_package(self, package):
         self._db_package = package
+
     def db_delete_package(self, package):
         self._db_package = None
-    
+
     def __get_db_namespace(self):
         return self._db_namespace
+
     def __set_db_namespace(self, namespace):
         self._db_namespace = namespace
         self.is_dirty = True
     db_namespace = property(__get_db_namespace, __set_db_namespace)
+
     def db_add_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_change_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
-    
+
     def __get_db_label(self):
         return self._db_label
+
     def __set_db_label(self, label):
         self._db_label = label
         self.is_dirty = True
     db_label = property(__get_db_label, __set_db_label)
+
     def db_add_label(self, label):
         self._db_label = label
+
     def db_change_label(self, label):
         self._db_label = label
+
     def db_delete_label(self, label):
         self._db_label = None
-    
+
     def __get_db_default(self):
         return self._db_default
+
     def __set_db_default(self, default):
         self._db_default = default
         self.is_dirty = True
     db_default = property(__get_db_default, __set_db_default)
+
     def db_add_default(self, default):
         self._db_default = default
+
     def db_change_default(self, default):
         self._db_default = default
+
     def db_delete_default(self, default):
         self._db_default = None
-    
+
     def __get_db_values(self):
         return self._db_values
+
     def __set_db_values(self, values):
         self._db_values = values
         self.is_dirty = True
     db_values = property(__get_db_values, __set_db_values)
+
     def db_add_values(self, values):
         self._db_values = values
+
     def db_change_values(self, values):
         self._db_values = values
+
     def db_delete_values(self, values):
         self._db_values = None
-    
+
     def __get_db_entry_type(self):
         return self._db_entry_type
+
     def __set_db_entry_type(self, entry_type):
         self._db_entry_type = entry_type
         self.is_dirty = True
     db_entry_type = property(__get_db_entry_type, __set_db_entry_type)
+
     def db_add_entry_type(self, entry_type):
         self._db_entry_type = entry_type
+
     def db_change_entry_type(self, entry_type):
         self._db_entry_type = entry_type
+
     def db_delete_entry_type(self, entry_type):
         self._db_entry_type = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBMashupComponent(object):
 
@@ -17049,7 +19551,7 @@ class DBMashupComponent(object):
         self._db_parent = parent
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMashupComponent.do_copy(self)
 
@@ -17071,7 +19573,7 @@ class DBMashupComponent(object):
                                widget=self._db_widget,
                                seq=self._db_seq,
                                parent=self._db_parent)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -17080,7 +19582,7 @@ class DBMashupComponent(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17093,137 +19595,154 @@ class DBMashupComponent(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_vtid')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtid, 
+            test_obj.assertEqual(self.db_vtid,
                                  other.db_vtid)
         alternate_key = (self.__class__.__name__, 'db_vttype')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vttype, 
+            test_obj.assertEqual(self.db_vttype,
                                  other.db_vttype)
         alternate_key = (self.__class__.__name__, 'db_vtparent_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtparent_type, 
+            test_obj.assertEqual(self.db_vtparent_type,
                                  other.db_vtparent_type)
         alternate_key = (self.__class__.__name__, 'db_vtparent_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtparent_id, 
+            test_obj.assertEqual(self.db_vtparent_id,
                                  other.db_vtparent_id)
         alternate_key = (self.__class__.__name__, 'db_vtpos')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtpos, 
+            test_obj.assertEqual(self.db_vtpos,
                                  other.db_vtpos)
         alternate_key = (self.__class__.__name__, 'db_vtmid')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtmid, 
+            test_obj.assertEqual(self.db_vtmid,
                                  other.db_vtmid)
         alternate_key = (self.__class__.__name__, 'db_pos')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_pos, 
+            test_obj.assertEqual(self.db_pos,
                                  other.db_pos)
         alternate_key = (self.__class__.__name__, 'db_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_type, 
+            test_obj.assertEqual(self.db_type,
                                  other.db_type)
         alternate_key = (self.__class__.__name__, 'db_val')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_val, 
+            test_obj.assertEqual(self.db_val,
                                  other.db_val)
         alternate_key = (self.__class__.__name__, 'db_minVal')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_minVal, 
+            test_obj.assertEqual(self.db_minVal,
                                  other.db_minVal)
         alternate_key = (self.__class__.__name__, 'db_maxVal')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_maxVal, 
+            test_obj.assertEqual(self.db_maxVal,
                                  other.db_maxVal)
         alternate_key = (self.__class__.__name__, 'db_stepSize')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_stepSize, 
+            test_obj.assertEqual(self.db_stepSize,
                                  other.db_stepSize)
         alternate_key = (self.__class__.__name__, 'db_strvaluelist')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_strvaluelist, 
+            test_obj.assertEqual(self.db_strvaluelist,
                                  other.db_strvaluelist)
         alternate_key = (self.__class__.__name__, 'db_widget')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_widget, 
+            test_obj.assertEqual(self.db_widget,
                                  other.db_widget)
         alternate_key = (self.__class__.__name__, 'db_seq')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_seq, 
+            test_obj.assertEqual(self.db_seq,
                                  other.db_seq)
         alternate_key = (self.__class__.__name__, 'db_parent')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_parent, 
+            test_obj.assertEqual(self.db_parent,
                                  other.db_parent)
 
     @staticmethod
@@ -17322,238 +19841,310 @@ class DBMashupComponent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_vtid(self):
         return self._db_vtid
+
     def __set_db_vtid(self, vtid):
         self._db_vtid = vtid
         self.is_dirty = True
     db_vtid = property(__get_db_vtid, __set_db_vtid)
+
     def db_add_vtid(self, vtid):
         self._db_vtid = vtid
+
     def db_change_vtid(self, vtid):
         self._db_vtid = vtid
+
     def db_delete_vtid(self, vtid):
         self._db_vtid = None
-    
+
     def __get_db_vttype(self):
         return self._db_vttype
+
     def __set_db_vttype(self, vttype):
         self._db_vttype = vttype
         self.is_dirty = True
     db_vttype = property(__get_db_vttype, __set_db_vttype)
+
     def db_add_vttype(self, vttype):
         self._db_vttype = vttype
+
     def db_change_vttype(self, vttype):
         self._db_vttype = vttype
+
     def db_delete_vttype(self, vttype):
         self._db_vttype = None
-    
+
     def __get_db_vtparent_type(self):
         return self._db_vtparent_type
+
     def __set_db_vtparent_type(self, vtparent_type):
         self._db_vtparent_type = vtparent_type
         self.is_dirty = True
     db_vtparent_type = property(__get_db_vtparent_type, __set_db_vtparent_type)
+
     def db_add_vtparent_type(self, vtparent_type):
         self._db_vtparent_type = vtparent_type
+
     def db_change_vtparent_type(self, vtparent_type):
         self._db_vtparent_type = vtparent_type
+
     def db_delete_vtparent_type(self, vtparent_type):
         self._db_vtparent_type = None
-    
+
     def __get_db_vtparent_id(self):
         return self._db_vtparent_id
+
     def __set_db_vtparent_id(self, vtparent_id):
         self._db_vtparent_id = vtparent_id
         self.is_dirty = True
     db_vtparent_id = property(__get_db_vtparent_id, __set_db_vtparent_id)
+
     def db_add_vtparent_id(self, vtparent_id):
         self._db_vtparent_id = vtparent_id
+
     def db_change_vtparent_id(self, vtparent_id):
         self._db_vtparent_id = vtparent_id
+
     def db_delete_vtparent_id(self, vtparent_id):
         self._db_vtparent_id = None
-    
+
     def __get_db_vtpos(self):
         return self._db_vtpos
+
     def __set_db_vtpos(self, vtpos):
         self._db_vtpos = vtpos
         self.is_dirty = True
     db_vtpos = property(__get_db_vtpos, __set_db_vtpos)
+
     def db_add_vtpos(self, vtpos):
         self._db_vtpos = vtpos
+
     def db_change_vtpos(self, vtpos):
         self._db_vtpos = vtpos
+
     def db_delete_vtpos(self, vtpos):
         self._db_vtpos = None
-    
+
     def __get_db_vtmid(self):
         return self._db_vtmid
+
     def __set_db_vtmid(self, vtmid):
         self._db_vtmid = vtmid
         self.is_dirty = True
     db_vtmid = property(__get_db_vtmid, __set_db_vtmid)
+
     def db_add_vtmid(self, vtmid):
         self._db_vtmid = vtmid
+
     def db_change_vtmid(self, vtmid):
         self._db_vtmid = vtmid
+
     def db_delete_vtmid(self, vtmid):
         self._db_vtmid = None
-    
+
     def __get_db_pos(self):
         return self._db_pos
+
     def __set_db_pos(self, pos):
         self._db_pos = pos
         self.is_dirty = True
     db_pos = property(__get_db_pos, __set_db_pos)
+
     def db_add_pos(self, pos):
         self._db_pos = pos
+
     def db_change_pos(self, pos):
         self._db_pos = pos
+
     def db_delete_pos(self, pos):
         self._db_pos = None
-    
+
     def __get_db_type(self):
         return self._db_type
+
     def __set_db_type(self, type):
         self._db_type = type
         self.is_dirty = True
     db_type = property(__get_db_type, __set_db_type)
+
     def db_add_type(self, type):
         self._db_type = type
+
     def db_change_type(self, type):
         self._db_type = type
+
     def db_delete_type(self, type):
         self._db_type = None
-    
+
     def __get_db_val(self):
         return self._db_val
+
     def __set_db_val(self, val):
         self._db_val = val
         self.is_dirty = True
     db_val = property(__get_db_val, __set_db_val)
+
     def db_add_val(self, val):
         self._db_val = val
+
     def db_change_val(self, val):
         self._db_val = val
+
     def db_delete_val(self, val):
         self._db_val = None
-    
+
     def __get_db_minVal(self):
         return self._db_minVal
+
     def __set_db_minVal(self, minVal):
         self._db_minVal = minVal
         self.is_dirty = True
     db_minVal = property(__get_db_minVal, __set_db_minVal)
+
     def db_add_minVal(self, minVal):
         self._db_minVal = minVal
+
     def db_change_minVal(self, minVal):
         self._db_minVal = minVal
+
     def db_delete_minVal(self, minVal):
         self._db_minVal = None
-    
+
     def __get_db_maxVal(self):
         return self._db_maxVal
+
     def __set_db_maxVal(self, maxVal):
         self._db_maxVal = maxVal
         self.is_dirty = True
     db_maxVal = property(__get_db_maxVal, __set_db_maxVal)
+
     def db_add_maxVal(self, maxVal):
         self._db_maxVal = maxVal
+
     def db_change_maxVal(self, maxVal):
         self._db_maxVal = maxVal
+
     def db_delete_maxVal(self, maxVal):
         self._db_maxVal = None
-    
+
     def __get_db_stepSize(self):
         return self._db_stepSize
+
     def __set_db_stepSize(self, stepSize):
         self._db_stepSize = stepSize
         self.is_dirty = True
     db_stepSize = property(__get_db_stepSize, __set_db_stepSize)
+
     def db_add_stepSize(self, stepSize):
         self._db_stepSize = stepSize
+
     def db_change_stepSize(self, stepSize):
         self._db_stepSize = stepSize
+
     def db_delete_stepSize(self, stepSize):
         self._db_stepSize = None
-    
+
     def __get_db_strvaluelist(self):
         return self._db_strvaluelist
+
     def __set_db_strvaluelist(self, strvaluelist):
         self._db_strvaluelist = strvaluelist
         self.is_dirty = True
     db_strvaluelist = property(__get_db_strvaluelist, __set_db_strvaluelist)
+
     def db_add_strvaluelist(self, strvaluelist):
         self._db_strvaluelist = strvaluelist
+
     def db_change_strvaluelist(self, strvaluelist):
         self._db_strvaluelist = strvaluelist
+
     def db_delete_strvaluelist(self, strvaluelist):
         self._db_strvaluelist = None
-    
+
     def __get_db_widget(self):
         return self._db_widget
+
     def __set_db_widget(self, widget):
         self._db_widget = widget
         self.is_dirty = True
     db_widget = property(__get_db_widget, __set_db_widget)
+
     def db_add_widget(self, widget):
         self._db_widget = widget
+
     def db_change_widget(self, widget):
         self._db_widget = widget
+
     def db_delete_widget(self, widget):
         self._db_widget = None
-    
+
     def __get_db_seq(self):
         return self._db_seq
+
     def __set_db_seq(self, seq):
         self._db_seq = seq
         self.is_dirty = True
     db_seq = property(__get_db_seq, __set_db_seq)
+
     def db_add_seq(self, seq):
         self._db_seq = seq
+
     def db_change_seq(self, seq):
         self._db_seq = seq
+
     def db_delete_seq(self, seq):
         self._db_seq = None
-    
+
     def __get_db_parent(self):
         return self._db_parent
+
     def __set_db_parent(self, parent):
         self._db_parent = parent
         self.is_dirty = True
     db_parent = property(__get_db_parent, __set_db_parent)
+
     def db_add_parent(self, parent):
         self._db_parent = parent
+
     def db_change_parent(self, parent):
         self._db_parent = parent
+
     def db_delete_parent(self, parent):
         self._db_parent = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBMashup(object):
 
@@ -17578,7 +20169,7 @@ class DBMashup(object):
         self._db_has_seq = has_seq
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMashup.do_copy(self)
 
@@ -17594,8 +20185,9 @@ class DBMashup(object):
         if self._db_aliases is None:
             cp._db_aliases = []
         else:
-            cp._db_aliases = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_aliases]
-        
+            cp._db_aliases = [v.do_copy(new_ids, id_scope, id_remap)
+                              for v in self._db_aliases]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -17606,7 +20198,7 @@ class DBMashup(object):
             cp.db_id = new_id
             if hasattr(self, 'db_vtid') and ('vistrail', self._db_vtid) in id_remap:
                 cp._db_vtid = id_remap[('vistrail', self._db_vtid)]
-        
+
         # recreate indices and set flags
         cp.db_aliases_id_index = dict((v.db_id, v) for v in cp._db_aliases)
         if not new_ids:
@@ -17620,76 +20212,85 @@ class DBMashup(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_aliases')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_aliases), 
+            test_obj.assertEqual(len(self.db_aliases),
                                  len(other.db_aliases))
-            for obj1, obj2 in izip(sorted(self.db_aliases, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_aliases, key=lambda x: x.db_id),
                                    sorted(other.db_aliases, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_type, 
+            test_obj.assertEqual(self.db_type,
                                  other.db_type)
         alternate_key = (self.__class__.__name__, 'db_vtid')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtid, 
+            test_obj.assertEqual(self.db_vtid,
                                  other.db_vtid)
         alternate_key = (self.__class__.__name__, 'db_layout')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_layout, 
+            test_obj.assertEqual(self.db_layout,
                                  other.db_layout)
         alternate_key = (self.__class__.__name__, 'db_geometry')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_geometry, 
+            test_obj.assertEqual(self.db_geometry,
                                  other.db_geometry)
         alternate_key = (self.__class__.__name__, 'db_has_seq')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_has_seq, 
+            test_obj.assertEqual(self.db_has_seq,
                                  other.db_has_seq)
 
     @staticmethod
@@ -17720,7 +20321,8 @@ class DBMashup(object):
                 new_obj.db_add_alias(obj)
         elif hasattr(old_obj, 'db_aliases') and old_obj.db_aliases is not None:
             for obj in old_obj.db_aliases:
-                new_obj.db_add_alias(DBMashupAlias.update_version(obj, trans_dict))
+                new_obj.db_add_alias(
+                    DBMashupAlias.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_aliases') and hasattr(new_obj, 'db_deleted_aliases'):
             for obj in old_obj.db_deleted_aliases:
                 n_obj = DBMashupAlias.update_version(obj, trans_dict)
@@ -17754,23 +20356,26 @@ class DBMashup(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_aliases:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_alias(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_aliases)
         if remove:
             self.db_deleted_aliases = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -17778,57 +20383,74 @@ class DBMashup(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_aliases(self):
         return self._db_aliases
+
     def __set_db_aliases(self, aliases):
         self._db_aliases = aliases
         self.is_dirty = True
     db_aliases = property(__get_db_aliases, __set_db_aliases)
+
     def db_get_aliases(self):
         return self._db_aliases
+
     def db_add_alias(self, alias):
         self.is_dirty = True
         self._db_aliases.append(alias)
         self.db_aliases_id_index[alias.db_id] = alias
+
     def db_change_alias(self, alias):
         self.is_dirty = True
         found = False
@@ -17840,6 +20462,7 @@ class DBMashup(object):
         if not found:
             self._db_aliases.append(alias)
         self.db_aliases_id_index[alias.db_id] = alias
+
     def db_delete_alias(self, alias):
         self.is_dirty = True
         for i in xrange(len(self._db_aliases)):
@@ -17849,83 +20472,107 @@ class DBMashup(object):
                 del self._db_aliases[i]
                 break
         del self.db_aliases_id_index[alias.db_id]
+
     def db_get_alias(self, key):
         for i in xrange(len(self._db_aliases)):
             if self._db_aliases[i].db_id == key:
                 return self._db_aliases[i]
         return None
+
     def db_get_alias_by_id(self, key):
         return self.db_aliases_id_index[key]
+
     def db_has_alias_with_id(self, key):
         return key in self.db_aliases_id_index
-    
+
     def __get_db_type(self):
         return self._db_type
+
     def __set_db_type(self, type):
         self._db_type = type
         self.is_dirty = True
     db_type = property(__get_db_type, __set_db_type)
+
     def db_add_type(self, type):
         self._db_type = type
+
     def db_change_type(self, type):
         self._db_type = type
+
     def db_delete_type(self, type):
         self._db_type = None
-    
+
     def __get_db_vtid(self):
         return self._db_vtid
+
     def __set_db_vtid(self, vtid):
         self._db_vtid = vtid
         self.is_dirty = True
     db_vtid = property(__get_db_vtid, __set_db_vtid)
+
     def db_add_vtid(self, vtid):
         self._db_vtid = vtid
+
     def db_change_vtid(self, vtid):
         self._db_vtid = vtid
+
     def db_delete_vtid(self, vtid):
         self._db_vtid = None
-    
+
     def __get_db_layout(self):
         return self._db_layout
+
     def __set_db_layout(self, layout):
         self._db_layout = layout
         self.is_dirty = True
     db_layout = property(__get_db_layout, __set_db_layout)
+
     def db_add_layout(self, layout):
         self._db_layout = layout
+
     def db_change_layout(self, layout):
         self._db_layout = layout
+
     def db_delete_layout(self, layout):
         self._db_layout = None
-    
+
     def __get_db_geometry(self):
         return self._db_geometry
+
     def __set_db_geometry(self, geometry):
         self._db_geometry = geometry
         self.is_dirty = True
     db_geometry = property(__get_db_geometry, __set_db_geometry)
+
     def db_add_geometry(self, geometry):
         self._db_geometry = geometry
+
     def db_change_geometry(self, geometry):
         self._db_geometry = geometry
+
     def db_delete_geometry(self, geometry):
         self._db_geometry = None
-    
+
     def __get_db_has_seq(self):
         return self._db_has_seq
+
     def __set_db_has_seq(self, has_seq):
         self._db_has_seq = has_seq
         self.is_dirty = True
     db_has_seq = property(__get_db_has_seq, __set_db_has_seq)
+
     def db_add_has_seq(self, has_seq):
         self._db_has_seq = has_seq
+
     def db_change_has_seq(self, has_seq):
         self._db_has_seq = has_seq
+
     def db_delete_has_seq(self, has_seq):
         self._db_has_seq = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBMachine(object):
 
@@ -17940,7 +20587,7 @@ class DBMachine(object):
         self._db_ram = ram
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMachine.do_copy(self)
 
@@ -17951,7 +20598,7 @@ class DBMachine(object):
                        architecture=self._db_architecture,
                        processor=self._db_processor,
                        ram=self._db_ram)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -17962,7 +20609,7 @@ class DBMachine(object):
             cp.db_id = new_id
             if hasattr(self, 'db_vistrailId') and ('vistrail', self._db_vistrailId) in id_remap:
                 cp._db_vistrailId = id_remap[('vistrail', self._db_vistrailId)]
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17975,49 +20622,55 @@ class DBMachine(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_os')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_os, 
+            test_obj.assertEqual(self.db_os,
                                  other.db_os)
         alternate_key = (self.__class__.__name__, 'db_architecture')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_architecture, 
+            test_obj.assertEqual(self.db_architecture,
                                  other.db_architecture)
         alternate_key = (self.__class__.__name__, 'db_processor')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_processor, 
+            test_obj.assertEqual(self.db_processor,
                                  other.db_processor)
         alternate_key = (self.__class__.__name__, 'db_ram')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ram, 
+            test_obj.assertEqual(self.db_ram,
                                  other.db_ram)
 
     @staticmethod
@@ -18061,95 +20714,123 @@ class DBMachine(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_os(self):
         return self._db_os
+
     def __set_db_os(self, os):
         self._db_os = os
         self.is_dirty = True
     db_os = property(__get_db_os, __set_db_os)
+
     def db_add_os(self, os):
         self._db_os = os
+
     def db_change_os(self, os):
         self._db_os = os
+
     def db_delete_os(self, os):
         self._db_os = None
-    
+
     def __get_db_architecture(self):
         return self._db_architecture
+
     def __set_db_architecture(self, architecture):
         self._db_architecture = architecture
         self.is_dirty = True
     db_architecture = property(__get_db_architecture, __set_db_architecture)
+
     def db_add_architecture(self, architecture):
         self._db_architecture = architecture
+
     def db_change_architecture(self, architecture):
         self._db_architecture = architecture
+
     def db_delete_architecture(self, architecture):
         self._db_architecture = None
-    
+
     def __get_db_processor(self):
         return self._db_processor
+
     def __set_db_processor(self, processor):
         self._db_processor = processor
         self.is_dirty = True
     db_processor = property(__get_db_processor, __set_db_processor)
+
     def db_add_processor(self, processor):
         self._db_processor = processor
+
     def db_change_processor(self, processor):
         self._db_processor = processor
+
     def db_delete_processor(self, processor):
         self._db_processor = None
-    
+
     def __get_db_ram(self):
         return self._db_ram
+
     def __set_db_ram(self, ram):
         self._db_ram = ram
         self.is_dirty = True
     db_ram = property(__get_db_ram, __set_db_ram)
+
     def db_add_ram(self, ram):
         self._db_ram = ram
+
     def db_change_ram(self, ram):
         self._db_ram = ram
+
     def db_delete_ram(self, ram):
         self._db_ram = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBConfigFloat(object):
 
@@ -18159,13 +20840,13 @@ class DBConfigFloat(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBConfigFloat.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigFloat(value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -18174,7 +20855,7 @@ class DBConfigFloat(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -18187,9 +20868,10 @@ class DBConfigFloat(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertAlmostEqual(self.db_value, 
+            test_obj.assertAlmostEqual(self.db_value,
                                        other.db_value)
 
     @staticmethod
@@ -18208,28 +20890,34 @@ class DBConfigFloat(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
 
 
 class DBOther(object):
@@ -18242,7 +20930,7 @@ class DBOther(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOther.do_copy(self)
 
@@ -18250,7 +20938,7 @@ class DBOther(object):
         cp = DBOther(id=self._db_id,
                      key=self._db_key,
                      value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -18259,7 +20947,7 @@ class DBOther(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -18272,25 +20960,28 @@ class DBOther(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_key')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_key, 
+            test_obj.assertEqual(self.db_key,
                                  other.db_key)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -18319,56 +21010,72 @@ class DBOther(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_key(self):
         return self._db_key
+
     def __set_db_key(self, key):
         self._db_key = key
         self.is_dirty = True
     db_key = property(__get_db_key, __set_db_key)
+
     def db_add_key(self, key):
         self._db_key = key
+
     def db_change_key(self, key):
         self._db_key = key
+
     def db_delete_key(self, key):
         self._db_key = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBRefProvActivity(object):
 
@@ -18378,13 +21085,13 @@ class DBRefProvActivity(object):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBRefProvActivity.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -18394,8 +21101,9 @@ class DBRefProvActivity(object):
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
             if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
-        
+                cp._db_prov_ref = id_remap[
+                    ('prov_activity', self._db_prov_ref)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -18408,9 +21116,10 @@ class DBRefProvActivity(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_ref, 
+            test_obj.assertEqual(self.db_prov_ref,
                                  other.db_prov_ref)
 
     @staticmethod
@@ -18429,28 +21138,34 @@ class DBRefProvActivity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_prov_ref(self):
         return self._db_prov_ref
+
     def __set_db_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
         self.is_dirty = True
     db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+
     def db_add_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_change_prov_ref(self, prov_ref):
         self._db_prov_ref = prov_ref
+
     def db_delete_prov_ref(self, prov_ref):
         self._db_prov_ref = None
-    
 
 
 class DBAbstraction(object):
@@ -18497,7 +21212,7 @@ class DBAbstraction(object):
                 self.db_controlParameters_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBAbstraction.do_copy(self)
 
@@ -18510,20 +21225,24 @@ class DBAbstraction(object):
                            version=self._db_version,
                            internal_version=self._db_internal_version)
         if self._db_location is not None:
-            cp._db_location = self._db_location.do_copy(new_ids, id_scope, id_remap)
+            cp._db_location = self._db_location.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_functions is None:
             cp._db_functions = []
         else:
-            cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
+            cp._db_functions = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_controlParameters is None:
             cp._db_controlParameters = []
         else:
-            cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
-        
+            cp._db_controlParameters = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -18532,13 +21251,17 @@ class DBAbstraction(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
-        cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(
+            (v.db_key, v) for v in cp._db_annotations)
+        cp.db_controlParameters_id_index = dict(
+            (v.db_id, v) for v in cp._db_controlParameters)
+        cp.db_controlParameters_name_index = dict(
+            (v.db_name, v) for v in cp._db_controlParameters)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -18550,100 +21273,112 @@ class DBAbstraction(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_cache')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_cache, 
+            test_obj.assertEqual(self.db_cache,
                                  other.db_cache)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_namespace')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_namespace, 
+            test_obj.assertEqual(self.db_namespace,
                                  other.db_namespace)
         alternate_key = (self.__class__.__name__, 'db_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_package, 
+            test_obj.assertEqual(self.db_package,
                                  other.db_package)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_internal_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_internal_version, 
+            test_obj.assertEqual(self.db_internal_version,
                                  other.db_internal_version)
         alternate_key = (self.__class__.__name__, 'db_location')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_location is not None and other.db_location is not None:
-                self.db_location.deep_eq_test(other.db_location, test_obj, alternate_tests)
+                self.db_location.deep_eq_test(
+                    other.db_location, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_location, 
+                test_obj.assertEqual(self.db_location,
                                      other.db_location)
         alternate_key = (self.__class__.__name__, 'db_functions')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_functions), 
+            test_obj.assertEqual(len(self.db_functions),
                                  len(other.db_functions))
-            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id),
                                    sorted(other.db_functions, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_controlParameters')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_controlParameters), 
+            test_obj.assertEqual(len(self.db_controlParameters),
                                  len(other.db_controlParameters))
-            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_controlParameters, key=lambda x: x.db_id),
                                    sorted(other.db_controlParameters, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -18705,7 +21440,8 @@ class DBAbstraction(object):
                 new_obj.db_add_function(obj)
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
-                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+                new_obj.db_add_function(
+                    DBFunction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
             for obj in old_obj.db_deleted_functions:
                 n_obj = DBFunction.update_version(obj, trans_dict)
@@ -18716,7 +21452,8 @@ class DBAbstraction(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -18727,7 +21464,8 @@ class DBAbstraction(object):
                 new_obj.db_add_controlParameter(obj)
         elif hasattr(old_obj, 'db_controlParameters') and old_obj.db_controlParameters is not None:
             for obj in old_obj.db_controlParameters:
-                new_obj.db_add_controlParameter(DBControlParameter.update_version(obj, trans_dict))
+                new_obj.db_add_controlParameter(
+                    DBControlParameter.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_controlParameters') and hasattr(new_obj, 'db_deleted_controlParameters'):
             for obj in old_obj.db_deleted_controlParameters:
                 n_obj = DBControlParameter.update_version(obj, trans_dict)
@@ -18736,35 +21474,40 @@ class DBAbstraction(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_location is not None:
-            children.extend(self._db_location.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_location.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_controlParameters:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_controlParameter(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_location)
@@ -18777,6 +21520,7 @@ class DBAbstraction(object):
             self.db_deleted_annotations = []
             self.db_deleted_controlParameters = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -18792,124 +21536,162 @@ class DBAbstraction(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_cache(self):
         return self._db_cache
+
     def __set_db_cache(self, cache):
         self._db_cache = cache
         self.is_dirty = True
     db_cache = property(__get_db_cache, __set_db_cache)
+
     def db_add_cache(self, cache):
         self._db_cache = cache
+
     def db_change_cache(self, cache):
         self._db_cache = cache
+
     def db_delete_cache(self, cache):
         self._db_cache = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_namespace(self):
         return self._db_namespace
+
     def __set_db_namespace(self, namespace):
         self._db_namespace = namespace
         self.is_dirty = True
     db_namespace = property(__get_db_namespace, __set_db_namespace)
+
     def db_add_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_change_namespace(self, namespace):
         self._db_namespace = namespace
+
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
-    
+
     def __get_db_package(self):
         return self._db_package
+
     def __set_db_package(self, package):
         self._db_package = package
         self.is_dirty = True
     db_package = property(__get_db_package, __set_db_package)
+
     def db_add_package(self, package):
         self._db_package = package
+
     def db_change_package(self, package):
         self._db_package = package
+
     def db_delete_package(self, package):
         self._db_package = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_internal_version(self):
         return self._db_internal_version
+
     def __set_db_internal_version(self, internal_version):
         self._db_internal_version = internal_version
         self.is_dirty = True
-    db_internal_version = property(__get_db_internal_version, __set_db_internal_version)
+    db_internal_version = property(
+        __get_db_internal_version, __set_db_internal_version)
+
     def db_add_internal_version(self, internal_version):
         self._db_internal_version = internal_version
+
     def db_change_internal_version(self, internal_version):
         self._db_internal_version = internal_version
+
     def db_delete_internal_version(self, internal_version):
         self._db_internal_version = None
-    
+
     def __get_db_location(self):
         return self._db_location
+
     def __set_db_location(self, location):
         self._db_location = location
         self.is_dirty = True
     db_location = property(__get_db_location, __set_db_location)
+
     def db_add_location(self, location):
         self._db_location = location
+
     def db_change_location(self, location):
         self._db_location = location
+
     def db_delete_location(self, location):
         if not self.is_new:
             self.db_deleted_location.append(self._db_location)
         self._db_location = None
-    
+
     def __get_db_functions(self):
         return self._db_functions
+
     def __set_db_functions(self, functions):
         self._db_functions = functions
         self.is_dirty = True
     db_functions = property(__get_db_functions, __set_db_functions)
+
     def db_get_functions(self):
         return self._db_functions
+
     def db_add_function(self, function):
         self.is_dirty = True
         self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
@@ -18921,6 +21703,7 @@ class DBAbstraction(object):
         if not found:
             self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_delete_function(self, function):
         self.is_dirty = True
         for i in xrange(len(self._db_functions)):
@@ -18930,29 +21713,36 @@ class DBAbstraction(object):
                 del self._db_functions[i]
                 break
         del self.db_functions_id_index[function.db_id]
+
     def db_get_function(self, key):
         for i in xrange(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
+
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
+
     def db_has_function_with_id(self, key):
         return key in self.db_functions_id_index
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -18965,6 +21755,7 @@ class DBAbstraction(object):
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -18975,33 +21766,45 @@ class DBAbstraction(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
+
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
-    
+
     def __get_db_controlParameters(self):
         return self._db_controlParameters
+
     def __set_db_controlParameters(self, controlParameters):
         self._db_controlParameters = controlParameters
         self.is_dirty = True
-    db_controlParameters = property(__get_db_controlParameters, __set_db_controlParameters)
+    db_controlParameters = property(
+        __get_db_controlParameters, __set_db_controlParameters)
+
     def db_get_controlParameters(self):
         return self._db_controlParameters
+
     def db_add_controlParameter(self, controlParameter):
         self.is_dirty = True
         self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_change_controlParameter(self, controlParameter):
         self.is_dirty = True
         found = False
@@ -19012,34 +21815,44 @@ class DBAbstraction(object):
                 break
         if not found:
             self._db_controlParameters.append(controlParameter)
-        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
-        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+        self.db_controlParameters_id_index[
+            controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[
+            controlParameter.db_name] = controlParameter
+
     def db_delete_controlParameter(self, controlParameter):
         self.is_dirty = True
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == controlParameter.db_id:
                 if not self._db_controlParameters[i].is_new:
-                    self.db_deleted_controlParameters.append(self._db_controlParameters[i])
+                    self.db_deleted_controlParameters.append(
+                        self._db_controlParameters[i])
                 del self._db_controlParameters[i]
                 break
         del self.db_controlParameters_id_index[controlParameter.db_id]
         del self.db_controlParameters_name_index[controlParameter.db_name]
+
     def db_get_controlParameter(self, key):
         for i in xrange(len(self._db_controlParameters)):
             if self._db_controlParameters[i].db_id == key:
                 return self._db_controlParameters[i]
         return None
+
     def db_get_controlParameter_by_id(self, key):
         return self.db_controlParameters_id_index[key]
+
     def db_has_controlParameter_with_id(self, key):
         return key in self.db_controlParameters_id_index
+
     def db_get_controlParameter_by_name(self, key):
         return self.db_controlParameters_name_index[key]
+
     def db_has_controlParameter_with_name(self, key):
         return key in self.db_controlParameters_name_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBProvAgent(object):
 
@@ -19056,7 +21869,7 @@ class DBProvAgent(object):
         self._db_vt_machine_ram = vt_machine_ram
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvAgent.do_copy(self)
 
@@ -19069,7 +21882,7 @@ class DBProvAgent(object):
                          vt_machine_architecture=self._db_vt_machine_architecture,
                          vt_machine_processor=self._db_vt_machine_processor,
                          vt_machine_ram=self._db_vt_machine_ram)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -19078,7 +21891,7 @@ class DBProvAgent(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -19091,65 +21904,73 @@ class DBProvAgent(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_vt_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_id, 
+            test_obj.assertEqual(self.db_vt_id,
                                  other.db_vt_id)
         alternate_key = (self.__class__.__name__, 'db_prov_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_type, 
+            test_obj.assertEqual(self.db_prov_type,
                                  other.db_prov_type)
         alternate_key = (self.__class__.__name__, 'db_prov_label')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_label, 
+            test_obj.assertEqual(self.db_prov_label,
                                  other.db_prov_label)
         alternate_key = (self.__class__.__name__, 'db_vt_machine_os')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_machine_os, 
+            test_obj.assertEqual(self.db_vt_machine_os,
                                  other.db_vt_machine_os)
         alternate_key = (self.__class__.__name__, 'db_vt_machine_architecture')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_machine_architecture, 
+            test_obj.assertEqual(self.db_vt_machine_architecture,
                                  other.db_vt_machine_architecture)
         alternate_key = (self.__class__.__name__, 'db_vt_machine_processor')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_machine_processor, 
+            test_obj.assertEqual(self.db_vt_machine_processor,
                                  other.db_vt_machine_processor)
         alternate_key = (self.__class__.__name__, 'db_vt_machine_ram')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_machine_ram, 
+            test_obj.assertEqual(self.db_vt_machine_ram,
                                  other.db_vt_machine_ram)
 
     @staticmethod
@@ -19203,121 +22024,160 @@ class DBProvAgent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_vt_id(self):
         return self._db_vt_id
+
     def __set_db_vt_id(self, vt_id):
         self._db_vt_id = vt_id
         self.is_dirty = True
     db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
+
     def db_add_vt_id(self, vt_id):
         self._db_vt_id = vt_id
+
     def db_change_vt_id(self, vt_id):
         self._db_vt_id = vt_id
+
     def db_delete_vt_id(self, vt_id):
         self._db_vt_id = None
-    
+
     def __get_db_prov_type(self):
         return self._db_prov_type
+
     def __set_db_prov_type(self, prov_type):
         self._db_prov_type = prov_type
         self.is_dirty = True
     db_prov_type = property(__get_db_prov_type, __set_db_prov_type)
+
     def db_add_prov_type(self, prov_type):
         self._db_prov_type = prov_type
+
     def db_change_prov_type(self, prov_type):
         self._db_prov_type = prov_type
+
     def db_delete_prov_type(self, prov_type):
         self._db_prov_type = None
-    
+
     def __get_db_prov_label(self):
         return self._db_prov_label
+
     def __set_db_prov_label(self, prov_label):
         self._db_prov_label = prov_label
         self.is_dirty = True
     db_prov_label = property(__get_db_prov_label, __set_db_prov_label)
+
     def db_add_prov_label(self, prov_label):
         self._db_prov_label = prov_label
+
     def db_change_prov_label(self, prov_label):
         self._db_prov_label = prov_label
+
     def db_delete_prov_label(self, prov_label):
         self._db_prov_label = None
-    
+
     def __get_db_vt_machine_os(self):
         return self._db_vt_machine_os
+
     def __set_db_vt_machine_os(self, vt_machine_os):
         self._db_vt_machine_os = vt_machine_os
         self.is_dirty = True
     db_vt_machine_os = property(__get_db_vt_machine_os, __set_db_vt_machine_os)
+
     def db_add_vt_machine_os(self, vt_machine_os):
         self._db_vt_machine_os = vt_machine_os
+
     def db_change_vt_machine_os(self, vt_machine_os):
         self._db_vt_machine_os = vt_machine_os
+
     def db_delete_vt_machine_os(self, vt_machine_os):
         self._db_vt_machine_os = None
-    
+
     def __get_db_vt_machine_architecture(self):
         return self._db_vt_machine_architecture
+
     def __set_db_vt_machine_architecture(self, vt_machine_architecture):
         self._db_vt_machine_architecture = vt_machine_architecture
         self.is_dirty = True
-    db_vt_machine_architecture = property(__get_db_vt_machine_architecture, __set_db_vt_machine_architecture)
+    db_vt_machine_architecture = property(
+        __get_db_vt_machine_architecture, __set_db_vt_machine_architecture)
+
     def db_add_vt_machine_architecture(self, vt_machine_architecture):
         self._db_vt_machine_architecture = vt_machine_architecture
+
     def db_change_vt_machine_architecture(self, vt_machine_architecture):
         self._db_vt_machine_architecture = vt_machine_architecture
+
     def db_delete_vt_machine_architecture(self, vt_machine_architecture):
         self._db_vt_machine_architecture = None
-    
+
     def __get_db_vt_machine_processor(self):
         return self._db_vt_machine_processor
+
     def __set_db_vt_machine_processor(self, vt_machine_processor):
         self._db_vt_machine_processor = vt_machine_processor
         self.is_dirty = True
-    db_vt_machine_processor = property(__get_db_vt_machine_processor, __set_db_vt_machine_processor)
+    db_vt_machine_processor = property(
+        __get_db_vt_machine_processor, __set_db_vt_machine_processor)
+
     def db_add_vt_machine_processor(self, vt_machine_processor):
         self._db_vt_machine_processor = vt_machine_processor
+
     def db_change_vt_machine_processor(self, vt_machine_processor):
         self._db_vt_machine_processor = vt_machine_processor
+
     def db_delete_vt_machine_processor(self, vt_machine_processor):
         self._db_vt_machine_processor = None
-    
+
     def __get_db_vt_machine_ram(self):
         return self._db_vt_machine_ram
+
     def __set_db_vt_machine_ram(self, vt_machine_ram):
         self._db_vt_machine_ram = vt_machine_ram
         self.is_dirty = True
-    db_vt_machine_ram = property(__get_db_vt_machine_ram, __set_db_vt_machine_ram)
+    db_vt_machine_ram = property(
+        __get_db_vt_machine_ram, __set_db_vt_machine_ram)
+
     def db_add_vt_machine_ram(self, vt_machine_ram):
         self._db_vt_machine_ram = vt_machine_ram
+
     def db_change_vt_machine_ram(self, vt_machine_ram):
         self._db_vt_machine_ram = vt_machine_ram
+
     def db_delete_vt_machine_ram(self, vt_machine_ram):
         self._db_vt_machine_ram = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBMashuptrail(object):
 
@@ -19357,11 +22217,12 @@ class DBMashuptrail(object):
             self._db_actionAnnotations = actionAnnotations
             for v in self._db_actionAnnotations:
                 self.db_actionAnnotations_id_index[v.db_id] = v
-                self.db_actionAnnotations_action_id_index[(v.db_action_id,v.db_key)] = v
-                self.db_actionAnnotations_key_index[(v.db_key,v.db_value)] = v
+                self.db_actionAnnotations_action_id_index[
+                    (v.db_action_id, v.db_key)] = v
+                self.db_actionAnnotations_key_index[(v.db_key, v.db_value)] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMashuptrail.do_copy(self)
 
@@ -19374,16 +22235,19 @@ class DBMashuptrail(object):
         if self._db_actions is None:
             cp._db_actions = []
         else:
-            cp._db_actions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actions]
+            cp._db_actions = [v.do_copy(new_ids, id_scope, id_remap)
+                              for v in self._db_actions]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_actionAnnotations is None:
             cp._db_actionAnnotations = []
         else:
-            cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
-        
+            cp._db_actionAnnotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -19392,14 +22256,19 @@ class DBMashuptrail(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
-        cp.db_actionAnnotations_id_index = dict((v.db_id, v) for v in cp._db_actionAnnotations)
-        cp.db_actionAnnotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_actionAnnotations)
-        cp.db_actionAnnotations_key_index = dict(((v.db_key,v.db_value), v) for v in cp._db_actionAnnotations)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict(
+            (v.db_key, v) for v in cp._db_annotations)
+        cp.db_actionAnnotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_actionAnnotations)
+        cp.db_actionAnnotations_action_id_index = dict(
+            ((v.db_action_id, v.db_key), v) for v in cp._db_actionAnnotations)
+        cp.db_actionAnnotations_key_index = dict(
+            ((v.db_key, v.db_value), v) for v in cp._db_actionAnnotations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -19411,73 +22280,81 @@ class DBMashuptrail(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_vtVersion')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vtVersion, 
+            test_obj.assertEqual(self.db_vtVersion,
                                  other.db_vtVersion)
         alternate_key = (self.__class__.__name__, 'db_last_modified')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_last_modified, 
+            test_obj.assertEqual(self.db_last_modified,
                                  other.db_last_modified)
         alternate_key = (self.__class__.__name__, 'db_actions')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_actions), 
+            test_obj.assertEqual(len(self.db_actions),
                                  len(other.db_actions))
-            for obj1, obj2 in izip(sorted(self.db_actions, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_actions, key=lambda x: x.db_id),
                                    sorted(other.db_actions, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_actionAnnotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_actionAnnotations), 
+            test_obj.assertEqual(len(self.db_actionAnnotations),
                                  len(other.db_actionAnnotations))
-            for obj1, obj2 in izip(sorted(self.db_actionAnnotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_actionAnnotations, key=lambda x: x.db_id),
                                    sorted(other.db_actionAnnotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -19519,7 +22396,8 @@ class DBMashuptrail(object):
                 new_obj.db_add_action(obj)
         elif hasattr(old_obj, 'db_actions') and old_obj.db_actions is not None:
             for obj in old_obj.db_actions:
-                new_obj.db_add_action(DBMashupAction.update_version(obj, trans_dict))
+                new_obj.db_add_action(
+                    DBMashupAction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_actions') and hasattr(new_obj, 'db_deleted_actions'):
             for obj in old_obj.db_deleted_actions:
                 n_obj = DBMashupAction.update_version(obj, trans_dict)
@@ -19530,7 +22408,8 @@ class DBMashuptrail(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -19541,40 +22420,46 @@ class DBMashuptrail(object):
                 new_obj.db_add_actionAnnotation(obj)
         elif hasattr(old_obj, 'db_actionAnnotations') and old_obj.db_actionAnnotations is not None:
             for obj in old_obj.db_actionAnnotations:
-                new_obj.db_add_actionAnnotation(DBMashupActionAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_actionAnnotation(
+                    DBMashupActionAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_actionAnnotations') and hasattr(new_obj, 'db_deleted_actionAnnotations'):
             for obj in old_obj.db_deleted_actionAnnotations:
-                n_obj = DBMashupActionAnnotation.update_version(obj, trans_dict)
+                n_obj = DBMashupActionAnnotation.update_version(
+                    obj, trans_dict)
                 new_obj.db_deleted_actionAnnotations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_actions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_action(child)
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_actionAnnotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_actionAnnotation(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_actions)
@@ -19585,6 +22470,7 @@ class DBMashuptrail(object):
             self.db_deleted_annotations = []
             self.db_deleted_actionAnnotations = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -19598,83 +22484,108 @@ class DBMashuptrail(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_vtVersion(self):
         return self._db_vtVersion
+
     def __set_db_vtVersion(self, vtVersion):
         self._db_vtVersion = vtVersion
         self.is_dirty = True
     db_vtVersion = property(__get_db_vtVersion, __set_db_vtVersion)
+
     def db_add_vtVersion(self, vtVersion):
         self._db_vtVersion = vtVersion
+
     def db_change_vtVersion(self, vtVersion):
         self._db_vtVersion = vtVersion
+
     def db_delete_vtVersion(self, vtVersion):
         self._db_vtVersion = None
-    
+
     def __get_db_last_modified(self):
         return self._db_last_modified
+
     def __set_db_last_modified(self, last_modified):
         self._db_last_modified = last_modified
         self.is_dirty = True
     db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+
     def db_add_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_change_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
-    
+
     def __get_db_actions(self):
         return self._db_actions
+
     def __set_db_actions(self, actions):
         self._db_actions = actions
         self.is_dirty = True
     db_actions = property(__get_db_actions, __set_db_actions)
+
     def db_get_actions(self):
         return self._db_actions
+
     def db_add_action(self, action):
         self.is_dirty = True
         self._db_actions.append(action)
         self.db_actions_id_index[action.db_id] = action
+
     def db_change_action(self, action):
         self.is_dirty = True
         found = False
@@ -19686,6 +22597,7 @@ class DBMashuptrail(object):
         if not found:
             self._db_actions.append(action)
         self.db_actions_id_index[action.db_id] = action
+
     def db_delete_action(self, action):
         self.is_dirty = True
         for i in xrange(len(self._db_actions)):
@@ -19695,29 +22607,36 @@ class DBMashuptrail(object):
                 del self._db_actions[i]
                 break
         del self.db_actions_id_index[action.db_id]
+
     def db_get_action(self, key):
         for i in xrange(len(self._db_actions)):
             if self._db_actions[i].db_id == key:
                 return self._db_actions[i]
         return None
+
     def db_get_action_by_id(self, key):
         return self.db_actions_id_index[key]
+
     def db_has_action_with_id(self, key):
         return key in self.db_actions_id_index
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -19730,6 +22649,7 @@ class DBMashuptrail(object):
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
         self.db_annotations_key_index[annotation.db_key] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -19740,34 +22660,47 @@ class DBMashuptrail(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
+
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
+
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
-    
+
     def __get_db_actionAnnotations(self):
         return self._db_actionAnnotations
+
     def __set_db_actionAnnotations(self, actionAnnotations):
         self._db_actionAnnotations = actionAnnotations
         self.is_dirty = True
-    db_actionAnnotations = property(__get_db_actionAnnotations, __set_db_actionAnnotations)
+    db_actionAnnotations = property(
+        __get_db_actionAnnotations, __set_db_actionAnnotations)
+
     def db_get_actionAnnotations(self):
         return self._db_actionAnnotations
+
     def db_add_actionAnnotation(self, actionAnnotation):
         self.is_dirty = True
         self._db_actionAnnotations.append(actionAnnotation)
-        self.db_actionAnnotations_id_index[actionAnnotation.db_id] = actionAnnotation
-        self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)] = actionAnnotation
-        self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)] = actionAnnotation
+        self.db_actionAnnotations_id_index[
+            actionAnnotation.db_id] = actionAnnotation
+        self.db_actionAnnotations_action_id_index[
+            (actionAnnotation.db_action_id, actionAnnotation.db_key)] = actionAnnotation
+        self.db_actionAnnotations_key_index[
+            (actionAnnotation.db_key, actionAnnotation.db_value)] = actionAnnotation
+
     def db_change_actionAnnotation(self, actionAnnotation):
         self.is_dirty = True
         found = False
@@ -19778,43 +22711,58 @@ class DBMashuptrail(object):
                 break
         if not found:
             self._db_actionAnnotations.append(actionAnnotation)
-        self.db_actionAnnotations_id_index[actionAnnotation.db_id] = actionAnnotation
-        self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)] = actionAnnotation
-        self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)] = actionAnnotation
+        self.db_actionAnnotations_id_index[
+            actionAnnotation.db_id] = actionAnnotation
+        self.db_actionAnnotations_action_id_index[
+            (actionAnnotation.db_action_id, actionAnnotation.db_key)] = actionAnnotation
+        self.db_actionAnnotations_key_index[
+            (actionAnnotation.db_key, actionAnnotation.db_value)] = actionAnnotation
+
     def db_delete_actionAnnotation(self, actionAnnotation):
         self.is_dirty = True
         for i in xrange(len(self._db_actionAnnotations)):
             if self._db_actionAnnotations[i].db_id == actionAnnotation.db_id:
                 if not self._db_actionAnnotations[i].is_new:
-                    self.db_deleted_actionAnnotations.append(self._db_actionAnnotations[i])
+                    self.db_deleted_actionAnnotations.append(
+                        self._db_actionAnnotations[i])
                 del self._db_actionAnnotations[i]
                 break
         del self.db_actionAnnotations_id_index[actionAnnotation.db_id]
-        del self.db_actionAnnotations_action_id_index[(actionAnnotation.db_action_id,actionAnnotation.db_key)]
+        del self.db_actionAnnotations_action_id_index[
+            (actionAnnotation.db_action_id, actionAnnotation.db_key)]
         try:
-            del self.db_actionAnnotations_key_index[(actionAnnotation.db_key,actionAnnotation.db_value)]
+            del self.db_actionAnnotations_key_index[
+                (actionAnnotation.db_key, actionAnnotation.db_value)]
         except KeyError:
             pass
+
     def db_get_actionAnnotation(self, key):
         for i in xrange(len(self._db_actionAnnotations)):
             if self._db_actionAnnotations[i].db_id == key:
                 return self._db_actionAnnotations[i]
         return None
+
     def db_get_actionAnnotation_by_id(self, key):
         return self.db_actionAnnotations_id_index[key]
+
     def db_has_actionAnnotation_with_id(self, key):
         return key in self.db_actionAnnotations_id_index
+
     def db_get_actionAnnotation_by_action_id(self, key):
         return self.db_actionAnnotations_action_id_index[key]
+
     def db_has_actionAnnotation_with_action_id(self, key):
         return key in self.db_actionAnnotations_action_id_index
+
     def db_get_actionAnnotation_by_key(self, key):
         return self.db_actionAnnotations_key_index[key]
+
     def db_has_actionAnnotation_with_key(self, key):
         return key in self.db_actionAnnotations_key_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBRegistry(object):
 
@@ -19836,10 +22784,11 @@ class DBRegistry(object):
             self._db_packages = packages
             for v in self._db_packages:
                 self.db_packages_id_index[v.db_id] = v
-                self.db_packages_identifier_index[(v.db_identifier,v.db_version)] = v
+                self.db_packages_identifier_index[
+                    (v.db_identifier, v.db_version)] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBRegistry.do_copy(self)
 
@@ -19853,8 +22802,9 @@ class DBRegistry(object):
         if self._db_packages is None:
             cp._db_packages = []
         else:
-            cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
+            cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_packages]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -19864,11 +22814,13 @@ class DBRegistry(object):
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
             if hasattr(self, 'db_root_descriptor_id') and ('module_descriptor', self._db_root_descriptor_id) in id_remap:
-                cp._db_root_descriptor_id = id_remap[('module_descriptor', self._db_root_descriptor_id)]
-        
+                cp._db_root_descriptor_id = id_remap[
+                    ('module_descriptor', self._db_root_descriptor_id)]
+
         # recreate indices and set flags
         cp.db_packages_id_index = dict((v.db_id, v) for v in cp._db_packages)
-        cp.db_packages_identifier_index = dict(((v.db_identifier,v.db_version), v) for v in cp._db_packages)
+        cp.db_packages_identifier_index = dict(
+            ((v.db_identifier, v.db_version), v) for v in cp._db_packages)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -19880,59 +22832,66 @@ class DBRegistry(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_entity_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_entity_type, 
+            test_obj.assertEqual(self.db_entity_type,
                                  other.db_entity_type)
         alternate_key = (self.__class__.__name__, 'db_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_version, 
+            test_obj.assertEqual(self.db_version,
                                  other.db_version)
         alternate_key = (self.__class__.__name__, 'db_root_descriptor_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_root_descriptor_id, 
+            test_obj.assertEqual(self.db_root_descriptor_id,
                                  other.db_root_descriptor_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_last_modified')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_last_modified, 
+            test_obj.assertEqual(self.db_last_modified,
                                  other.db_last_modified)
         alternate_key = (self.__class__.__name__, 'db_packages')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_packages), 
+            test_obj.assertEqual(len(self.db_packages),
                                  len(other.db_packages))
-            for obj1, obj2 in izip(sorted(self.db_packages, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_packages, key=lambda x: x.db_id),
                                    sorted(other.db_packages, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -19979,7 +22938,8 @@ class DBRegistry(object):
                 new_obj.db_add_package(obj)
         elif hasattr(old_obj, 'db_packages') and old_obj.db_packages is not None:
             for obj in old_obj.db_packages:
-                new_obj.db_add_package(DBPackage.update_version(obj, trans_dict))
+                new_obj.db_add_package(
+                    DBPackage.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_packages') and hasattr(new_obj, 'db_deleted_packages'):
             for obj in old_obj.db_deleted_packages:
                 n_obj = DBPackage.update_version(obj, trans_dict)
@@ -19988,23 +22948,26 @@ class DBRegistry(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_packages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_package(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_packages)
         if remove:
             self.db_deleted_packages = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -20012,97 +22975,128 @@ class DBRegistry(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_entity_type(self):
         return self._db_entity_type
+
     def __set_db_entity_type(self, entity_type):
         self._db_entity_type = entity_type
         self.is_dirty = True
     db_entity_type = property(__get_db_entity_type, __set_db_entity_type)
+
     def db_add_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_change_entity_type(self, entity_type):
         self._db_entity_type = entity_type
+
     def db_delete_entity_type(self, entity_type):
         self._db_entity_type = None
-    
+
     def __get_db_version(self):
         return self._db_version
+
     def __set_db_version(self, version):
         self._db_version = version
         self.is_dirty = True
     db_version = property(__get_db_version, __set_db_version)
+
     def db_add_version(self, version):
         self._db_version = version
+
     def db_change_version(self, version):
         self._db_version = version
+
     def db_delete_version(self, version):
         self._db_version = None
-    
+
     def __get_db_root_descriptor_id(self):
         return self._db_root_descriptor_id
+
     def __set_db_root_descriptor_id(self, root_descriptor_id):
         self._db_root_descriptor_id = root_descriptor_id
         self.is_dirty = True
-    db_root_descriptor_id = property(__get_db_root_descriptor_id, __set_db_root_descriptor_id)
+    db_root_descriptor_id = property(
+        __get_db_root_descriptor_id, __set_db_root_descriptor_id)
+
     def db_add_root_descriptor_id(self, root_descriptor_id):
         self._db_root_descriptor_id = root_descriptor_id
+
     def db_change_root_descriptor_id(self, root_descriptor_id):
         self._db_root_descriptor_id = root_descriptor_id
+
     def db_delete_root_descriptor_id(self, root_descriptor_id):
         self._db_root_descriptor_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_last_modified(self):
         return self._db_last_modified
+
     def __set_db_last_modified(self, last_modified):
         self._db_last_modified = last_modified
         self.is_dirty = True
     db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+
     def db_add_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_change_last_modified(self, last_modified):
         self._db_last_modified = last_modified
+
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
-    
+
     def __get_db_packages(self):
         return self._db_packages
+
     def __set_db_packages(self, packages):
         self._db_packages = packages
         self.is_dirty = True
     db_packages = property(__get_db_packages, __set_db_packages)
+
     def db_get_packages(self):
         return self._db_packages
+
     def db_add_package(self, package):
         self.is_dirty = True
         self._db_packages.append(package)
         self.db_packages_id_index[package.db_id] = package
-        self.db_packages_identifier_index[(package.db_identifier,package.db_version)] = package
+        self.db_packages_identifier_index[
+            (package.db_identifier, package.db_version)] = package
+
     def db_change_package(self, package):
         self.is_dirty = True
         found = False
@@ -20114,7 +23108,9 @@ class DBRegistry(object):
         if not found:
             self._db_packages.append(package)
         self.db_packages_id_index[package.db_id] = package
-        self.db_packages_identifier_index[(package.db_identifier,package.db_version)] = package
+        self.db_packages_identifier_index[
+            (package.db_identifier, package.db_version)] = package
+
     def db_delete_package(self, package):
         self.is_dirty = True
         for i in xrange(len(self._db_packages)):
@@ -20124,23 +23120,30 @@ class DBRegistry(object):
                 del self._db_packages[i]
                 break
         del self.db_packages_id_index[package.db_id]
-        del self.db_packages_identifier_index[(package.db_identifier,package.db_version)]
+        del self.db_packages_identifier_index[
+            (package.db_identifier, package.db_version)]
+
     def db_get_package(self, key):
         for i in xrange(len(self._db_packages)):
             if self._db_packages[i].db_id == key:
                 return self._db_packages[i]
         return None
+
     def db_get_package_by_id(self, key):
         return self.db_packages_id_index[key]
+
     def db_has_package_with_id(self, key):
         return key in self.db_packages_id_index
+
     def db_get_package_by_identifier(self, key):
         return self.db_packages_identifier_index[key]
+
     def db_has_package_with_identifier(self, key):
         return key in self.db_packages_identifier_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmAgent(object):
 
@@ -20156,7 +23159,7 @@ class DBOpmAgent(object):
             self._db_accounts = accounts
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmAgent.do_copy(self)
 
@@ -20166,8 +23169,9 @@ class DBOpmAgent(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -20176,7 +23180,7 @@ class DBOpmAgent(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -20189,27 +23193,30 @@ class DBOpmAgent(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -20236,7 +23243,8 @@ class DBOpmAgent(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -20245,23 +23253,26 @@ class DBOpmAgent(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_accounts)
         if remove:
             self.db_deleted_accounts = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -20269,54 +23280,70 @@ class DBOpmAgent(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBProvEntity(object):
 
@@ -20339,7 +23366,7 @@ class DBProvEntity(object):
         self._db_is_part_of = is_part_of
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvEntity.do_copy(self)
 
@@ -20357,8 +23384,9 @@ class DBProvEntity(object):
                           vt_location_x=self._db_vt_location_x,
                           vt_location_y=self._db_vt_location_y)
         if self._db_is_part_of is not None:
-            cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_is_part_of = self._db_is_part_of.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -20367,7 +23395,7 @@ class DBProvEntity(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -20380,108 +23408,122 @@ class DBProvEntity(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_prov_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_type, 
+            test_obj.assertEqual(self.db_prov_type,
                                  other.db_prov_type)
         alternate_key = (self.__class__.__name__, 'db_prov_label')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_label, 
+            test_obj.assertEqual(self.db_prov_label,
                                  other.db_prov_label)
         alternate_key = (self.__class__.__name__, 'db_prov_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_value, 
+            test_obj.assertEqual(self.db_prov_value,
                                  other.db_prov_value)
         alternate_key = (self.__class__.__name__, 'db_vt_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_id, 
+            test_obj.assertEqual(self.db_vt_id,
                                  other.db_vt_id)
         alternate_key = (self.__class__.__name__, 'db_vt_type')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_type, 
+            test_obj.assertEqual(self.db_vt_type,
                                  other.db_vt_type)
         alternate_key = (self.__class__.__name__, 'db_vt_desc')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_desc, 
+            test_obj.assertEqual(self.db_vt_desc,
                                  other.db_vt_desc)
         alternate_key = (self.__class__.__name__, 'db_vt_package')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_package, 
+            test_obj.assertEqual(self.db_vt_package,
                                  other.db_vt_package)
         alternate_key = (self.__class__.__name__, 'db_vt_version')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_version, 
+            test_obj.assertEqual(self.db_vt_version,
                                  other.db_vt_version)
         alternate_key = (self.__class__.__name__, 'db_vt_cache')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_cache, 
+            test_obj.assertEqual(self.db_vt_cache,
                                  other.db_vt_cache)
         alternate_key = (self.__class__.__name__, 'db_vt_location_x')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_location_x, 
+            test_obj.assertEqual(self.db_vt_location_x,
                                  other.db_vt_location_x)
         alternate_key = (self.__class__.__name__, 'db_vt_location_y')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_vt_location_y, 
+            test_obj.assertEqual(self.db_vt_location_y,
                                  other.db_vt_location_y)
         alternate_key = (self.__class__.__name__, 'db_is_part_of')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_is_part_of is not None and other.db_is_part_of is not None:
-                self.db_is_part_of.deep_eq_test(other.db_is_part_of, test_obj, alternate_tests)
+                self.db_is_part_of.deep_eq_test(
+                    other.db_is_part_of, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_is_part_of, 
+                test_obj.assertEqual(self.db_is_part_of,
                                      other.db_is_part_of)
 
     @staticmethod
@@ -20556,7 +23598,8 @@ class DBProvEntity(object):
             new_obj.db_is_part_of = res
         elif hasattr(old_obj, 'db_is_part_of') and old_obj.db_is_part_of is not None:
             obj = old_obj.db_is_part_of
-            new_obj.db_add_is_part_of(DBIsPartOf.update_version(obj, trans_dict))
+            new_obj.db_add_is_part_of(
+                DBIsPartOf.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_is_part_of') and hasattr(new_obj, 'db_deleted_is_part_of'):
             for obj in old_obj.db_deleted_is_part_of:
                 n_obj = DBIsPartOf.update_version(obj, trans_dict)
@@ -20565,199 +23608,256 @@ class DBProvEntity(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_is_part_of is not None:
-            children.extend(self._db_is_part_of.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_is_part_of.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_is_part_of = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_is_part_of)
         if remove:
             self.db_deleted_is_part_of = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_is_part_of is not None and self._db_is_part_of.has_changes():
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_prov_type(self):
         return self._db_prov_type
+
     def __set_db_prov_type(self, prov_type):
         self._db_prov_type = prov_type
         self.is_dirty = True
     db_prov_type = property(__get_db_prov_type, __set_db_prov_type)
+
     def db_add_prov_type(self, prov_type):
         self._db_prov_type = prov_type
+
     def db_change_prov_type(self, prov_type):
         self._db_prov_type = prov_type
+
     def db_delete_prov_type(self, prov_type):
         self._db_prov_type = None
-    
+
     def __get_db_prov_label(self):
         return self._db_prov_label
+
     def __set_db_prov_label(self, prov_label):
         self._db_prov_label = prov_label
         self.is_dirty = True
     db_prov_label = property(__get_db_prov_label, __set_db_prov_label)
+
     def db_add_prov_label(self, prov_label):
         self._db_prov_label = prov_label
+
     def db_change_prov_label(self, prov_label):
         self._db_prov_label = prov_label
+
     def db_delete_prov_label(self, prov_label):
         self._db_prov_label = None
-    
+
     def __get_db_prov_value(self):
         return self._db_prov_value
+
     def __set_db_prov_value(self, prov_value):
         self._db_prov_value = prov_value
         self.is_dirty = True
     db_prov_value = property(__get_db_prov_value, __set_db_prov_value)
+
     def db_add_prov_value(self, prov_value):
         self._db_prov_value = prov_value
+
     def db_change_prov_value(self, prov_value):
         self._db_prov_value = prov_value
+
     def db_delete_prov_value(self, prov_value):
         self._db_prov_value = None
-    
+
     def __get_db_vt_id(self):
         return self._db_vt_id
+
     def __set_db_vt_id(self, vt_id):
         self._db_vt_id = vt_id
         self.is_dirty = True
     db_vt_id = property(__get_db_vt_id, __set_db_vt_id)
+
     def db_add_vt_id(self, vt_id):
         self._db_vt_id = vt_id
+
     def db_change_vt_id(self, vt_id):
         self._db_vt_id = vt_id
+
     def db_delete_vt_id(self, vt_id):
         self._db_vt_id = None
-    
+
     def __get_db_vt_type(self):
         return self._db_vt_type
+
     def __set_db_vt_type(self, vt_type):
         self._db_vt_type = vt_type
         self.is_dirty = True
     db_vt_type = property(__get_db_vt_type, __set_db_vt_type)
+
     def db_add_vt_type(self, vt_type):
         self._db_vt_type = vt_type
+
     def db_change_vt_type(self, vt_type):
         self._db_vt_type = vt_type
+
     def db_delete_vt_type(self, vt_type):
         self._db_vt_type = None
-    
+
     def __get_db_vt_desc(self):
         return self._db_vt_desc
+
     def __set_db_vt_desc(self, vt_desc):
         self._db_vt_desc = vt_desc
         self.is_dirty = True
     db_vt_desc = property(__get_db_vt_desc, __set_db_vt_desc)
+
     def db_add_vt_desc(self, vt_desc):
         self._db_vt_desc = vt_desc
+
     def db_change_vt_desc(self, vt_desc):
         self._db_vt_desc = vt_desc
+
     def db_delete_vt_desc(self, vt_desc):
         self._db_vt_desc = None
-    
+
     def __get_db_vt_package(self):
         return self._db_vt_package
+
     def __set_db_vt_package(self, vt_package):
         self._db_vt_package = vt_package
         self.is_dirty = True
     db_vt_package = property(__get_db_vt_package, __set_db_vt_package)
+
     def db_add_vt_package(self, vt_package):
         self._db_vt_package = vt_package
+
     def db_change_vt_package(self, vt_package):
         self._db_vt_package = vt_package
+
     def db_delete_vt_package(self, vt_package):
         self._db_vt_package = None
-    
+
     def __get_db_vt_version(self):
         return self._db_vt_version
+
     def __set_db_vt_version(self, vt_version):
         self._db_vt_version = vt_version
         self.is_dirty = True
     db_vt_version = property(__get_db_vt_version, __set_db_vt_version)
+
     def db_add_vt_version(self, vt_version):
         self._db_vt_version = vt_version
+
     def db_change_vt_version(self, vt_version):
         self._db_vt_version = vt_version
+
     def db_delete_vt_version(self, vt_version):
         self._db_vt_version = None
-    
+
     def __get_db_vt_cache(self):
         return self._db_vt_cache
+
     def __set_db_vt_cache(self, vt_cache):
         self._db_vt_cache = vt_cache
         self.is_dirty = True
     db_vt_cache = property(__get_db_vt_cache, __set_db_vt_cache)
+
     def db_add_vt_cache(self, vt_cache):
         self._db_vt_cache = vt_cache
+
     def db_change_vt_cache(self, vt_cache):
         self._db_vt_cache = vt_cache
+
     def db_delete_vt_cache(self, vt_cache):
         self._db_vt_cache = None
-    
+
     def __get_db_vt_location_x(self):
         return self._db_vt_location_x
+
     def __set_db_vt_location_x(self, vt_location_x):
         self._db_vt_location_x = vt_location_x
         self.is_dirty = True
     db_vt_location_x = property(__get_db_vt_location_x, __set_db_vt_location_x)
+
     def db_add_vt_location_x(self, vt_location_x):
         self._db_vt_location_x = vt_location_x
+
     def db_change_vt_location_x(self, vt_location_x):
         self._db_vt_location_x = vt_location_x
+
     def db_delete_vt_location_x(self, vt_location_x):
         self._db_vt_location_x = None
-    
+
     def __get_db_vt_location_y(self):
         return self._db_vt_location_y
+
     def __set_db_vt_location_y(self, vt_location_y):
         self._db_vt_location_y = vt_location_y
         self.is_dirty = True
     db_vt_location_y = property(__get_db_vt_location_y, __set_db_vt_location_y)
+
     def db_add_vt_location_y(self, vt_location_y):
         self._db_vt_location_y = vt_location_y
+
     def db_change_vt_location_y(self, vt_location_y):
         self._db_vt_location_y = vt_location_y
+
     def db_delete_vt_location_y(self, vt_location_y):
         self._db_vt_location_y = None
-    
+
     def __get_db_is_part_of(self):
         return self._db_is_part_of
+
     def __set_db_is_part_of(self, is_part_of):
         self._db_is_part_of = is_part_of
         self.is_dirty = True
     db_is_part_of = property(__get_db_is_part_of, __set_db_is_part_of)
+
     def db_add_is_part_of(self, is_part_of):
         self._db_is_part_of = is_part_of
+
     def db_change_is_part_of(self, is_part_of):
         self._db_is_part_of = is_part_of
+
     def db_delete_is_part_of(self, is_part_of):
         if not self.is_new:
             self.db_deleted_is_part_of.append(self._db_is_part_of)
         self._db_is_part_of = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBAnnotation(object):
 
@@ -20769,7 +23869,7 @@ class DBAnnotation(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBAnnotation.do_copy(self)
 
@@ -20777,7 +23877,7 @@ class DBAnnotation(object):
         cp = DBAnnotation(id=self._db_id,
                           key=self._db_key,
                           value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -20786,7 +23886,7 @@ class DBAnnotation(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -20799,25 +23899,28 @@ class DBAnnotation(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_key')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_key, 
+            test_obj.assertEqual(self.db_key,
                                  other.db_key)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
 
     @staticmethod
@@ -20846,56 +23949,72 @@ class DBAnnotation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_key(self):
         return self._db_key
+
     def __set_db_key(self, key):
         self._db_key = key
         self.is_dirty = True
     db_key = property(__get_db_key, __set_db_key)
+
     def db_add_key(self, key):
         self._db_key = key
+
     def db_change_key(self, key):
         self._db_key = key
+
     def db_delete_key(self, key):
         self._db_key = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmTime(object):
 
@@ -20907,7 +24026,7 @@ class DBOpmTime(object):
         self._db_clock_id = clock_id
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmTime.do_copy(self)
 
@@ -20915,7 +24034,7 @@ class DBOpmTime(object):
         cp = DBOpmTime(no_later_than=self._db_no_later_than,
                        no_earlier_than=self._db_no_earlier_than,
                        clock_id=self._db_clock_id)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -20924,7 +24043,7 @@ class DBOpmTime(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -20937,25 +24056,28 @@ class DBOpmTime(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_no_later_than, 
+            test_obj.assertEqual(self.db_no_later_than,
                                  other.db_no_later_than)
         alternate_key = (self.__class__.__name__, 'db_no_earlier_than')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_no_earlier_than, 
+            test_obj.assertEqual(self.db_no_earlier_than,
                                  other.db_no_earlier_than)
         alternate_key = (self.__class__.__name__, 'db_clock_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_clock_id, 
+            test_obj.assertEqual(self.db_clock_id,
                                  other.db_clock_id)
 
     @staticmethod
@@ -20984,54 +24106,69 @@ class DBOpmTime(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_no_later_than(self):
         return self._db_no_later_than
+
     def __set_db_no_later_than(self, no_later_than):
         self._db_no_later_than = no_later_than
         self.is_dirty = True
     db_no_later_than = property(__get_db_no_later_than, __set_db_no_later_than)
+
     def db_add_no_later_than(self, no_later_than):
         self._db_no_later_than = no_later_than
+
     def db_change_no_later_than(self, no_later_than):
         self._db_no_later_than = no_later_than
+
     def db_delete_no_later_than(self, no_later_than):
         self._db_no_later_than = None
-    
+
     def __get_db_no_earlier_than(self):
         return self._db_no_earlier_than
+
     def __set_db_no_earlier_than(self, no_earlier_than):
         self._db_no_earlier_than = no_earlier_than
         self.is_dirty = True
-    db_no_earlier_than = property(__get_db_no_earlier_than, __set_db_no_earlier_than)
+    db_no_earlier_than = property(
+        __get_db_no_earlier_than, __set_db_no_earlier_than)
+
     def db_add_no_earlier_than(self, no_earlier_than):
         self._db_no_earlier_than = no_earlier_than
+
     def db_change_no_earlier_than(self, no_earlier_than):
         self._db_no_earlier_than = no_earlier_than
+
     def db_delete_no_earlier_than(self, no_earlier_than):
         self._db_no_earlier_than = None
-    
+
     def __get_db_clock_id(self):
         return self._db_clock_id
+
     def __set_db_clock_id(self, clock_id):
         self._db_clock_id = clock_id
         self.is_dirty = True
     db_clock_id = property(__get_db_clock_id, __set_db_clock_id)
+
     def db_add_clock_id(self, clock_id):
         self._db_clock_id = clock_id
+
     def db_change_clock_id(self, clock_id):
         self._db_clock_id = clock_id
+
     def db_delete_clock_id(self, clock_id):
         self._db_clock_id = None
-    
 
 
 class DBParameterExploration(object):
@@ -21056,7 +24193,7 @@ class DBParameterExploration(object):
                 self.db_functions_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBParameterExploration.do_copy(self)
 
@@ -21071,8 +24208,9 @@ class DBParameterExploration(object):
         if self._db_functions is None:
             cp._db_functions = []
         else:
-            cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
-        
+            cp._db_functions = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -21083,7 +24221,7 @@ class DBParameterExploration(object):
             cp.db_id = new_id
             if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
                 cp._db_action_id = id_remap[('action', self._db_action_id)]
-        
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         if not new_ids:
@@ -21097,67 +24235,75 @@ class DBParameterExploration(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_action_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_action_id, 
+            test_obj.assertEqual(self.db_action_id,
                                  other.db_action_id)
         alternate_key = (self.__class__.__name__, 'db_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_name, 
+            test_obj.assertEqual(self.db_name,
                                  other.db_name)
         alternate_key = (self.__class__.__name__, 'db_date')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_date, 
+            test_obj.assertEqual(self.db_date,
                                  other.db_date)
         alternate_key = (self.__class__.__name__, 'db_user')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_user, 
+            test_obj.assertEqual(self.db_user,
                                  other.db_user)
         alternate_key = (self.__class__.__name__, 'db_dims')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_dims, 
+            test_obj.assertEqual(self.db_dims,
                                  other.db_dims)
         alternate_key = (self.__class__.__name__, 'db_layout')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_layout, 
+            test_obj.assertEqual(self.db_layout,
                                  other.db_layout)
         alternate_key = (self.__class__.__name__, 'db_functions')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_functions), 
+            test_obj.assertEqual(len(self.db_functions),
                                  len(other.db_functions))
-            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_functions, key=lambda x: x.db_id),
                                    sorted(other.db_functions, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -21209,7 +24355,8 @@ class DBParameterExploration(object):
                 new_obj.db_add_function(obj)
         elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
-                new_obj.db_add_function(DBPEFunction.update_version(obj, trans_dict))
+                new_obj.db_add_function(
+                    DBPEFunction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_functions') and hasattr(new_obj, 'db_deleted_functions'):
             for obj in old_obj.db_deleted_functions:
                 n_obj = DBPEFunction.update_version(obj, trans_dict)
@@ -21218,23 +24365,26 @@ class DBParameterExploration(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_functions:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_function(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_functions)
         if remove:
             self.db_deleted_functions = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -21242,109 +24392,142 @@ class DBParameterExploration(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_action_id(self):
         return self._db_action_id
+
     def __set_db_action_id(self, action_id):
         self._db_action_id = action_id
         self.is_dirty = True
     db_action_id = property(__get_db_action_id, __set_db_action_id)
+
     def db_add_action_id(self, action_id):
         self._db_action_id = action_id
+
     def db_change_action_id(self, action_id):
         self._db_action_id = action_id
+
     def db_delete_action_id(self, action_id):
         self._db_action_id = None
-    
+
     def __get_db_name(self):
         return self._db_name
+
     def __set_db_name(self, name):
         self._db_name = name
         self.is_dirty = True
     db_name = property(__get_db_name, __set_db_name)
+
     def db_add_name(self, name):
         self._db_name = name
+
     def db_change_name(self, name):
         self._db_name = name
+
     def db_delete_name(self, name):
         self._db_name = None
-    
+
     def __get_db_date(self):
         return self._db_date
+
     def __set_db_date(self, date):
         self._db_date = date
         self.is_dirty = True
     db_date = property(__get_db_date, __set_db_date)
+
     def db_add_date(self, date):
         self._db_date = date
+
     def db_change_date(self, date):
         self._db_date = date
+
     def db_delete_date(self, date):
         self._db_date = None
-    
+
     def __get_db_user(self):
         return self._db_user
+
     def __set_db_user(self, user):
         self._db_user = user
         self.is_dirty = True
     db_user = property(__get_db_user, __set_db_user)
+
     def db_add_user(self, user):
         self._db_user = user
+
     def db_change_user(self, user):
         self._db_user = user
+
     def db_delete_user(self, user):
         self._db_user = None
-    
+
     def __get_db_dims(self):
         return self._db_dims
+
     def __set_db_dims(self, dims):
         self._db_dims = dims
         self.is_dirty = True
     db_dims = property(__get_db_dims, __set_db_dims)
+
     def db_add_dims(self, dims):
         self._db_dims = dims
+
     def db_change_dims(self, dims):
         self._db_dims = dims
+
     def db_delete_dims(self, dims):
         self._db_dims = None
-    
+
     def __get_db_layout(self):
         return self._db_layout
+
     def __set_db_layout(self, layout):
         self._db_layout = layout
         self.is_dirty = True
     db_layout = property(__get_db_layout, __set_db_layout)
+
     def db_add_layout(self, layout):
         self._db_layout = layout
+
     def db_change_layout(self, layout):
         self._db_layout = layout
+
     def db_delete_layout(self, layout):
         self._db_layout = None
-    
+
     def __get_db_functions(self):
         return self._db_functions
+
     def __set_db_functions(self, functions):
         self._db_functions = functions
         self.is_dirty = True
     db_functions = property(__get_db_functions, __set_db_functions)
+
     def db_get_functions(self):
         return self._db_functions
+
     def db_add_function(self, function):
         self.is_dirty = True
         self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
@@ -21356,6 +24539,7 @@ class DBParameterExploration(object):
         if not found:
             self._db_functions.append(function)
         self.db_functions_id_index[function.db_id] = function
+
     def db_delete_function(self, function):
         self.is_dirty = True
         for i in xrange(len(self._db_functions)):
@@ -21365,18 +24549,22 @@ class DBParameterExploration(object):
                 del self._db_functions[i]
                 break
         del self.db_functions_id_index[function.db_id]
+
     def db_get_function(self, key):
         for i in xrange(len(self._db_functions)):
             if self._db_functions[i].db_id == key:
                 return self._db_functions[i]
         return None
+
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
+
     def db_has_function_with_id(self, key):
         return key in self.db_functions_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBMashupActionAnnotation(object):
 
@@ -21391,7 +24579,7 @@ class DBMashupActionAnnotation(object):
         self._db_user = user
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBMashupActionAnnotation.do_copy(self)
 
@@ -21402,7 +24590,7 @@ class DBMashupActionAnnotation(object):
                                       action_id=self._db_action_id,
                                       date=self._db_date,
                                       user=self._db_user)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -21412,8 +24600,9 @@ class DBMashupActionAnnotation(object):
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
             if hasattr(self, 'db_action_id') and ('mashup_action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('mashup_action', self._db_action_id)]
-        
+                cp._db_action_id = id_remap[
+                    ('mashup_action', self._db_action_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -21426,49 +24615,55 @@ class DBMashupActionAnnotation(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_key')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_key, 
+            test_obj.assertEqual(self.db_key,
                                  other.db_key)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_value, 
+            test_obj.assertEqual(self.db_value,
                                  other.db_value)
         alternate_key = (self.__class__.__name__, 'db_action_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_action_id, 
+            test_obj.assertEqual(self.db_action_id,
                                  other.db_action_id)
         alternate_key = (self.__class__.__name__, 'db_date')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_date, 
+            test_obj.assertEqual(self.db_date,
                                  other.db_date)
         alternate_key = (self.__class__.__name__, 'db_user')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_user, 
+            test_obj.assertEqual(self.db_user,
                                  other.db_user)
 
     @staticmethod
@@ -21512,95 +24707,123 @@ class DBMashupActionAnnotation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         return [(self, parent[0], parent[1])]
+
     def db_deleted_children(self, remove=False):
         children = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_key(self):
         return self._db_key
+
     def __set_db_key(self, key):
         self._db_key = key
         self.is_dirty = True
     db_key = property(__get_db_key, __set_db_key)
+
     def db_add_key(self, key):
         self._db_key = key
+
     def db_change_key(self, key):
         self._db_key = key
+
     def db_delete_key(self, key):
         self._db_key = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         self._db_value = None
-    
+
     def __get_db_action_id(self):
         return self._db_action_id
+
     def __set_db_action_id(self, action_id):
         self._db_action_id = action_id
         self.is_dirty = True
     db_action_id = property(__get_db_action_id, __set_db_action_id)
+
     def db_add_action_id(self, action_id):
         self._db_action_id = action_id
+
     def db_change_action_id(self, action_id):
         self._db_action_id = action_id
+
     def db_delete_action_id(self, action_id):
         self._db_action_id = None
-    
+
     def __get_db_date(self):
         return self._db_date
+
     def __set_db_date(self, date):
         self._db_date = date
         self.is_dirty = True
     db_date = property(__get_db_date, __set_db_date)
+
     def db_add_date(self, date):
         self._db_date = date
+
     def db_change_date(self, date):
         self._db_date = date
+
     def db_delete_date(self, date):
         self._db_date = None
-    
+
     def __get_db_user(self):
         return self._db_user
+
     def __set_db_user(self, user):
         self._db_user = user
         self.is_dirty = True
     db_user = property(__get_db_user, __set_db_user)
+
     def db_add_user(self, user):
         self._db_user = user
+
     def db_change_user(self, user):
         self._db_user = user
+
     def db_delete_user(self, user):
         self._db_user = None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBOpmProcess(object):
 
@@ -21617,7 +24840,7 @@ class DBOpmProcess(object):
             self._db_accounts = accounts
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmProcess.do_copy(self)
 
@@ -21628,8 +24851,9 @@ class DBOpmProcess(object):
         if self._db_accounts is None:
             cp._db_accounts = []
         else:
-            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+            cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_accounts]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -21638,7 +24862,7 @@ class DBOpmProcess(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -21651,30 +24875,34 @@ class DBOpmProcess(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_value')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_value is not None and other.db_value is not None:
-                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+                self.db_value.deep_eq_test(
+                    other.db_value, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_value, 
+                test_obj.assertEqual(self.db_value,
                                      other.db_value)
         alternate_key = (self.__class__.__name__, 'db_accounts')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_accounts), 
+            test_obj.assertEqual(len(self.db_accounts),
                                  len(other.db_accounts))
-            for obj1, obj2 in izip(self.db_accounts, 
+            for obj1, obj2 in izip(self.db_accounts,
                                    other.db_accounts):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -21695,7 +24923,8 @@ class DBOpmProcess(object):
             new_obj.db_value = res
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
-            new_obj.db_add_value(DBOpmProcessValue.update_version(obj, trans_dict))
+            new_obj.db_add_value(
+                DBOpmProcessValue.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
             for obj in old_obj.db_deleted_value:
                 n_obj = DBOpmProcessValue.update_version(obj, trans_dict)
@@ -21706,7 +24935,8 @@ class DBOpmProcess(object):
                 new_obj.db_add_account(obj)
         elif hasattr(old_obj, 'db_accounts') and old_obj.db_accounts is not None:
             for obj in old_obj.db_accounts:
-                new_obj.db_add_account(DBOpmAccountId.update_version(obj, trans_dict))
+                new_obj.db_add_account(
+                    DBOpmAccountId.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_accounts') and hasattr(new_obj, 'db_deleted_accounts'):
             for obj in old_obj.db_deleted_accounts:
                 n_obj = DBOpmAccountId.update_version(obj, trans_dict)
@@ -21715,21 +24945,24 @@ class DBOpmProcess(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_value.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         to_del = []
         for child in self.db_accounts:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_account(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_value)
@@ -21738,6 +24971,7 @@ class DBOpmProcess(object):
             self.db_deleted_value = []
             self.db_deleted_accounts = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -21747,56 +24981,72 @@ class DBOpmProcess(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         if not self.is_new:
             self.db_deleted_value.append(self._db_value)
         self._db_value = None
-    
+
     def __get_db_accounts(self):
         return self._db_accounts
+
     def __set_db_accounts(self, accounts):
         self._db_accounts = accounts
         self.is_dirty = True
     db_accounts = property(__get_db_accounts, __set_db_accounts)
+
     def db_get_accounts(self):
         return self._db_accounts
+
     def db_add_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_change_account(self, account):
         self.is_dirty = True
         self._db_accounts.append(account)
+
     def db_delete_account(self, account):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_account(self, key):
         return None
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBDisabledPackages(object):
 
@@ -21813,7 +25063,7 @@ class DBDisabledPackages(object):
                 self.db_packages_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBDisabledPackages.do_copy(self)
 
@@ -21822,8 +25072,9 @@ class DBDisabledPackages(object):
         if self._db_packages is None:
             cp._db_packages = []
         else:
-            cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
+            cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap)
+                               for v in self._db_packages]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -21832,9 +25083,10 @@ class DBDisabledPackages(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
-        cp.db_packages_name_index = dict((v.db_name, v) for v in cp._db_packages)
+        cp.db_packages_name_index = dict(
+            (v.db_name, v) for v in cp._db_packages)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -21846,11 +25098,12 @@ class DBDisabledPackages(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_packages), 
+            test_obj.assertEqual(len(self.db_packages),
                                  len(other.db_packages))
-            for obj1, obj2 in izip(self.db_packages, 
+            for obj1, obj2 in izip(self.db_packages,
                                    other.db_packages):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -21867,7 +25120,8 @@ class DBDisabledPackages(object):
                 new_obj.db_add_package(obj)
         elif hasattr(old_obj, 'db_packages') and old_obj.db_packages is not None:
             for obj in old_obj.db_packages:
-                new_obj.db_add_package(DBStartupPackage.update_version(obj, trans_dict))
+                new_obj.db_add_package(
+                    DBStartupPackage.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_packages') and hasattr(new_obj, 'db_deleted_packages'):
             for obj in old_obj.db_deleted_packages:
                 n_obj = DBStartupPackage.update_version(obj, trans_dict)
@@ -21876,23 +25130,26 @@ class DBDisabledPackages(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_packages:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_package(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_packages)
         if remove:
             self.db_deleted_packages = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -21900,32 +25157,40 @@ class DBDisabledPackages(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_packages(self):
         return self._db_packages
+
     def __set_db_packages(self, packages):
         self._db_packages = packages
         self.is_dirty = True
     db_packages = property(__get_db_packages, __set_db_packages)
+
     def db_get_packages(self):
         return self._db_packages
+
     def db_add_package(self, package):
         self.is_dirty = True
         self._db_packages.append(package)
         self.db_packages_name_index[package.db_name] = package
+
     def db_change_package(self, package):
         self.is_dirty = True
         self._db_packages.append(package)
         self.db_packages_name_index[package.db_name] = package
+
     def db_delete_package(self, package):
         self.is_dirty = True
         raise Exception('Cannot delete a non-keyed object')
+
     def db_get_package(self, key):
         return None
+
     def db_get_package_by_name(self, key):
         return self.db_packages_name_index[key]
+
     def db_has_package_with_name(self, key):
         return key in self.db_packages_name_index
-    
 
 
 class DBModuleExec(object):
@@ -21960,7 +25225,7 @@ class DBModuleExec(object):
                 self.db_loop_execs_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBModuleExec.do_copy(self)
 
@@ -21977,12 +25242,14 @@ class DBModuleExec(object):
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
-            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+            cp._db_annotations = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_loop_execs is None:
             cp._db_loop_execs = []
         else:
-            cp._db_loop_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_execs]
-        
+            cp._db_loop_execs = [
+                v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_execs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -21995,10 +25262,12 @@ class DBModuleExec(object):
                 cp._db_module_id = id_remap[('module', self._db_module_id)]
             if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
                 cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
-        
+
         # recreate indices and set flags
-        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
-        cp.db_loop_execs_id_index = dict((v.db_id, v) for v in cp._db_loop_execs)
+        cp.db_annotations_id_index = dict(
+            (v.db_id, v) for v in cp._db_annotations)
+        cp.db_loop_execs_id_index = dict(
+            (v.db_id, v) for v in cp._db_loop_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -22010,94 +25279,105 @@ class DBModuleExec(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_id, 
+            test_obj.assertEqual(self.db_id,
                                  other.db_id)
         alternate_key = (self.__class__.__name__, 'db_ts_start')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_start, 
+            test_obj.assertEqual(self.db_ts_start,
                                  other.db_ts_start)
         alternate_key = (self.__class__.__name__, 'db_ts_end')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_ts_end, 
+            test_obj.assertEqual(self.db_ts_end,
                                  other.db_ts_end)
         alternate_key = (self.__class__.__name__, 'db_cached')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_cached, 
+            test_obj.assertEqual(self.db_cached,
                                  other.db_cached)
         alternate_key = (self.__class__.__name__, 'db_module_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_module_id, 
+            test_obj.assertEqual(self.db_module_id,
                                  other.db_module_id)
         alternate_key = (self.__class__.__name__, 'db_module_name')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_module_name, 
+            test_obj.assertEqual(self.db_module_name,
                                  other.db_module_name)
         alternate_key = (self.__class__.__name__, 'db_completed')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_completed, 
+            test_obj.assertEqual(self.db_completed,
                                  other.db_completed)
         alternate_key = (self.__class__.__name__, 'db_error')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_error, 
+            test_obj.assertEqual(self.db_error,
                                  other.db_error)
         alternate_key = (self.__class__.__name__, 'db_machine_id')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_machine_id, 
+            test_obj.assertEqual(self.db_machine_id,
                                  other.db_machine_id)
         alternate_key = (self.__class__.__name__, 'db_annotations')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_annotations), 
+            test_obj.assertEqual(len(self.db_annotations),
                                  len(other.db_annotations))
-            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_annotations, key=lambda x: x.db_id),
                                    sorted(other.db_annotations, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
         alternate_key = (self.__class__.__name__, 'db_loop_execs')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(len(self.db_loop_execs), 
+            test_obj.assertEqual(len(self.db_loop_execs),
                                  len(other.db_loop_execs))
-            for obj1, obj2 in izip(sorted(self.db_loop_execs, key=lambda x: x.db_id), 
+            for obj1, obj2 in izip(sorted(self.db_loop_execs, key=lambda x: x.db_id),
                                    sorted(other.db_loop_execs, key=lambda x: x.db_id)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
@@ -22159,7 +25439,8 @@ class DBModuleExec(object):
                 new_obj.db_add_annotation(obj)
         elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
-                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+                new_obj.db_add_annotation(
+                    DBAnnotation.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_annotations') and hasattr(new_obj, 'db_deleted_annotations'):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
@@ -22170,7 +25451,8 @@ class DBModuleExec(object):
                 new_obj.db_add_loop_exec(obj)
         elif hasattr(old_obj, 'db_loop_execs') and old_obj.db_loop_execs is not None:
             for obj in old_obj.db_loop_execs:
-                new_obj.db_add_loop_exec(DBLoopExec.update_version(obj, trans_dict))
+                new_obj.db_add_loop_exec(
+                    DBLoopExec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_loop_execs') and hasattr(new_obj, 'db_deleted_loop_execs'):
             for obj in old_obj.db_deleted_loop_execs:
                 n_obj = DBLoopExec.update_version(obj, trans_dict)
@@ -22179,24 +25461,27 @@ class DBModuleExec(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         to_del = []
         for child in self.db_annotations:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
         for child in self.db_loop_execs:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(child.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
             self.db_delete_loop_exec(child)
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_annotations)
@@ -22205,6 +25490,7 @@ class DBModuleExec(object):
             self.db_deleted_annotations = []
             self.db_deleted_loop_execs = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -22215,135 +25501,176 @@ class DBModuleExec(object):
             if child.has_changes():
                 return True
         return False
+
     def __get_db_id(self):
         return self._db_id
+
     def __set_db_id(self, id):
         self._db_id = id
         self.is_dirty = True
     db_id = property(__get_db_id, __set_db_id)
+
     def db_add_id(self, id):
         self._db_id = id
+
     def db_change_id(self, id):
         self._db_id = id
+
     def db_delete_id(self, id):
         self._db_id = None
-    
+
     def __get_db_ts_start(self):
         return self._db_ts_start
+
     def __set_db_ts_start(self, ts_start):
         self._db_ts_start = ts_start
         self.is_dirty = True
     db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+
     def db_add_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_change_ts_start(self, ts_start):
         self._db_ts_start = ts_start
+
     def db_delete_ts_start(self, ts_start):
         self._db_ts_start = None
-    
+
     def __get_db_ts_end(self):
         return self._db_ts_end
+
     def __set_db_ts_end(self, ts_end):
         self._db_ts_end = ts_end
         self.is_dirty = True
     db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+
     def db_add_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_change_ts_end(self, ts_end):
         self._db_ts_end = ts_end
+
     def db_delete_ts_end(self, ts_end):
         self._db_ts_end = None
-    
+
     def __get_db_cached(self):
         return self._db_cached
+
     def __set_db_cached(self, cached):
         self._db_cached = cached
         self.is_dirty = True
     db_cached = property(__get_db_cached, __set_db_cached)
+
     def db_add_cached(self, cached):
         self._db_cached = cached
+
     def db_change_cached(self, cached):
         self._db_cached = cached
+
     def db_delete_cached(self, cached):
         self._db_cached = None
-    
+
     def __get_db_module_id(self):
         return self._db_module_id
+
     def __set_db_module_id(self, module_id):
         self._db_module_id = module_id
         self.is_dirty = True
     db_module_id = property(__get_db_module_id, __set_db_module_id)
+
     def db_add_module_id(self, module_id):
         self._db_module_id = module_id
+
     def db_change_module_id(self, module_id):
         self._db_module_id = module_id
+
     def db_delete_module_id(self, module_id):
         self._db_module_id = None
-    
+
     def __get_db_module_name(self):
         return self._db_module_name
+
     def __set_db_module_name(self, module_name):
         self._db_module_name = module_name
         self.is_dirty = True
     db_module_name = property(__get_db_module_name, __set_db_module_name)
+
     def db_add_module_name(self, module_name):
         self._db_module_name = module_name
+
     def db_change_module_name(self, module_name):
         self._db_module_name = module_name
+
     def db_delete_module_name(self, module_name):
         self._db_module_name = None
-    
+
     def __get_db_completed(self):
         return self._db_completed
+
     def __set_db_completed(self, completed):
         self._db_completed = completed
         self.is_dirty = True
     db_completed = property(__get_db_completed, __set_db_completed)
+
     def db_add_completed(self, completed):
         self._db_completed = completed
+
     def db_change_completed(self, completed):
         self._db_completed = completed
+
     def db_delete_completed(self, completed):
         self._db_completed = None
-    
+
     def __get_db_error(self):
         return self._db_error
+
     def __set_db_error(self, error):
         self._db_error = error
         self.is_dirty = True
     db_error = property(__get_db_error, __set_db_error)
+
     def db_add_error(self, error):
         self._db_error = error
+
     def db_change_error(self, error):
         self._db_error = error
+
     def db_delete_error(self, error):
         self._db_error = None
-    
+
     def __get_db_machine_id(self):
         return self._db_machine_id
+
     def __set_db_machine_id(self, machine_id):
         self._db_machine_id = machine_id
         self.is_dirty = True
     db_machine_id = property(__get_db_machine_id, __set_db_machine_id)
+
     def db_add_machine_id(self, machine_id):
         self._db_machine_id = machine_id
+
     def db_change_machine_id(self, machine_id):
         self._db_machine_id = machine_id
+
     def db_delete_machine_id(self, machine_id):
         self._db_machine_id = None
-    
+
     def __get_db_annotations(self):
         return self._db_annotations
+
     def __set_db_annotations(self, annotations):
         self._db_annotations = annotations
         self.is_dirty = True
     db_annotations = property(__get_db_annotations, __set_db_annotations)
+
     def db_get_annotations(self):
         return self._db_annotations
+
     def db_add_annotation(self, annotation):
         self.is_dirty = True
         self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
@@ -22355,6 +25682,7 @@ class DBModuleExec(object):
         if not found:
             self._db_annotations.append(annotation)
         self.db_annotations_id_index[annotation.db_id] = annotation
+
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
         for i in xrange(len(self._db_annotations)):
@@ -22364,28 +25692,35 @@ class DBModuleExec(object):
                 del self._db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
+
     def db_get_annotation(self, key):
         for i in xrange(len(self._db_annotations)):
             if self._db_annotations[i].db_id == key:
                 return self._db_annotations[i]
         return None
+
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
+
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
-    
+
     def __get_db_loop_execs(self):
         return self._db_loop_execs
+
     def __set_db_loop_execs(self, loop_execs):
         self._db_loop_execs = loop_execs
         self.is_dirty = True
     db_loop_execs = property(__get_db_loop_execs, __set_db_loop_execs)
+
     def db_get_loop_execs(self):
         return self._db_loop_execs
+
     def db_add_loop_exec(self, loop_exec):
         self.is_dirty = True
         self._db_loop_execs.append(loop_exec)
         self.db_loop_execs_id_index[loop_exec.db_id] = loop_exec
+
     def db_change_loop_exec(self, loop_exec):
         self.is_dirty = True
         found = False
@@ -22397,6 +25732,7 @@ class DBModuleExec(object):
         if not found:
             self._db_loop_execs.append(loop_exec)
         self.db_loop_execs_id_index[loop_exec.db_id] = loop_exec
+
     def db_delete_loop_exec(self, loop_exec):
         self.is_dirty = True
         for i in xrange(len(self._db_loop_execs)):
@@ -22406,18 +25742,22 @@ class DBModuleExec(object):
                 del self._db_loop_execs[i]
                 break
         del self.db_loop_execs_id_index[loop_exec.db_id]
+
     def db_get_loop_exec(self, key):
         for i in xrange(len(self._db_loop_execs)):
             if self._db_loop_execs[i].db_id == key:
                 return self._db_loop_execs[i]
         return None
+
     def db_get_loop_exec_by_id(self, key):
         return self.db_loop_execs_id_index[key]
+
     def db_has_loop_exec_with_id(self, key):
         return key in self.db_loop_execs_id_index
-    
+
     def getPrimaryKey(self):
         return self._db_id
+
 
 class DBProvAssociation(object):
 
@@ -22433,19 +25773,22 @@ class DBProvAssociation(object):
         self._db_prov_role = prov_role
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBProvAssociation.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBProvAssociation(prov_role=self._db_prov_role)
         if self._db_prov_activity is not None:
-            cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
+            cp._db_prov_activity = self._db_prov_activity.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_prov_agent is not None:
-            cp._db_prov_agent = self._db_prov_agent.do_copy(new_ids, id_scope, id_remap)
+            cp._db_prov_agent = self._db_prov_agent.do_copy(
+                new_ids, id_scope, id_remap)
         if self._db_prov_plan is not None:
-            cp._db_prov_plan = self._db_prov_plan.do_copy(new_ids, id_scope, id_remap)
-        
+            cp._db_prov_plan = self._db_prov_plan.do_copy(
+                new_ids, id_scope, id_remap)
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -22454,7 +25797,7 @@ class DBProvAssociation(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -22467,42 +25810,49 @@ class DBProvAssociation(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_activity is not None and other.db_prov_activity is not None:
-                self.db_prov_activity.deep_eq_test(other.db_prov_activity, test_obj, alternate_tests)
+                self.db_prov_activity.deep_eq_test(
+                    other.db_prov_activity, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_activity, 
+                test_obj.assertEqual(self.db_prov_activity,
                                      other.db_prov_activity)
         alternate_key = (self.__class__.__name__, 'db_prov_agent')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_agent is not None and other.db_prov_agent is not None:
-                self.db_prov_agent.deep_eq_test(other.db_prov_agent, test_obj, alternate_tests)
+                self.db_prov_agent.deep_eq_test(
+                    other.db_prov_agent, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_agent, 
+                test_obj.assertEqual(self.db_prov_agent,
                                      other.db_prov_agent)
         alternate_key = (self.__class__.__name__, 'db_prov_plan')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_prov_plan is not None and other.db_prov_plan is not None:
-                self.db_prov_plan.deep_eq_test(other.db_prov_plan, test_obj, alternate_tests)
+                self.db_prov_plan.deep_eq_test(
+                    other.db_prov_plan, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_prov_plan, 
+                test_obj.assertEqual(self.db_prov_plan,
                                      other.db_prov_plan)
         alternate_key = (self.__class__.__name__, 'db_prov_role')
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
-            test_obj.assertEqual(self.db_prov_role, 
+            test_obj.assertEqual(self.db_prov_role,
                                  other.db_prov_role)
 
     @staticmethod
@@ -22517,7 +25867,8 @@ class DBProvAssociation(object):
             new_obj.db_prov_activity = res
         elif hasattr(old_obj, 'db_prov_activity') and old_obj.db_prov_activity is not None:
             obj = old_obj.db_prov_activity
-            new_obj.db_add_prov_activity(DBRefProvActivity.update_version(obj, trans_dict))
+            new_obj.db_add_prov_activity(
+                DBRefProvActivity.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_activity') and hasattr(new_obj, 'db_deleted_prov_activity'):
             for obj in old_obj.db_deleted_prov_activity:
                 n_obj = DBRefProvActivity.update_version(obj, trans_dict)
@@ -22527,7 +25878,8 @@ class DBProvAssociation(object):
             new_obj.db_prov_agent = res
         elif hasattr(old_obj, 'db_prov_agent') and old_obj.db_prov_agent is not None:
             obj = old_obj.db_prov_agent
-            new_obj.db_add_prov_agent(DBRefProvAgent.update_version(obj, trans_dict))
+            new_obj.db_add_prov_agent(
+                DBRefProvAgent.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_agent') and hasattr(new_obj, 'db_deleted_prov_agent'):
             for obj in old_obj.db_deleted_prov_agent:
                 n_obj = DBRefProvAgent.update_version(obj, trans_dict)
@@ -22537,7 +25889,8 @@ class DBProvAssociation(object):
             new_obj.db_prov_plan = res
         elif hasattr(old_obj, 'db_prov_plan') and old_obj.db_prov_plan is not None:
             obj = old_obj.db_prov_plan
-            new_obj.db_add_prov_plan(DBRefProvPlan.update_version(obj, trans_dict))
+            new_obj.db_add_prov_plan(
+                DBRefProvPlan.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_prov_plan') and hasattr(new_obj, 'db_deleted_prov_plan'):
             for obj in old_obj.db_deleted_prov_plan:
                 n_obj = DBRefProvPlan.update_version(obj, trans_dict)
@@ -22551,22 +25904,26 @@ class DBProvAssociation(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_prov_activity is not None:
-            children.extend(self._db_prov_activity.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_activity.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         if self._db_prov_agent is not None:
-            children.extend(self._db_prov_agent.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_agent.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_agent = None
         if self._db_prov_plan is not None:
-            children.extend(self._db_prov_plan.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_prov_plan.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_prov_plan = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_prov_activity)
@@ -22577,6 +25934,7 @@ class DBProvAssociation(object):
             self.db_deleted_prov_agent = []
             self.db_deleted_prov_plan = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -22587,64 +25945,80 @@ class DBProvAssociation(object):
         if self._db_prov_plan is not None and self._db_prov_plan.has_changes():
             return True
         return False
+
     def __get_db_prov_activity(self):
         return self._db_prov_activity
+
     def __set_db_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
         self.is_dirty = True
     db_prov_activity = property(__get_db_prov_activity, __set_db_prov_activity)
+
     def db_add_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
+
     def db_change_prov_activity(self, prov_activity):
         self._db_prov_activity = prov_activity
+
     def db_delete_prov_activity(self, prov_activity):
         if not self.is_new:
             self.db_deleted_prov_activity.append(self._db_prov_activity)
         self._db_prov_activity = None
-    
+
     def __get_db_prov_agent(self):
         return self._db_prov_agent
+
     def __set_db_prov_agent(self, prov_agent):
         self._db_prov_agent = prov_agent
         self.is_dirty = True
     db_prov_agent = property(__get_db_prov_agent, __set_db_prov_agent)
+
     def db_add_prov_agent(self, prov_agent):
         self._db_prov_agent = prov_agent
+
     def db_change_prov_agent(self, prov_agent):
         self._db_prov_agent = prov_agent
+
     def db_delete_prov_agent(self, prov_agent):
         if not self.is_new:
             self.db_deleted_prov_agent.append(self._db_prov_agent)
         self._db_prov_agent = None
-    
+
     def __get_db_prov_plan(self):
         return self._db_prov_plan
+
     def __set_db_prov_plan(self, prov_plan):
         self._db_prov_plan = prov_plan
         self.is_dirty = True
     db_prov_plan = property(__get_db_prov_plan, __set_db_prov_plan)
+
     def db_add_prov_plan(self, prov_plan):
         self._db_prov_plan = prov_plan
+
     def db_change_prov_plan(self, prov_plan):
         self._db_prov_plan = prov_plan
+
     def db_delete_prov_plan(self, prov_plan):
         if not self.is_new:
             self.db_deleted_prov_plan.append(self._db_prov_plan)
         self._db_prov_plan = None
-    
+
     def __get_db_prov_role(self):
         return self._db_prov_role
+
     def __set_db_prov_role(self, prov_role):
         self._db_prov_role = prov_role
         self.is_dirty = True
     db_prov_role = property(__get_db_prov_role, __set_db_prov_role)
+
     def db_add_prov_role(self, prov_role):
         self._db_prov_role = prov_role
+
     def db_change_prov_role(self, prov_role):
         self._db_prov_role = prov_role
+
     def db_delete_prov_role(self, prov_role):
         self._db_prov_role = None
-    
 
 
 class DBOpmProcessValue(object):
@@ -22656,7 +26030,7 @@ class DBOpmProcessValue(object):
         self._db_value = value
         self.is_dirty = True
         self.is_new = True
-    
+
     def __copy__(self):
         return DBOpmProcessValue.do_copy(self)
 
@@ -22664,7 +26038,7 @@ class DBOpmProcessValue(object):
         cp = DBOpmProcessValue()
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
@@ -22673,7 +26047,7 @@ class DBOpmProcessValue(object):
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-        
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -22686,12 +26060,14 @@ class DBOpmProcessValue(object):
         if alternate_key in alternate_tests:
             # None means pass the test, else we should have a function
             if alternate_tests[alternate_key] is not None:
-                alternate_tests[alternate_key](self, other, test_obj, alternate_tests)
+                alternate_tests[alternate_key](
+                    self, other, test_obj, alternate_tests)
         else:
             if self.db_value is not None and other.db_value is not None:
-                self.db_value.deep_eq_test(other.db_value, test_obj, alternate_tests)
+                self.db_value.deep_eq_test(
+                    other.db_value, test_obj, alternate_tests)
             else:
-                test_obj.assertEqual(self.db_value, 
+                test_obj.assertEqual(self.db_value,
                                      other.db_value)
 
     @staticmethod
@@ -22707,11 +26083,14 @@ class DBOpmProcessValue(object):
         elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             obj = old_obj.db_value
             if obj.vtType == 'module_exec':
-                new_obj.db_add_value(DBModuleExec.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBModuleExec.update_version(obj, trans_dict))
             elif obj.vtType == 'group_exec':
-                new_obj.db_add_value(DBGroupExec.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBGroupExec.update_version(obj, trans_dict))
             elif obj.vtType == 'loop_exec':
-                new_obj.db_add_value(DBLoopExec.update_version(obj, trans_dict))
+                new_obj.db_add_value(
+                    DBLoopExec.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_value') and hasattr(new_obj, 'db_deleted_value'):
             for obj in old_obj.db_deleted_value:
                 if obj.vtType == 'module_exec':
@@ -22727,40 +26106,45 @@ class DBOpmProcessValue(object):
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
 
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+    def db_children(self, parent=(None, None), orphan=False, for_action=False):
         children = []
         if self._db_value is not None:
-            children.extend(self._db_value.db_children((self.vtType, self.db_id), orphan, for_action))
+            children.extend(self._db_value.db_children(
+                (self.vtType, self.db_id), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
         return children
+
     def db_deleted_children(self, remove=False):
         children = []
         children.extend(self.db_deleted_value)
         if remove:
             self.db_deleted_value = []
         return children
+
     def has_changes(self):
         if self.is_dirty:
             return True
         if self._db_value is not None and self._db_value.has_changes():
             return True
         return False
+
     def __get_db_value(self):
         return self._db_value
+
     def __set_db_value(self, value):
         self._db_value = value
         self.is_dirty = True
     db_value = property(__get_db_value, __set_db_value)
+
     def db_add_value(self, value):
         self._db_value = value
+
     def db_change_value(self, value):
         self._db_value = value
+
     def db_delete_value(self, value):
         if not self.is_new:
             self.db_deleted_value.append(self._db_value)
         self._db_value = None
-    
-
-
