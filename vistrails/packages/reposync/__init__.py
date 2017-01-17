@@ -34,9 +34,16 @@
 ##
 ###############################################################################
 
+"""URL provides modules to download files via the network.
+
+It can refer to HTTP and FTP files, which enables workflows to be distributed
+without its associated data.
+
+This package uses a local cache, inside the per-user VisTrails directory. This
+way, files that haven't been changed do not need to be downloaded again. The
+check is performed efficiently using HTTP headers.
+"""
+
 from __future__ import division
 
-from vistrails.core.requirements import qt_available, require_pyqt4_api2
-
-
-__all__ = ['qt_available', 'require_pyqt4_api2']
+from identifiers import *

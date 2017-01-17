@@ -35,11 +35,12 @@
 ###############################################################################
 from __future__ import division
 
-import vistrails.core
+
 identifier = 'org.vistrails.vistrails.qgis'
 version = '0.0.2'
 name = "QGIS"
 old_identifiers = ['edu.utah.sci.vistrails.qgis']
+
 
 def package_dependencies():
     import vistrails.core.packagemanager
@@ -49,3 +50,7 @@ def package_dependencies():
     else:
         return []
 
+
+def package_requirements():
+    from vistrails.core.requirements import require_pyqt4_api2
+    require_pyqt4_api2()
