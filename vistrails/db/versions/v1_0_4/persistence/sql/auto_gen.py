@@ -1,45 +1,44 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
-## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah.
-## All rights reserved.
-## Contact: contact@vistrails.org
+# Copyright (C) 2014-2016, New York University.
+# Copyright (C) 2011-2014, NYU-Poly.
+# Copyright (C) 2006-2011, University of Utah.
+# All rights reserved.
+# Contact: contact@vistrails.org
 ##
-## This file is part of VisTrails.
+# This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without
-## modification, are permitted provided that the following conditions are met:
+# "Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice,
-##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright
-##    notice, this list of conditions and the following disclaimer in the
-##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the New York University nor the names of its
-##    contributors may be used to endorse or promote products derived from
-##    this software without specific prior written permission.
+# - Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# - Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# - Neither the name of the New York University nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
 
-from __future__ import division
-
 from sql_dao import SQLDAO
 from vistrails.db.versions.v1_0_4.domain import *
+
 
 class DBMashupAliasSQLDAOBase(SQLDAO):
 
@@ -50,13 +49,14 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
+    def get_sql_columns(self, db, global_props, lock=False):
         columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_alias'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -65,7 +65,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
             parent = self.convertFromDB(row[2], 'long', 'int')
             entity_id = self.convertFromDB(row[3], 'long', 'int')
             entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
-            
+
             mashup_alias = DBMashupAlias(name=name,
                                          id=id)
             mashup_alias.db_parent = parent
@@ -75,7 +75,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
             res[('mashup_alias', id)] = mashup_alias
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
+    def get_sql_select(self, db, global_props, lock=False):
         columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_alias'
         whereMap = global_props
@@ -90,7 +90,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
             parent = self.convertFromDB(row[2], 'long', 'int')
             entity_id = self.convertFromDB(row[3], 'long', 'int')
             entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
-            
+
             mashup_alias = DBMashupAlias(name=name,
                                          id=id)
             mashup_alias.db_parent = parent
@@ -104,7 +104,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         if ('mashup', obj.db_parent) in all_objects:
             p = all_objects[('mashup', obj.db_parent)]
             p.db_add_alias(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
@@ -138,7 +138,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
@@ -180,7 +180,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         if obj.db_component is not None:
             child = obj.db_component
             child.db_mashup_alias = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup_alias'
         whereMap = {}
@@ -191,6 +191,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBGroupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -200,13 +201,15 @@ class DBGroupSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -220,7 +223,7 @@ class DBGroupSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             group = DBGroup(cache=cache,
                             name=name,
                             namespace=namespace,
@@ -235,8 +238,9 @@ class DBGroupSQLDAOBase(SQLDAO):
             res[('group', id)] = group
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -255,7 +259,7 @@ class DBGroupSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             group = DBGroup(cache=cache,
                             name=name,
                             namespace=namespace,
@@ -280,11 +284,12 @@ class DBGroupSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -329,11 +334,12 @@ class DBGroupSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -399,7 +405,7 @@ class DBGroupSQLDAOBase(SQLDAO):
         for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'group_tbl'
         whereMap = {}
@@ -410,6 +416,7 @@ class DBGroupSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBAddSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -419,13 +426,15 @@ class DBAddSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -437,7 +446,7 @@ class DBAddSQLDAOBase(SQLDAO):
             action = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             add = DBAdd(what=what,
                         objectId=objectId,
                         parentObjId=parentObjId,
@@ -450,8 +459,9 @@ class DBAddSQLDAOBase(SQLDAO):
             res[('add', id)] = add
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -468,7 +478,7 @@ class DBAddSQLDAOBase(SQLDAO):
             action = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             add = DBAdd(what=what,
                         objectId=objectId,
                         parentObjId=parentObjId,
@@ -485,11 +495,12 @@ class DBAddSQLDAOBase(SQLDAO):
         if ('action', obj.db_action) in all_objects:
             p = all_objects[('action', obj.db_action)]
             p.db_add_operation(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -528,11 +539,12 @@ class DBAddSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'add_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -580,7 +592,7 @@ class DBAddSQLDAOBase(SQLDAO):
             child = obj.db_data
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'add_tbl'
         whereMap = {}
@@ -591,6 +603,7 @@ class DBAddSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBGroupExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -600,13 +613,15 @@ class DBGroupExecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type',
+                   'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_exec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -624,7 +639,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[11], 'long', 'int')
             entity_type = self.convertFromDB(row[12], 'str', 'char(16)')
             parent = self.convertFromDB(row[13], 'long', 'long')
-            
+
             group_exec = DBGroupExec(ts_start=ts_start,
                                      ts_end=ts_end,
                                      cached=cached,
@@ -643,8 +658,9 @@ class DBGroupExecSQLDAOBase(SQLDAO):
             res[('group_exec', id)] = group_exec
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type',
+                   'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -667,7 +683,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[11], 'long', 'int')
             entity_type = self.convertFromDB(row[12], 'str', 'char(16)')
             parent = self.convertFromDB(row[13], 'long', 'long')
-            
+
             group_exec = DBGroupExec(ts_start=ts_start,
                                      ts_end=ts_end,
                                      cached=cached,
@@ -696,11 +712,12 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'group_exec':
             p = all_objects[('group_exec', obj.db_parent)]
             p.db_add_item_exec(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type',
+                   'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -757,11 +774,12 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type',
+                   'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'group_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -829,7 +847,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'group_exec'
         whereMap = {}
@@ -840,6 +858,7 @@ class DBGroupExecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -849,13 +868,15 @@ class DBParameterSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'name', 'type', 'val', 'alias', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'name', 'type', 'val', 'alias',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'parameter'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -869,7 +890,7 @@ class DBParameterSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             parameter = DBParameter(pos=pos,
                                     name=name,
                                     type=type,
@@ -884,8 +905,9 @@ class DBParameterSQLDAOBase(SQLDAO):
             res[('parameter', id)] = parameter
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'name', 'type', 'val', 'alias', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'name', 'type', 'val', 'alias',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'parameter'
         whereMap = global_props
         orderBy = 'id'
@@ -904,7 +926,7 @@ class DBParameterSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             parameter = DBParameter(pos=pos,
                                     name=name,
                                     type=type,
@@ -929,11 +951,12 @@ class DBParameterSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'pos', 'name', 'type', 'val', 'alias', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'pos', 'name', 'type', 'val', 'alias',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'parameter'
         whereMap = {}
         whereMap.update(global_props)
@@ -978,11 +1001,12 @@ class DBParameterSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'pos', 'name', 'type', 'val', 'alias', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'pos', 'name', 'type', 'val', 'alias',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'parameter'
         whereMap = {}
         whereMap.update(global_props)
@@ -1033,7 +1057,7 @@ class DBParameterSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'parameter'
         whereMap = {}
@@ -1044,6 +1068,7 @@ class DBParameterSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBVistrailSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1053,24 +1078,26 @@ class DBVistrailSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
+    def get_sql_columns(self, db, global_props, lock=False):
         columns = ['id', 'entity_type', 'version', 'name', 'last_modified']
         table = 'vistrail'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
-            
+
             vistrail = DBVistrail(entity_type=entity_type,
                                   version=version,
                                   name=name,
@@ -1080,7 +1107,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
             res[('vistrail', id)] = vistrail
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
+    def get_sql_select(self, db, global_props, lock=False):
         columns = ['id', 'entity_type', 'version', 'name', 'last_modified']
         table = 'vistrail'
         whereMap = global_props
@@ -1093,11 +1120,12 @@ class DBVistrailSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
-            
+
             vistrail = DBVistrail(entity_type=entity_type,
                                   version=version,
                                   name=name,
@@ -1109,7 +1137,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-    
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
@@ -1147,10 +1175,12 @@ class DBVistrailSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
-        
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
@@ -1190,9 +1220,11 @@ class DBVistrailSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
@@ -1212,7 +1244,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
             child.db_vistrail = obj.db_id
         for child in obj.db_actionAnnotations:
             child.db_vistrail = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'vistrail'
         whereMap = {}
@@ -1223,6 +1255,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBModuleSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1232,13 +1265,15 @@ class DBModuleSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1252,7 +1287,7 @@ class DBModuleSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             module = DBModule(cache=cache,
                               name=name,
                               namespace=namespace,
@@ -1267,8 +1302,9 @@ class DBModuleSQLDAOBase(SQLDAO):
             res[('module', id)] = module
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module'
         whereMap = global_props
         orderBy = 'id'
@@ -1287,7 +1323,7 @@ class DBModuleSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             module = DBModule(cache=cache,
                               name=name,
                               namespace=namespace,
@@ -1312,11 +1348,12 @@ class DBModuleSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module'
         whereMap = {}
         whereMap.update(global_props)
@@ -1361,11 +1398,12 @@ class DBModuleSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'cache', 'name', 'namespace', 'package',
+                   'version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module'
         whereMap = {}
         whereMap.update(global_props)
@@ -1431,7 +1469,7 @@ class DBModuleSQLDAOBase(SQLDAO):
         for child in obj.db_portSpecs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'module'
         whereMap = {}
@@ -1442,6 +1480,7 @@ class DBModuleSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPortSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1451,13 +1490,15 @@ class DBPortSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'type', 'moduleId', 'moduleName', 'name', 'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'type', 'moduleId', 'moduleName', 'name',
+                   'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1471,7 +1512,7 @@ class DBPortSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             port = DBPort(type=type,
                           moduleId=moduleId,
                           moduleName=moduleName,
@@ -1486,8 +1527,9 @@ class DBPortSQLDAOBase(SQLDAO):
             res[('port', id)] = port
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'type', 'moduleId', 'moduleName', 'name', 'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'type', 'moduleId', 'moduleName', 'name',
+                   'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port'
         whereMap = global_props
         orderBy = 'id'
@@ -1506,7 +1548,7 @@ class DBPortSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             parent = self.convertFromDB(row[9], 'long', 'long')
-            
+
             port = DBPort(type=type,
                           moduleId=moduleId,
                           moduleName=moduleName,
@@ -1531,11 +1573,12 @@ class DBPortSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'type', 'moduleId', 'moduleName', 'name', 'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'type', 'moduleId', 'moduleName', 'name',
+                   'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port'
         whereMap = {}
         whereMap.update(global_props)
@@ -1580,11 +1623,12 @@ class DBPortSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'type', 'moduleId', 'moduleName', 'name', 'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'type', 'moduleId', 'moduleName', 'name',
+                   'signature', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port'
         whereMap = {}
         whereMap.update(global_props)
@@ -1635,7 +1679,7 @@ class DBPortSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'port'
         whereMap = {}
@@ -1646,6 +1690,7 @@ class DBPortSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPEFunctionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1655,13 +1700,15 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'module_id', 'port_name', 'is_alias',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_function'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1673,7 +1720,7 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
             parameter_exploration = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             pe_function = DBPEFunction(module_id=module_id,
                                        port_name=port_name,
                                        id=id)
@@ -1685,8 +1732,9 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
             res[('pe_function', id)] = pe_function
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'module_id', 'port_name', 'is_alias',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_function'
         whereMap = global_props
         orderBy = 'id'
@@ -1703,7 +1751,7 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
             parameter_exploration = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             pe_function = DBPEFunction(module_id=module_id,
                                        port_name=port_name,
                                        id=id)
@@ -1717,13 +1765,15 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if ('parameter_exploration', obj.db_parameter_exploration) in all_objects:
-            p = all_objects[('parameter_exploration', obj.db_parameter_exploration)]
+            p = all_objects[
+                ('parameter_exploration', obj.db_parameter_exploration)]
             p.db_add_function(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'module_id', 'port_name', 'is_alias',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_function'
         whereMap = {}
         whereMap.update(global_props)
@@ -1762,11 +1812,12 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'module_id', 'port_name', 'is_alias', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'module_id', 'port_name', 'is_alias',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_function'
         whereMap = {}
         whereMap.update(global_props)
@@ -1812,7 +1863,7 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_parameters:
             child.db_pe_function = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'pe_function'
         whereMap = {}
@@ -1823,6 +1874,7 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBWorkflowSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1832,13 +1884,15 @@ class DBWorkflowSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'entity_id', 'entity_type', 'name',
+                   'version', 'last_modified', 'vistrail_id', 'parent_id']
         table = 'workflow'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1846,13 +1900,14 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_id = self.convertFromDB(row[1], 'long', 'int')
             entity_type = self.convertFromDB(row[2], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             version = self.convertFromDB(row[4], 'str', 'char(16)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[6], 'long', 'int')
             group = self.convertFromDB(row[7], 'long', 'int')
-            
+
             workflow = DBWorkflow(entity_type=entity_type,
                                   name=name,
                                   version=version,
@@ -1865,8 +1920,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             res[('workflow', id)] = workflow
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'entity_id', 'entity_type', 'name',
+                   'version', 'last_modified', 'vistrail_id', 'parent_id']
         table = 'workflow'
         whereMap = global_props
         orderBy = 'id'
@@ -1879,13 +1935,14 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_id = self.convertFromDB(row[1], 'long', 'int')
             entity_type = self.convertFromDB(row[2], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             version = self.convertFromDB(row[4], 'str', 'char(16)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[6], 'long', 'int')
             group = self.convertFromDB(row[7], 'long', 'int')
-            
+
             workflow = DBWorkflow(entity_type=entity_type,
                                   name=name,
                                   version=version,
@@ -1902,11 +1959,12 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         if ('group', obj.db_group) in all_objects:
             p = all_objects[('group', obj.db_group)]
             p.db_add_workflow(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
+        columns = ['id', 'entity_id', 'entity_type', 'name',
+                   'version', 'last_modified', 'vistrail_id', 'parent_id']
         table = 'workflow'
         whereMap = {}
         whereMap.update(global_props)
@@ -1949,14 +2007,17 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
-        
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
+        columns = ['id', 'entity_id', 'entity_type', 'name',
+                   'version', 'last_modified', 'vistrail_id', 'parent_id']
         table = 'workflow'
         whereMap = {}
         whereMap.update(global_props)
@@ -2001,9 +2062,11 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
@@ -2022,7 +2085,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         for child in obj.db_modules:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'workflow'
         whereMap = {}
@@ -2033,6 +2096,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBMashupActionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2042,13 +2106,15 @@ class DBMashupActionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'prev_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'prev_id', 'date', 'user',
+                   'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2059,7 +2125,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
             mashuptrail = self.convertFromDB(row[4], 'long', 'int')
             entity_id = self.convertFromDB(row[5], 'long', 'int')
             entity_type = self.convertFromDB(row[6], 'str', 'char(16)')
-            
+
             mashup_action = DBMashupAction(prevId=prevId,
                                            date=date,
                                            user=user,
@@ -2071,8 +2137,9 @@ class DBMashupActionSQLDAOBase(SQLDAO):
             res[('mashup_action', id)] = mashup_action
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'prev_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'prev_id', 'date', 'user',
+                   'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action'
         whereMap = global_props
         orderBy = 'id'
@@ -2088,7 +2155,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
             mashuptrail = self.convertFromDB(row[4], 'long', 'int')
             entity_id = self.convertFromDB(row[5], 'long', 'int')
             entity_type = self.convertFromDB(row[6], 'str', 'char(16)')
-            
+
             mashup_action = DBMashupAction(prevId=prevId,
                                            date=date,
                                            user=user,
@@ -2104,11 +2171,12 @@ class DBMashupActionSQLDAOBase(SQLDAO):
         if ('mashuptrail', obj.db_mashuptrail) in all_objects:
             p = all_objects[('mashuptrail', obj.db_mashuptrail)]
             p.db_add_action(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'prev_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'user',
+                   'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action'
         whereMap = {}
         whereMap.update(global_props)
@@ -2144,11 +2212,12 @@ class DBMashupActionSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'prev_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'user',
+                   'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action'
         whereMap = {}
         whereMap.update(global_props)
@@ -2192,7 +2261,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
         if obj.db_mashup is not None:
             child = obj.db_mashup
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup_action'
         whereMap = {}
@@ -2203,6 +2272,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBChangeSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2212,13 +2282,15 @@ class DBChangeSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2231,7 +2303,7 @@ class DBChangeSQLDAOBase(SQLDAO):
             action = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             change = DBChange(what=what,
                               oldObjId=oldObjId,
                               newObjId=newObjId,
@@ -2245,8 +2317,9 @@ class DBChangeSQLDAOBase(SQLDAO):
             res[('change', id)] = change
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -2264,7 +2337,7 @@ class DBChangeSQLDAOBase(SQLDAO):
             action = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             change = DBChange(what=what,
                               oldObjId=oldObjId,
                               newObjId=newObjId,
@@ -2282,11 +2355,12 @@ class DBChangeSQLDAOBase(SQLDAO):
         if ('action', obj.db_action) in all_objects:
             p = all_objects[('action', obj.db_action)]
             p.db_add_operation(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -2328,11 +2402,12 @@ class DBChangeSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'change_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -2383,7 +2458,7 @@ class DBChangeSQLDAOBase(SQLDAO):
             child = obj.db_data
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'change_tbl'
         whereMap = {}
@@ -2394,6 +2469,7 @@ class DBChangeSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPackageSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2403,13 +2479,15 @@ class DBPackageSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration', 'version', 'description', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration',
+                   'version', 'description', 'parent_id', 'entity_id', 'entity_type']
         table = 'package'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2423,7 +2501,7 @@ class DBPackageSQLDAOBase(SQLDAO):
             registry = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             package = DBPackage(name=name,
                                 identifier=identifier,
                                 codepath=codepath,
@@ -2438,8 +2516,9 @@ class DBPackageSQLDAOBase(SQLDAO):
             res[('package', id)] = package
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration', 'version', 'description', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration',
+                   'version', 'description', 'parent_id', 'entity_id', 'entity_type']
         table = 'package'
         whereMap = global_props
         orderBy = 'id'
@@ -2458,7 +2537,7 @@ class DBPackageSQLDAOBase(SQLDAO):
             registry = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             package = DBPackage(name=name,
                                 identifier=identifier,
                                 codepath=codepath,
@@ -2477,11 +2556,12 @@ class DBPackageSQLDAOBase(SQLDAO):
         if ('registry', obj.db_registry) in all_objects:
             p = all_objects[('registry', obj.db_registry)]
             p.db_add_package(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration', 'version', 'description', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration',
+                   'version', 'description', 'parent_id', 'entity_id', 'entity_type']
         table = 'package'
         whereMap = {}
         whereMap.update(global_props)
@@ -2529,11 +2609,12 @@ class DBPackageSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration', 'version', 'description', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'identifier', 'codepath', 'load_configuration',
+                   'version', 'description', 'parent_id', 'entity_id', 'entity_type']
         table = 'package'
         whereMap = {}
         whereMap.update(global_props)
@@ -2588,7 +2669,7 @@ class DBPackageSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_module_descriptors:
             child.db_package = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'package'
         whereMap = {}
@@ -2599,6 +2680,7 @@ class DBPackageSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBLoopExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2608,13 +2690,15 @@ class DBLoopExecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2625,7 +2709,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             loop_exec = DBLoopExec(ts_start=ts_start,
                                    ts_end=ts_end,
                                    id=id)
@@ -2637,8 +2721,9 @@ class DBLoopExecSQLDAOBase(SQLDAO):
             res[('loop_exec', id)] = loop_exec
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -2654,7 +2739,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             loop_exec = DBLoopExec(ts_start=ts_start,
                                    ts_end=ts_end,
                                    id=id)
@@ -2676,11 +2761,12 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'module_exec':
             p = all_objects[('module_exec', obj.db_parent)]
             p.db_add_loop_exec(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -2716,11 +2802,12 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'ts_start', 'ts_end', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'loop_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -2763,7 +2850,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_loop_iterations:
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'loop_exec'
         whereMap = {}
@@ -2774,6 +2861,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBConnectionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2783,13 +2871,15 @@ class DBConnectionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'connection_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2798,7 +2888,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[2], 'long', 'int')
             entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
             parent = self.convertFromDB(row[4], 'long', 'long')
-            
+
             connection = DBConnection(id=id)
             connection.db_parentType = parentType
             connection.db_entity_id = entity_id
@@ -2808,8 +2898,9 @@ class DBConnectionSQLDAOBase(SQLDAO):
             res[('connection', id)] = connection
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'connection_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -2823,7 +2914,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[2], 'long', 'int')
             entity_type = self.convertFromDB(row[3], 'str', 'char(16)')
             parent = self.convertFromDB(row[4], 'long', 'long')
-            
+
             connection = DBConnection(id=id)
             connection.db_parentType = parentType
             connection.db_entity_id = entity_id
@@ -2843,11 +2934,12 @@ class DBConnectionSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'connection_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -2877,11 +2969,12 @@ class DBConnectionSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'connection_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -2919,7 +3012,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
         for child in obj.db_ports:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'connection_tbl'
         whereMap = {}
@@ -2930,6 +3023,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBActionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2939,13 +3033,15 @@ class DBActionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'prev_id', 'date', 'session', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'prev_id', 'date', 'session',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2957,7 +3053,7 @@ class DBActionSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             action = DBAction(prevId=prevId,
                               date=date,
                               session=session,
@@ -2970,8 +3066,9 @@ class DBActionSQLDAOBase(SQLDAO):
             res[('action', id)] = action
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'prev_id', 'date', 'session', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'prev_id', 'date', 'session',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action'
         whereMap = global_props
         orderBy = 'id'
@@ -2988,7 +3085,7 @@ class DBActionSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             action = DBAction(prevId=prevId,
                               date=date,
                               session=session,
@@ -3005,11 +3102,12 @@ class DBActionSQLDAOBase(SQLDAO):
         if ('vistrail', obj.db_vistrail) in all_objects:
             p = all_objects[('vistrail', obj.db_vistrail)]
             p.db_add_action(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'prev_id', 'date', 'session', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'session',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action'
         whereMap = {}
         whereMap.update(global_props)
@@ -3048,11 +3146,12 @@ class DBActionSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'prev_id', 'date', 'session', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'session',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action'
         whereMap = {}
         whereMap.update(global_props)
@@ -3101,7 +3200,7 @@ class DBActionSQLDAOBase(SQLDAO):
             child.db_parent = obj.db_id
         for child in obj.db_operations:
             child.db_action = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'action'
         whereMap = {}
@@ -3112,6 +3211,7 @@ class DBActionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPortSpecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -3121,13 +3221,15 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3136,18 +3238,20 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             type = self.convertFromDB(row[2], 'str', 'varchar(255)')
             optional = self.convertFromDB(row[3], 'int', 'int')
             depth = self.convertFromDB(row[4], 'int', 'int')
-            sort_key = self.convertFromDB(row[5], 'int', 'int')
-            min_conns = self.convertFromDB(row[6], 'int', 'int')
-            max_conns = self.convertFromDB(row[7], 'int', 'int')
-            parentType = self.convertFromDB(row[8], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[9], 'long', 'int')
-            entity_type = self.convertFromDB(row[10], 'str', 'char(16)')
-            parent = self.convertFromDB(row[11], 'long', 'long')
-            
+            union = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            sort_key = self.convertFromDB(row[6], 'int', 'int')
+            min_conns = self.convertFromDB(row[7], 'int', 'int')
+            max_conns = self.convertFromDB(row[8], 'int', 'int')
+            parentType = self.convertFromDB(row[9], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[10], 'long', 'int')
+            entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
+            parent = self.convertFromDB(row[12], 'long', 'long')
+
             portSpec = DBPortSpec(name=name,
                                   type=type,
                                   optional=optional,
                                   depth=depth,
+                                  union=union,
                                   sort_key=sort_key,
                                   min_conns=min_conns,
                                   max_conns=max_conns,
@@ -3160,8 +3264,9 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             res[('portSpec', id)] = portSpec
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
@@ -3175,18 +3280,20 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             type = self.convertFromDB(row[2], 'str', 'varchar(255)')
             optional = self.convertFromDB(row[3], 'int', 'int')
             depth = self.convertFromDB(row[4], 'int', 'int')
-            sort_key = self.convertFromDB(row[5], 'int', 'int')
-            min_conns = self.convertFromDB(row[6], 'int', 'int')
-            max_conns = self.convertFromDB(row[7], 'int', 'int')
-            parentType = self.convertFromDB(row[8], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[9], 'long', 'int')
-            entity_type = self.convertFromDB(row[10], 'str', 'char(16)')
-            parent = self.convertFromDB(row[11], 'long', 'long')
-            
+            union = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            sort_key = self.convertFromDB(row[6], 'int', 'int')
+            min_conns = self.convertFromDB(row[7], 'int', 'int')
+            max_conns = self.convertFromDB(row[8], 'int', 'int')
+            parentType = self.convertFromDB(row[9], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[10], 'long', 'int')
+            entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
+            parent = self.convertFromDB(row[12], 'long', 'long')
+
             portSpec = DBPortSpec(name=name,
                                   type=type,
                                   optional=optional,
                                   depth=depth,
+                                  union=union,
                                   sort_key=sort_key,
                                   min_conns=min_conns,
                                   max_conns=max_conns,
@@ -3212,11 +3319,12 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
         whereMap.update(global_props)
@@ -3239,6 +3347,9 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_depth') and obj.db_depth is not None:
             columnMap['depth'] = \
                 self.convertToDB(obj.db_depth, 'int', 'int')
+        if hasattr(obj, 'db_union') and obj.db_union is not None:
+            columnMap['ps_union'] = \
+                self.convertToDB(obj.db_union, 'str', 'varchar(255)')
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
                 self.convertToDB(obj.db_sort_key, 'int', 'int')
@@ -3267,11 +3378,12 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'sort_key', 'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
+                   'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
         whereMap.update(global_props)
@@ -3294,6 +3406,9 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_depth') and obj.db_depth is not None:
             columnMap['depth'] = \
                 self.convertToDB(obj.db_depth, 'int', 'int')
+        if hasattr(obj, 'db_union') and obj.db_union is not None:
+            columnMap['ps_union'] = \
+                self.convertToDB(obj.db_union, 'str', 'varchar(255)')
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
                 self.convertToDB(obj.db_sort_key, 'int', 'int')
@@ -3329,7 +3444,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_portSpecItems:
             child.db_portSpec = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'port_spec'
         whereMap = {}
@@ -3340,6 +3455,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBLogSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -3349,25 +3465,28 @@ class DBLogSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'entity_type', 'version', 'name', 'last_modified', 'vistrail_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'entity_type', 'version',
+                   'name', 'last_modified', 'vistrail_id']
         table = 'log_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[5], 'long', 'int')
-            
+
             log = DBLog(entity_type=entity_type,
                         version=version,
                         name=name,
@@ -3378,8 +3497,9 @@ class DBLogSQLDAOBase(SQLDAO):
             res[('log', id)] = log
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'entity_type', 'version', 'name', 'last_modified', 'vistrail_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'entity_type', 'version',
+                   'name', 'last_modified', 'vistrail_id']
         table = 'log_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -3391,12 +3511,13 @@ class DBLogSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[5], 'long', 'int')
-            
+
             log = DBLog(entity_type=entity_type,
                         version=version,
                         name=name,
@@ -3409,11 +3530,12 @@ class DBLogSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-    
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'entity_type', 'version', 'name', 'last_modified', 'vistrail_id']
+        columns = ['id', 'entity_type', 'version',
+                   'name', 'last_modified', 'vistrail_id']
         table = 'log_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -3450,14 +3572,17 @@ class DBLogSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
-        
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'entity_type', 'version', 'name', 'last_modified', 'vistrail_id']
+        columns = ['id', 'entity_type', 'version',
+                   'name', 'last_modified', 'vistrail_id']
         table = 'log_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -3496,15 +3621,17 @@ class DBLogSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_workflow_execs:
             child.db_log = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'log_tbl'
         whereMap = {}
@@ -3515,6 +3642,7 @@ class DBLogSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBLoopIterationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -3524,13 +3652,15 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'iteration', 'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'iteration',
+                   'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
         table = 'loop_iteration'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3543,7 +3673,7 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
             parent = self.convertFromDB(row[6], 'str', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             loop_iteration = DBLoopIteration(ts_start=ts_start,
                                              ts_end=ts_end,
                                              iteration=iteration,
@@ -3557,8 +3687,9 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
             res[('loop_iteration', id)] = loop_iteration
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'iteration', 'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'iteration',
+                   'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
         table = 'loop_iteration'
         whereMap = global_props
         orderBy = 'id'
@@ -3576,7 +3707,7 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
             parent = self.convertFromDB(row[6], 'str', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             loop_iteration = DBLoopIteration(ts_start=ts_start,
                                              ts_end=ts_end,
                                              iteration=iteration,
@@ -3594,11 +3725,12 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
         if ('loop_exec', obj.db_parent) in all_objects:
             p = all_objects[('loop_exec', obj.db_parent)]
             p.db_add_loop_iteration(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'iteration', 'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'ts_start', 'ts_end', 'iteration',
+                   'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
         table = 'loop_iteration'
         whereMap = {}
         whereMap.update(global_props)
@@ -3640,11 +3772,12 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'ts_start', 'ts_end', 'iteration', 'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'ts_start', 'ts_end', 'iteration',
+                   'completed', 'error', 'parent_id', 'entity_id', 'entity_type']
         table = 'loop_iteration'
         whereMap = {}
         whereMap.update(global_props)
@@ -3694,7 +3827,7 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'loop_iteration'
         whereMap = {}
@@ -3705,6 +3838,7 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPEParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -3714,13 +3848,15 @@ class DBPEParameterSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_parameter'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3733,7 +3869,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
             pe_function = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             pe_parameter = DBPEParameter(pos=pos,
                                          interpolator=interpolator,
                                          value=value,
@@ -3747,8 +3883,9 @@ class DBPEParameterSQLDAOBase(SQLDAO):
             res[('pe_parameter', id)] = pe_parameter
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_parameter'
         whereMap = global_props
         orderBy = 'id'
@@ -3766,7 +3903,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
             pe_function = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             pe_parameter = DBPEParameter(pos=pos,
                                          interpolator=interpolator,
                                          value=value,
@@ -3784,11 +3921,12 @@ class DBPEParameterSQLDAOBase(SQLDAO):
         if ('pe_function', obj.db_pe_function) in all_objects:
             p = all_objects[('pe_function', obj.db_pe_function)]
             p.db_add_parameter(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_parameter'
         whereMap = {}
         whereMap.update(global_props)
@@ -3830,11 +3968,12 @@ class DBPEParameterSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'pos', 'interpolator', 'value', 'dimension', 'parent_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'interpolator', 'value', 'dimension',
+                   'parent_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'pe_parameter'
         whereMap = {}
         whereMap.update(global_props)
@@ -3882,7 +4021,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'pe_parameter'
         whereMap = {}
@@ -3893,6 +4032,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBWorkflowExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -3902,13 +4042,15 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id',
+                   'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3927,7 +4069,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
             log = self.convertFromDB(row[12], 'long', 'int')
             entity_id = self.convertFromDB(row[13], 'long', 'int')
             entity_type = self.convertFromDB(row[14], 'str', 'char(16)')
-            
+
             workflow_exec = DBWorkflowExec(user=user,
                                            ip=ip,
                                            session=session,
@@ -3947,8 +4089,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
             res[('workflow_exec', id)] = workflow_exec
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id',
+                   'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -3972,7 +4115,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
             log = self.convertFromDB(row[12], 'long', 'int')
             entity_id = self.convertFromDB(row[13], 'long', 'int')
             entity_type = self.convertFromDB(row[14], 'str', 'char(16)')
-            
+
             workflow_exec = DBWorkflowExec(user=user,
                                            ip=ip,
                                            session=session,
@@ -3996,11 +4139,12 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         if ('log', obj.db_log) in all_objects:
             p = all_objects[('log', obj.db_log)]
             p.db_add_workflow_exec(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id',
+                   'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -4060,11 +4204,12 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'user', 'ip', 'session', 'vt_version', 'ts_start', 'ts_end', 'parent_id',
+                   'parent_type', 'parent_version', 'completed', 'name', 'log_id', 'entity_id', 'entity_type']
         table = 'workflow_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -4137,7 +4282,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'workflow_exec'
         whereMap = {}
@@ -4148,6 +4293,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBLocationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -4157,13 +4303,15 @@ class DBLocationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'x', 'y', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'x', 'y', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'location'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -4174,7 +4322,7 @@ class DBLocationSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             location = DBLocation(x=x,
                                   y=y,
                                   id=id)
@@ -4186,8 +4334,9 @@ class DBLocationSQLDAOBase(SQLDAO):
             res[('location', id)] = location
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'x', 'y', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'x', 'y', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'location'
         whereMap = global_props
         orderBy = 'id'
@@ -4203,7 +4352,7 @@ class DBLocationSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             location = DBLocation(x=x,
                                   y=y,
                                   id=id)
@@ -4231,11 +4380,12 @@ class DBLocationSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'x', 'y', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'x', 'y', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'location'
         whereMap = {}
         whereMap.update(global_props)
@@ -4271,11 +4421,12 @@ class DBLocationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'x', 'y', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'x', 'y', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'location'
         whereMap = {}
         whereMap.update(global_props)
@@ -4317,7 +4468,7 @@ class DBLocationSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'location'
         whereMap = {}
@@ -4328,6 +4479,7 @@ class DBLocationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBFunctionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -4337,13 +4489,15 @@ class DBFunctionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'name', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'name', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'function'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -4354,7 +4508,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             function = DBFunction(pos=pos,
                                   name=name,
                                   id=id)
@@ -4366,8 +4520,9 @@ class DBFunctionSQLDAOBase(SQLDAO):
             res[('function', id)] = function
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'name', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'name', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'function'
         whereMap = global_props
         orderBy = 'id'
@@ -4383,7 +4538,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             function = DBFunction(pos=pos,
                                   name=name,
                                   id=id)
@@ -4411,11 +4566,12 @@ class DBFunctionSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'pos', 'name', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'pos', 'name', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'function'
         whereMap = {}
         whereMap.update(global_props)
@@ -4451,11 +4607,12 @@ class DBFunctionSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'pos', 'name', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'pos', 'name', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'function'
         whereMap = {}
         whereMap.update(global_props)
@@ -4499,7 +4656,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
         for child in obj.db_parameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'function'
         whereMap = {}
@@ -4510,6 +4667,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBActionAnnotationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -4519,13 +4677,15 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action_annotation'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -4538,7 +4698,7 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             actionAnnotation = DBActionAnnotation(key=key,
                                                   value=value,
                                                   action_id=action_id,
@@ -4552,8 +4712,9 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
             res[('actionAnnotation', id)] = actionAnnotation
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action_annotation'
         whereMap = global_props
         orderBy = 'id'
@@ -4571,7 +4732,7 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             actionAnnotation = DBActionAnnotation(key=key,
                                                   value=value,
                                                   action_id=action_id,
@@ -4589,11 +4750,12 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         if ('vistrail', obj.db_vistrail) in all_objects:
             p = all_objects[('vistrail', obj.db_vistrail)]
             p.db_add_actionAnnotation(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action_annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -4635,11 +4797,12 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'action_annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -4687,7 +4850,7 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'action_annotation'
         whereMap = {}
@@ -4698,6 +4861,7 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBControlParameterSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -4707,13 +4871,15 @@ class DBControlParameterSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'control_parameter'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -4724,7 +4890,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             controlParameter = DBControlParameter(name=name,
                                                   value=value,
                                                   id=id)
@@ -4736,8 +4902,9 @@ class DBControlParameterSQLDAOBase(SQLDAO):
             res[('controlParameter', id)] = controlParameter
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'control_parameter'
         whereMap = global_props
         orderBy = 'id'
@@ -4753,7 +4920,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             controlParameter = DBControlParameter(name=name,
                                                   value=value,
                                                   id=id)
@@ -4784,11 +4951,12 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'group':
             p = all_objects[('group', obj.db_parent)]
             p.db_add_controlParameter(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'control_parameter'
         whereMap = {}
         whereMap.update(global_props)
@@ -4824,11 +4992,12 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'name', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'control_parameter'
         whereMap = {}
         whereMap.update(global_props)
@@ -4870,7 +5039,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'control_parameter'
         whereMap = {}
@@ -4881,6 +5050,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPluginDataSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -4890,13 +5060,15 @@ class DBPluginDataSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'data', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'data', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'plugin_data'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -4906,7 +5078,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[3], 'long', 'int')
             entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
             parent = self.convertFromDB(row[5], 'long', 'long')
-            
+
             plugin_data = DBPluginData(data=data,
                                        id=id)
             plugin_data.db_parentType = parentType
@@ -4917,8 +5089,9 @@ class DBPluginDataSQLDAOBase(SQLDAO):
             res[('plugin_data', id)] = plugin_data
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'data', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'data', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'plugin_data'
         whereMap = global_props
         orderBy = 'id'
@@ -4933,7 +5106,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[3], 'long', 'int')
             entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
             parent = self.convertFromDB(row[5], 'long', 'long')
-            
+
             plugin_data = DBPluginData(data=data,
                                        id=id)
             plugin_data.db_parentType = parentType
@@ -4954,11 +5127,12 @@ class DBPluginDataSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'data', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'data', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'plugin_data'
         whereMap = {}
         whereMap.update(global_props)
@@ -4991,11 +5165,12 @@ class DBPluginDataSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'data', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'data', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'plugin_data'
         whereMap = {}
         whereMap.update(global_props)
@@ -5034,7 +5209,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'plugin_data'
         whereMap = {}
@@ -5045,6 +5220,7 @@ class DBPluginDataSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBDeleteSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5054,13 +5230,15 @@ class DBDeleteSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -5072,7 +5250,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
             action = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             delete = DBDelete(what=what,
                               objectId=objectId,
                               parentObjId=parentObjId,
@@ -5085,8 +5263,9 @@ class DBDeleteSQLDAOBase(SQLDAO):
             res[('delete', id)] = delete
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = global_props
         orderBy = 'id'
@@ -5103,7 +5282,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
             action = self.convertFromDB(row[5], 'long', 'int')
             entity_id = self.convertFromDB(row[6], 'long', 'int')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
-            
+
             delete = DBDelete(what=what,
                               objectId=objectId,
                               parentObjId=parentObjId,
@@ -5120,11 +5299,12 @@ class DBDeleteSQLDAOBase(SQLDAO):
         if ('action', obj.db_action) in all_objects:
             p = all_objects[('action', obj.db_action)]
             p.db_add_operation(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -5163,11 +5343,12 @@ class DBDeleteSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'entity_id', 'entity_type']
+        columns = ['id', 'what', 'object_id', 'par_obj_id',
+                   'par_obj_type', 'action_id', 'entity_id', 'entity_type']
         table = 'delete_tbl'
         whereMap = {}
         whereMap.update(global_props)
@@ -5212,7 +5393,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'delete_tbl'
         whereMap = {}
@@ -5223,6 +5404,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBVistrailVariableSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5232,13 +5414,15 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['name', 'uuid', 'package', 'module', 'namespace', 'value', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['name', 'uuid', 'package', 'module', 'namespace',
+                   'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = global_props
         orderBy = 'name'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -5251,7 +5435,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             vistrailVariable = DBVistrailVariable(uuid=uuid,
                                                   package=package,
                                                   module=module,
@@ -5265,8 +5449,9 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             res[('vistrailVariable', name)] = vistrailVariable
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['name', 'uuid', 'package', 'module', 'namespace', 'value', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['name', 'uuid', 'package', 'module', 'namespace',
+                   'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = global_props
         orderBy = 'name'
@@ -5284,7 +5469,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             vistrailVariable = DBVistrailVariable(uuid=uuid,
                                                   package=package,
                                                   module=module,
@@ -5302,11 +5487,12 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         if ('vistrail', obj.db_vistrail) in all_objects:
             p = all_objects[('vistrail', obj.db_vistrail)]
             p.db_add_vistrailVariable(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['name', 'uuid', 'package', 'module', 'namespace', 'value', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['name', 'uuid', 'package', 'module', 'namespace',
+                   'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
@@ -5348,11 +5534,12 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['name', 'uuid', 'package', 'module', 'namespace', 'value', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['name', 'uuid', 'package', 'module', 'namespace',
+                   'value', 'parent_id', 'entity_id', 'entity_type']
         table = 'vistrail_variable'
         whereMap = {}
         whereMap.update(global_props)
@@ -5400,7 +5587,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'vistrail_variable'
         whereMap = {}
@@ -5411,6 +5598,7 @@ class DBVistrailVariableSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBModuleDescriptorSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5420,13 +5608,15 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'package', 'namespace', 'package_version', 'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'package', 'namespace', 'package_version',
+                   'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
         table = 'module_descriptor'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -5440,7 +5630,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
             package = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             module_descriptor = DBModuleDescriptor(name=name,
                                                    package=package,
                                                    namespace=namespace,
@@ -5455,8 +5645,9 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
             res[('module_descriptor', id)] = module_descriptor
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'package', 'namespace', 'package_version', 'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'package', 'namespace', 'package_version',
+                   'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
         table = 'module_descriptor'
         whereMap = global_props
         orderBy = 'id'
@@ -5475,7 +5666,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
             package = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             module_descriptor = DBModuleDescriptor(name=name,
                                                    package=package,
                                                    namespace=namespace,
@@ -5494,11 +5685,12 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         if ('package', obj.db_package) in all_objects:
             p = all_objects[('package', obj.db_package)]
             p.db_add_module_descriptor(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'package', 'namespace', 'package_version', 'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'package', 'namespace', 'package_version',
+                   'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
         table = 'module_descriptor'
         whereMap = {}
         whereMap.update(global_props)
@@ -5543,11 +5735,12 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'package', 'namespace', 'package_version', 'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'package', 'namespace', 'package_version',
+                   'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
         table = 'module_descriptor'
         whereMap = {}
         whereMap.update(global_props)
@@ -5600,7 +5793,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         for child in obj.db_portSpecs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_descriptor'
         whereMap = {}
@@ -5611,6 +5804,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBTagSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5620,13 +5814,14 @@ class DBTagSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
+    def get_sql_columns(self, db, global_props, lock=False):
         columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'tag'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -5635,7 +5830,7 @@ class DBTagSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[2], 'long', 'int')
             entity_id = self.convertFromDB(row[3], 'long', 'int')
             entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
-            
+
             tag = DBTag(name=name,
                         id=id)
             tag.db_vistrail = vistrail
@@ -5645,7 +5840,7 @@ class DBTagSQLDAOBase(SQLDAO):
             res[('tag', id)] = tag
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
+    def get_sql_select(self, db, global_props, lock=False):
         columns = ['id', 'name', 'parent_id', 'entity_id', 'entity_type']
         table = 'tag'
         whereMap = global_props
@@ -5660,7 +5855,7 @@ class DBTagSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[2], 'long', 'int')
             entity_id = self.convertFromDB(row[3], 'long', 'int')
             entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
-            
+
             tag = DBTag(name=name,
                         id=id)
             tag.db_vistrail = vistrail
@@ -5674,7 +5869,7 @@ class DBTagSQLDAOBase(SQLDAO):
         if ('vistrail', obj.db_vistrail) in all_objects:
             p = all_objects[('vistrail', obj.db_vistrail)]
             p.db_add_tag(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
@@ -5708,7 +5903,7 @@ class DBTagSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
@@ -5748,7 +5943,7 @@ class DBTagSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'tag'
         whereMap = {}
@@ -5759,6 +5954,7 @@ class DBTagSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBPortSpecItemSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5768,13 +5964,15 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default',
+                   '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -5790,7 +5988,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             portSpec = self.convertFromDB(row[9], 'long', 'int')
             entity_id = self.convertFromDB(row[10], 'long', 'int')
             entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
-            
+
             portSpecItem = DBPortSpecItem(pos=pos,
                                           module=module,
                                           package=package,
@@ -5807,8 +6005,9 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             res[('portSpecItem', id)] = portSpecItem
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default',
+                   '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = global_props
         orderBy = 'id'
@@ -5829,7 +6028,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             portSpec = self.convertFromDB(row[9], 'long', 'int')
             entity_id = self.convertFromDB(row[10], 'long', 'int')
             entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
-            
+
             portSpecItem = DBPortSpecItem(pos=pos,
                                           module=module,
                                           package=package,
@@ -5850,11 +6049,12 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
         if ('portSpec', obj.db_portSpec) in all_objects:
             p = all_objects[('portSpec', obj.db_portSpec)]
             p.db_add_portSpecItem(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default',
+                   '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
@@ -5905,11 +6105,12 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default', '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'pos', 'module', 'package', 'namespace', 'label', '_default',
+                   '_values', 'entry_type', 'parent_id', 'entity_id', 'entity_type']
         table = 'port_spec_item'
         whereMap = {}
         whereMap.update(global_props)
@@ -5966,7 +6167,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'port_spec_item'
         whereMap = {}
@@ -5977,6 +6178,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBMashupComponentSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -5986,13 +6188,15 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+                   'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -6016,7 +6220,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             mashup_alias = self.convertFromDB(row[17], 'long', 'int')
             entity_id = self.convertFromDB(row[18], 'long', 'int')
             entity_type = self.convertFromDB(row[19], 'str', 'char(16)')
-            
+
             mashup_component = DBMashupComponent(vtid=vtid,
                                                  vttype=vttype,
                                                  vtparent_type=vtparent_type,
@@ -6041,8 +6245,9 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             res[('mashup_component', id)] = mashup_component
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+                   'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = global_props
         orderBy = 'id'
@@ -6071,7 +6276,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             mashup_alias = self.convertFromDB(row[17], 'long', 'int')
             entity_id = self.convertFromDB(row[18], 'long', 'int')
             entity_type = self.convertFromDB(row[19], 'str', 'char(16)')
-            
+
             mashup_component = DBMashupComponent(vtid=vtid,
                                                  vttype=vttype,
                                                  vtparent_type=vtparent_type,
@@ -6100,11 +6305,12 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         if ('mashup_alias', obj.db_mashup_alias) in all_objects:
             p = all_objects[('mashup_alias', obj.db_mashup_alias)]
             p.db_add_component(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+                   'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = {}
         whereMap.update(global_props)
@@ -6179,11 +6385,12 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val', 'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
+        columns = ['id', 'vtid', 'vttype', 'vtparent_type', 'vtparent_id', 'vtpos', 'vtmid', 'pos', 'type', 'val',
+                   'minVal', 'maxVal', 'stepSize', 'strvaluelist', 'widget', 'seq', 'parent', 'alias_id', 'entity_id', 'entity_type']
         table = 'mashup_component'
         whereMap = {}
         whereMap.update(global_props)
@@ -6264,7 +6471,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup_component'
         whereMap = {}
@@ -6275,6 +6482,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBMashupSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -6284,13 +6492,15 @@ class DBMashupSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout', 'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout',
+                   'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -6305,7 +6515,7 @@ class DBMashupSQLDAOBase(SQLDAO):
             parent = self.convertFromDB(row[8], 'long', 'int')
             entity_id = self.convertFromDB(row[9], 'long', 'int')
             entity_type = self.convertFromDB(row[10], 'str', 'char(16)')
-            
+
             mashup = DBMashup(name=name,
                               version=version,
                               type=type,
@@ -6321,8 +6531,9 @@ class DBMashupSQLDAOBase(SQLDAO):
             res[('mashup', id)] = mashup
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout', 'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout',
+                   'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup'
         whereMap = global_props
         orderBy = 'id'
@@ -6342,7 +6553,7 @@ class DBMashupSQLDAOBase(SQLDAO):
             parent = self.convertFromDB(row[8], 'long', 'int')
             entity_id = self.convertFromDB(row[9], 'long', 'int')
             entity_type = self.convertFromDB(row[10], 'str', 'char(16)')
-            
+
             mashup = DBMashup(name=name,
                               version=version,
                               type=type,
@@ -6362,11 +6573,12 @@ class DBMashupSQLDAOBase(SQLDAO):
         if ('mashup_action', obj.db_parent) in all_objects:
             p = all_objects[('mashup_action', obj.db_parent)]
             p.db_add_mashup(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout', 'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout',
+                   'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup'
         whereMap = {}
         whereMap.update(global_props)
@@ -6414,11 +6626,12 @@ class DBMashupSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout', 'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'version', 'type', 'vtid', 'layout',
+                   'geometry', 'has_seq', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup'
         whereMap = {}
         whereMap.update(global_props)
@@ -6473,7 +6686,7 @@ class DBMashupSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_aliases:
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup'
         whereMap = {}
@@ -6484,6 +6697,7 @@ class DBMashupSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBMachineSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -6493,13 +6707,15 @@ class DBMachineSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'os', 'architecture', 'processor', 'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'os', 'architecture', 'processor',
+                   'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
         table = 'machine'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -6513,7 +6729,7 @@ class DBMachineSQLDAOBase(SQLDAO):
             workflow_exec = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             machine = DBMachine(name=name,
                                 os=os,
                                 architecture=architecture,
@@ -6528,8 +6744,9 @@ class DBMachineSQLDAOBase(SQLDAO):
             res[('machine', id)] = machine
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'os', 'architecture', 'processor', 'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'os', 'architecture', 'processor',
+                   'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
         table = 'machine'
         whereMap = global_props
         orderBy = 'id'
@@ -6548,7 +6765,7 @@ class DBMachineSQLDAOBase(SQLDAO):
             workflow_exec = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             machine = DBMachine(name=name,
                                 os=os,
                                 architecture=architecture,
@@ -6567,11 +6784,12 @@ class DBMachineSQLDAOBase(SQLDAO):
         if ('workflow_exec', obj.db_workflow_exec) in all_objects:
             p = all_objects[('workflow_exec', obj.db_workflow_exec)]
             p.db_add_machine(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'os', 'architecture', 'processor', 'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'os', 'architecture', 'processor',
+                   'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
         table = 'machine'
         whereMap = {}
         whereMap.update(global_props)
@@ -6616,11 +6834,12 @@ class DBMachineSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'os', 'architecture', 'processor', 'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'os', 'architecture', 'processor',
+                   'ram', 'vt_id', 'log_id', 'entity_id', 'entity_type']
         table = 'machine'
         whereMap = {}
         whereMap.update(global_props)
@@ -6671,7 +6890,7 @@ class DBMachineSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'machine'
         whereMap = {}
@@ -6682,6 +6901,7 @@ class DBMachineSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBOtherSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -6691,13 +6911,15 @@ class DBOtherSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'okey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'okey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'other'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -6708,7 +6930,7 @@ class DBOtherSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             other = DBOther(key=key,
                             value=value,
                             id=id)
@@ -6720,8 +6942,9 @@ class DBOtherSQLDAOBase(SQLDAO):
             res[('other', id)] = other
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'okey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'okey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'other'
         whereMap = global_props
         orderBy = 'id'
@@ -6737,7 +6960,7 @@ class DBOtherSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             other = DBOther(key=key,
                             value=value,
                             id=id)
@@ -6759,11 +6982,12 @@ class DBOtherSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'okey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'okey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'other'
         whereMap = {}
         whereMap.update(global_props)
@@ -6799,11 +7023,12 @@ class DBOtherSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'okey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'okey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'other'
         whereMap = {}
         whereMap.update(global_props)
@@ -6845,7 +7070,7 @@ class DBOtherSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'other'
         whereMap = {}
@@ -6856,6 +7081,7 @@ class DBOtherSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBAbstractionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -6865,13 +7091,15 @@ class DBAbstractionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version',
+                   'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'abstraction'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -6881,12 +7109,13 @@ class DBAbstractionSQLDAOBase(SQLDAO):
             namespace = self.convertFromDB(row[3], 'str', 'varchar(255)')
             package = self.convertFromDB(row[4], 'str', 'varchar(511)')
             version = self.convertFromDB(row[5], 'str', 'varchar(255)')
-            internal_version = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            internal_version = self.convertFromDB(
+                row[6], 'str', 'varchar(255)')
             parentType = self.convertFromDB(row[7], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
             parent = self.convertFromDB(row[10], 'long', 'long')
-            
+
             abstraction = DBAbstraction(cache=cache,
                                         name=name,
                                         namespace=namespace,
@@ -6902,8 +7131,9 @@ class DBAbstractionSQLDAOBase(SQLDAO):
             res[('abstraction', id)] = abstraction
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version',
+                   'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'abstraction'
         whereMap = global_props
         orderBy = 'id'
@@ -6918,12 +7148,13 @@ class DBAbstractionSQLDAOBase(SQLDAO):
             namespace = self.convertFromDB(row[3], 'str', 'varchar(255)')
             package = self.convertFromDB(row[4], 'str', 'varchar(511)')
             version = self.convertFromDB(row[5], 'str', 'varchar(255)')
-            internal_version = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            internal_version = self.convertFromDB(
+                row[6], 'str', 'varchar(255)')
             parentType = self.convertFromDB(row[7], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
             parent = self.convertFromDB(row[10], 'long', 'long')
-            
+
             abstraction = DBAbstraction(cache=cache,
                                         name=name,
                                         namespace=namespace,
@@ -6949,11 +7180,12 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version',
+                   'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'abstraction'
         whereMap = {}
         whereMap.update(global_props)
@@ -6981,7 +7213,8 @@ class DBAbstractionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_version, 'str', 'varchar(255)')
         if hasattr(obj, 'db_internal_version') and obj.db_internal_version is not None:
             columnMap['internal_version'] = \
-                self.convertToDB(obj.db_internal_version, 'str', 'varchar(255)')
+                self.convertToDB(obj.db_internal_version,
+                                 'str', 'varchar(255)')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -7001,11 +7234,12 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'cache', 'name', 'namespace', 'package', 'version',
+                   'internal_version', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'abstraction'
         whereMap = {}
         whereMap.update(global_props)
@@ -7033,7 +7267,8 @@ class DBAbstractionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_version, 'str', 'varchar(255)')
         if hasattr(obj, 'db_internal_version') and obj.db_internal_version is not None:
             columnMap['internal_version'] = \
-                self.convertToDB(obj.db_internal_version, 'str', 'varchar(255)')
+                self.convertToDB(obj.db_internal_version,
+                                 'str', 'varchar(255)')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -7071,7 +7306,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'abstraction'
         whereMap = {}
@@ -7082,6 +7317,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBMashuptrailSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -7091,13 +7327,15 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'version',
+                   'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -7108,7 +7346,7 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
             vtVersion = self.convertFromDB(row[3], 'long', 'int')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
-            
+
             mashuptrail = DBMashuptrail(name=name,
                                         version=version,
                                         vtVersion=vtVersion,
@@ -7119,8 +7357,9 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
             res[('mashuptrail', id)] = mashuptrail
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'name', 'version',
+                   'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = global_props
         orderBy = 'id'
@@ -7136,7 +7375,7 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
             vtVersion = self.convertFromDB(row[3], 'long', 'int')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
-            
+
             mashuptrail = DBMashuptrail(name=name,
                                         version=version,
                                         vtVersion=vtVersion,
@@ -7149,11 +7388,12 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-    
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
+        columns = ['id', 'name', 'version',
+                   'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = {}
         whereMap.update(global_props)
@@ -7190,12 +7430,14 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
-        
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'version', 'vt_version', 'last_modified', 'entity_type']
+        columns = ['id', 'name', 'version',
+                   'vt_version', 'last_modified', 'entity_type']
         table = 'mashuptrail'
         whereMap = {}
         whereMap.update(global_props)
@@ -7234,7 +7476,8 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
@@ -7245,7 +7488,7 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
             child.db_parent = obj.db_id
         for child in obj.db_actionAnnotations:
             child.db_mashuptrail = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashuptrail'
         whereMap = {}
@@ -7256,6 +7499,7 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBRegistrySQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -7265,25 +7509,28 @@ class DBRegistrySQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'entity_type', 'version', 'root_descriptor_id', 'name', 'last_modified']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'entity_type', 'version',
+                   'root_descriptor_id', 'name', 'last_modified']
         table = 'registry'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             root_descriptor_id = self.convertFromDB(row[3], 'long', 'int')
             name = self.convertFromDB(row[4], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
-            
+
             registry = DBRegistry(entity_type=entity_type,
                                   version=version,
                                   root_descriptor_id=root_descriptor_id,
@@ -7294,8 +7541,9 @@ class DBRegistrySQLDAOBase(SQLDAO):
             res[('registry', id)] = registry
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'entity_type', 'version', 'root_descriptor_id', 'name', 'last_modified']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'entity_type', 'version',
+                   'root_descriptor_id', 'name', 'last_modified']
         table = 'registry'
         whereMap = global_props
         orderBy = 'id'
@@ -7307,12 +7555,13 @@ class DBRegistrySQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             root_descriptor_id = self.convertFromDB(row[3], 'long', 'int')
             name = self.convertFromDB(row[4], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
-            
+
             registry = DBRegistry(entity_type=entity_type,
                                   version=version,
                                   root_descriptor_id=root_descriptor_id,
@@ -7325,11 +7574,12 @@ class DBRegistrySQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         pass
-    
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'entity_type', 'version', 'root_descriptor_id', 'name', 'last_modified']
+        columns = ['id', 'entity_type', 'version',
+                   'root_descriptor_id', 'name', 'last_modified']
         table = 'registry'
         whereMap = {}
         whereMap.update(global_props)
@@ -7366,14 +7616,17 @@ class DBRegistrySQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
-        
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'entity_type', 'version', 'root_descriptor_id', 'name', 'last_modified']
+        columns = ['id', 'entity_type', 'version',
+                   'root_descriptor_id', 'name', 'last_modified']
         table = 'registry'
         whereMap = {}
         whereMap.update(global_props)
@@ -7412,15 +7665,17 @@ class DBRegistrySQLDAOBase(SQLDAO):
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
-            global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(
+                obj.db_entity_type, 'str', 'char(16)')
         if hasattr(obj, 'db_id') and obj.db_id is not None:
-            global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(
+                obj.db_id, 'long', 'int')
         pass
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_packages:
             child.db_registry = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'registry'
         whereMap = {}
@@ -7431,6 +7686,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBAnnotationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -7440,13 +7696,15 @@ class DBAnnotationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'akey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'akey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'annotation'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -7457,7 +7715,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             annotation = DBAnnotation(key=key,
                                       value=value,
                                       id=id)
@@ -7469,8 +7727,9 @@ class DBAnnotationSQLDAOBase(SQLDAO):
             res[('annotation', id)] = annotation
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'akey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'akey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'annotation'
         whereMap = global_props
         orderBy = 'id'
@@ -7486,7 +7745,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
-            
+
             annotation = DBAnnotation(key=key,
                                       value=value,
                                       id=id)
@@ -7535,11 +7794,12 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'group':
             p = all_objects[('group', obj.db_parent)]
             p.db_add_annotation(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'akey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'akey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -7575,11 +7835,12 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'akey', 'value', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'akey', 'value', 'parent_type',
+                   'entity_id', 'entity_type', 'parent_id']
         table = 'annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -7621,7 +7882,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'annotation'
         whereMap = {}
@@ -7632,6 +7893,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBParameterExplorationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -7641,13 +7903,15 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'action_id', 'name', 'date', 'user',
+                   'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
         table = 'parameter_exploration'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -7661,7 +7925,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             parameter_exploration = DBParameterExploration(action_id=action_id,
                                                            name=name,
                                                            date=date,
@@ -7676,8 +7940,9 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
             res[('parameter_exploration', id)] = parameter_exploration
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'action_id', 'name', 'date', 'user',
+                   'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
         table = 'parameter_exploration'
         whereMap = global_props
         orderBy = 'id'
@@ -7696,7 +7961,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
             vistrail = self.convertFromDB(row[7], 'long', 'int')
             entity_id = self.convertFromDB(row[8], 'long', 'int')
             entity_type = self.convertFromDB(row[9], 'str', 'char(16)')
-            
+
             parameter_exploration = DBParameterExploration(action_id=action_id,
                                                            name=name,
                                                            date=date,
@@ -7715,11 +7980,12 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         if ('vistrail', obj.db_vistrail) in all_objects:
             p = all_objects[('vistrail', obj.db_vistrail)]
             p.db_add_parameter_exploration(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'action_id', 'name', 'date', 'user',
+                   'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
         table = 'parameter_exploration'
         whereMap = {}
         whereMap.update(global_props)
@@ -7764,11 +8030,12 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'action_id', 'name', 'date', 'user', 'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'action_id', 'name', 'date', 'user',
+                   'dims', 'layout', 'parent_id', 'entity_id', 'entity_type']
         table = 'parameter_exploration'
         whereMap = {}
         whereMap.update(global_props)
@@ -7820,7 +8087,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_functions:
             child.db_parameter_exploration = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'parameter_exploration'
         whereMap = {}
@@ -7831,6 +8098,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -7840,13 +8108,15 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action_annotation'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -7859,7 +8129,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
             mashuptrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             mashup_actionAnnotation = DBMashupActionAnnotation(key=key,
                                                                value=value,
                                                                action_id=action_id,
@@ -7873,8 +8143,9 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
             res[('mashup_actionAnnotation', id)] = mashup_actionAnnotation
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action_annotation'
         whereMap = global_props
         orderBy = 'id'
@@ -7892,7 +8163,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
             mashuptrail = self.convertFromDB(row[6], 'long', 'int')
             entity_id = self.convertFromDB(row[7], 'long', 'int')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
-            
+
             mashup_actionAnnotation = DBMashupActionAnnotation(key=key,
                                                                value=value,
                                                                action_id=action_id,
@@ -7910,11 +8181,12 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
         if ('mashuptrail', obj.db_mashuptrail) in all_objects:
             p = all_objects[('mashuptrail', obj.db_mashuptrail)]
             p.db_add_actionAnnotation(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action_annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -7956,11 +8228,12 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date',
+                   'user', 'parent_id', 'entity_id', 'entity_type']
         table = 'mashup_action_annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -8008,7 +8281,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         pass
-    
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup_action_annotation'
         whereMap = {}
@@ -8019,6 +8292,7 @@ class DBMashupActionAnnotationSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+
 class DBModuleExecSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -8028,13 +8302,15 @@ class DBModuleExecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_columns(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed',
+                   'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module_exec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        dbCommand = self.createSQLSelect(
+            table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -8051,7 +8327,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[10], 'long', 'int')
             entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
             parent = self.convertFromDB(row[12], 'long', 'long')
-            
+
             module_exec = DBModuleExec(ts_start=ts_start,
                                        ts_end=ts_end,
                                        cached=cached,
@@ -8069,8 +8345,9 @@ class DBModuleExecSQLDAOBase(SQLDAO):
             res[('module_exec', id)] = module_exec
         return res
 
-    def get_sql_select(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+    def get_sql_select(self, db, global_props, lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed',
+                   'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -8092,7 +8369,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
             entity_id = self.convertFromDB(row[10], 'long', 'int')
             entity_type = self.convertFromDB(row[11], 'str', 'char(16)')
             parent = self.convertFromDB(row[12], 'long', 'long')
-            
+
             module_exec = DBModuleExec(ts_start=ts_start,
                                        ts_end=ts_end,
                                        cached=cached,
@@ -8120,11 +8397,12 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'loop_iteration':
             p = all_objects[('loop_iteration', obj.db_parent)]
             p.db_add_item_exec(obj)
-        
+
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed',
+                   'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -8178,11 +8456,12 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
         lastId = self.executeSQL(db, dbCommand, False)
-        
+
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed',
+                   'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -8247,7 +8526,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         for child in obj.db_loop_execs:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
-        
+
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_exec'
         whereMap = {}
@@ -8259,6 +8538,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         self.executeSQL(db, dbCommand, False)
 
 """generated automatically by auto_dao.py"""
+
 
 class SQLDAOListBase(dict):
 
@@ -8345,8 +8625,10 @@ class SQLDAOListBase(dict):
         if 'annotation' not in self:
             self['annotation'] = DBAnnotationSQLDAOBase(self)
         if 'parameter_exploration' not in self:
-            self['parameter_exploration'] = DBParameterExplorationSQLDAOBase(self)
+            self['parameter_exploration'] = DBParameterExplorationSQLDAOBase(
+                self)
         if 'mashup_actionAnnotation' not in self:
-            self['mashup_actionAnnotation'] = DBMashupActionAnnotationSQLDAOBase(self)
+            self['mashup_actionAnnotation'] = DBMashupActionAnnotationSQLDAOBase(
+                self)
         if 'module_exec' not in self:
             self['module_exec'] = DBModuleExecSQLDAOBase(self)

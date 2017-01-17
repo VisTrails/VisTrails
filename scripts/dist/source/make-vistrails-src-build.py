@@ -34,13 +34,13 @@ import subprocess
 EXPORT_PATHS = "vistrails doc examples extensions scripts CHANGELOG LICENSE".split()
 
 # VisTrails Release Version
-VT_VERSION = '2.2.1'
+VT_VERSION = '2.x'
 
 # Branch to be used to build release
 VT_BRANCH = 'master'
 
 # Hash used in the release
-VT_HASH = 'c366dbcb640c'
+VT_HASH = '0fddb5bfe72c'
 
 # Distribution Tarball name (Do not add ".tar.gz")
 #TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
@@ -113,9 +113,16 @@ if __name__ == "__main__":
     tarball = None
     try:
         tarball = tarfile.open(TARBALL_FILENAME, "w:gz")
-        dist = os.path.join('scripts', 'dist')
+        ignore = [os.path.join('scripts', 'dist'),
+                  os.path.join('doc', 'dist')]
+
+        def filter_(member):
+            if any(member.name.startswith(ignored) for ignored in ignore):
+                return None
+            return member
+
         for fname in EXPORT_PATHS:
-            tarball.add(fname, filter=lambda x: None if x.name.startswith(dist) else x)
+            tarball.add(fname, filter=filter_)
     except:
         print "ERROR: Failed to create tarball"
         raise

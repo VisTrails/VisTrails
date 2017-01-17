@@ -16,7 +16,7 @@ RUN \
     python-xlrd python-xlwt
 RUN \
   apt-get install -y python-qt4 python-qt4-gl python-qt4-sql python-vtk \
-    imagemagick xvfb
+    imagemagick graphviz xvfb
 # Install IPython deps. python-tornado is too old, so we'll get it from pip
 RUN \
   apt-get install -y python-zmq
@@ -35,8 +35,7 @@ ADD requirements.txt MANIFEST.in setup.py /root/
 RUN \
   cd /root && \
   . venv/bin/activate && \
-  pip install -r requirements.txt && \
-  pip install 'tornado>=4.0' jsonschema
+  pip install -r requirements.txt jupyter
 
 # Warning: using 'setup.py develop' will make setuptools add dist-packages to
 # sys.path, which will break everything; don't do it
@@ -51,4 +50,4 @@ RUN apt-get install -y libosmesa6 libglapi-mesa libgl1-mesa-swx11 libgl1-mesa-dr
 ENTRYPOINT \
   cd /root && \
   . venv/bin/activate && \
-  xvfb-run -s "-screen 0 640x480x24" ipython notebook --ip=0.0.0.0 --port=8888
+  xvfb-run -s "-screen 0 640x480x24" jupyter notebook --ip=0.0.0.0 --port=8888

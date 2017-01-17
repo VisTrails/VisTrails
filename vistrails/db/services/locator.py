@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-import cgi
 from datetime import datetime, date
 import hashlib
 import locale
@@ -88,7 +87,7 @@ def url2pathname(urlpath):
 
 class BaseLocator(object):
 
-    def load(self):
+    def load(self, type):
         raise NotImplementedError("load is not implemented")
 
     def save(self, obj, do_copy=True, version=None):
@@ -144,7 +143,16 @@ class BaseLocator(object):
         raise NotImplementedError("parse is not implemented")
     
     @staticmethod
-    def convert_filename_to_url(filename):
+    def real_filename(filename):
+        """ Expand relative path and dereference symbolic links
+
+        To avoid dereference symbolic links:
+        Remove realpath and add DontResolveSymlinks to QFileDialog calls
+        """
+        return os.path.realpath(os.path.abspath(filename))
+
+    @classmethod
+    def convert_filename_to_url(cls, filename):
         """ Converts a local filename to a file:// URL.
 
         All file:// URLs are absolute, so abspath() will be used on the
@@ -168,7 +176,7 @@ class BaseLocator(object):
         else:
             args_str = ""
 
-        return 'file://%s%s' % (pathname2url(os.path.abspath(filename)),
+        return 'file://%s%s' % (pathname2url(cls.real_filename(filename)),
                                 urllib.quote(args_str, safe='/?=&'))
 
     @staticmethod
@@ -195,16 +203,16 @@ class BaseLocator(object):
             scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
-            if path.endswith(".vt"):
-                return ZIPFileLocator.from_url(url)
-            elif path.endswith(".xml"):
+            if path.lower().endswith(".xml"):
                 return XMLFileLocator.from_url(url)
+            else:
+                return ZIPFileLocator.from_url(url)
         return None
 
     @staticmethod
     def parse_args(arg_str):
         args = {}
-        parsed_dict = cgi.parse_qs(arg_str)
+        parsed_dict = urlparse.parse_qs(arg_str)
         if 'type' in parsed_dict:
             args['obj_type'] = parsed_dict['type'][0]
         if 'id' in parsed_dict:
@@ -293,7 +301,6 @@ class SaveTemporariesMixin(object):
     self.name to exist for proper functioning.
 
     """
-
     @staticmethod
     def get_autosave_dir():
         dot_vistrails = vistrails.core.system.current_dot_vistrails()
@@ -309,10 +316,22 @@ class SaveTemporariesMixin(object):
     def get_temp_basename(self):
         return self.name
 
+    def get_temporary(self):
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            return temp_fname
+        return None
+
     def save_temporary(self, obj):
-        fname = self._find_latest_temporary()
-        new_temp_fname = self._next_temporary(fname)
+        """ Writes a backup file to disk
+        """
+        temp_fname = self.encode_name(self.get_temp_basename())
+        new_temp_fname = temp_fname + '.tmp'
+        # Write a temporary backup before deleting the old one
         io.save_to_xml(obj, new_temp_fname)
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        os.rename(new_temp_fname, temp_fname)
 
     def clean_temporaries(self):
         """_remove_temporaries() -> None
@@ -320,60 +339,19 @@ class SaveTemporariesMixin(object):
         Erases all temporary files.
 
         """
-        def remove_it(fname):
-            os.unlink(fname)
-        self._iter_temporaries(remove_it)
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        if os.path.isfile(temp_fname + '.tmp'):
+            os.unlink(temp_fname + '.tmp')
 
     def encode_name(self, filename):
         """encode_name(filename) -> str
         Encodes a file path using urllib.quoteplus
 
         """
-        name = urllib.quote_plus(filename) + '_tmp_'
+        name = urllib.quote_plus(filename) + '_tmp'
         return os.path.join(self.get_autosave_dir(), name)
-
-    def _iter_temporaries(self, f):
-        """_iter_temporaries(f): calls f with each temporary file name, in
-        sequence.
-
-        """
-        latest = None
-        current = 0
-        while True:
-            fname = self.encode_name(self.get_temp_basename()) + str(current)
-            if os.path.isfile(fname):
-                f(fname)
-                current += 1
-            else:
-                break
-
-    def _find_latest_temporary(self):
-        """_find_latest_temporary(): String or None.
-
-        Returns the latest temporary file saved, if it exists. Returns
-        None otherwise.
-        
-        """
-        latest = [None]
-        def set_it(fname):
-            latest[0] = fname
-        self._iter_temporaries(set_it)
-        return latest[0]
-        
-    def _next_temporary(self, temporary):
-        """_find_latest_temporary(string or None): String
-
-        Returns the next suitable temporary file given the current
-        latest one.
-
-        """
-        if temporary is None:
-            return self.encode_name(self.get_temp_basename()) + '0'
-        else:
-            split = temporary.rfind('_')+1
-            base = temporary[:split]
-            number = int(temporary[split:])
-            return base + str(number+1)
 
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
@@ -408,9 +386,6 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
 
     def get_temp_basename(self):
         return UntitledLocator.UNTITLED_PREFIX + self._uuid.hex
-
-    def get_temporary(self):
-        return self._find_latest_temporary()
 
     def _get_name(self):
         return UntitledLocator.UNTITLED_NAME
@@ -482,7 +457,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
 
 class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def __init__(self, filename, **kwargs):
-        self._name = filename
+        self._name = self.real_filename(filename)
         self._vnode = kwargs.get('version_node', None)
         self._vtag = kwargs.get('version_tag', '')
         self._mshptrail = kwargs.get('mashuptrail', None)
@@ -518,9 +493,6 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
     def is_valid(self):
         return os.path.isfile(self._name)
-
-    def get_temporary(self):
-        return self._find_latest_temporary()
 
     def _get_name(self):
         return str(self._name)
@@ -1093,9 +1065,9 @@ import unittest
 class TestLocators(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
         def assertIsInstance(self, obj, cls, msg=None):
-            assert(isinstance(obj, cls))
-        def assertIsNone(self, obj):
-            self.assertEqual(obj, None)
+            self.assertTrue(isinstance(obj, cls), msg)
+        def assertIsNone(self, obj, msg=None):
+            self.assertTrue(obj is None, msg)
 
     @staticmethod
     def path2url(fname):
@@ -1109,10 +1081,12 @@ class TestLocators(unittest.TestCase):
         # Test both systemTypes
         global systemType
         old_systemType = systemType
-        # Don't use abspath, it would cause Linux tests to fail on Windows
-        # we are using abspaths anyway
+        # Don't use abspath/realpath, it would cause Linux tests to fail on Windows
+        # we are using abspaths/realpaths anyway
         old_abspath = os.path.abspath
         os.path.abspath = lambda x: x
+        old_realpath = os.path.realpath
+        os.path.realpath = lambda x: x
         try:
             systemType = 'Linux'
             self.assertEqual(
@@ -1127,6 +1101,7 @@ class TestLocators(unittest.TestCase):
         finally:
             systemType = old_systemType
             os.path.abspath = old_abspath
+            os.path.realpath = old_realpath
 
     def test_parse_untitled(self):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=42"

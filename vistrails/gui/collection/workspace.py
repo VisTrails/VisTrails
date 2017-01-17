@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -77,9 +77,9 @@ class QCollectionWidget(QtGui.QTreeWidget):
         self.setup_widget()
             
     def run_search(self, search, items=None):
-        # FIXME only uses top level items
-        if items is None:
-            items = [self.topLevelItem(i) 
+        top_level = items is None
+        if top_level:
+            items = [self.topLevelItem(i)
                      for i in xrange(self.topLevelItemCount())]
         for item in items:
             if search.match(item.entity):
@@ -88,15 +88,17 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 while parent is not None:
                     if parent.isHidden():
                         parent.setHidden(False)
+                    if not parent.isExpanded():
+                        parent.setExpanded(True)
                     parent = parent.parent()
             else:
                 item.setHidden(True)
             self.run_search(search, [item.child(i) 
                                      for i in xrange(item.childCount())])
-            
+
     def reset_search(self, items=None):
         if items is None:
-            items = [self.topLevelItem(i) 
+            items = [self.topLevelItem(i)
                      for i in xrange(self.topLevelItemCount())]
         for item in items:
             item.setHidden(False)
@@ -793,6 +795,9 @@ class QVistrailList(QtGui.QTreeWidget):
                 item = QVistrailEntityItem(entity)
                 self.searchResultsItem.addChild(item)
                 item.setExpanded(True)
+                item.workflowsItem.setExpanded(True)
+                item.mashupsItem.setHidden(True)
+                item.paramExplorationsItem.setHidden(True)
             self.searchResultsItem.setExpanded(True)
 
     def onItemPressed(self, item, column):
@@ -1033,22 +1038,22 @@ class QVistrailList(QtGui.QTreeWidget):
         destination_parent = destination.parent()
         while not hasattr(destination_parent, 'window'):
             destination_parent = destination_parent.parent()
-        vistrail_1 = source_parent.window.controller.vistrail
-        vistrail_2 = destination_parent.window.controller.vistrail
+        controller_1 = source_parent.window.controller
+        controller_2 = destination_parent.window.controller
         if hasattr(source, 'entity'):
             v1 = source.entity.locator().kwargs.get('version_node', None)
         else:
-            v1 = vistrail_1.get_latest_version()
+            v1 = controller_1.vistrail.get_latest_version()
         if hasattr(destination, 'entity'):
             v2 = destination.entity.locator().kwargs.get('version_node', None)
         else:
-            v2 = vistrail_2.get_latest_version()
+            v2 = controller_2.vistrail.get_latest_version()
         
         # if we don't have the same vistrail, pass the second vistrail
-        if id(vistrail_1) == id(vistrail_2):
+        if id(controller_1) == id(controller_2):
             source_parent.window.diff_requested(v1, v2)
         else:
-            source_parent.window.diff_requested(v1, v2, vistrail_2)
+            source_parent.window.diff_requested(v1, v2, controller_2)
             
     def hideExecutions(self, hidden):
         self.executionsHidden = hidden
@@ -1135,6 +1140,7 @@ class QVistrailList(QtGui.QTreeWidget):
             item.setText(0, entity.name)
         (added_wfs, deleted_wfs) = entity.update_workflows()
         (more_added_wfs, added_wf_execs) = entity.update_log()
+        view.controller.vistrail.mashups = view.controller._mashups
         (added_mshps, deleted_mshps) = entity.update_mashups()
         (added_pes, deleted_pes) = entity.update_parameter_explorations()
 
@@ -1167,12 +1173,11 @@ class QVistrailList(QtGui.QTreeWidget):
             child_idx = child.parent().indexOfChild(child)
             child.parent().takeChild(child_idx)
             del item.mshp_to_item[mshp_entity.name]
-            item.mashupsItem.setHidden(not len(item.mshp_to_item))
         for mshp_entity in added_mshps:
             childItem = QMashupEntityItem(mshp_entity)
             item.mashupsItem.addChild(childItem)
             item.mshp_to_item[mshp_entity.name] = childItem
-            item.mashupsItem.setHidden(not len(item.mshp_to_item))
+        item.mashupsItem.setHidden(not len(item.mshp_to_item))
 
         for pe_entity in deleted_pes:
             assert(pe_entity.url in item.pe_to_item)
@@ -1180,13 +1185,12 @@ class QVistrailList(QtGui.QTreeWidget):
             child_idx = child.parent().indexOfChild(child)
             child.parent().takeChild(child_idx)
             del item.pe_to_item[pe_entity.url]
-            item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
         for pe_entity in added_pes:
             childItem = QParamExplorationEntityItem(pe_entity)
             item.paramExplorationsItem.addChild(childItem)
             # keep list of tagged workflows
             item.pe_to_item[pe_entity.url] = childItem
-            item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
+        item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
 
         if self.isTreeView:
             self.make_tree(item)
@@ -1406,6 +1410,11 @@ class QVistrailList(QtGui.QTreeWidget):
         else:
             QtGui.QTreeWidget.keyPressEvent(self, event)
 
+    def close_vistrail(self, item):
+        if item.parent() == self.openFilesItem and hasattr(item, 'window'):
+            from vistrails.gui.vistrails_window import _app
+            _app.close_vistrail(item.window)
+
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
         if isinstance(item, QVistrailEntityItem):
@@ -1414,10 +1423,15 @@ class QVistrailList(QtGui.QTreeWidget):
                 return
             # item is vistrail
             menu = QtGui.QMenu(self)
-            act = QtGui.QAction("Open in New Window", self,
-                                triggered=item.open_in_new_window)
-            act.setStatusTip("Open specified vistrail file in another window")
-            menu.addAction(act)
+            new_window = QtGui.QAction("Open in New Window", self,
+                                       triggered=item.open_in_new_window)
+            new_window.setStatusTip("Open specified vistrail file in another "
+                                    "window")
+            menu.addAction(new_window)
+            close = QtGui.QAction("Close", self,
+                                  triggered=lambda: self.close_vistrail(item))
+            close.setStatusTip("Close the specified vistrail file")
+            menu.addAction(close)
             menu.exec_(event.globalPos())
         elif (isinstance(item, QWorkflowEntityItem) or 
                 isinstance(item, QVistrailListLatestItem)):

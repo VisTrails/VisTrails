@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -44,6 +44,6 @@ from __future__ import division
 
 identifier = 'org.vistrails.vistrails.matplotlib'
 name = 'matplotlib'
-version = '1.0.5'
+version = '1.0.6'
 old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
                    'org.vistrails.matplotlib.new']

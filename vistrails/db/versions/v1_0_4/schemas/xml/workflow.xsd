@@ -1,6 +1,6 @@
 <!--###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -181,6 +181,7 @@
       <xs:attribute name="type" type="xs:string"/>
       <xs:attribute name="optional" type="xs:int"/>
       <xs:attribute name="depth" type="xs:int"/>
+      <xs:attribute name="union" type="xs:string"/>
       <xs:attribute name="sortKey" type="xs:int"/>
       <xs:attribute name="minConns" type="xs:int"/>
       <xs:attribute name="maxConns" type="xs:int"/>

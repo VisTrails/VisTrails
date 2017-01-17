@@ -1,6 +1,6 @@
 --#############################################################################
 --
--- Copyright (C) 2014-2015, New York University.
+-- Copyright (C) 2014-2016, New York University.
 -- Copyright (C) 2011-2014, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah.
 -- All rights reserved.
@@ -234,6 +234,7 @@ CREATE TABLE port_spec(
     type varchar(255),
     optional int,
     depth int,
+    ps_union varchar(255),
     sort_key int,
     min_conns int,
     max_conns int,

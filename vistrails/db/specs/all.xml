@@ -1,6 +1,6 @@
 <!--###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -1762,6 +1762,11 @@
     <property name="depth" type="int">
       <xml nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
+    </property>
+
+    <property name="union" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
     </property>
 
     <property name="sort_key" type="int">

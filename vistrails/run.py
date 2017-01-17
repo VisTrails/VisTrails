@@ -2,7 +2,7 @@
 # pragma: no testimport
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -76,7 +76,8 @@ def fix_site():
 
 def fix_paths():
     import site
-    if not hasattr(site, "USER_BASE"): return # We are running py2app
+    if not hasattr(site, "USER_BASE"): return  # We are running py2app
+    if os.path.basename(__file__) != 'run.py': return  # Not running from source
 
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
@@ -107,6 +108,10 @@ def main():
     from vistrails.core import debug
     debug.DebugPrint.getInstance().log_to_console()
 
+    # Setup usage reporting
+    from vistrails.core import reportusage
+    reportusage.setup_usage_report()
+
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 
@@ -124,6 +129,8 @@ def main():
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
+        reportusage.submit_usage_report(result='init exit %s' %
+                                               getattr(e, 'code', '(unknown)'))
         sys.exit(e)
     except Exception, e:
         app = vistrails.gui.application.get_vistrails_application()
@@ -133,12 +140,17 @@ def main():
         print >>sys.stderr, "Uncaught exception on initialization: %s" % (
                 traceback._format_final_exc_line(type(e).__name__, e).strip())
         traceback.print_exc(None, sys.stderr)
+        reportusage.submit_usage_report(result='init %s' % type(e).__name__)
         sys.exit(255)
-    if (not app.temp_configuration.batch and
-        not app.temp_configuration.check('outputDirectory')):
-        v = app.exec_()
 
-    vistrails.gui.application.stop_application()
+    try:
+        if not app.temp_configuration.batch:
+            v = app.exec_()
+        vistrails.gui.application.stop_application()
+    except BaseException, e:
+        reportusage.submit_usage_report(result=type(e).__name__)
+        raise
+    reportusage.submit_usage_report(result='success %s' % v)
     sys.exit(v)
 
 if __name__ == '__main__':

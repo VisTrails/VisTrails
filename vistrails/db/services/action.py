@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -118,6 +118,11 @@ def create_copy_op_chain(object, parent=(None,None), id_scope=None):
         new_id = id_scope.getNewId(obj.vtType)
         id_remap[(obj.vtType, obj.db_id)] = new_id
         obj.db_id = new_id
+        # still need to reassign ids for those that are included in the action
+        for (child_obj, pt, pid) in obj.db_children(parent):
+            new_id = id_scope.getNewId(child_obj.vtType)
+            id_remap[(child_obj.vtType, child_obj.db_id)] = new_id
+            child_obj.db_id = new_id
         op = DBAdd(id=-1,
                    what=obj.vtType,
                    objectId=obj.db_id,
@@ -175,3 +180,19 @@ def create_action_from_ops(ops, simplify=False):
     action = DBAction(id=-1,
                       operations=ops)
     return action
+
+import unittest
+from vistrails.db.domain import IdScope, DBPortSpec, DBPortSpecItem
+class ActionTest(unittest.TestCase):
+    def test_port_spec_copy(self):
+        id_scope = IdScope()
+        psi = DBPortSpecItem(id=id_scope.getNewId(DBPortSpecItem.vtType),
+                             pos=0,
+                             module="File",
+                             package="org.vistrails.vistrails.basic")
+
+        ps1 = DBPortSpec(id=id_scope.getNewId(DBPortSpec.vtType),
+                         portSpecItems=[psi,])
+        ops = create_copy_op_chain(ps1, id_scope=id_scope)
+        self.assertNotEqual(ps1.db_portSpecItems[0].db_id,
+                            ops[0].db_data.db_portSpecItems[0].db_id)

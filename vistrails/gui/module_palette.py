@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -42,6 +42,7 @@ QModuleTreeWidgetItem
 """
 from __future__ import division
 
+import os
 import traceback
 from PyQt4 import QtCore, QtGui
 from vistrails.core import get_vistrails_application
@@ -269,7 +270,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             self.setItemExpanded(item, not self.isItemExpanded(item))
 
     def contextMenuEvent(self, event):
-        # Just dispatches the menu event to the widget item
+        """Just dispatches the menu event to the widget item"""
         item = self.itemAt(event.pos())
         if item:
             # find top level
@@ -282,20 +283,27 @@ class QModuleTreeWidget(QSearchTreeWidget):
             registry = get_module_registry()
             package = registry.packages[identifier]
             try:
-                if package.has_contextMenuName():
-                    name = package.contextMenuName(item.text(0))
-                    if name:
-                        act = QtGui.QAction(name, self)
-                        act.setStatusTip(name)
-                        def callMenu():
-                            if package.has_callContextMenu():
-                                name = package.callContextMenu(item.text(0))
-
-                        QtCore.QObject.connect(act,
-                                               QtCore.SIGNAL("triggered()"),
-                                               callMenu)
+                if package.has_context_menu():
+                    if isinstance(item, QPackageTreeWidgetItem):
+                        text = None
+                    elif isinstance(item, QNamespaceTreeWidgetItem):
+                        return  # no context menu for namespaces
+                    elif isinstance(item, QModuleTreeWidgetItem):
+                        text = item.descriptor.name
+                        if item.descriptor.namespace:
+                            text = '%s|%s' % (item.descriptor.namespace, text)
+                    else:
+                        assert False, "fell through"
+                    menu_items = package.context_menu(text)
+                    if menu_items:
                         menu = QtGui.QMenu(self)
-                        menu.addAction(act)
+                        for text, callback in menu_items:
+                            act = QtGui.QAction(text, self)
+                            act.setStatusTip(text)
+                            QtCore.QObject.connect(act,
+                                                   QtCore.SIGNAL("triggered()"),
+                                                   callback)
+                            menu.addAction(act)
                         menu.exec_(event.globalPos())
                     return
             except Exception, e:
@@ -486,6 +494,12 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
                                QtCore.SIGNAL("triggered()"),
                                self.edit_subworkflow)
             menu.addAction(act)
+            act = QtGui.QAction("Remove Subworkflow", widget)
+            act.setStatusTip("Delete this Subworkflow")
+            QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.remove_subworkflow)
+            menu.addAction(act)
         menu.exec_(event.globalPos())
 
     def view_documentation(self):
@@ -498,6 +512,17 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         from vistrails_window import _app
         filename = self.descriptor.module.vt_fname
         _app.openAbstraction(filename)
+
+    def remove_subworkflow(self):
+        registry = get_module_registry()
+        res = QtGui.QMessageBox.question(None,
+                  'Delete subworkflow?',
+                  'Remove local subworkflow "%s" and delete from disk?' % self.descriptor.name,
+                  buttons=QtGui.QMessageBox.Yes,
+                  defaultButton=QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            os.unlink(self.descriptor.module.vt_fname)
+            registry.delete_module(*self.descriptor.spec_tuple)
 
     def set_descriptor(self, descriptor):
         self.descriptor = descriptor

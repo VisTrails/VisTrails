@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -64,7 +64,7 @@ def find_workflows(path_name, vistrail_dir):
             name = os.path.join(dir, base)
             if os.path.isdir(name):
                 dir_stack.append(name)
-            elif name.endswith('.vt'):
+            elif name.lower().endswith('.vt'):
                 vt_files.append(name)
 
     vt_finds = {}

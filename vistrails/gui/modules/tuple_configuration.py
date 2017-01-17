@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -58,10 +58,7 @@ class PortTable(QtGui.QTableWidget):
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self,1,3,parent)
         horiz = self.horizontalHeader()
-        horiz.setResizeMode(QtGui.QHeaderView.Interactive)
         horiz.setMovable(False)
-        #horiz.setStretchLastSection(True)
-        horiz.setResizeMode(1, horiz.Stretch)
         self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.delegate = PortTableItemDelegate(self)
@@ -406,13 +403,18 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
             ['Input Port Name', 'Type', 'List Depth'])
-        
+
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
         self.portTable.initializePorts(self.module.input_port_specs)
         self.portTable.fixGeometry()
         centralLayout.addWidget(self.portTable)
+
+        horiz = self.portTable.horizontalHeader()
+        horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
+        self.portTable.resizeColumnToContents(0)
+        self.portTable.resizeColumnToContents(2)
 
         # We need a padded widget to take all vertical white space away
         paddedWidget = QtGui.QWidget(self)
@@ -514,7 +516,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         # Then add a PortTable to our configuration widget
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
-            ['Output Port Name', 'Type'])
+            ['Output Port Name', 'Type', 'List Depth'])
         
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
@@ -528,6 +530,11 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         paddedWidget.setSizePolicy(QtGui.QSizePolicy.Ignored,
                                    QtGui.QSizePolicy.Expanding)
         centralLayout.addWidget(paddedWidget, 1)
+
+        horiz = self.portTable.horizontalHeader()
+        horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
+        self.portTable.resizeColumnToContents(0)
+        self.portTable.resizeColumnToContents(2)
 
         # Then we definitely need a Save & Reset button
         self.createButtons()

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -83,7 +83,6 @@ class Module(DBModule):
 
     def set_defaults(self, other=None):
         if other is None:
-            self.portVisible = set()
             self.visible_input_ports = set()
             self.visible_output_ports = set()
             self.connected_input_ports = {}
@@ -96,7 +95,6 @@ class Module(DBModule):
             self.list_depth = 0
             self.iterated_ports = []
         else:
-            self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
             self.visible_output_ports = copy.copy(other.visible_output_ports)
             self.connected_input_ports = copy.copy(other.connected_input_ports)
@@ -338,6 +336,23 @@ class Module(DBModule):
         ports = registry.module_destination_ports_from_descriptor(True, desc)
         ports.extend(self.input_port_specs)
         return ports
+
+    def unionPorts(self):
+        """unionPorts() -> dict of {union_name: list of ports}
+        Returns dict of union (input) ports module supports
+
+        They are used to indicate that ports are really the same port but of
+        different types.
+        """
+        ports = self.destinationPorts()
+        groups = {}
+        for port_spec in ports:
+            if port_spec.union:
+                if port_spec.union not in groups:
+                    groups[port_spec.union] = []
+                groups[port_spec.union].append(port_spec)
+        return groups
+
 
     ##########################################################################
     # Debugging

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -147,12 +147,14 @@ def menu_items():
 
 
 def finalize():
-    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
-    ### DO NOT ADD BACK spreadsheetWindow.destroy()
-    ### That will crash VisTrails on Mac.
-    ### It is not supposed to be called directly
-    spreadsheetWindow.cleanup()
-    spreadsheetWindow.deleteLater()
+    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(
+        show=False, create=False)
+    if spreadsheetWindow is not None:
+        ### DO NOT ADD BACK spreadsheetWindow.destroy()
+        ### That will crash VisTrails on Mac.
+        ### It is not supposed to be called directly
+        spreadsheetWindow.cleanup()
+        spreadsheetWindow.deleteLater()
 
 
 def upgrade_cell_to_output(module_remap, module_id, pipeline,

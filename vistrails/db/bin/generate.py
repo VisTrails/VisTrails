@@ -2,7 +2,7 @@
 # pragma: no testimport
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -72,7 +72,7 @@ class DAOList(dict):
 COPYRIGHT_NOTICE = \
 """###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -147,9 +147,8 @@ def preprocess_template(in_fname, out_fname=None):
     in_file.close()
 
 def indent_python(fname):
-    subprocess.Popen(["emacs", "-batch", fname, "-f", "mark-whole-buffer",
-                      "-f", "indent-region", "-f", "save-buffer", "-kill"],
-                     stdout=subprocess.PIPE).communicate()
+    import autopep8
+    autopep8.fix_file(fname, options=autopep8.parse_args([fname, '-i']))
 
 def run_template(template_fname, objects, version, version_string, output_file,
                  indent=False):
@@ -286,7 +285,7 @@ def main(argv=None):
     use_base_specs = True
     if options['n'] and os.path.exists(versionDirs['specs']):
         for file in os.listdir(versionDirs['specs']):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 # assume we've already copied the specs
                 use_base_specs = False
 
@@ -294,7 +293,7 @@ def main(argv=None):
         # copy specs to version        
         print "copying base specs to version directory..."
         for file in os.listdir(baseDirs['specs']):
-            if file.endswith('.xml'):
+            if file.lower().endswith('.xml'):
                 print 'copying %s' % file
                 filename = os.path.join(baseDirs['specs'], file)
                 toFile = os.path.join(versionDirs['specs'], file)

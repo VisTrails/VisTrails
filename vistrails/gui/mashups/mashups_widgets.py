@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -184,7 +184,7 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
         
 ###############################################################################
 class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
-    contentsChanged = QtCore.pyqtSignal(object, object)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)

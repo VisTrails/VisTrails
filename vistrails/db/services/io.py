@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -176,11 +176,11 @@ def default_open_db_connection(config):
             driver = "mysql"
         if config.get("driver") is not None:
             driver += "+%s" % config["driver"]
-        url = sqlalchemy.engine.url.URL(driver, 
-                                        config.get("user"), 
-                                        config.get("passwd"), 
-                                        config.get("host"), 
-                                        config.get("port"), 
+        url = sqlalchemy.engine.url.URL(driver,
+                                        config.get("user"),
+                                        config.get("passwd"),
+                                        config.get("host"),
+                                        config.get("port"),
                                         config.get("db"))
         engine = sqlalchemy.create_engine(url)
     else:
@@ -306,7 +306,7 @@ def get_db_id_from_name(db_connection, obj_type, name):
 @run_versioned
 def get_db_abstraction_modification_time(db_connection, abstraction):
     pass
-    
+
 @run_versioned
 def get_db_ids_from_vistrail(db_connection, vt_id, id_key):
     """ get_db_ids_from_vistrail(db_connection: DBConnection,
@@ -805,7 +805,15 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
 
-    z = zipfile.ZipFile(tmp_zip_file, 'w')
+    try:
+        import zlib
+    except ImportError:
+        warnings.warn("zlib unavailable, cannot compress %s" % filename,
+                      UserWarning)
+        compression = zipfile.ZIP_STORED
+    else:
+        compression = zipfile.ZIP_DEFLATED
+    z = zipfile.ZipFile(tmp_zip_file, 'w', compression)
     try:
         with Chdir(vt_save_dir):
             # zip current directory
@@ -1341,7 +1349,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
     file_names = get_thumbnail_fnames_from_db(db_connection, obj_id, obj_type)
 
     # Next get all thumbnails from the db that aren't already in tmp_dir
-    get_db_file_names = [fname for fname in file_names 
+    get_db_file_names = [fname for fname in file_names
                          if fname not in os.listdir(tmp_dir)]
     for file_name in get_db_file_names:
         image_bytes = get_thumbnail_data_from_db(db_connection, file_name)
@@ -1354,7 +1362,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
             debug.warning("db: Referenced thumbnail not found locally or "
                           "in the database: '%s'" % file_name)
     # Return only thumbnails that now exist locally
-    return [os.path.join(tmp_dir, file_name) for file_name in file_names 
+    return [os.path.join(tmp_dir, file_name) for file_name in file_names
             if file_name in os.listdir(tmp_dir)]
 
 def save_thumbnails_to_db(absfnames, db_connection):
@@ -1370,11 +1378,11 @@ def save_thumbnails_to_db(absfnames, db_connection):
         return None
 
     # Determine which thumbnails already exist in db
-    db_file_names = get_existing_thumbnails_in_db(db_connection, 
+    db_file_names = get_existing_thumbnails_in_db(db_connection,
                         [os.path.basename(absfname) for absfname in absfnames])
 
     # Save any thumbnails that don't already exist in db
-    insert_absfnames = [absfname for absfname in absfnames 
+    insert_absfnames = [absfname for absfname in absfnames
                         if os.path.basename(absfname) not in db_file_names]
     insert_thumbnails_into_db(db_connection, insert_absfnames)
 
@@ -1609,7 +1617,7 @@ class TestDBIO(unittest.TestCase):
     #             self.fail(str(e))
     #     finally:
     #         os.rmdir(testdir)
-            
+
     pass
 
 # helper function for translation tests
@@ -1626,14 +1634,14 @@ def get_alternate_tests(version):
         for a2 in vt2.db_actionAnnotations:
             a_t = (a2.db_key, a2.db_action_id)
             if a_t not in vt1_action_annotations:
-                raise AssertionError("Action annotation %s not matched" % 
+                raise AssertionError("Action annotation %s not matched" %
                                      unicode(a_t))
             a1 = vt1_action_annotations[a_t]
             a1.deep_eq_test(a2, test_class, alternate_tests)
             del vt1_action_annotations[a_t]
         if len(vt1_action_annotations) > 0:
             a_t = vt_action_annotations.iterkeys().next()
-            raise AssertionError("Action annotation %s not matched" % 
+            raise AssertionError("Action annotation %s not matched" %
                                  unicode(a_t))
 
     # this works around the fact that sql backend needs to persist the
@@ -1658,13 +1666,13 @@ def get_alternate_tests(version):
                     alternate_tests[('DBWorkflow', field)] = old_tests[field]
                 else:
                     del alternate_tests[('DBWorkflow', field)]
-        
+
     alternate_dict = {None:
                       {('DBVistrail', 'db_entity_type'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
                       ('1.0.3', '1.0.4'):
                       {('DBPortSpec', 'db_depth'): None},
-                      ('1.0.2', '1.0.3'): 
+                      ('1.0.2', '1.0.3'):
                       {('DBPortSpecItem', 'db_id'): None,
                        ('DBPortSpecItem', 'db_values'): None,
                        ('DBPortSpecItem', 'db_entry_type'): None,
@@ -1705,7 +1713,7 @@ class TestXMLFile(object):
 
     def get_filename(self):
         from vistrails.core.system import vistrails_root_directory
-        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources', 
+        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
                              'test_basics.vt')
         return fname
         # return '/vistrails/src/git/examples/terminator.vt'
@@ -1754,7 +1762,7 @@ class TestSQLDatabase(object):
 
     def get_filename(self):
         from vistrails.core.system import vistrails_root_directory
-        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources', 
+        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
                              'test_basics.vt')
         return fname
         # return '/vistrails/src/git/examples/terminator.vt'
@@ -1766,25 +1774,25 @@ class TestSQLDatabase(object):
             save_vistrail_bundle_to_db(bundle, self.conn, True, save_wfs=False)
         finally:
             close_zip_xml(tmp_save_dir)
-        
+
     def test_save_vistrail_and_reload(self):
         (bundle, tmp_save_dir) = \
                 open_vistrail_bundle_from_zip_xml(self.get_filename())
         try:
             vt1 = bundle.vistrail
             # vt1.db_version = currentVersion
-            vt_id = save_vistrail_to_db(vt1, self.conn, True, 
+            vt_id = save_vistrail_to_db(vt1, self.conn, True,
                                         save_wfs=False).db_id
             vt1.db_id = vt_id
             vt2 = open_vistrail_from_db(self.conn, vt_id)
-            vt1.deep_eq_test(vt2, self, 
+            vt1.deep_eq_test(vt2, self,
                              get_alternate_tests(self.get_config()["version"]))
         finally:
             close_zip_xml(tmp_save_dir)
 
     # def test_z_get_db_object_list(self):
     #     print get_db_object_list(self.conn, DBVistrail.vtType)
-    
+
     # def test_z_get_db_object_modification_time(self):
     #     print "OBJ MOD TIME:", \
     #         get_db_object_modification_time(self.conn, 1, DBVistrail.vtType)
@@ -1795,7 +1803,7 @@ class TestSQLDatabase(object):
 
     # def test_z_get_saved_workflows(self):
     #     print get_saved_workflows(self.conn, 1)
-        
+
     # def test_z_get_db_id_from_name(self):
     #     raise Exception("Need to implement this test")
 
@@ -1859,7 +1867,7 @@ class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
 class TestTranslations(unittest.TestCase):
     def get_filename(self):
         from vistrails.core.system import vistrails_root_directory
-        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources', 
+        fname = os.path.join(vistrails_root_directory(), 'tests', 'resources',
                              'test_basics.vt')
         return fname
         # return '/vistrails/src/git/examples/terminator.vt'
@@ -1874,7 +1882,7 @@ class TestTranslations(unittest.TestCase):
             vt1.deep_eq_test(vt2, self, get_alternate_tests(version))
         finally:
             close_zip_xml(tmp_save_dir)
-            
+
     def run_workflow_translation_test(self, version):
         (bundle, tmp_save_dir) = \
                 open_vistrail_bundle_from_zip_xml(self.get_filename())
@@ -1945,7 +1953,7 @@ class TestTranslations(unittest.TestCase):
 
     def test_v1_0_1_registry(self):
         self.run_registry_translation_test('1.0.1')
-        
+
 if __name__ == '__main__':
     import vistrails.core.application
     vistrails.core.application.init()

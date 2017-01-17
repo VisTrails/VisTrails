@@ -58,6 +58,7 @@ Intermediate Concepts and VisTrails Packages
    example_webservices
    example_itk
    persistent_archive
+   tej
    vistrails_server
    latex
    example_scikit_learn

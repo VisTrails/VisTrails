@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -865,8 +865,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 continue
             nodeUser = am[nodeId].user
             if controller.search and nodeId!=0:
-                ghosted = not controller.search.match(controller.vistrail, 
-                                                      am[nodeId])
+                action = am[nodeId]
+                if getattr(get_vistrails_configuration(), 'hideUpgrades',
+                           True):
+                    # Use upgraded version to match
+                    action = am[controller.vistrail.get_upgrade(nodeId, False)]
+                ghosted = not controller.search.match(controller, action)
             else:
                 ghosted = False
                 
@@ -878,7 +882,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
             configuration = get_vistrails_configuration()
-            if configuration.check('enableCustomVersionColors'):
+            if configuration.check('customVersionColors'):
                 custom_color = controller.vistrail.get_action_annotation(
                     nodeId,
                     custom_color_key)

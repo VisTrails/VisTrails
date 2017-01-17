@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -41,6 +41,7 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
+from vistrails.core.reportusage import record_vistrail
 from vistrails.core.system import vistrails_default_file_type, \
     vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
@@ -52,18 +53,20 @@ from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import reportusage
 
 from vistrails.gui.collection.vis_log import QLogView
 from vistrails.gui.common_widgets import QMouseTabBar
-from vistrails.gui.pipeline_view import QPipelineView
-from vistrails.gui.version_view import QVersionTreeView
-from vistrails.gui.query_view import QQueryView
+from vistrails.gui.mashups.mashup_view import QMashupView
+from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
+from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.ports_pane import ParameterEntry
+from vistrails.gui.query_view import QQueryView, QueryEntry,\
+    QQueryResultWorkflowView
+from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.vis_diff import QDiffView
 from vistrails.gui.vistrail_controller import VistrailController
-from vistrails.gui.mashups.mashup_view import QMashupView
-from vistrails.gui.ports_pane import ParameterEntry
-from vistrails.gui.query_view import QueryEntry
 
 ################################################################################
 
@@ -132,8 +135,8 @@ class QVistrailView(QtGui.QWidget):
         self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
         self.connect(self.tabs, QtCore.SIGNAL("tabCloseRequested(int)"),
-                     self.remove_view_by_index)
-       
+                     self.tab_close_request)
+
         #self.view_changed()
         #self.tab_changed(0)
 
@@ -534,6 +537,21 @@ class QVistrailView(QtGui.QWidget):
                 if view.tab_idx > rm_tab_idx:
                     view.set_tab_idx(view.tab_idx-1)
     
+    def tab_close_request(self, index):
+        """ Ignore if this is the last pipeline tab
+
+            If there is one pipeline tab and one diff tab, close buttons are
+            visible for both of them, but we should not allow the closing of
+            this last pipeline tab.
+        """
+        def is_pipeline_tab(view):
+            # QDiffView is currently the only non-pipeline tab
+            return not isinstance(view, QDiffView)
+        pipeline_tabs = sum([(1 if is_pipeline_tab(t) else 0)
+                            for t in self.tab_to_view.values()])
+        if pipeline_tabs > 1 or not is_pipeline_tab(self.tab_to_view[index]):
+            self.remove_view_by_index(index)
+
     def remove_view_by_index(self, index):
         self.disconnect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
                      self.tab_changed)
@@ -628,6 +646,9 @@ class QVistrailView(QtGui.QWidget):
            # print "tabs the same. do nothing"
         if isinstance(view, QQueryView):
             _app.notify("controller_changed", view.p_controller)
+            if view.current_display != QQueryView.VISUAL_SEARCH_VIEW:
+                # Force result version prop
+                view.result_version_selected(view.vt_controller.current_version, False)
             _app.notify("entry_klass_changed", QueryEntry)
         else:
             _app.notify("entry_klass_changed", ParameterEntry)
@@ -757,6 +778,11 @@ class QVistrailView(QtGui.QWidget):
         self.connect(view.pipeline_view.scene(), 
                      QtCore.SIGNAL('moduleSelected'),
                      self.gen_module_selected(view.pipeline_view))
+        # FIXME: How to make module info read-only
+        self.connect(view.workflow_result_view.scene(),
+                     QtCore.SIGNAL('moduleSelected'),
+                     self.gen_module_selected(view.workflow_result_view))
+        # FIXME: How to show version info for a query result view
         # self.connect(view.version_result_view.scene(),
         #              QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
         #              self.version_selected)
@@ -800,13 +826,31 @@ class QVistrailView(QtGui.QWidget):
     
     def gen_module_selected(self, view):
         def module_selected(module_id, selection = []):
+            from vistrails.gui.version_prop import QVersionProp
             from vistrails.gui.vistrails_window import _app
             pipeline = view.scene().current_pipeline
             if pipeline is not None and module_id in pipeline.modules:
                 module = pipeline.modules[module_id]
                 _app.notify('module_changed', module)
+                # show module info if both are tabified and
+                # workflow info is visible
+                if not QModuleInfo.instance().toolWindow().isFloating() and \
+                   not QVersionProp.instance().toolWindow().isFloating() and \
+                   not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
+                    QModuleInfo.instance().set_visible(True)
             else:
-                _app.notify('module_changed', None)
+                if isinstance(view, QQueryResultWorkflowView):
+                    # we need to set version prop directly
+                    QVersionProp.instance().updateController(view.controller)
+                    QVersionProp.instance().updateVersion(view.controller.current_version)
+                else:
+                    _app.notify('module_changed', None)
+                # show workflow info if both are tabified and
+                # module info is visible
+                if not QModuleInfo.instance().toolWindow().isFloating() and \
+                   not QVersionProp.instance().toolWindow().isFloating() and \
+                   not QModuleInfo.instance().toolWindow().visibleRegion().isEmpty():
+                    QVersionProp.instance().set_visible(True)
         return module_selected
 
     def version_selected(self, version_id, by_click, do_validate=True,
@@ -848,6 +892,7 @@ class QVistrailView(QtGui.QWidget):
         _app.notify("pipeline_changed", self.controller.current_pipeline)
 
     def query_version_selected(self, search=None, version_id=None):
+        search.cur_controller = self.controller
         if version_id is None:
             self.query_view.set_result_level(
                 self.query_view.query_controller.LEVEL_VISTRAIL)
@@ -862,21 +907,29 @@ class QVistrailView(QtGui.QWidget):
         window = self.window()
         window.qactions['search'].trigger()
         
-    def diff_requested(self, version_a, version_b, vistrail_b=None):
+    def diff_requested(self, version_a, version_b, controller_b=None):
         """diff_requested(self, id, id, Vistrail) -> None
         
-        Request a diff between two versions.  If vistrail_b is
+        Request a diff between two versions.  If controller_b is
         specified, the second version will be derived from that
         vistrail instead of the common vistrail controlled by this
         view.
         """
+        controller_b = controller_b or self.controller
+        # Upgrade both versions if hiding upgrades
+        if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
+            version_a = self.controller.create_upgrade(version_a, delay_update=True)
+            version_b = controller_b.create_upgrade(version_b, delay_update=True)
 
         view = self.create_diff_view()
         view.set_controller(self.controller)
-        view.set_diff(version_a, version_b, vistrail_b)
+        view.set_diff(version_a, version_b, controller_b.vistrail)
         self.switch_to_tab(view.tab_idx)
         view.scene().fitToView(view, True)
+        self.controller.check_delayed_update()
+        controller_b.check_delayed_update()
         self.view_changed()
+        reportusage.record_feature('diff', self.controller)
 
     def save_vistrail(self, locator_class, force_choose_locator=False, export=False):
         """
@@ -907,6 +960,7 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         try:
+            record_vistrail('save', self.controller)
             self.controller.write_vistrail(locator, export=export)
         except Exception:
             debug.critical('Failed to save vistrail', debug.format_exc())
@@ -965,6 +1019,7 @@ class QVistrailView(QtGui.QWidget):
         locator = gui_get(self, Pipeline.vtType)
         if not locator:
             return False
+        record_vistrail('export_stable', self.controller.current_pipeline)
         self.controller.write_workflow(locator, '1.0.3')
         return True
 
@@ -982,6 +1037,7 @@ class QVistrailView(QtGui.QWidget):
             locator = gui_get(self, Pipeline.vtType, self.controller.locator)
         if not locator:
             return False
+        record_vistrail('save_pipeline', self.controller.current_pipeline)
         self.controller.write_workflow(locator)
 
     def save_log(self, locator_class, force_choose_locator=True):

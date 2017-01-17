@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -39,14 +39,12 @@ import sys
 
 
 python = sys.executable
-pyfile = 'vistrails/run.py'
-path = os.path.abspath(os.path.dirname(__file__))
-os.chdir(path)
+installdir = os.path.abspath(os.path.dirname(__file__))
+pyfile = os.path.join(installdir, 'vistrails/run.py')
 path = (os.path.join(os.path.dirname(python), 'Scripts') +
         os.pathsep +
-        path +
+        installdir +
         os.pathsep +
         os.getenv('PATH'))
-os.putenv('PATH', path)
-filenames = [os.path.abspath(a) for a in sys.argv[1:]]
-subprocess.call([python, pyfile] + filenames)
+os.environ['PATH'] = path
+subprocess.call([python, pyfile] + sys.argv[1:])
