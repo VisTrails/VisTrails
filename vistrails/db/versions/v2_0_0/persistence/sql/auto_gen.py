@@ -894,7 +894,7 @@ class DBParameterSQLDAOBase(SQLDAO):
             pos = self.convertFromDB(row[1], 'long', 'int')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[4], 'str', 'mediumtext')
+            val = self.convertFromDB(row[4], 'str', 'TEXT(2 ** 24)')
             alias = self.convertFromDB(row[5], 'str', 'varchar(255)')
             parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
@@ -930,7 +930,7 @@ class DBParameterSQLDAOBase(SQLDAO):
             pos = self.convertFromDB(row[1], 'long', 'int')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[4], 'str', 'mediumtext')
+            val = self.convertFromDB(row[4], 'str', 'TEXT(2 ** 24)')
             alias = self.convertFromDB(row[5], 'str', 'varchar(255)')
             parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
@@ -988,7 +988,7 @@ class DBParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
         if hasattr(obj, 'db_val') and obj.db_val is not None:
             columnMap['val'] = \
-                self.convertToDB(obj.db_val, 'str', 'mediumtext')
+                self.convertToDB(obj.db_val, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_alias') and obj.db_alias is not None:
             columnMap['alias'] = \
                 self.convertToDB(obj.db_alias, 'str', 'varchar(255)')
@@ -1038,7 +1038,7 @@ class DBParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
         if hasattr(obj, 'db_val') and obj.db_val is not None:
             columnMap['val'] = \
-                self.convertToDB(obj.db_val, 'str', 'mediumtext')
+                self.convertToDB(obj.db_val, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_alias') and obj.db_alias is not None:
             columnMap['alias'] = \
                 self.convertToDB(obj.db_alias, 'str', 'varchar(255)')
@@ -3861,7 +3861,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             pos = self.convertFromDB(row[1], 'long', 'int')
             interpolator = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[3], 'str', 'mediumtext')
+            value = self.convertFromDB(row[3], 'str', 'TEXT(2 ** 24)')
             dimension = self.convertFromDB(row[4], 'long', 'int')
             parentType = self.convertFromDB(row[5], 'str', 'char(32)')
             pe_function = self.convertFromDB(row[6], 'str', 'char(36)')
@@ -3895,7 +3895,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             pos = self.convertFromDB(row[1], 'long', 'int')
             interpolator = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[3], 'str', 'mediumtext')
+            value = self.convertFromDB(row[3], 'str', 'TEXT(2 ** 24)')
             dimension = self.convertFromDB(row[4], 'long', 'int')
             parentType = self.convertFromDB(row[5], 'str', 'char(32)')
             pe_function = self.convertFromDB(row[6], 'str', 'char(36)')
@@ -3943,7 +3943,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_interpolator, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+                self.convertToDB(obj.db_value, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_dimension') and obj.db_dimension is not None:
             columnMap['dimension'] = \
                 self.convertToDB(obj.db_dimension, 'long', 'int')
@@ -3990,7 +3990,7 @@ class DBPEParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_interpolator, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+                self.convertToDB(obj.db_value, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_dimension') and obj.db_dimension is not None:
             columnMap['dimension'] = \
                 self.convertToDB(obj.db_dimension, 'long', 'int')
@@ -4883,7 +4883,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[2], 'str', 'mediumtext')
+            value = self.convertFromDB(row[2], 'str', 'TEXT(2 ** 24)')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
@@ -4913,7 +4913,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[2], 'str', 'mediumtext')
+            value = self.convertFromDB(row[2], 'str', 'TEXT(2 ** 24)')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[4], 'long', 'int')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
@@ -4970,7 +4970,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+                self.convertToDB(obj.db_value, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -5011,7 +5011,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+                self.convertToDB(obj.db_value, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -5841,7 +5841,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
             label = self.convertFromDB(row[5], 'str', 'varchar(4095)')
             default = self.convertFromDB(row[6], 'str', 'varchar(4095)')
-            values = self.convertFromDB(row[7], 'str', 'mediumtext')
+            values = self.convertFromDB(row[7], 'str', 'TEXT(2 ** 24)')
             entry_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
             portSpec = self.convertFromDB(row[9], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[10], 'str', 'char(36)')
@@ -5881,7 +5881,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
             namespace = self.convertFromDB(row[4], 'str', 'varchar(255)')
             label = self.convertFromDB(row[5], 'str', 'varchar(4095)')
             default = self.convertFromDB(row[6], 'str', 'varchar(4095)')
-            values = self.convertFromDB(row[7], 'str', 'mediumtext')
+            values = self.convertFromDB(row[7], 'str', 'TEXT(2 ** 24)')
             entry_type = self.convertFromDB(row[8], 'str', 'varchar(255)')
             portSpec = self.convertFromDB(row[9], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[10], 'str', 'char(36)')
@@ -5943,7 +5943,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_default, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_values') and obj.db_values is not None:
             columnMap['_values'] = \
-                self.convertToDB(obj.db_values, 'str', 'mediumtext')
+                self.convertToDB(obj.db_values, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_entry_type') and obj.db_entry_type is not None:
             columnMap['entry_type'] = \
                 self.convertToDB(obj.db_entry_type, 'str', 'varchar(255)')
@@ -5999,7 +5999,7 @@ class DBPortSpecItemSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_default, 'str', 'varchar(4095)')
         if hasattr(obj, 'db_values') and obj.db_values is not None:
             columnMap['_values'] = \
-                self.convertToDB(obj.db_values, 'str', 'mediumtext')
+                self.convertToDB(obj.db_values, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_entry_type') and obj.db_entry_type is not None:
             columnMap['entry_type'] = \
                 self.convertToDB(obj.db_entry_type, 'str', 'varchar(255)')
@@ -6067,11 +6067,11 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             vtmid = self.convertFromDB(row[6], 'str', 'char(36)')
             pos = self.convertFromDB(row[7], 'long', 'int')
             type = self.convertFromDB(row[8], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[9], 'str', 'mediumtext')
+            val = self.convertFromDB(row[9], 'str', 'TEXT(2 ** 24)')
             minVal = self.convertFromDB(row[10], 'str', 'varchar(255)')
             maxVal = self.convertFromDB(row[11], 'str', 'varchar(255)')
             stepSize = self.convertFromDB(row[12], 'str', 'varchar(255)')
-            strvaluelist = self.convertFromDB(row[13], 'str', 'mediumtext')
+            strvaluelist = self.convertFromDB(row[13], 'str', 'TEXT(2 ** 24)')
             widget = self.convertFromDB(row[14], 'str', 'varchar(255)')
             seq = self.convertFromDB(row[15], 'int', 'int')
             parent = self.convertFromDB(row[16], 'str', 'varchar(255)')
@@ -6123,11 +6123,11 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
             vtmid = self.convertFromDB(row[6], 'str', 'char(36)')
             pos = self.convertFromDB(row[7], 'long', 'int')
             type = self.convertFromDB(row[8], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[9], 'str', 'mediumtext')
+            val = self.convertFromDB(row[9], 'str', 'TEXT(2 ** 24)')
             minVal = self.convertFromDB(row[10], 'str', 'varchar(255)')
             maxVal = self.convertFromDB(row[11], 'str', 'varchar(255)')
             stepSize = self.convertFromDB(row[12], 'str', 'varchar(255)')
-            strvaluelist = self.convertFromDB(row[13], 'str', 'mediumtext')
+            strvaluelist = self.convertFromDB(row[13], 'str', 'TEXT(2 ** 24)')
             widget = self.convertFromDB(row[14], 'str', 'varchar(255)')
             seq = self.convertFromDB(row[15], 'int', 'int')
             parent = self.convertFromDB(row[16], 'str', 'varchar(255)')
@@ -6205,7 +6205,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
         if hasattr(obj, 'db_val') and obj.db_val is not None:
             columnMap['val'] = \
-                self.convertToDB(obj.db_val, 'str', 'mediumtext')
+                self.convertToDB(obj.db_val, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_minVal') and obj.db_minVal is not None:
             columnMap['minVal'] = \
                 self.convertToDB(obj.db_minVal, 'str', 'varchar(255)')
@@ -6217,7 +6217,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_stepSize, 'str', 'varchar(255)')
         if hasattr(obj, 'db_strvaluelist') and obj.db_strvaluelist is not None:
             columnMap['strvaluelist'] = \
-                self.convertToDB(obj.db_strvaluelist, 'str', 'mediumtext')
+                self.convertToDB(obj.db_strvaluelist, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_widget') and obj.db_widget is not None:
             columnMap['widget'] = \
                 self.convertToDB(obj.db_widget, 'str', 'varchar(255)')
@@ -6285,7 +6285,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_type, 'str', 'varchar(255)')
         if hasattr(obj, 'db_val') and obj.db_val is not None:
             columnMap['val'] = \
-                self.convertToDB(obj.db_val, 'str', 'mediumtext')
+                self.convertToDB(obj.db_val, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_minVal') and obj.db_minVal is not None:
             columnMap['minVal'] = \
                 self.convertToDB(obj.db_minVal, 'str', 'varchar(255)')
@@ -6297,7 +6297,7 @@ class DBMashupComponentSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_stepSize, 'str', 'varchar(255)')
         if hasattr(obj, 'db_strvaluelist') and obj.db_strvaluelist is not None:
             columnMap['strvaluelist'] = \
-                self.convertToDB(obj.db_strvaluelist, 'str', 'mediumtext')
+                self.convertToDB(obj.db_strvaluelist, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_widget') and obj.db_widget is not None:
             columnMap['widget'] = \
                 self.convertToDB(obj.db_widget, 'str', 'varchar(255)')
@@ -6367,8 +6367,8 @@ class DBMashupSQLDAOBase(SQLDAO):
             version = self.convertFromDB(row[2], 'str', 'char(36)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
             vtid = self.convertFromDB(row[4], 'str', 'char(36)')
-            layout = self.convertFromDB(row[5], 'str', 'mediumtext')
-            geometry = self.convertFromDB(row[6], 'str', 'mediumtext')
+            layout = self.convertFromDB(row[5], 'str', 'TEXT(2 ** 24)')
+            geometry = self.convertFromDB(row[6], 'str', 'TEXT(2 ** 24)')
             has_seq = self.convertFromDB(row[7], 'int', 'int')
             parent = self.convertFromDB(row[8], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[9], 'str', 'char(36)')
@@ -6405,8 +6405,8 @@ class DBMashupSQLDAOBase(SQLDAO):
             version = self.convertFromDB(row[2], 'str', 'char(36)')
             type = self.convertFromDB(row[3], 'str', 'varchar(255)')
             vtid = self.convertFromDB(row[4], 'str', 'char(36)')
-            layout = self.convertFromDB(row[5], 'str', 'mediumtext')
-            geometry = self.convertFromDB(row[6], 'str', 'mediumtext')
+            layout = self.convertFromDB(row[5], 'str', 'TEXT(2 ** 24)')
+            geometry = self.convertFromDB(row[6], 'str', 'TEXT(2 ** 24)')
             has_seq = self.convertFromDB(row[7], 'int', 'int')
             parent = self.convertFromDB(row[8], 'str', 'char(36)')
             entity_id = self.convertFromDB(row[9], 'str', 'char(36)')
@@ -6461,10 +6461,10 @@ class DBMashupSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vtid, 'str', 'char(36)')
         if hasattr(obj, 'db_layout') and obj.db_layout is not None:
             columnMap['layout'] = \
-                self.convertToDB(obj.db_layout, 'str', 'mediumtext')
+                self.convertToDB(obj.db_layout, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_geometry') and obj.db_geometry is not None:
             columnMap['geometry'] = \
-                self.convertToDB(obj.db_geometry, 'str', 'mediumtext')
+                self.convertToDB(obj.db_geometry, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_has_seq') and obj.db_has_seq is not None:
             columnMap['has_seq'] = \
                 self.convertToDB(obj.db_has_seq, 'int', 'int')
@@ -6514,10 +6514,10 @@ class DBMashupSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vtid, 'str', 'char(36)')
         if hasattr(obj, 'db_layout') and obj.db_layout is not None:
             columnMap['layout'] = \
-                self.convertToDB(obj.db_layout, 'str', 'mediumtext')
+                self.convertToDB(obj.db_layout, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_geometry') and obj.db_geometry is not None:
             columnMap['geometry'] = \
-                self.convertToDB(obj.db_geometry, 'str', 'mediumtext')
+                self.convertToDB(obj.db_geometry, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_has_seq') and obj.db_has_seq is not None:
             columnMap['has_seq'] = \
                 self.convertToDB(obj.db_has_seq, 'int', 'int')
@@ -7556,7 +7556,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             key = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[2], 'str', 'mediumtext')
+            value = self.convertFromDB(row[2], 'str', 'TEXT(2 ** 24)')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[4], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
@@ -7586,7 +7586,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         for row in data:
             id = self.convertFromDB(row[0], 'str', 'char(36)')
             key = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[2], 'str', 'mediumtext')
+            value = self.convertFromDB(row[2], 'str', 'TEXT(2 ** 24)')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[4], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
@@ -7661,7 +7661,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_key, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+                self.convertToDB(obj.db_value, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
@@ -7702,7 +7702,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_key, 'str', 'varchar(255)')
         if hasattr(obj, 'db_value') and obj.db_value is not None:
             columnMap['value'] = \
-                self.convertToDB(obj.db_value, 'str', 'mediumtext')
+                self.convertToDB(obj.db_value, 'str', 'TEXT(2 ** 24)')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')

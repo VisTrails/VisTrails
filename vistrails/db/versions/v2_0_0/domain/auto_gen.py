@@ -37,6 +37,7 @@
 """generated automatically by auto_dao.py"""
 
 import copy
+from itertools import izip
 
 
 class DBOpmWasGeneratedBy(object):
