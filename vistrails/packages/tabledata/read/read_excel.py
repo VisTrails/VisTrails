@@ -35,10 +35,12 @@
 
 from __future__ import division
 
+import numpy
+
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from ..common import get_numpy, TableObject, Table
+from ..common import TableObject, Table
 
 
 def get_xlrd():
@@ -75,15 +77,11 @@ class ExcelTable(TableObject):
         if (index, numeric) in self.column_cache:
             return self.column_cache[(index, numeric)]
 
-        numpy = get_numpy(False)
-
         result = [c.value for c in self.sheet.col(index)]
         if self.header_present:
             result = result[1:]
-        if numeric and numpy is not None:
+        if numeric:
             result = numpy.array(result, dtype=numpy.float32)
-        elif numeric:
-            result = [float(e) for e in result]
 
         self.column_cache[(index, numeric)] = result
         return result

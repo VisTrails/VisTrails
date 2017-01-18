@@ -36,9 +36,10 @@
 from __future__ import division
 
 import csv
+import numpy
 import operator
 
-from ..common import get_numpy, TableObject, Table, InternalModuleError
+from ..common import TableObject, Table, InternalModuleError
 
 
 def count_lines(fp):
@@ -125,9 +126,7 @@ class CSVTable(TableObject):
         if (index, numeric) in self.column_cache:
             return self.column_cache[(index, numeric)]
 
-        numpy = get_numpy(False)
-
-        if numeric and numpy is not None:
+        if numeric:
             result = numpy.loadtxt(
                     self.filename,
                     dtype=numpy.float32,

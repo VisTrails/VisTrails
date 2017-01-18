@@ -52,7 +52,7 @@ _modules = [common_modules,
             read_modules,
             write_modules]
 
-if get_package_manager().has_package( # pragma: no branch
+if get_package_manager().has_package(  # pragma: no branch
         'org.vistrails.vistrails.spreadsheet'):
     from .viewer import _modules as viewer_modules, TableToSpreadsheetMode
     _modules.append(viewer_modules)

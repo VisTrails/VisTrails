@@ -42,6 +42,8 @@ extraction and conversion routines.
 """
 
 # ChangeLog:
+# 2016-04-07 -- 0.2.0
+#   * Move to pandas
 # 2014-05-29 -- 0.1.5
 #   * Updates JSON readers
 # 2014-02-03 -- 0.1.4
@@ -75,3 +77,13 @@ def package_dependencies():
 def package_requirements():
     from vistrails.core.requirements import require_python_module
     require_python_module('csv')
+    require_python_module('pandas', {
+        'pip': 'pandas',
+        'linux-debian': 'python-pandas',
+        'linux-ubuntu': 'python-pandas',
+        'linux-fedora': 'python-pandas'})
+    require_python_module('numpy', {
+        'pip': 'numpy',
+        'linux-debian': 'python-numpy',
+        'linux-ubuntu': 'python-numpy',
+        'linux-fedora': 'numpy'})

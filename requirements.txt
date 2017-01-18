@@ -5,6 +5,7 @@ IPython
 matplotlib
 mysql-python
 numpy
+pandas
 paramiko
 # PyQt<5.0
 pyth

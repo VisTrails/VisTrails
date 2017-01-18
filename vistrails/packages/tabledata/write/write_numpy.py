@@ -1,8 +1,9 @@
 from __future__ import division
 
+import numpy
+
 from vistrails.core.modules.vistrails_module import Module
 
-from ..common import get_numpy
 from ..read.read_numpy import NumPyArray
 
 
@@ -22,8 +23,6 @@ class WriteNumPy(Module):
     _output_ports = [('file', '(org.vistrails.vistrails.basic:File)')]
 
     def compute(self):
-        numpy = get_numpy()
-
         array = self.get_input('array')
         if not isinstance(array, numpy.ndarray):
             array = numpy.array(array)
@@ -79,7 +78,6 @@ class WriteNumpyTestCase(unittest.TestCase):
     def test_npy_numpy(self):
         """Uses WriteNumPy to write an array in .NPY format.
         """
-        import numpy
         from vistrails.tests.utils import execute, intercept_result
         from ..identifiers import identifier
         with intercept_result(WriteNumPy, 'file') as results:
