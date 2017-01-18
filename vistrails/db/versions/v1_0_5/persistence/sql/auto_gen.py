@@ -3222,7 +3222,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
                    'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
@@ -3265,7 +3265,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
                    'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
@@ -3323,7 +3323,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
                    'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
@@ -3348,7 +3348,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             columnMap['depth'] = \
                 self.convertToDB(obj.db_depth, 'int', 'int')
         if hasattr(obj, 'db_union') and obj.db_union is not None:
-            columnMap['union'] = \
+            columnMap['ps_union'] = \
                 self.convertToDB(obj.db_union, 'str', 'varchar(255)')
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
@@ -3382,7 +3382,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'name', 'type', 'optional', 'depth', 'union', 'sort_key',
+        columns = ['id', 'name', 'type', 'optional', 'depth', 'ps_union', 'sort_key',
                    'min_conns', 'max_conns', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'port_spec'
         whereMap = {}
@@ -3407,7 +3407,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
             columnMap['depth'] = \
                 self.convertToDB(obj.db_depth, 'int', 'int')
         if hasattr(obj, 'db_union') and obj.db_union is not None:
-            columnMap['union'] = \
+            columnMap['ps_union'] = \
                 self.convertToDB(obj.db_union, 'str', 'varchar(255)')
         if hasattr(obj, 'db_sort_key') and obj.db_sort_key is not None:
             columnMap['sort_key'] = \
