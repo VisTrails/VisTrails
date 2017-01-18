@@ -2,7 +2,6 @@
 <qresource>
     <file>images/player_pause.png</file>
     <file>images/player_play.png</file>
-    <file>images/player_eject.png</file>
     <file>images/noatunloopsong.png</file>
     <file>images/camera_mount.png</file>
     <file>images/camera.png</file>
