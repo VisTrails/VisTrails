@@ -1708,7 +1708,7 @@ def get_alternate_tests(version):
                        #FIXME add session upgrade logic
                        ('DBAction', 'db_session'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
-                      ('1.0.4','2.0.0'): {
+                      ('1.0.5','2.0.0'): {
                           ('DBPortSpec', 'db_union'): None,
                       },
                       ('1.0.3', '1.0.4'):
@@ -1845,7 +1845,7 @@ class TestXMLMeta(TestMeta):
                                     'test_basics.vt')
         filenames = [basics_fname, terminator_fname]
         tags = [['pasted',], ['Image Slices HW',]]
-        versions = ['0.9.3', '0.9.5', '1.0.1', '1.0.4']
+        versions = ['0.9.3', '0.9.5', '1.0.1', '1.0.4', '1.0.5']
         params = [('vistrail', [(f,) for f in filenames]),
                   ('workflow', [(f, t)
                                 for f, tlist in itertools.izip(filenames, tags)
@@ -1942,60 +1942,37 @@ class TestSQLDatabaseMeta(TestMeta):
         all_tests = params
         return all_tests
 
-class TestMySQLDatabase(TranslationMixin):
+class TestSQLDatabase(TranslationMixin):
     __metaclass__ = TestSQLDatabaseMeta
 
     conn = None
 
     @classmethod
     def get_config(cls):
-        return {"user": "vt_test",
-                # "passwd": None,
-                "host": "localhost",
-                # "port": None,
-                "db": "vt_test",
-                "version": cls.db_version}
-
-    @classmethod
-    def get_version(cls):
-        c = cls.get_config()
-        if 'version' in c:
-            return c['version']
-        return None
+        raise NotImplementedError
 
     @classmethod
     def setUpClass(cls):
-        config = copy.copy(cls.get_config())
-        version = None
-        if 'version' in config:
-            version = config['version']
-            del config['version']
-        cls.conn = open_db_connection(config)
-        setup_db_tables(cls.conn, version)
+        cls.conn = open_db_connection(cls.get_config())
+        create_db_tables(cls.conn)
 
     @classmethod
     def tearDownClass(cls):
-        version = cls.get_version()
-        setup_db_tables(cls.conn, version, only_drop=True)
+        drop_db_tables(cls.conn)
         close_db_connection(cls.conn)
         cls.conn = None
 
-    # def test_save_bundle(self):
-    #     (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(self.get_filename())
-    #     try:
-    #         save_vistrail_bundle_to_db(bundle, self.conn, True, save_wfs=False)
-    #     finally:
-    #         shutil.rmtree(save_dir)
-
     def run_save_and_reload_vistrail(self, filename):
-        version = self.get_version()
+        # version = self.get_version()
+        version = self.db_version
         (bundle, save_dir) = open_vistrail_bundle_from_zip_xml(filename)
         vt1 = bundle.vistrail
         # print "VT1 version", vt1.db_version, vt1.db_id
         try:
             # do translate here to allow id remap
             external_data = GroupExternalData()
-            vt2 = translate_vistrail(vt1, get_current_version(), version, external_data)
+            vt2 = translate_vistrail(vt1, get_current_version(), version,
+                                     external_data)
             # print "EXTERNAL_DATA:", external_data
             external_data.invert_remaps()
             # print "VT2 version", vt2.db_version, vt2.db_id
@@ -2015,11 +1992,24 @@ class TestMySQLDatabase(TranslationMixin):
             vt4 = open_vistrail_from_db(self.conn, vt_id, do_translate=False)
             # print "VT4 version", vt4.db_version, vt4.db_id
             # print "INV EXTERNAL_DATA:", external_data
-            vt4 = translate_vistrail(vt4, version, get_current_version(), external_data)
+            vt4 = translate_vistrail(vt4, version, get_current_version(),
+                                     external_data)
             # print "VT5 version", vt4.db_version, vt4.db_id
-            DBVistrailTest.deep_eq_test(vt1, vt4, self, get_alternate_tests(version))
+            DBVistrailTest.deep_eq_test(vt1, vt4, self,
+                                        get_alternate_tests(version))
         finally:
             shutil.rmtree(save_dir)
+
+
+class TestMySQLDatabase(TestSQLDatabase):
+    @classmethod
+    def get_config(cls):
+        return {"user": "vt_test",
+                # "passwd": None,
+                "host": "localhost",
+                # "port": None,
+                "db": "vt_test",
+                "version": cls.db_version}
 
     # def test_z_get_db_object_list(self):
     #     print get_db_object_list(self.conn, DBVistrail.vtType)
@@ -2060,29 +2050,35 @@ class TestMySQLDatabase(TranslationMixin):
 class TestMySQLDatabase_v2_0_0(TestMySQLDatabase, unittest.TestCase):
     db_version = '2.0.0'
 
-# class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
-#     db_fname = None
-#
-#     @classmethod
-#     def get_db_fname(cls):
-#         if cls.db_fname is None:
-#             import os
-#             import tempfile
-#             (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
-#             os.close(h)
-#             cls.db_fname = fname
-#         return cls.db_fname
-#
-#     @classmethod
-#     def get_config(cls):
-#         return {"dialect": "sqlite",
-#                 "db": cls.get_db_fname(),
-#                 "version": "1.0.5"}
-#
-#     @classmethod
-#     def tearDownClass(cls):
-#         super(TestSQLite3Database, cls).tearDownClass()
-#         os.unlink(cls.db_fname)
+class TestSQLite3Database(TestSQLDatabase):
+    db_fname = None
+
+    @classmethod
+    def get_db_fname(cls):
+        if cls.db_fname is None:
+            import os
+            import tempfile
+            (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+            os.close(h)
+            cls.db_fname = fname
+        return cls.db_fname
+
+    @classmethod
+    def get_config(cls):
+        return {"dialect": "sqlite",
+                "db": cls.get_db_fname(),
+                "version": cls.db_version}
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestSQLite3Database, cls).tearDownClass()
+        os.unlink(cls.db_fname)
+
+class TestSQLite3Database_v2_0_0(TestSQLite3Database, unittest.TestCase):
+    db_version = '2.0.0'
+
+class TestSQLite3Database_v1_0_5(TestSQLite3Database, unittest.TestCase):
+    db_version = '1.0.5'
 
 class TestTranslationsMeta(TestMeta):
     @classmethod
