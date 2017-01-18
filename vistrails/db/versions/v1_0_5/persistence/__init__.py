@@ -387,35 +387,39 @@ class TestPersistence(unittest.TestCase):
         in_fname = os.path.join(vistrails_root_directory(),
                                 'tests/resources/terminator-vt.xml')
         vt1 = dao_list.open_from_xml(in_fname, DBVistrail.vtType)
-        conn = SQLDAO.engine.connect()
-        trans = conn.begin()
-        dao_list.save_to_db(conn, vt1, True)
-        trans.commit()
-        vt2 = dao_list.open_from_db(conn, DBVistrail.vtType, 
-                                    id=vt1.db_id)
-        vt2.db_actions.sort(key=lambda x: x.db_id)
-        for a in vt2.db_actions:
-            a.db_operations.sort(key=lambda x: x.db_id)
-            a.db_annotations.sort(key=lambda x: x.db_id)
-        vt2.db_actionAnnotations.sort(key=lambda x: x.db_id)
+        conn = None
+        out_fname = None
+        try:
+            conn = SQLDAO.engine.connect()
+            trans = conn.begin()
+            dao_list.save_to_db(conn, vt1, True)
+            trans.commit()
+            vt2 = dao_list.open_from_db(conn, DBVistrail.vtType,
+                                        id=vt1.db_id)
+            vt2.db_actions.sort(key=lambda x: x.db_id)
+            for a in vt2.db_actions:
+                a.db_operations.sort(key=lambda x: x.db_id)
+                a.db_annotations.sort(key=lambda x: x.db_id)
+            vt2.db_actionAnnotations.sort(key=lambda x: x.db_id)
 
-        (h, out_fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
-        os.close(h)
-        dao_list.save_to_xml(vt2, out_fname, {})
+            (h, out_fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+            os.close(h)
+            dao_list.save_to_xml(vt2, out_fname, {})
 
-        in_lines = open(in_fname, 'U').readlines()
-        out_lines = open(out_fname, 'U').readlines()
+            in_lines = open(in_fname, 'U').readlines()
+            out_lines = open(out_fname, 'U').readlines()
 
-        diff = difflib.unified_diff(in_lines, out_lines, in_fname, out_fname)
-        sys.stdout.writelines(diff)
+            diff = difflib.unified_diff(in_lines, out_lines, in_fname, out_fname)
+            sys.stdout.writelines(diff)
+        finally:
+            # cleanup
+            if out_fname is not None:
+                os.unlink(out_fname)
 
-        # cleanup
-
-        os.unlink(out_fname)
-
-        trans = conn.begin()
-        SQLDAO.metadata.drop_all(conn)
-        trans.commit()
+            if conn is not None:
+                trans = conn.begin()
+                SQLDAO.metadata.drop_all(conn)
+                trans.commit()
 
     def test_save_vistrail_mysql(self):
         test_db = 'mysql+mysqldb://vt_test@localhost/vt_test'
