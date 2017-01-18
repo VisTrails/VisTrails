@@ -137,7 +137,7 @@ class OpenInBrowserAction(QtGui.QAction):
 
     def triggeredSlot(self, checked=False):
         if self._view is not None:
-            webbrowser.open(self._view.browser.url().toString())
+            webbrowser.open(self._view.urlSrc.toString())
 
 
 class WebViewCellToolBar(QCellToolBar):
