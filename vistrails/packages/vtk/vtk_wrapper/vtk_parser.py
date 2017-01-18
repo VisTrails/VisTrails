@@ -667,7 +667,9 @@ class VTKMethodParser:
             obj = self._get_instance(klass)
             if obj:
                 for key, value in gsm.items():
-                    if klass_name in ['vtkPolyData', 'vtkContext2D']:
+                    if klass_name in ['vtkPolyData', 'vtkContext2D'] or \
+                            (klass_name == 'vtkLineIntegralConvolution2D' and
+                             key == 'Communicator'):
                         # Evil hack, these classes segfault!
                         default = None
                     elif klass_name == 'vtkHyperOctree' and \
@@ -725,7 +727,7 @@ class VTKMethodParser:
         except (TypeError, NotImplementedError):
             if self._tree:
                 t = self._tree
-                n = t.get_node(klass.__name__)
+                n = t.get_node_from_class(klass)
                 for c in n.children:
                     obj = self._get_instance(t.get_class(c.name))
                     if obj:

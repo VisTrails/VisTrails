@@ -122,7 +122,21 @@ disallowed_classes = set(
         'QImage',
         'vtkPLOT3DReader',
         # For VTK 6.2
-        'QuantileDefinitionType'
+        'QuantileDefinitionType',
+        # For VTK 7
+        'vtkContextMouseEvent',
+        'vtkTextureUnitManager',
+        'vtkTextureObject',
+        'vtkOpenGLRenderWindow',
+        'Type',
+        'BufferType',
+        'ObjectType',
+        'DrawAreaResizeBehaviorType',
+        'NodeStatus',
+        'caseType',
+        'PyObject',
+        'RenderMode',
+        'vtkPainterCommunicator',
     ])
 
 disallowed_modules = set(
@@ -147,7 +161,9 @@ def create_module(base_cls_name, node):
                  'vtkStructuredPointsGeometryFilter',
                  'vtkConstrainedPointHandleRepresentation',
                  'vtkRenderViewBase',
-                 'vtkRenderView']
+                 'vtkRenderView',
+                 'vtkAbstractRenderDevice',
+                 'vtkAbstractInteractionDevice']
         def try_to_add_item(item):
             try:
                 lst.append(getattr(vtk, item))
@@ -172,14 +188,16 @@ def create_module(base_cls_name, node):
         return False
 
     try:
-        node.klass.__doc__.decode('latin-1')
+        docstring = node.klass.__doc__.decode('latin-1')
     except UnicodeDecodeError:
         print "ERROR decoding docstring", node.name
         raise
+    except AttributeError:
+        print node.name, 'has no docstring!'
+        docstring = ''
 
     input_ports, output_ports = get_ports(node.klass)
     output_ports = list(output_ports) # drop generator
-
     cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
                  (not issubclass(node.klass, vtk.vtkAbstractMapper))) or \
                 issubclass(node.klass, vtk.vtkScalarTree)
@@ -188,9 +206,8 @@ def create_module(base_cls_name, node):
     tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
     callback = '_set_callback' if is_algorithm else None
     methods_last = hasattr(node.klass, 'SetRenderWindow')
-
-    module_spec = ClassSpec(node.name, base_cls_name, node.name,
-                            node.klass.__doc__.decode('latin-1'), callback,
+    module_spec = ClassSpec(node.klass.__name__, base_cls_name, node.name,
+                            docstring, callback,
                             tempfile, cacheable, input_ports, output_ports,
                             compute='Update', cleanup='_cleanup',
                             methods_last=methods_last, abstract=is_abstract())
@@ -386,6 +403,8 @@ def get_port_types(name):
     Convert from C/C++ types into VisTrails port type
 
     """
+    if name == 'void':
+        return None
     if isinstance(name, tuple) or isinstance(name, list):
         return [get_port_types(x) for x in name]
     if name in type_map_dict:
