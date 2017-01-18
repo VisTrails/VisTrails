@@ -822,8 +822,9 @@ class PackageManager(object):
         # Finds user packages
         userpackages = self.import_user_packages_module()
         if userpackages is not None:
-            search(os.path.dirname(userpackages.__file__),
-                   prefix='userpackages.')
+            for path in userpackages.__path__:
+                search(path,
+                       prefix='userpackages.')
 
         # Finds plugin packages
         try:
