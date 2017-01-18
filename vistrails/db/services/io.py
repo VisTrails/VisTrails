@@ -138,10 +138,10 @@ def get_db_version_from_db(db_connection, fail=False):
         if fail:
             raise
         debug.warning('Cannot obtain current db version, using current (%s). '
-                      'Exception: "%s"' % (currentVersion, str(e)))
+                      'Exception: "%s"' % (get_current_version(), str(e)))
     finally:
         c.close()
-    return currentVersion
+    return get_current_version()
 
 def get_db_version(db_connection):
     try:
