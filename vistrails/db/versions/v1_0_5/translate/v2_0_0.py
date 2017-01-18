@@ -36,7 +36,7 @@
 from vistrails.db.versions.common.bundle import SaveBundle
 from vistrails.db.versions.common.translate import ExternalData, \
     GroupExternalData, LocalTranslateDictExtdata
-from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
+from vistrails.db.versions.v1_0_5.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBAbstraction, \
     DBGroup, DBModule, DBActionAnnotation, DBAnnotation, DBLoopExec, \
     DBModuleExec, DBGroupExec, DBAction, DBMashuptrail, IdScope
@@ -139,7 +139,7 @@ def translateVistrail(_vistrail, external_data=None):
                 ann.db_value = "%d" % extdata.id_remap[(DBAction.vtType, ann.db_value)]
                 vistrail.db_add_actionAnnotation(ann)
 
-    vistrail.db_version = '1.0.4'
+    vistrail.db_version = '1.0.5'
     return vistrail
 
 def translateWorkflow(_workflow, external_data=None):
@@ -162,7 +162,7 @@ def translateWorkflow(_workflow, external_data=None):
         workflow = DBWorkflow.update_version(_workflow,
                                              extdata.translate_dict, workflow)
         workflow = workflow.do_copy(True, id_scope, extdata.id_remap)
-    workflow.db_version = '1.0.4'
+    workflow.db_version = '1.0.5'
     return workflow
 
 def translateLog(_log, external_data=None):
@@ -173,7 +173,7 @@ def translateLog(_log, external_data=None):
         id_scope = log.id_scope
         log = DBLog.update_version(_log, extdata.translate_dict, log)
         log = log.do_copy(True, id_scope, extdata.id_remap)
-    log.db_version = '1.0.4'
+    log.db_version = '1.0.5'
     return log
 
 def translateRegistry(_registry, external_data=None):
@@ -186,7 +186,7 @@ def translateRegistry(_registry, external_data=None):
                                              registry, False)
         registry = registry.do_copy(True, id_scope, extdata.id_remap)
 
-    registry.db_version = '1.0.4'
+    registry.db_version = '1.0.5'
     return registry
 
 def translateMashup(_mashup, external_data=None):
@@ -198,7 +198,7 @@ def translateMashup(_mashup, external_data=None):
         id_scope = mashup.id_scope
         mashup = DBMashuptrail.update_version(_mashup, extdata.translate_dict, mashup)
         mashup = mashup.do_copy(True, id_scope, extdata.id_remap)
-    mashup.db_version = '1.0.4'
+    mashup.db_version = '1.0.5'
     return mashup
 
 
