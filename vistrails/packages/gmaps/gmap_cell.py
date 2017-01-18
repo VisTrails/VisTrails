@@ -108,8 +108,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 """)
 
     def updateContents(self, inputPorts):
-        self.urlSrc = None
-        
         (layers, map_options, interpreter) = inputPorts
  
         file_module = interpreter.filePool.create_file('.html')
