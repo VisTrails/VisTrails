@@ -54,10 +54,12 @@ class DBRegistry(_DBRegistry):
         return cp
 
     @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
+    def update_version(old_obj, trans_dict, new_obj=None, update_ids=True):
         if new_obj is None:
             new_obj = DBRegistry()
         new_obj = _DBRegistry.update_version(old_obj, trans_dict, new_obj)
+        if update_ids:
+            new_obj.update_id_scope()
         return new_obj
     
     def update_id_scope(self):

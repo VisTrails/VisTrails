@@ -81,11 +81,12 @@ class DBVistrail(_DBVistrail):
         return cp
 
     @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
+    def update_version(old_obj, trans_dict, new_obj=None, update_ids=True):
         if new_obj is None:
             new_obj = DBVistrail()
         new_obj = _DBVistrail.update_version(old_obj, trans_dict, new_obj)
-        new_obj.update_id_scope()
+        if update_ids:
+            new_obj.update_id_scope()
         if hasattr(old_obj, 'db_log_filename'):
             new_obj.db_log_filename = old_obj.db_log_filename
         if hasattr(old_obj, 'log'):
