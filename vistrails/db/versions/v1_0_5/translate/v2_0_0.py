@@ -39,7 +39,8 @@ from vistrails.db.versions.common.translate import ExternalData, \
 from vistrails.db.versions.v1_0_5.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBAbstraction, \
     DBGroup, DBModule, DBActionAnnotation, DBAnnotation, DBLoopExec, \
-    DBModuleExec, DBGroupExec, DBAction, DBMashuptrail, IdScope
+    DBModuleExec, DBGroupExec, DBAction, DBMashuptrail, DBVistrailVariable, \
+    IdScope
 
 import copy
 import unittest
@@ -138,6 +139,12 @@ def translateVistrail(_vistrail, external_data=None):
                 vistrail.db_delete_actionAnnotation(ann)
                 ann.db_value = "%d" % extdata.id_remap[(DBAction.vtType, ann.db_value)]
                 vistrail.db_add_actionAnnotation(ann)
+
+        # don't want to re-id vistrail variables; they already have a uuid
+        inv_remap = {(t, k2): k1 for (t, k1), k2 in extdata.id_remap.iteritems()}
+        for vv in vistrail.db_vistrailVariables:
+            if (DBVistrailVariable.vtType, vv.db_uuid) in inv_remap:
+                vv.db_uuid = inv_remap[(DBVistrailVariable.vtType, vv.db_uuid)]
 
     vistrail.db_version = '1.0.5'
     return vistrail
