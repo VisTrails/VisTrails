@@ -179,7 +179,7 @@ class DBMashupAliasSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         if obj.db_component is not None:
             child = obj.db_component
-            child.db_mashup_alias = obj.db_id
+            child.db_mashup_alias = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup_alias'
@@ -391,20 +391,20 @@ class DBGroupSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         if obj.db_workflow is not None:
             child = obj.db_workflow
-            child.db_group = obj.db_id
+            child.db_group = obj.getPrimaryKey()
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_functions:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'group_tbl'
@@ -601,7 +601,7 @@ class DBAddSQLDAOBase(SQLDAO):
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'add_tbl'
@@ -853,10 +853,10 @@ class DBGroupExecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'group_exec'
@@ -1233,19 +1233,19 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_actions:
-            child.db_vistrail = obj.db_id
+            child.db_vistrail = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_vistrailVariables:
-            child.db_vistrail = obj.db_id
+            child.db_vistrail = obj.getPrimaryKey()
         for child in obj.db_parameter_explorations:
-            child.db_vistrail = obj.db_id
+            child.db_vistrail = obj.getPrimaryKey()
         for child in obj.db_actionAnnotations:
-            child.db_vistrail = obj.db_id
+            child.db_vistrail = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'vistrail'
@@ -1458,19 +1458,19 @@ class DBModuleSQLDAOBase(SQLDAO):
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_functions:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_portSpecs:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'module'
@@ -1868,7 +1868,7 @@ class DBPEFunctionSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_parameters:
-            child.db_pe_function = obj.db_id
+            child.db_pe_function = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'pe_function'
@@ -2072,19 +2072,19 @@ class DBWorkflowSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_connections:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_plugin_datas:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_others:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_modules:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'workflow'
@@ -2260,7 +2260,7 @@ class DBMashupActionSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         if obj.db_mashup is not None:
             child = obj.db_mashup
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup_action'
@@ -2467,7 +2467,7 @@ class DBChangeSQLDAOBase(SQLDAO):
         if obj.db_data is not None:
             child = obj.db_data
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'change_tbl'
@@ -2672,7 +2672,7 @@ class DBPackageSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_module_descriptors:
-            child.db_package = obj.db_id
+            child.db_package = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'package'
@@ -2853,7 +2853,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_loop_iterations:
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'loop_exec'
@@ -3015,7 +3015,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_ports:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'connection_tbl'
@@ -3201,9 +3201,9 @@ class DBActionSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_operations:
-            child.db_action = obj.db_id
+            child.db_action = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'action'
@@ -3447,7 +3447,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_portSpecItems:
-            child.db_portSpec = obj.db_id
+            child.db_portSpec = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'port_spec'
@@ -3628,7 +3628,7 @@ class DBLogSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_workflow_execs:
-            child.db_log = obj.db_id
+            child.db_log = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'log_tbl'
@@ -3824,7 +3824,7 @@ class DBLoopIterationSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'loop_iteration'
@@ -4274,12 +4274,12 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_machines:
-            child.db_workflow_exec = obj.db_id
+            child.db_workflow_exec = obj.getPrimaryKey()
         for child in obj.db_item_execs:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'workflow_exec'
@@ -4653,7 +4653,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_parameters:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'function'
@@ -5800,7 +5800,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_portSpecs:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_descriptor'
@@ -6543,7 +6543,7 @@ class DBMashupSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_aliases:
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashup'
@@ -7154,16 +7154,16 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_functions:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'abstraction'
@@ -7334,12 +7334,12 @@ class DBMashuptrailSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_actions:
-            child.db_mashuptrail = obj.db_id
+            child.db_mashuptrail = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_actionAnnotations:
-            child.db_mashuptrail = obj.db_id
+            child.db_mashuptrail = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'mashuptrail'
@@ -7520,7 +7520,7 @@ class DBRegistrySQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_packages:
-            child.db_registry = obj.db_id
+            child.db_registry = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'registry'
@@ -7932,7 +7932,7 @@ class DBParameterExplorationSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_functions:
-            child.db_parameter_exploration = obj.db_id
+            child.db_parameter_exploration = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'parameter_exploration'
@@ -8368,10 +8368,10 @@ class DBModuleExecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_loop_execs:
             child.db_parentType = obj.vtType
-            child.db_parent = obj.db_id
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_exec'

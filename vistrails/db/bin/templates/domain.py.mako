@@ -316,25 +316,25 @@ class ${obj.getClassName()}(object):
             if self.${ref.getPrivateName()} is not None:
                 children.extend(self.${ref.getPrivateName()}. \!
                                 ${ref.getReferencedObject().getChildren()}( \!
-                                (self.vtType, self.db_id), orphan, for_action))
+                                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             % else:
             for child in self.${ref.getIterator()}:
                 children.extend(child.${ref.getReferencedObject().getChildren()}( \!
-                                (self.vtType, self.db_id), orphan, for_action))
+                                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             % endif
         % else:
         % if not ref.isPlural():
         if self.${ref.getPrivateName()} is not None:
             children.extend(self.${ref.getPrivateName()}. \!
                             ${ref.getReferencedObject().getChildren()}( \!
-                                (self.vtType, self.db_id), orphan, for_action))
+                                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self.${ref.getPrivateName()} = None
         % else:
         to_del = []
         for child in self.${ref.getIterator()}:
             children.extend(child.${ref.getReferencedObject().getChildren()}( \!
-                                (self.vtType, self.db_id), orphan, for_action))
+                                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:

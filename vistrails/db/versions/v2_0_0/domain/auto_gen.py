@@ -164,23 +164,23 @@ class DBOpmWasGeneratedBy(object):
         children = []
         if self._db_effect is not None:
             children.extend(self._db_effect.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
             children.extend(self._db_role.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
             children.extend(self._db_cause.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -188,7 +188,7 @@ class DBOpmWasGeneratedBy(object):
         to_del = []
         for child in self.db_opm_times:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -431,7 +431,7 @@ class DBConfigKey(object):
         children = []
         if self._db_value is not None:
             children.extend(self._db_value.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
@@ -566,7 +566,7 @@ class DBMashupAlias(object):
         children = []
         if self._db_component is not None:
             children.extend(self._db_component.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_component = None
         children.append((self, parent[0], parent[1]))
@@ -847,13 +847,13 @@ class DBGroup(object):
         children = []
         if self._db_location is not None:
             children.extend(self._db_location.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -861,7 +861,7 @@ class DBGroup(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -869,7 +869,7 @@ class DBGroup(object):
         to_del = []
         for child in self.db_controlParameters:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -1371,23 +1371,23 @@ class DBOpmWasControlledBy(object):
         children = []
         if self._db_effect is not None:
             children.extend(self._db_effect.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
             children.extend(self._db_role.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
             children.extend(self._db_cause.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -1395,7 +1395,7 @@ class DBOpmWasControlledBy(object):
         to_del = []
         for child in self.db_starts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -1403,7 +1403,7 @@ class DBOpmWasControlledBy(object):
         to_del = []
         for child in self.db_ends:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -1766,7 +1766,7 @@ class DBAdd(object):
         children = []
         if self._db_data is not None:
             children.extend(self._db_data.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_data = None
         children.append((self, parent[0], parent[1]))
@@ -1984,12 +1984,12 @@ class DBProvGeneration(object):
         children = []
         if self._db_prov_entity is not None:
             children.extend(self._db_prov_entity.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_entity = None
         if self._db_prov_activity is not None:
             children.extend(self._db_prov_activity.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         children.append((self, parent[0], parent[1]))
@@ -2193,23 +2193,23 @@ class DBOpmUsed(object):
         children = []
         if self._db_effect is not None:
             children.extend(self._db_effect.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
             children.extend(self._db_role.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
             children.extend(self._db_cause.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -2217,7 +2217,7 @@ class DBOpmUsed(object):
         to_del = []
         for child in self.db_opm_times:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3048,7 +3048,7 @@ class DBGroupExec(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3056,7 +3056,7 @@ class DBGroupExec(object):
         to_del = []
         for child in self.db_item_execs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3897,7 +3897,7 @@ class DBVistrail(object):
         to_del = []
         for child in self.db_actions:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3905,7 +3905,7 @@ class DBVistrail(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3913,7 +3913,7 @@ class DBVistrail(object):
         to_del = []
         for child in self.db_controlParameters:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3921,7 +3921,7 @@ class DBVistrail(object):
         to_del = []
         for child in self.db_vistrailVariables:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3929,7 +3929,7 @@ class DBVistrail(object):
         to_del = []
         for child in self.db_parameter_explorations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -3937,7 +3937,7 @@ class DBVistrail(object):
         to_del = []
         for child in self.db_actionAnnotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -4507,7 +4507,7 @@ class DBOpmArtifactValue(object):
         children = []
         if self._db_value is not None:
             children.extend(self._db_value.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))
@@ -4703,17 +4703,17 @@ class DBStartup(object):
         children = []
         if self._db_configuration is not None:
             children.extend(self._db_configuration.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_configuration = None
         if self._db_enabled_packages is not None:
             children.extend(self._db_enabled_packages.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_enabled_packages = None
         if self._db_disabled_packages is not None:
             children.extend(self._db_disabled_packages.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_disabled_packages = None
         children.append((self, parent[0], parent[1]))
@@ -5039,13 +5039,13 @@ class DBModule(object):
         children = []
         if self._db_location is not None:
             children.extend(self._db_location.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -5053,7 +5053,7 @@ class DBModule(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -5061,7 +5061,7 @@ class DBModule(object):
         to_del = []
         for child in self.db_controlParameters:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -5069,7 +5069,7 @@ class DBModule(object):
         to_del = []
         for child in self.db_portSpecs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -5740,7 +5740,7 @@ class DBOpmAgents(object):
         to_del = []
         for child in self.db_agents:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -5899,7 +5899,7 @@ class DBOpmDependencies(object):
         to_del = []
         for child in self.db_dependencys:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6056,7 +6056,7 @@ class DBPEFunction(object):
         to_del = []
         for child in self.db_parameters:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6442,7 +6442,7 @@ class DBWorkflow(object):
         to_del = []
         for child in self.db_modules:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6450,7 +6450,7 @@ class DBWorkflow(object):
         to_del = []
         for child in self.db_connections:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6458,7 +6458,7 @@ class DBWorkflow(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6466,7 +6466,7 @@ class DBWorkflow(object):
         to_del = []
         for child in self.db_plugin_datas:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6474,7 +6474,7 @@ class DBWorkflow(object):
         to_del = []
         for child in self.db_others:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -6968,7 +6968,7 @@ class DBMashupAction(object):
         children = []
         if self._db_mashup is not None:
             children.extend(self._db_mashup.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_mashup = None
         children.append((self, parent[0], parent[1]))
@@ -7142,7 +7142,7 @@ class DBConfiguration(object):
         to_del = []
         for child in self.db_config_keys:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -7411,7 +7411,7 @@ class DBChange(object):
         children = []
         if self._db_data is not None:
             children.extend(self._db_data.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_data = None
         children.append((self, parent[0], parent[1]))
@@ -7700,7 +7700,7 @@ class DBPackage(object):
         to_del = []
         for child in self.db_module_descriptors:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -8007,7 +8007,7 @@ class DBLoopExec(object):
         to_del = []
         for child in self.db_loop_iterations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -8218,7 +8218,7 @@ class DBConnection(object):
         to_del = []
         for child in self.db_ports:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -8547,7 +8547,7 @@ class DBAction(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -8555,7 +8555,7 @@ class DBAction(object):
         to_del = []
         for child in self.db_operations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -8838,7 +8838,7 @@ class DBStartupPackage(object):
         children = []
         if self._db_configuration is not None:
             children.extend(self._db_configuration.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_configuration = None
         children.append((self, parent[0], parent[1]))
@@ -9198,7 +9198,7 @@ class DBOpmAccounts(object):
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -9206,7 +9206,7 @@ class DBOpmAccounts(object):
         to_del = []
         for child in self.db_opm_overlapss:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -9523,7 +9523,7 @@ class DBPortSpec(object):
         if not for_action:
             for child in self.db_portSpecItems:
                 children.extend(child.db_children(
-                    (self.vtType, self.db_id), orphan, for_action))
+                    (self.vtType, self.getPrimaryKey()), orphan, for_action))
         children.append((self, parent[0], parent[1]))
         return children
 
@@ -9813,7 +9813,7 @@ class DBEnabledPackages(object):
         to_del = []
         for child in self.db_packages:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -9960,13 +9960,13 @@ class DBOpmArtifact(object):
         children = []
         if self._db_value is not None:
             children.extend(self._db_value.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_value = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -10181,7 +10181,7 @@ class DBLog(object):
         to_del = []
         for child in self.db_workflow_execs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -10491,7 +10491,7 @@ class DBLoopIteration(object):
         to_del = []
         for child in self.db_item_execs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -10808,7 +10808,7 @@ class DBOpmArtifacts(object):
         to_del = []
         for child in self.db_artifacts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -11296,7 +11296,7 @@ class DBWorkflowExec(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -11304,7 +11304,7 @@ class DBWorkflowExec(object):
         to_del = []
         for child in self.db_machines:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -11312,7 +11312,7 @@ class DBWorkflowExec(object):
         to_del = []
         for child in self.db_item_execs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -11927,7 +11927,7 @@ class DBFunction(object):
         to_del = []
         for child in self.db_parameters:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -12386,7 +12386,7 @@ class DBProvActivity(object):
         children = []
         if self._db_is_part_of is not None:
             children.extend(self._db_is_part_of.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_is_part_of = None
         children.append((self, parent[0], parent[1]))
@@ -12655,12 +12655,12 @@ class DBProvUsage(object):
         children = []
         if self._db_prov_activity is not None:
             children.extend(self._db_prov_activity.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         if self._db_prov_entity is not None:
             children.extend(self._db_prov_entity.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_entity = None
         children.append((self, parent[0], parent[1]))
@@ -12930,27 +12930,27 @@ class DBOpmGraph(object):
         children = []
         if self._db_accounts is not None:
             children.extend(self._db_accounts.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_accounts = None
         if self._db_processes is not None:
             children.extend(self._db_processes.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_processes = None
         if self._db_artifacts is not None:
             children.extend(self._db_artifacts.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_artifacts = None
         if self._db_agents is not None:
             children.extend(self._db_agents.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_agents = None
         if self._db_dependencies is not None:
             children.extend(self._db_dependencies.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_dependencies = None
         children.append((self, parent[0], parent[1]))
@@ -13273,23 +13273,23 @@ class DBOpmWasDerivedFrom(object):
         children = []
         if self._db_effect is not None:
             children.extend(self._db_effect.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
             children.extend(self._db_role.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
             children.extend(self._db_cause.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -13297,7 +13297,7 @@ class DBOpmWasDerivedFrom(object):
         to_del = []
         for child in self.db_opm_times:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14154,7 +14154,7 @@ class DBOpmOverlaps(object):
         to_del = []
         for child in self.db_opm_account_ids:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14329,23 +14329,23 @@ class DBOpmWasTriggeredBy(object):
         children = []
         if self._db_effect is not None:
             children.extend(self._db_effect.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_effect = None
         if self._db_role is not None:
             children.extend(self._db_role.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_role = None
         if self._db_cause is not None:
             children.extend(self._db_cause.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_cause = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14353,7 +14353,7 @@ class DBOpmWasTriggeredBy(object):
         to_del = []
         for child in self.db_opm_times:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -14635,7 +14635,7 @@ class DBModuleDescriptor(object):
         to_del = []
         for child in self.db_portSpecs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15121,7 +15121,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_prov_entitys:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15129,7 +15129,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_prov_activitys:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15137,7 +15137,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_prov_agents:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15145,7 +15145,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_vt_connections:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15153,7 +15153,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_prov_usages:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15161,7 +15161,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_prov_generations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15169,7 +15169,7 @@ class DBProvDocument(object):
         to_del = []
         for child in self.db_prov_associations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -15570,7 +15570,7 @@ class DBOpmProcesses(object):
         to_del = []
         for child in self.db_processs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -16617,7 +16617,7 @@ class DBMashup(object):
         to_del = []
         for child in self.db_aliases:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -17506,13 +17506,13 @@ class DBAbstraction(object):
         children = []
         if self._db_location is not None:
             children.extend(self._db_location.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_location = None
         to_del = []
         for child in self.db_functions:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -17520,7 +17520,7 @@ class DBAbstraction(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -17528,7 +17528,7 @@ class DBAbstraction(object):
         to_del = []
         for child in self.db_controlParameters:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -18315,7 +18315,7 @@ class DBMashuptrail(object):
         to_del = []
         for child in self.db_actions:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -18323,7 +18323,7 @@ class DBMashuptrail(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -18331,7 +18331,7 @@ class DBMashuptrail(object):
         to_del = []
         for child in self.db_actionAnnotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -18769,7 +18769,7 @@ class DBRegistry(object):
         to_del = []
         for child in self.db_packages:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -19043,7 +19043,7 @@ class DBOpmAgent(object):
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -19275,7 +19275,7 @@ class DBProvEntity(object):
         children = []
         if self._db_is_part_of is not None:
             children.extend(self._db_is_part_of.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_is_part_of = None
         children.append((self, parent[0], parent[1]))
@@ -19894,7 +19894,7 @@ class DBParameterExploration(object):
         to_del = []
         for child in self.db_functions:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -20386,13 +20386,13 @@ class DBOpmProcess(object):
         children = []
         if self._db_value is not None:
             children.extend(self._db_value.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_value = None
         to_del = []
         for child in self.db_accounts:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -20548,7 +20548,7 @@ class DBDisabledPackages(object):
         to_del = []
         for child in self.db_packages:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -20781,7 +20781,7 @@ class DBModuleExec(object):
         to_del = []
         for child in self.db_annotations:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -20789,7 +20789,7 @@ class DBModuleExec(object):
         to_del = []
         for child in self.db_loop_execs:
             children.extend(child.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 to_del.append(child)
         for child in to_del:
@@ -21163,17 +21163,17 @@ class DBProvAssociation(object):
         children = []
         if self._db_prov_activity is not None:
             children.extend(self._db_prov_activity.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_activity = None
         if self._db_prov_agent is not None:
             children.extend(self._db_prov_agent.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_agent = None
         if self._db_prov_plan is not None:
             children.extend(self._db_prov_plan.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_prov_plan = None
         children.append((self, parent[0], parent[1]))
@@ -21340,7 +21340,7 @@ class DBOpmProcessValue(object):
         children = []
         if self._db_value is not None:
             children.extend(self._db_value.db_children(
-                (self.vtType, self.db_id), orphan, for_action))
+                (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self._db_value = None
         children.append((self, parent[0], parent[1]))

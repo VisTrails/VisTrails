@@ -270,11 +270,11 @@ class ${obj.getClassName()}SQLDAOBase(SQLDAO):
                     getFieldName()} = obj.vtType
             child.${obj.get_sql_referenced(ref.getReferencedObject(), \
                                                True)[0].getFieldName()} = \
-                        obj.db_id
+                        obj.getPrimaryKey()
             % else:
             child.${obj.get_sql_referenced(ref.getReferencedObject(), \
                                                True)[0].getFieldName()} = \
-                        obj.db_id
+                        obj.getPrimaryKey()
             % endif
         % endfor
         
