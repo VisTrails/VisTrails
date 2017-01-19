@@ -75,9 +75,7 @@ def unexpected_exception(e, tb=None, frame=None):
     # Whether to use the debugger
     try:
         from vistrails.core.configuration import get_vistrails_configuration
-        debugger = getattr(get_vistrails_configuration(),
-                           'developerDebugger',
-                           False)
+        debugger = get_vistrails_configuration().check('developerDebugger')
     except Exception:
         debugger = False
     if not debugger:

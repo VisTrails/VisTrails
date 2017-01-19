@@ -309,6 +309,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             try:
                 doc = self.module.get_documentation(doc, module)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Exception calling get_documentation on %r" %
                                self.module,
                                e)
