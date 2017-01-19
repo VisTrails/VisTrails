@@ -161,12 +161,16 @@ class SQLProperty (Property):
         except KeyError:
             pass
         return self.getName()
-    
+
+    def getAlchemyType(self):
+        sql_type = self.getType()
+        if sql_type.upper() == 'MEDIUMTEXT':
+            sql_type = 'TEXT(2 ** 24)'
+        return sql_type
+
     def getType(self):
         try:
             sql_type = self.specs[SQL_TYPE]['type']
-            if sql_type.upper() == 'MEDIUMTEXT':
-                sql_type = 'TEXT(2 ** 24)'
             return sql_type
         except KeyError:
             pass
@@ -180,8 +184,8 @@ class SQLProperty (Property):
         return ''
 
     def isText(self):
-        if string.find(self.getType().upper(), 'CHAR') != -1 or \
-                string.find(self.getType().upper(), 'DATE') != -1:
+        if self.getType().upper().find('CHAR') != -1 or \
+                self.getType().upper().find('DATE') != -1:
             return True
         return False
 

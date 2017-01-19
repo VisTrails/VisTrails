@@ -64,7 +64,7 @@ tables = {'vistrails_version': \
 % endif
 % else:
                            sqlalchemy.Column('${prop.getColumn()}',
-                                  sqlalchemy.types.${prop.getType().upper()},
+                                  sqlalchemy.types.${prop.getAlchemyType().upper()},
 % if prop.isAutoInc():
                                   autoincrement=True,
                                   primary_key=True,
