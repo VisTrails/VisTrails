@@ -334,7 +334,7 @@ CREATE TABLE control_parameter(
     name varchar(255),
     value TEXT(2 ** 24),
     parent_type char(32),
-    entity_id int,
+    entity_id char(36),
     entity_type char(16),
     parent_id int
 ) engine=InnoDB;
