@@ -4885,7 +4885,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             value = self.convertFromDB(row[2], 'str', 'mediumtext')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[4], 'long', 'int')
+            entity_id = self.convertFromDB(row[4], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
 
@@ -4915,7 +4915,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             value = self.convertFromDB(row[2], 'str', 'mediumtext')
             parentType = self.convertFromDB(row[3], 'str', 'char(32)')
-            entity_id = self.convertFromDB(row[4], 'long', 'int')
+            entity_id = self.convertFromDB(row[4], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[5], 'str', 'char(16)')
             parent = self.convertFromDB(row[6], 'long', 'long')
 
@@ -4976,7 +4976,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
-                self.convertToDB(obj.db_entity_id, 'long', 'int')
+                self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -5017,7 +5017,7 @@ class DBControlParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
-                self.convertToDB(obj.db_entity_id, 'long', 'int')
+                self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
