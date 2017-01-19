@@ -141,6 +141,8 @@ def translateVistrail(_vistrail, external_data=None):
                 vistrail.db_add_actionAnnotation(ann)
 
         # don't want to re-id vistrail variables; they already have a uuid
+        # if we don't do this, xml works fine, but sql is problematic because
+        # remapped uuids are ints stored as strings...
         inv_remap = {(t, k2): k1 for (t, k1), k2 in extdata.id_remap.iteritems()}
         for vv in vistrail.db_vistrailVariables:
             if (DBVistrailVariable.vtType, vv.db_uuid) in inv_remap:
