@@ -494,8 +494,8 @@
       </property>
 
     </choice>
-    <property name="entity_id" type="long" inverse="true">
-      <sql type="int"/>
+    <property name="entity_id" type="str" inverse="true">
+      <sql type="char(36)"/>
     </property>
 
     <property name="entity_type" type="str" inverse="true">
