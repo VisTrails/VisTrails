@@ -303,19 +303,37 @@ class ModuleDescriptor(DBModuleDescriptor):
             return None
         return (self._left_fringe, self._right_fringe)
 
-    def module_documentation(self, module=None):
-        doc = pydoc.getdoc(self.module)
-        if hasattr(self.module, 'get_documentation'):
-            try:
-                doc = self.module.get_documentation(doc, module)
-            except Exception, e:
-                debug.unexpected_exception(e)
-                debug.critical("Exception calling get_documentation on %r" %
-                               self.module,
-                               e)
-                doc = doc or "(Error getting documentation)"
-        doc = doc or "(No documentation available)"
-        return doc
+    def module_documentation(self, module=None, format='text', fallback=True):
+        if self.module is None:
+            return None
+
+        docstring = pydoc.getdoc(self.module)
+
+        def getdoc(method):
+            if hasattr(self.module, method):
+                try:
+                    return getattr(self.module, method)(docstring, module)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical("Exception calling %s on %r" % (
+                                       method,
+                                       self.module),
+                                   e)
+            return None
+
+        doc = getdoc('get_documentation_%s' % format)
+        if doc:
+            return doc
+        if not (format == 'text' or fallback):
+            return None
+        doc = getdoc('get_documentation')
+        if not doc:
+            doc = docstring
+        if doc:
+            if format == 'html':
+                return pydoc.html.markup(doc, pydoc.html.preformat)
+            return doc
+        return None
 
     def module_package(self):
         return self.identifier
