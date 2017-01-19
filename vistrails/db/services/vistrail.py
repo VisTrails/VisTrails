@@ -75,13 +75,13 @@ def update_id_scope(vistrail):
         # cannot do anything for now
         pass
 
-def materializeWorkflow(vistrail, version):
+def materializeWorkflow(vistrail, version, root_version=DBVistrail.ROOT_VERSION):
     # construct path up through tree and perform each action
     if vistrail.db_has_action_with_id(version):
         workflow = DBWorkflow()
         #for action in getActionChain(vistrail, version):
         #    oldPerformAction(action, workflow)
-        performActions(getActionChain(vistrail, version), 
+        performActions(getActionChain(vistrail, version, root_version),
                             workflow)
         workflow.db_id = version
         workflow.db_vistrailId = vistrail.db_id

@@ -128,8 +128,7 @@ def createParameterExploration(action_id, xmlString, vistrail):
     except Exception:
         return None
     # we need the pipeline to look up function/paramater id:s
-    #FIXME this won't work with v2.0.0 changes, need v1_0_3 materialization...
-    pipeline = materializeWorkflow(vistrail, action_id)
+    pipeline = materializeWorkflow(vistrail, action_id, root_version=0)
     # Populate parameter exploration window with stored functions and aliases
     functions = []
     for f in xmlDoc.getElementsByTagName('function'):
