@@ -64,12 +64,14 @@ def translateVistrail(_vistrail, external_data=None):
                         (op.vtType == DBAdd.vtType or op.vtType == DBChange.vtType)):
                     ps = op.db_data
                     for psi in ps.db_portSpecItems:
-                        # only reassign when we need to
-                        old_id = psi.db_id
+                        # only reassign when necessary (helps with translations)
                         if psi.db_id in psi_ids:
-                            # we don't need to worry about overlap since psi ids are
+                            # we don't need to worry about remaps since psi ids are
                             # not referenced as individual entities
-                            new_id = _vistrail.idScope.getNewId(DBPortSpecItem.vtType)
+                            while True:
+                                new_id = _vistrail.idScope.getNewId(DBPortSpecItem.vtType)
+                                if new_id not in psi_ids:
+                                    break
                             psi.db_id = new_id
                         psi_ids.add(psi.db_id)
 
