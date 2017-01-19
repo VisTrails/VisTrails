@@ -979,6 +979,10 @@ class Vistrail(DBVistrail):
         """
         Returns the log object for this vistrail if available
         """
+        # need this because we might have loaded this to translate a bundle
+        if self.log is not None:
+            return self.log
+
         log = Log()
         if isinstance(self.locator, vistrails.core.db.locator.ZIPFileLocator):
             if self.db_log_filename is not None:
@@ -987,6 +991,7 @@ class Vistrail(DBVistrail):
             connection = self.locator.get_connection()
             log = open_vt_log_from_db(connection, self.db_id)
         Log.convert(log)
+        self.log = log
         return log
     
     def get_used_packages(self):
