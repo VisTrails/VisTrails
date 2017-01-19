@@ -972,7 +972,6 @@ class VistrailController(QtCore.QObject, BaseController):
         if not dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
-        setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
 
