@@ -232,8 +232,8 @@ class DAOList(dict):
         obj_children = []
         obj_written = []
         for obj, global_props in izip(objList, global_props_list):
-            if do_copy and obj.db_id is not None:
-                obj.db_id = None
+            # if do_copy and obj.db_id is not None:
+            #     obj.db_id = None
 
             children = obj.db_children()
             children.reverse()
