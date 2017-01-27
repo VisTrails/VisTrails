@@ -122,17 +122,17 @@ __rootDir = os.path.realpath(os.path.join(_thisDir,
                                           '..',
                                           '..'))
 
-__dataDir = os.path.realpath(os.path.join(__rootDir,
-                                          'data'))
-__fileDir = os.path.realpath(os.path.join(__rootDir,
-                                          '..','examples'))
+__dataDir = None
+__fileDir = None
 
-if systemType in ['Darwin'] and not os.path.exists(__fileDir):
+__examplesDir = os.path.realpath(os.path.join(__rootDir,
+                                              '..','examples'))
+
+if systemType in ['Darwin'] and not os.path.exists(__examplesDir):
     # Assume we are running from py2app
-    __fileDir = os.path.realpath(os.path.join(__rootDir,
-                                              '/'.join(['..']*6),'examples'))
-
-__examplesDir = __fileDir
+    __examplesDir = os.path.realpath(os.path.join(__rootDir,
+                                                  '/'.join(['..']*6),
+                                                  'examples'))
 
 __defaultFileType = '.vt'
 
@@ -227,6 +227,12 @@ def vistrails_file_directory():
     Returns current vistrails file directory
 
     """
+    global __fileDir
+    if __fileDir is None:
+        from vistrails.core.configuration import get_vistrails_configuration
+        __fileDir = get_vistrails_configuration().check('fileDir')
+        if not __fileDir:
+            __fileDir = vistrails_examples_directory()
     return __fileDir
 
 def vistrails_examples_directory():
@@ -241,6 +247,12 @@ def vistrails_data_directory():
     Returns vistrails data directory
 
     """
+    global __dataDir
+    if __dataDir is None:
+        from vistrails.core.configuration import get_vistrails_configuration
+        __dataDir = get_vistrails_configuration().check('dataDir')
+        if not __dataDir:
+            __dataDir = os.path.join(vistrails_root_directory(), 'data')
     return __dataDir
 
 def vistrails_default_file_type():

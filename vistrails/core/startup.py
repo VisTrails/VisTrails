@@ -250,6 +250,8 @@ class VistrailsStartup(DBStartup):
 
     def setup_init_file(self, dir_name):
         name = os.path.join(dir_name, '__init__.py')
+        if os.path.exists(name):
+            return
         try:
             f = open(name, 'w')
             f.write('pass\n')

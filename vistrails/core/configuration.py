@@ -100,7 +100,6 @@ multithread: Server will start a thread for each request
 outputDirectory: Directory in which to place output files
 outputPipelineGraph: Output the workflow graph as an image
 outputVersionTree: Output the version tree as an image
-packageDir: System packages directory
 parameterExploration: Run parameter exploration instead of workflow
 parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
@@ -347,11 +346,6 @@ outputVersionTree: Boolean
 
     Output the version tree as an image.
 
-packageDir: Path
-
-    The directory to look for VisTrails core packages (use
-    userPackageDir for user-defined packages).
-
 parameterExploration: Boolean
 
     Open and execute parameter exploration specified by the
@@ -560,7 +554,7 @@ user: String
 
     The username for the database to load the vistrail from.
 
-userPackageDir: Boolean
+userPackageDir: Path
 
     The location for user-installed packages (defaults to
     ~/.vistrails/userpackages).
@@ -775,7 +769,6 @@ base_config = {
                  ConfigPath, flag="-S"),
      ConfigField('subworkflowsDir', "subworkflows", ConfigPath),
      ConfigField('dataDir', None, ConfigPath),
-     ConfigField('packageDir', None, ConfigPath),
      ConfigField('userPackageDir', "userpackages", ConfigPath),
      ConfigField('fileDir', None, ConfigPath),
      ConfigField('logDir', "logs", ConfigPath),
@@ -1560,7 +1553,7 @@ class ConfigurationObject(DBConfiguration):
 #         'minMemory': (None, int),
 #         'multiHeads': False,
 #         'nologger': False,
-#         'packageDirectory': (None, str),
+#         'packageDir': (None, str),
 #         'pythonPrompt': False,
 #         'recentVistrailList': (None, str),
 #         'repositoryLocalPath': (None, str),
