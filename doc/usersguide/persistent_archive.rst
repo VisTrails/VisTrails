@@ -15,7 +15,7 @@ Getting Started With Persistence
 
 This package builds upon the `file_archive tool <https://github.com/remram44/file_archive>`_. Should you need to insert or extract files from the store from outside VisTrails, you will find the store in ``~/.vistrails/file_archive``.
 
-Files are stored uncompressed in the store, along with metadata in the form of key-value pairs. |vistrails| stores the generating module location and signature in their, but you can add all the meaningful metadata you might need for later identification.
+Files are stored uncompressed in the store, along with metadata in the form of key-value pairs. |vistrails| stores the generating module location and signature in there, but you can add all the meaningful metadata you might need for later identification.
 
 |vistrails| provides 4 types of modules:
 
