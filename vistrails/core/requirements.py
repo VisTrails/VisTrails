@@ -131,7 +131,7 @@ def require_pyqt4_api2():
             'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
             'linux-fedora': ['PyQt4'],
-            'pip': ['PyQt<5.0']})
+            'pip': ['PyQt4']})
         if not r:
             raise MissingRequirement('PyQt4')
         setNewPyQtAPI()
