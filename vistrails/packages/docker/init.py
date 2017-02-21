@@ -39,6 +39,7 @@ from __future__ import division
 from distutils.version import StrictVersion
 import docker
 import docker.errors
+import os
 import subprocess
 import sys
 
@@ -130,6 +131,7 @@ class RunContainer(Module):
 
         if ret == -1 or (ret != 0 and self.get_input('assert_zero')):
             raise ModuleError(self, "Container exited with status %d" % ret)
+        self.set_output('exit_status', ret)
         if self.get_input('combined_stdout'):
             stdout = client.logs(container=container['Id'],
                                  stdout=True, stderr=True)
@@ -145,3 +147,71 @@ class RunContainer(Module):
 
 
 _modules = [RunContainer]
+
+
+###############################################################################
+
+import unittest
+
+
+class TestDocker(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from vistrails.core.system import executable_is_in_path
+
+        if not (executable_is_in_path('docker-machine') or
+                executable_is_in_path('docker')):
+            raise unittest.SkipTest("Docker is not installed")
+
+    def test_hello_world(self):
+        from vistrails.tests.utils import execute, intercept_results
+        from .identifiers import identifier
+
+        with intercept_results(RunContainer, 'stdout',
+                               RunContainer, 'exit_status') as (out, res):
+            self.assertFalse(execute([
+                ('RunContainer', identifier, [
+                    ('image', [('String', 'hello-world')]),
+                ])
+            ]))
+
+        self.assertEqual(len(out), 1)
+        self.assertEqual(filter(len, out[0].splitlines())[0],
+                         "Hello from Docker!")
+
+    def test_volumes(self):
+        import tempfile
+        from vistrails.core.system import home_directory
+        from vistrails.tests.utils import execute, intercept_result
+        from .identifiers import identifier
+
+        hdl, f_in = tempfile.mkstemp('vt_docker_in', dir=home_directory())
+        with open(f_in, 'w') as fp:
+            fp.write("one\ntwo\nthree\nfour\n")
+        os.close(hdl)
+
+        hdl, f_out = tempfile.mkstemp('vt_docker_out', dir=home_directory())
+        os.close(hdl)
+
+        try:
+            with intercept_result(RunContainer, 'exit_status') as res:
+                self.assertFalse(execute([
+                    ('RunContainer', identifier, [
+                        ('image', [('String', 'busybox')]),
+                        ('command', [('List', '["sh", "-c",'
+                                              '"wc -l /input >/output; '
+                                              'exit 2"]')]),
+                        ('assert_zero', [('Boolean', 'False')]),
+                        ('volumes', [('Path', f_out),
+                                     ('String', '/output')]),
+                        ('volumes_ro', [('Path', f_in),
+                                        ('String', '/input')]),
+                    ])
+                ]))
+
+            self.assertEqual(res, [2])
+            with open(f_out, 'r') as fp:
+                self.assertEqual(fp.read(), "4 /input\n")
+        finally:
+            os.remove(f_in)
+            os.remove(f_out)
