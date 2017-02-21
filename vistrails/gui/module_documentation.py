@@ -66,15 +66,9 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
         self.layout().addWidget(self.name_label)
         self.package_label = QtGui.QLabel("")
         self.layout().addWidget(self.package_label)
-        # self.closeButton = QtGui.QPushButton('Ok', self)
-        self.textEdit = QtGui.QTextEdit(self)
+        self.textEdit = QtGui.QTextBrowser(self)
         self.layout().addWidget(self.textEdit, 1)
-        self.textEdit.setReadOnly(True)
-        self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
-        # self.layout().addWidget(self.closeButton)
-        # self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), 
-        #              self.close)
-        # self.closeButton.setShortcut('Enter')
+        self.textEdit.setOpenExternalLinks(True)
 
         self.update_descriptor()
 
