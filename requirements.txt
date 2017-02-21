@@ -1,5 +1,6 @@
 backports.ssl_match_hostname
 certifi
+docutils
 dulwich
 IPython
 matplotlib

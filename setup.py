@@ -18,6 +18,7 @@ requirements = [
     'scipy',
     'certifi',
     'backports.ssl_match_hostname',
+    'docutils',
     'file_archive>=0.6',
     'python-dateutil',
     'requests',

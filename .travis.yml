@@ -6,6 +6,7 @@ python:
 addons:
   apt:
     packages:
+      - python-docutils
       - python-matplotlib
       - python-mysqldb
       - python-numpy
