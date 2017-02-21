@@ -39,6 +39,7 @@ import copy
 import pydoc
 
 from vistrails.core import debug
+from vistrails.core.bundles import py_import
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.port_spec import PortSpec
 import vistrails.core.modules.module_registry
@@ -331,7 +332,21 @@ class ModuleDescriptor(DBModuleDescriptor):
             doc = docstring
         if doc:
             if format == 'html':
-                return pydoc.html.markup(doc, pydoc.html.preformat)
+                try:
+                    py_import('docutils',
+                              {'pip': 'docutils',
+                               'linux-debian': 'python-docutils',
+                               'linux-ubuntu': 'python-docutils',
+                               'linux-fedora': 'python-docutils'},
+                              True)
+                except ImportError:
+                    return pydoc.html.markup(doc, pydoc.html.preformat)
+                else:
+                    from docutils.core import publish_string
+
+                    if isinstance(doc, bytes):
+                        doc = doc.decode('utf-8', 'replace')
+                    return publish_string(doc, writer_name='html')
             return doc
         return None
 
