@@ -36,6 +36,7 @@
 from __future__ import division
 
 import copy
+from io import StringIO
 import pydoc
 
 from vistrails.core import debug
@@ -340,13 +341,25 @@ class ModuleDescriptor(DBModuleDescriptor):
                                'linux-fedora': 'python-docutils'},
                               True)
                 except ImportError:
-                    return pydoc.html.markup(doc, pydoc.html.preformat)
+                    pass
                 else:
                     from docutils.core import publish_string
 
                     if isinstance(doc, bytes):
                         doc = doc.decode('utf-8', 'replace')
-                    return publish_string(doc, writer_name='html')
+
+                    warnings = StringIO()
+                    output = publish_string(
+                        doc, writer_name='html',
+                        settings_overrides=dict(warning_stream=warnings))
+                    warnings = warnings.getvalue()
+                    if warnings:
+                        debug.warning("Error processing docstring for %s with "
+                                      "docutils" % self.name,
+                                      warnings)
+                    else:
+                        return output
+                return pydoc.html.markup(doc, pydoc.html.preformat)
             return doc
         return None
 
