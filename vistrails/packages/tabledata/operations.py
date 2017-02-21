@@ -151,7 +151,7 @@ class JoinTables(Table):
     match the values in the two selected columns (one from each table). If a
     row from one of the table has a value for the selected field that doesn't
     exist in the other table, that row will not appear in the result
-    (INNER JOIN semantics).
+    (*INNER JOIN* semantics).
     """
     _input_ports = [('left_table', 'Table'),
                     ('right_table', 'Table'),
@@ -382,6 +382,8 @@ class AggregatedTable(TableObject):
 
 
 class AggregateColumn(Table):
+    """Performs a *group by* operation on a table.
+    """
     _input_ports = [('table', 'Table'),
                     ('op', 'basic:String',
                      {'entry_types': "['enum']",

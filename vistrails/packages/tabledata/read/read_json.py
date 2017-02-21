@@ -55,10 +55,11 @@ class JSONTable(object):
 class JSONObject(JSONTable, DictToTable):
     """Loads a JSON file and build a table from an object.
 
-    In JSON, an object is written with {}. It is essentially an associative
+    In JSON, an object is written with `{}`. It is essentially an associative
     array. A column will contain the keys in this array.
 
-    Example:
+    Example::
+
         {
             "John": {"lastname": "Smith", "age": 25, "city": "New York"},
             "Ashley": {"lastname": "Crofts", "age": 21, "city": "Fort Worth"},
@@ -82,15 +83,16 @@ class JSONObject(JSONTable, DictToTable):
 class JSONList(JSONTable, ListToTable):
     """Loads a JSON file and build a table from a list.
 
-    In JSON, a list is written with [].
+    In JSON, a list is written with `[]`.
 
-    Example:
+    Example::
+
         [[ 4, 14, 15,  1],
          [ 9,  7,  6, 12],
          [ 5, 11, 10,  8],
          [16,  2,  3, 13]]
 
-        gives a 4x4 unnamed table.
+    gives a 4x4 unnamed table.
     """
     _input_ports = [('file', '(org.vistrails.vistrails.basic:File)')]
 

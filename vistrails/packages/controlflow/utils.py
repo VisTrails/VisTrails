@@ -57,7 +57,7 @@ class Map(FoldWithModule):
 
 
 class Filter(FoldWithModule):
-    """A Filter module, that returns in a list only the results that satisfy a
+    """A Filter module, that returns in a list only the elements that satisfy a
     condition."""
 
     def setInitialValue(self):

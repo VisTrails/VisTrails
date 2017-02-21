@@ -233,7 +233,7 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
 class ExtractColumn(Module):
     """Gets a single column from a table, as a list.
 
-    Specifying one of 'column_name' or 'column_index' is sufficient; if you
+    Specifying one of `column_name` or `column_index` is sufficient; if you
     provide both, the module will check that the column has the expected name.
     """
     _input_ports = [

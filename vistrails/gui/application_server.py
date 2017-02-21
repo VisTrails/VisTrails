@@ -212,10 +212,12 @@ class RequestHandler(object):
                             module.package,
                             module.name,
                             module.namespace)
+                    mod_info = {'name': module.name,
+                                'package': module.package}
                     documentation = descriptor.module_documentation(module)
-                    result.append({'name':module.name,
-                                              'package':module.package,
-                                              'documentation':documentation})
+                    if documentation:
+                        mod_info['documentation'] = documentation
+                    result.append(mod_info)
                 return (result, 1)
             else:
                 result = "Pipeline was not materialized"

@@ -48,8 +48,7 @@ from .utils import *
 
 class GMapCell(SpreadsheetCell, OptionsMixin):
     """
-    GMapCell is a custom Module to view TabularData geographically
-    
+    Renders TabularData geographically on the spreadsheet.
     """
 
     SPECS = [('zoom', None, True), 

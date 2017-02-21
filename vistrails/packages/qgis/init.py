@@ -47,6 +47,7 @@ import itertools
 import os
 
 class RasterLayer(Module):
+    """Renders a raster dataset onto the map."""
     _input_ports = [('file', '(basic:File)'), 
                     ('name', '(basic:String)')]
     _output_ports = [('self', '(RasterLayer)')]
@@ -65,6 +66,7 @@ class RasterLayer(Module):
         self.set_output('self', self)
 
 class VectorLayer(Module):
+    """Renders a vector based dataset onto the map."""
     _input_ports = [('file', '(basic:File)'), 
                     ('name', '(basic:String)')]
     _output_ports = [('self', '(VectorLayer)')]
@@ -83,10 +85,7 @@ class VectorLayer(Module):
         self.set_output('self', self)
 
 class QGISCell(SpreadsheetCell):
-    """
-    QGISCell is a VisTrails Module that can display QGIS inside a cell
-    
-    """
+    """QGISCell is a VisTrails Module that can display QGIS inside a cell."""
     _input_ports = [('rasterLayers', '(RasterLayer)'),
                     ('vectorLayers', '(VectorLayer)')]
 
