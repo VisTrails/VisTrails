@@ -368,22 +368,30 @@ class DownloadFile(Module):
     filesystem so as to not re-download unchanged files.
 
     Recognized URL schemes are:
-        http://...
-        https://...
-        ftp://...
-        ssh://user[:password]@host[:port]/absolute/path
-            Examples:
-                ssh://john@vistrails.nyu.edu/home/john/example.txt
-                ssh://eve:my%20secret@google.com/tmp/test%20file.bin
-            Note that both password and path are url-encoded, that the path
-            is absolute, and that the username must be specified
-        scp://[user@]host:path
-            Examples:
-                scp://john@vistrails.nyu.edu:files/test.txt
-                scp://poly.edu:/tmp/test.bin
-            Note that nothing is url encoded, that the path can be relative
-            (to the user's home directory) and that no username or port can
-            be specified
+      - `http://...`
+      - `https://...`
+      - `ftp://...`
+      - `ssh://user[:password]@host[:port]/absolute/path`
+
+        Examples:
+
+        - `ssh://john@vistrails.nyu.edu/home/john/example.txt`
+        - `ssh://eve:my%20secret@google.com/tmp/test%20file.bin`
+
+        Note that both password and path are url-encoded, that the path
+        is absolute, and that the username must be specified
+      - `scp://[user@]host:path`
+
+        Examples:
+
+        - `scp://john@vistrails.nyu.edu:files/test.txt`
+        - `scp://poly.edu:/tmp/test.bin`
+
+        Note that nothing is url encoded, that the path can be relative
+        (to the user's home directory) and that no username or port can
+        be specified
+
+    If `insecure` is set, an invalid TLS certificate will not cause an error.
     """
 
     def compute(self):
@@ -406,7 +414,9 @@ class DownloadFile(Module):
 
 
 class HTTPDirectory(Module):
-    """Downloads a whole directory recursively from a URL
+    """Downloads a whole directory recursively from a URL.
+
+    If `insecure` is set, an invalid TLS certificate will not cause an error.
     """
 
     def compute(self):
@@ -426,12 +436,32 @@ class HTTPDirectory(Module):
 
 
 class URLEncode(Module):
+    """Encode special characters to a format suitable for URLs.
+
+    This uses Python's `urllib.quote_plus()` function, which encodes special
+    characters as `%xx` escapes and a space ' ' with a plus sign '+'.
+
+    Example::
+
+    '~/abc def' -> '%7e/abc+def'
+    """
+
     def compute(self):
         value = self.get_input('string')
         self.set_output('encoded', urllib.quote_plus(value))
 
 
 class URLDecode(Module):
+    """Decode special characters formatted into a URL.
+
+    This uses Python's `urllib.unquote_plus()` function, which decodes '%xx'
+    escapes and replaces a plus sign '+' with a space ' '.
+
+    Example::
+
+    '%7e/abc+def' -> '~/abc def'
+    """
+
     def compute(self):
         encoded = self.get_input('encoded')
         self.set_output('string', urllib.unquote_plus(encoded))

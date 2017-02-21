@@ -189,19 +189,20 @@ class StringsToDates(Module):
 
     If no format is given, the dateutil.parser module will be used to guess
     what each string refers to; else, it is passed to strptime() to read each
-    date. For example: '%Y-%m-%d %H:%M:%S'.
-    The 'timezone' parameter indicates which timezone these dates are expressed
+    date. For example: `%Y-%m-%d %H:%M:%S`.
+    The `timezone` parameter indicates which timezone these dates are expressed
     in. It can be either:
-      * 'local', in which case each date is interpreted as being in whatever
+
+      - `local`, in which case each date is interpreted as being in whatever
         timezone the system is set to use;
-      * an offset in hours/minutes from UTC, for instance '-0400' for DST
+      - an offset in hours/minutes from UTC, for instance `-0400` for DST
         (eastern America time, when daylight saving is in effect). Note that in
         this case, the same offset is used for every date, without regard for
-        daylight saving (if a date falls in winter, '-0500' will not be used
+        daylight saving (if a date falls in winter, `-0500` will not be used
         instead).
-      * if pytz is available, anything else will be passed to pytz.timezone(),
-        so you would be able to use strings such as 'US/Eastern' or
-        'Europe/Amsterdam'.
+      - if pytz is available, anything else will be passed to pytz.timezone(),
+        so you would be able to use strings such as `US/Eastern` or
+        `Europe/Amsterdam`.
     """
     _input_ports = [
             ('strings', '(org.vistrails.vistrails.basic:List)'),

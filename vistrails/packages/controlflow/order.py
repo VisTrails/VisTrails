@@ -43,12 +43,12 @@ from vistrails.core.modules.vistrails_module import Module, InvalidOutput
 ## Order Operator
 
 class ExecuteInOrder(Module):
-    """
-    The Order Module alows the user to control which sink of a pair of
-    sinks ought to executed first.  Connect the "self" port of each
-    sink to the corresponding port.  Note that if you have more than
-    two sinks, you can string them together by using a string of Order
-    modules.
+    """Allows the user to control which sink of a pair of sinks ought to be
+    executed first.
+
+    Connect the "self" port of each sink to the corresponding port.
+    Note that if you have more than two sinks, you can string them together by
+    using a string of ExecuteInOrder modules.
     """
 
     def update_upstream(self):

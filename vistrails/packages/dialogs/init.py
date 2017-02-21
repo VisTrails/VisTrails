@@ -55,6 +55,16 @@ class Dialog(Module):
 
 
 class TextDialog(Dialog):
+    """Ask the user to provide a string interactively.
+
+    When this module is executed, a dialog window will be shown with the given
+    message. Execution will continue with the user-provided string as the
+    output once the user confirms. If the user clicks 'cancel', execution will
+    stop.
+
+    Optionally, the answer from the user can be cached for this session.
+    """
+
     _input_ports = [('label', basic_modules.String,
                      {'optional': True, 'defaults': "['']"}),
                     ('default', basic_modules.String,
@@ -83,6 +93,17 @@ class TextDialog(Dialog):
 
 
 class PasswordDialog(TextDialog):
+    """Ask the user to provide a password interactively.
+
+    The input will be hidden by stars as is customary for password inputs.
+
+    When this module is executed, a dialog window will be shown with the given
+    message. Execution will continue with the user-provided string as the
+    output once the user confirms. If the user clicks 'cancel', execution will
+    stop.
+
+    Optionally, the answer from the user can be cached for this session.
+    """
     _input_ports = [('label', basic_modules.String,
                      {'optional': True, 'defaults': "['Password']"})]
 
@@ -90,6 +111,15 @@ class PasswordDialog(TextDialog):
 
 
 class YesNoDialog(Dialog):
+    """Ask the user to answer "yes" or "no.
+
+    When this module is executed, a dialog window will be shown with the given
+    message and two buttons. Execution will continue with the boolean answer as
+    an output once the user responds.
+
+    Optionally, the answer from the user can be cached for this session.
+    """
+
     _input_ports = [('label', basic_modules.String,
                      {'optional': True, 'defaults': "['Yes/No?']"})]
     _output_ports = [('result', basic_modules.Boolean)]

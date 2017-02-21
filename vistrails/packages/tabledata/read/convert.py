@@ -166,7 +166,7 @@ class BaseListToTable(BaseConverter):
 class DictToTable(BaseDictToTable):
     """Converts a Python dictionary into a table.
 
-    This is basically the same as read.JSONObject except that it takes a live
+    This is basically the same as `read.JSONObject` except that it takes a live
     Python dictionary instead of a JSON file.
     """
     _input_ports = [('dict', '(basic:Dictionary)')]

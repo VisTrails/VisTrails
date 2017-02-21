@@ -46,9 +46,12 @@ class ElementwiseProduct(Module):
     """This module does the product of two lists.
 
     If NumericalProduct is True, this will effectively compute the product of
-    each element, eg:
+    each element, eg::
+
         [1, 2, 3] x [3, -3, 1] = [3, -6, 3]
-    Else, it will make tuples, eg:
+
+    Else, it will make tuples, eg::
+
         [1, 2, 3] x [3, -3, 1] = [(1, 3), (2, -3), (3, 1)]
     """
 
@@ -102,6 +105,17 @@ class Cross(Module):
 
 class CartesianProduct(Module):
     """This module does the cartesian product of two lists.
+
+    If CombineTuple is True (the default), existing tuples will be
+    concatenated instead of put inside a new tuple, eg:
+
+      - with CombineTuple (default)::
+
+        [(1, 2)], [3, 4] -> [(1, 2, 3), (1, 2, 4)]
+
+      - without::
+
+        [(1, 2)], [3, 4] -> [((1, 2), 3), ((1, 2), 4)]
     """
 
     def compute(self):

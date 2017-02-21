@@ -64,6 +64,13 @@ class PromptWindow(QtGui.QDialog):
 
 
 class PromptIsOkay(Module):
+    """Ask the user to confirm an intermediate result looks okay.
+
+    When this module is executed, a dialog window will be shown with a single
+    spreadsheet cell and the given message. Execution will continue if the user
+    confirms. If the user clicks 'cancel', execution will stop.
+    """
+
     _input_ports = [('label', basic_modules.String,
                      {'optional': True}),
                     ('carry_on', basic_modules.Boolean,

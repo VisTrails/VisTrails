@@ -176,7 +176,7 @@ class CSVFile(Table):
 
     This module uses Python's csv module to read a table from a file. It is
     able to guess the actual format of the file in most cases, or you can use
-    the 'delimiter', 'header_present' and 'skip_lines' ports to force how the
+    the `delimiter`, `header_present` and `skip_lines` ports to force how the
     file will be read.
     """
     _input_ports = [

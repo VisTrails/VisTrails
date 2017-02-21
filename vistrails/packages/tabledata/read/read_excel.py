@@ -92,8 +92,9 @@ class ExcelTable(TableObject):
 class ExcelSpreadsheet(Table):
     """Reads a table from a Microsoft Excel file.
 
-    This module uses xlrd from the python-excel.org project to read a XLS or
-    XLSX file.
+    This module uses `xlrd` from the
+    `python-excel.org <http://www.python-excel.org/>`__ project to read a XLS
+    or XLSX file.
     """
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
