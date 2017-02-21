@@ -812,7 +812,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 local_socket.disconnectFromServer()
             if shutdown:
                 debug.warning("Shutdown requested from other instance")
-                stop_application()
+                self.builderWindow.quit()
 
     def send_message(self, local_socket, message):
         self.shared_memory.lock()
