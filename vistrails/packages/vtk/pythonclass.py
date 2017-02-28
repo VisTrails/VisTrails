@@ -139,7 +139,7 @@ class BaseClassModule(Module):
                 self.call_set_method(instance, port, ps)
 
     def call_outputs(self, instance):
-        outputs_list = self.output_specs_order
+        outputs_list = self.output_specs_order[:]
         if 'self' in outputs_list:
             outputs_list.remove('self')
         if 'Instance' in outputs_list:
@@ -176,7 +176,7 @@ class BaseClassModule(Module):
 
         # convert outputs to dict
         outputs = {}
-        outputs_list = self.output_specs_order
+        outputs_list = self.output_specs_order[:]
         outputs_list.remove('self') # self is automatically set by base Module
 
         # Get outputs
