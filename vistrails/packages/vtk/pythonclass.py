@@ -37,8 +37,7 @@ from __future__ import division
 
 from itertools import izip
 
-from vistrails.core.debug import format_exc
-from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 
 from .common import convert_input, convert_output, get_input_spec, get_output_spec
@@ -64,7 +63,7 @@ class BaseClassModule(Module):
         method_name = port.method_name
         if port.method_type == 'OnOff':
             # This converts OnOff ports to XOn(), XOff() calls
-            method_name = method_name + ('On' if params[0] else 'Off')
+            method_name += 'On' if params[0] else 'Off'
             params = []
         elif port.method_type == 'nullary':
             # Call X() only if boolean is true
@@ -112,8 +111,8 @@ class BaseClassModule(Module):
             methods_to_call.append([port, p])
         connections_to_call = []
         for (function, connector_list) in self.inputPorts.iteritems():
-            paramList = self.force_get_input_list(function)
-            for p,connector in izip(paramList, connector_list):
+            param_list = self.force_get_input_list(function)
+            for p, connector in izip(param_list, connector_list):
                 # Don't call method
                 if connector in self.is_method:
                     continue
@@ -123,9 +122,9 @@ class BaseClassModule(Module):
                     depth += 1
                 connections_to_call.append([function, p])
         # Compute methods from visible ports last
-        #In the case of a vtkRenderer,
+        # In the case of a vtkRenderer,
         # we need to call the methods after the
-        #input ports are set.
+        # input ports are set.
         if self._module_spec.methods_last:
             to_call = connections_to_call + methods_to_call
         else:
@@ -145,7 +144,7 @@ class BaseClassModule(Module):
         if 'Instance' in outputs_list:
             outputs_list.remove('Instance')
         for port_name in outputs_list:
-            if not port_name in self.outputPorts:
+            if port_name not in self.outputPorts:
                 # not connected
                 continue
             port = self._get_output_spec(port_name)
@@ -177,7 +176,7 @@ class BaseClassModule(Module):
         # convert outputs to dict
         outputs = {}
         outputs_list = self.output_specs_order[:]
-        outputs_list.remove('self') # self is automatically set by base Module
+        outputs_list.remove('self')  # self is automatically set by base Module
 
         # Get outputs
         self.call_outputs(instance)
@@ -205,7 +204,7 @@ def gen_class_module(spec, lib, klasses, **module_settings):
                    for ispec in spec.input_port_specs]
     output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
                     for ospec in spec.output_port_specs]
-    output_ports.insert(0, COPort('Instance', spec.module_name)) # Adds instance output port
+    output_ports.insert(0, COPort('Instance', spec.module_name))  # Adds instance output port
 
     _input_spec_table = {}
     for ps in spec.input_port_specs:
@@ -223,7 +222,7 @@ def gen_class_module(spec, lib, klasses, **module_settings):
          '_input_spec_table': _input_spec_table,
          '_output_spec_table': _output_spec_table,
          '_module_spec': spec,
-         'is_cacheable': lambda self:spec.cacheable,
+         'is_cacheable': lambda self: spec.cacheable,
          '_lib': lib}
 
     superklass = klasses.get(spec.superklass, BaseClassModule)
