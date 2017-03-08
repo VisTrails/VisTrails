@@ -92,7 +92,7 @@ def _add_tool(path):
         tool_name = tool_name.encode('utf-8')
     if not tool_name.endswith(SUFFIX):  # pragma: no cover
         return
-    (tool_name, _) = os.path.splitext(tool_name)
+    tool_name, _ = os.path.splitext(tool_name)
 
     if tool_name in cl_tools:  # pragma: no cover
         debug.critical("Package CLTools already added: '%s'" % tool_name)
@@ -131,7 +131,7 @@ def _add_tool(path):
                 values = self.force_get_input_list(name)
                 if values and 'list' == klass:
                     values = values[0]
-                    klass = (options['type'].lower()\
+                    klass = (options['type'].lower()
                              if 'type' in options else 'string')
                 for value in values:
                     if 'flag' == klass:
@@ -525,7 +525,6 @@ def callContextMenu(name):
 ###############################################################################
 
 import unittest
-from vistrails.tests.utils import execute, intercept_results
 
 
 class TestCLTools(unittest.TestCase):
@@ -555,6 +554,8 @@ class TestCLTools(unittest.TestCase):
         reload_scripts()
 
     def do_the_test(self, toolname):
+        from vistrails.tests.utils import execute, intercept_results
+
         with intercept_results(
                 self._tools[toolname],
                 'return_code', 'f_out', 'stdout') as (
