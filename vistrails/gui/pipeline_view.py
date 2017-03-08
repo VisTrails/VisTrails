@@ -1053,11 +1053,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
         self.descFont = CurrentTheme.MODULE_DESC_FONT
         self.descFontMetric = CurrentTheme.MODULE_DESC_FONT_METRIC
+        self.loopFont = CurrentTheme.MODULE_LOOP_FONT
         self.modulePen = CurrentTheme.MODULE_PEN
         self.moduleBrush = CurrentTheme.MODULE_BRUSH
         self.labelPen = CurrentTheme.MODULE_LABEL_PEN
         self.customBrush = None
         self.statusBrush = None
+        self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         self.labelRect = QtCore.QRectF()
         self.descRect = QtCore.QRectF()
         self.abstRect = QtCore.QRectF()
@@ -1292,18 +1294,23 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if is_selected:
             self.modulePen = CurrentTheme.MODULE_SELECTED_PEN
             self.labelPen = CurrentTheme.MODULE_LABEL_SELECTED_PEN
+            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         elif self.is_breakpoint:
             self.modulePen = CurrentTheme.BREAKPOINT_MODULE_PEN
             self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
+            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         elif self.ghosted:
             self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
+            self.loopPen = CurrentTheme.GHOSTED_MODULE_LOOP_PEN
         # do not show as invalid in search mode
         elif self.invalid and not (self.controller and self.controller.search):
             self.modulePen = CurrentTheme.INVALID_MODULE_PEN
             self.labelPen = CurrentTheme.INVALID_MODULE_LABEL_PEN
+            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         else:
             self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
             if self.module is not None and self.module.is_abstraction():
                 self.modulePen = CurrentTheme.ABSTRACTION_PEN
             elif self.module is not None and self.module.is_group():
@@ -1423,6 +1430,41 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             painter.setFont(self.descFont)
             painter.drawText(self.descRect.adjusted(-10,-10,10,10), QtCore.Qt.AlignCenter,
                              self.description)
+
+        # draw list depth
+        if self.module.list_depth > 0:
+            painter.setPen(self.loopPen)
+            radius = 5
+            pos = QtCore.QPointF(self.paddedRect.left() + 10,
+                                 self.paddedRect.bottom() - 10)
+            pos = QtCore.QPointF(self.paddedRect.right()
+                                 - CurrentTheme.CONFIGURE_WIDTH
+                                 - CurrentTheme.MODULE_PORT_MARGIN[2] * 2
+                                 - radius,
+                                 self.paddedRect.top()
+                                 + CurrentTheme.MODULE_PORT_MARGIN[1]
+                                 + radius)
+            rect = QtCore.QRectF(pos.x() - radius,
+                                 pos.y() - radius,
+                                 radius * 2,
+                                 radius * 2)
+            painter.drawArc(rect,
+                            720,  # 45 degrees
+                            4320)  # 270 degrees
+            radsq2 = radius * .707
+            painter.drawLine(QtCore.QPointF(pos.x() + radsq2,
+                                            pos.y() - radsq2),
+                             QtCore.QPointF(pos.x() + radsq2,
+                                            pos.y() - radsq2 - 3))
+            painter.drawLine(QtCore.QPointF(pos.x() + radsq2,
+                                            pos.y() - radsq2),
+                             QtCore.QPointF(pos.x() + radsq2 - 3,
+                                            pos.y() - radsq2))
+            if self.module.list_depth > 1:
+                painter.setFont(CurrentTheme.MODULE_LOOP_FONT)
+                painter.drawText(rect,
+                                 QtCore.Qt.AlignCenter,
+                                 "%d" % self.module.list_depth)
 
     def paintToPixmap(self, scale_x, scale_y):
         bounding_rect = self.paddedRect.adjusted(-6,-6,6,6)
