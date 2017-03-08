@@ -771,7 +771,69 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
                 self.controller.upgrade_abstraction_module(self.moduleId)
                 self.scene().setupScene(self.controller.current_pipeline)
                 self.controller.invalidate_version_tree()
-        
+
+################################################################################
+# QGraphicsLoopItem
+
+class QGraphicsLoopItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
+    """
+    QGraphicsLoopItem is a small loop indicator drawn on top of QGraphicsModuleItem
+
+    """
+
+    def __init__(self, parent=None, scene=None):
+        QtGui.QGraphicsItem.__init__(self, parent, scene)
+
+        self.pen = CurrentTheme.MODULE_LOOP_PEN
+        self.font = CurrentTheme.MODULE_LOOP_FONT
+        self.setZValue(1)
+        self.ghosted = False
+        self.module = None
+
+    def setGhosted(self, ghosted):
+        if ghosted != self.ghosted:
+            self.ghosted = ghosted
+            if ghosted:
+                self.pen = CurrentTheme.GHOSTED_MODULE_LOOP_PEN
+            else:
+                self.pen = CurrentTheme.MODULE_LOOP_PEN
+
+    def boundingRect(self):
+        diameter = CurrentTheme.LOOP_RADIUS * 2
+        return QtCore.QRectF(0, 0, diameter, diameter)
+
+    def mousePressEvent(self, event):
+        event.accept()
+        self.scene().clearSelection()
+        self.parentItem().setSelected(True)
+        self.scene().open_looping_window(self.module.id)
+
+    def paint(self, painter, option, widget=None):
+        painter.setPen(self.pen)
+        radius = CurrentTheme.LOOP_RADIUS
+        pos = QtCore.QPointF(radius, radius)
+        rect = QtCore.QRectF(pos.x() - radius,
+                             pos.y() - radius,
+                             radius * 2,
+                             radius * 2)
+        painter.drawArc(rect,
+                        720,  # 45 degrees
+                        4320)  # 270 degrees
+        radsq2 = radius * .707
+        painter.drawLine(QtCore.QPointF(pos.x() + radsq2,
+                                        pos.y() - radsq2),
+                         QtCore.QPointF(pos.x() + radsq2,
+                                        pos.y() - radsq2 - 3))
+        painter.drawLine(QtCore.QPointF(pos.x() + radsq2,
+                                        pos.y() - radsq2),
+                         QtCore.QPointF(pos.x() + radsq2 - 3,
+                                        pos.y() - radsq2))
+        if self.module.list_depth > 1:
+            painter.setFont(CurrentTheme.MODULE_LOOP_FONT)
+            painter.drawText(rect,
+                             QtCore.Qt.AlignCenter,
+                             "%d" % self.module.list_depth)
+
 class QGraphicsTmpConnItem(QtGui.QGraphicsLineItem):
     def __init__(self, startPortItem, zValue=1, alwaysDraw=False, parent=None):
         QtGui.QGraphicsLineItem.__init__(self, parent)
@@ -1053,13 +1115,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
         self.descFont = CurrentTheme.MODULE_DESC_FONT
         self.descFontMetric = CurrentTheme.MODULE_DESC_FONT_METRIC
-        self.loopFont = CurrentTheme.MODULE_LOOP_FONT
         self.modulePen = CurrentTheme.MODULE_PEN
         self.moduleBrush = CurrentTheme.MODULE_BRUSH
         self.labelPen = CurrentTheme.MODULE_LABEL_PEN
         self.customBrush = None
         self.statusBrush = None
-        self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         self.labelRect = QtCore.QRectF()
         self.descRect = QtCore.QRectF()
         self.abstRect = QtCore.QRectF()
@@ -1294,23 +1354,18 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if is_selected:
             self.modulePen = CurrentTheme.MODULE_SELECTED_PEN
             self.labelPen = CurrentTheme.MODULE_LABEL_SELECTED_PEN
-            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         elif self.is_breakpoint:
             self.modulePen = CurrentTheme.BREAKPOINT_MODULE_PEN
             self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
-            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         elif self.ghosted:
             self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-            self.loopPen = CurrentTheme.GHOSTED_MODULE_LOOP_PEN
         # do not show as invalid in search mode
         elif self.invalid and not (self.controller and self.controller.search):
             self.modulePen = CurrentTheme.INVALID_MODULE_PEN
             self.labelPen = CurrentTheme.INVALID_MODULE_LABEL_PEN
-            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
         else:
             self.labelPen = CurrentTheme.MODULE_LABEL_PEN
-            self.loopPen = CurrentTheme.MODULE_LOOP_PEN
             if self.module is not None and self.module.is_abstraction():
                 self.modulePen = CurrentTheme.ABSTRACTION_PEN
             elif self.module is not None and self.module.is_group():
@@ -1430,41 +1485,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             painter.setFont(self.descFont)
             painter.drawText(self.descRect.adjusted(-10,-10,10,10), QtCore.Qt.AlignCenter,
                              self.description)
-
-        # draw list depth
-        if self.module.list_depth > 0:
-            painter.setPen(self.loopPen)
-            radius = 5
-            pos = QtCore.QPointF(self.paddedRect.left() + 10,
-                                 self.paddedRect.bottom() - 10)
-            pos = QtCore.QPointF(self.paddedRect.right()
-                                 - CurrentTheme.CONFIGURE_WIDTH
-                                 - CurrentTheme.MODULE_PORT_MARGIN[2] * 2
-                                 - radius,
-                                 self.paddedRect.top()
-                                 + CurrentTheme.MODULE_PORT_MARGIN[1]
-                                 + radius)
-            rect = QtCore.QRectF(pos.x() - radius,
-                                 pos.y() - radius,
-                                 radius * 2,
-                                 radius * 2)
-            painter.drawArc(rect,
-                            720,  # 45 degrees
-                            4320)  # 270 degrees
-            radsq2 = radius * .707
-            painter.drawLine(QtCore.QPointF(pos.x() + radsq2,
-                                            pos.y() - radsq2),
-                             QtCore.QPointF(pos.x() + radsq2,
-                                            pos.y() - radsq2 - 3))
-            painter.drawLine(QtCore.QPointF(pos.x() + radsq2,
-                                            pos.y() - radsq2),
-                             QtCore.QPointF(pos.x() + radsq2 - 3,
-                                            pos.y() - radsq2))
-            if self.module.list_depth > 1:
-                painter.setFont(CurrentTheme.MODULE_LOOP_FONT)
-                painter.drawText(rect,
-                                 QtCore.Qt.AlignCenter,
-                                 "%d" % self.module.list_depth)
 
     def paintToPixmap(self, scale_x, scale_y):
         bounding_rect = self.paddedRect.adjusted(-6,-6,6,6)
@@ -1612,6 +1632,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
              - mpm2)
         self.createConfigureItem(x, y)
 
+        # Add the loop indicator
+        x -= mpm2 + t.LOOP_RADIUS * 2
+        self.createLoopItem(x, y)
+
         if module.is_valid:
             try:
                 # update module color and shape
@@ -1756,6 +1780,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             configureShape.translate(x, y)
             return configureShape
         return None
+
+    def createLoopItem(self, x, y):
+        if self.module.is_valid and self.module.list_depth > 0:
+            loopItem = QGraphicsLoopItem(self, self.scene())
+            loopItem.module = self.module
+            loopItem.setGhosted(self.ghosted)
+            loopItem.translate(x, y)
+            return loopItem
 
     def getPortItem(self, port, port_dict=None):
         # print 'looking for port', port.name, port.type, port_type
