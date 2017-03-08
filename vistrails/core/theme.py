@@ -87,6 +87,8 @@ class DefaultCoreTheme(object):
         self.CONFIGURE_WIDTH = 6
         self.CONFIGURE_HEIGHT = 10
 
+        self.LOOP_RADIUS = 5
+
         self.BREAKPOINT_FRINGE = \
             (((0.0,0.0),(-0.5,0.25),(-0.5,0.75),(0.0,1.0)),
              ((0.0,0.0),(0.5,0.25),(0.5,0.75),(0.0,1.0)))
