@@ -66,6 +66,8 @@ def unexpected_exception(e, tb=None, frame=None):
     """
     if tb is None:
         tb = sys.exc_info()[2]
+        if tb is None:
+            return
     if frame is None:
         tb_it = tb
         while tb_it.tb_next is not None:
