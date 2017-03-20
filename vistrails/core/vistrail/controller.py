@@ -1736,6 +1736,8 @@ class VistrailController(object):
             
             return (module, 'InternalPipe', port_name)
 
+        existing_ports = {}
+
         def add_to_pipeline(port_type, port, other_port, names):
             old_module = full_pipeline.modules[port.moduleId]
             old_port_name = port.name
@@ -1765,18 +1767,13 @@ class VistrailController(object):
                     raise VistrailsInternalError("port_type incorrect")
                 pipeline.add_connection(new_conn)
             return (old_module, old_port_name, new_name)
-            
 
-        outside_connections = []
-        existing_ports = {}
+        in_out_connections = []
         for connection in connections:
             all_inside = True
-            all_outside = True
             for port in connection.ports:
                 if not (Module.vtType, port.moduleId) in id_remap:
                     all_inside = False
-                else:
-                    all_outside = False
 
             # if a connection has an "external" connection, we need to
             # create an input port or output port module
@@ -1784,19 +1781,31 @@ class VistrailController(object):
                 pipeline.add_connection(connection.do_copy(True, id_scope,
                                                            id_remap))
             else:
-                old_in_module = None
-                old_out_module = None
+                # Don't create the connection now, we want them sorted
+                sort = 0
                 if (Module.vtType, connection.source.moduleId) not in id_remap:
-                    (old_out_module, old_out_port, old_in_port) = \
-                        add_to_pipeline('input', connection.source, 
-                                        connection.destination, in_names)
-                elif (Module.vtType, connection.destination.moduleId) \
-                        not in id_remap:
-                    (old_in_module, old_in_port, old_out_port) = \
-                        add_to_pipeline('output', connection.destination, 
-                                        connection.source, out_names)
-                outside_connections.append((old_out_module, old_out_port,
-                                            old_in_module, old_in_port))
+                    print full_pipeline.modules[connection.source.moduleId].name
+                    sort = full_pipeline.modules[connection.destination.moduleId].location.x
+                elif (Module.vtType, connection.destination.moduleId) not in id_remap:
+                    sort = full_pipeline.modules[connection.source.moduleId].location.x
+                in_out_connections.append((sort, connection))
+
+        # Now go over the missing connections, in order
+        outside_connections = []
+        for _, connection in sorted(in_out_connections):
+            old_in_module = None
+            old_out_module = None
+            if (Module.vtType, connection.source.moduleId) not in id_remap:
+                (old_out_module, old_out_port, old_in_port) = \
+                    add_to_pipeline('input', connection.source,
+                                    connection.destination, in_names)
+            elif (Module.vtType, connection.destination.moduleId) \
+                    not in id_remap:
+                (old_in_module, old_in_port, old_out_port) = \
+                    add_to_pipeline('output', connection.destination,
+                                    connection.source, out_names)
+            outside_connections.append((old_out_module, old_out_port,
+                                        old_in_module, old_in_port))
 
         self.set_id_scope(old_id_scope)
         return (pipeline, outside_connections)
