@@ -106,8 +106,6 @@ class SourceWidget(PortTableConfigurationWidget):
             # resize input ports in case there are no output ports
             self.inputPortTable.resizeColumnToContents(0)
             self.inputPortTable.resizeColumnToContents(2)
-        if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
         if has_outputs:
             self.outputPortTable.fixGeometry()
             # Resize output (because it is largest) and trigger sync
@@ -172,23 +170,6 @@ class SourceWidget(PortTableConfigurationWidget):
     def sizeHint(self):
         return QtCore.QSize(512, 512)
 
-    def performPortConnection(self, operation):
-        operation(self.inputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-        operation(self.outputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-
-    def portTableResize(self, logicalIndex, oldSize, newSize):
-        self.performPortConnection(self.disconnect)
-        if self.inputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
-            self.inputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
-        if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
-            self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
-        QtGui.QApplication.processEvents()
-        self.performPortConnection(self.connect)
-
     def activate(self):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
 
@@ -235,8 +216,6 @@ class SourceViewerWidget(SourceWidget):
             # resize input ports in case there are no output ports
             self.inputPortTable.resizeColumnToContents(0)
             self.inputPortTable.resizeColumnToContents(2)
-        if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
         if has_outputs:
             self.fixTableGeometry(self.outputPortTable)
             # Resize output (because it is largest) and trigger sync
