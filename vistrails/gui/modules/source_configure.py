@@ -73,8 +73,6 @@ class SourceWidget(PortTableConfigurationWidget):
         self.codeEditor = editor_class(parent)
         self.setWindowTitle('%s Configuration' % module.name)
         self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
-        self.layout().setSpacing(0)
         self.has_inputs = has_inputs
         self.has_outputs = has_outputs
         self.sourcePortName = portName
@@ -84,12 +82,24 @@ class SourceWidget(PortTableConfigurationWidget):
         self.adjustSize()
 
     def createPortTable(self, has_inputs=True, has_outputs=True):
+        table_layout = QtGui.QVBoxLayout()
+        table_layout.setMargin(0)
+        table_layout.setSpacing(0)
+        inner_widget = QtGui.QWidget()
+        inner_widget.setLayout(table_layout)
+        scrollarea = QtGui.QScrollArea()
+        scrollarea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        scrollarea.setWidget(inner_widget)
+        scrollarea.setWidgetResizable(True)
+        scrollarea.setSizePolicy(QtGui.QSizePolicy.Preferred,
+                                 QtGui.QSizePolicy.Maximum)
+        self.layout().addWidget(scrollarea, 1)
         if has_inputs:
             self.inputPortTable = PortTable(self)
             labels = ["Input Port Name", "Type", "List Depth"]
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.inputPortTable.initializePorts(self.module.input_port_specs)
-            self.layout().addWidget(self.inputPortTable)
+            table_layout.addWidget(self.inputPortTable)
             horiz = self.inputPortTable.horizontalHeader()
             horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
         if has_outputs:
@@ -98,7 +108,7 @@ class SourceWidget(PortTableConfigurationWidget):
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.outputPortTable.initializePorts(self.module.output_port_specs,
                                                  True)
-            self.layout().addWidget(self.outputPortTable)
+            table_layout.addWidget(self.outputPortTable)
             horiz = self.outputPortTable.horizontalHeader()
             horiz.setResizeMode(1, QtGui.QHeaderView.Stretch)
         if has_inputs:
@@ -145,7 +155,7 @@ class SourceWidget(PortTableConfigurationWidget):
 
     def setupEditor(self):
         self.initializeCode()
-        self.layout().addWidget(self.codeEditor, 1)
+        self.layout().addWidget(self.codeEditor, 2)
 
         self.cursorLabel = QtGui.QLabel()
         self.layout().addWidget(self.cursorLabel)
