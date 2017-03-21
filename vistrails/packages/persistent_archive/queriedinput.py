@@ -67,7 +67,7 @@ class QueriedInputPath(Module):
         # Do the query
         queries = self.get_input_list('query')
         conditions = {}
-        for c in conditions:
+        for c in queries:
             conditions.update(c.conditions)
 
         file_store = get_default_store()
