@@ -75,10 +75,14 @@ class PromptIsOkay(Module):
                      {'optional': True}),
                     ('carry_on', basic_modules.Boolean,
                      {'optional': True, 'defaults': "['False']"}),
-                    ('cell', SpreadsheetCell)]
-    _output_ports = [('result', basic_modules.Boolean)]
+                    ('cell', SpreadsheetCell),
+                    ('passthrough', 'org.vistrails.vistrails.basic:Variant')]
+    _output_ports = [('result', basic_modules.Boolean),
+                     ('passthrough', 'org.vistrails.vistrails.basic:Variant')]
 
     def compute(self):
+        self.set_output('passthrough', self.force_get_input('passthrough'))
+
         vt_configuration = get_vistrails_configuration()
         if vt_configuration.check('batch'):
             self.set_output('result', True)
