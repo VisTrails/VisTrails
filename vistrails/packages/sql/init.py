@@ -144,7 +144,8 @@ class SQLSource(Module):
     _input_ports = [('connection', '(DBConnection)'),
                     ('cacheResults', '(basic:Boolean)'),
                     ('source', '(basic:String)')]
-    _output_ports = [('result', '(org.vistrails.vistrails.tabledata:Table)'),
+    _output_ports = [('connection', '(DBConnection)'),
+                     ('result', '(org.vistrails.vistrails.tabledata:Table)'),
                      ('resultSet', '(basic:List)')]
 
     def is_cacheable(self):
@@ -156,6 +157,7 @@ class SQLSource(Module):
             cached = self.get_input('cacheResults')
             self.is_cacheable = lambda: cached
         connection = self.get_input('connection')
+        self.set_output('connection', connection)
         inputs = dict((k, self.get_input(k)) for k in self.inputPorts.iterkeys()
                   if k not in ('source', 'connection', 'cacheResults'))
         s = urllib.unquote(str(self.get_input('source')))
