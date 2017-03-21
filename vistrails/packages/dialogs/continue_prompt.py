@@ -80,7 +80,7 @@ class PromptIsOkay(Module):
 
     def compute(self):
         vt_configuration = get_vistrails_configuration()
-        if not getattr(vt_configuration, 'interactiveMode', False):
+        if vt_configuration.check('batch'):
             self.set_output('result', True)
             return
 
