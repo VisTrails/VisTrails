@@ -84,8 +84,8 @@ class GMapCellWidget(WebViewCellWidget):
       }
 
       #map-canvas, #map_canvas {
-      height: 100%%;
-      width: 100%%;
+      height: 100%;
+      width: 100%;
       }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization&sensor=false"></script>
