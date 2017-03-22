@@ -82,6 +82,9 @@ class SourceWidget(PortTableConfigurationWidget):
         self.adjustSize()
 
     def createPortTable(self, has_inputs=True, has_outputs=True):
+        if not (has_inputs or has_outputs):
+            return
+
         table_layout = QtGui.QVBoxLayout()
         table_layout.setMargin(0)
         table_layout.setSpacing(0)
