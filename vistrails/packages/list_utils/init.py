@@ -91,4 +91,20 @@ class UnlistOne(Module):
         self.set_output('element', list_[0])
 
 
-_modules = [Concat, Flatten, UnlistOne]
+class Bump(Module):  # shouldn't be needed?
+    _input_ports = [IPort('value', 'basic:Variant', depth=1)]
+    _output_ports = [OPort('value', 'basic:Variant', depth=2)]
+
+    def compute(self):
+        self.set_output('value', [self.get_input('value')])
+
+
+class ListOf(Module):
+    _input_ports = [IPort('list', 'basic:List')]
+    _output_ports = [OPort('elements', 'basic:Variant', depth=1)]
+
+    def compute(self):
+        self.set_output('elements', self.get_input('list'))
+
+
+_modules = [Concat, Flatten, UnlistOne, Bump, ListOf]
