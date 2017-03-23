@@ -305,6 +305,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
                                                    callback)
                             menu.addAction(act)
                         menu.exec_(event.globalPos())
+                    # TODO: Reload package!
                     return
             except Exception, e:
                 debug.unexpected_exception(e)
