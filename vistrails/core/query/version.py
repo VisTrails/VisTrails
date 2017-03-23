@@ -459,6 +459,7 @@ class ModuleSearchStmt(RegexEnabledSearchStmt):
             version = controller.create_upgrade(version, delay_update=True)
         p = controller.get_pipeline(version, do_validate=False)
         for module in p.modules.itervalues():
+            # Search in __desc__ annotation
             if self._content_matches(module.name):
                 return True
         return False
