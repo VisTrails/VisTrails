@@ -1,61 +1,30 @@
-###############################################################################
-##
-## Copyright (C) 2014-2016, New York University.
-## Copyright (C) 2013-2014, NYU-Poly.
-## All rights reserved.
-## Contact: contact@vistrails.org
-##
-## This file is part of VisTrails.
-##
-## "Redistribution and use in source and binary forms, with or without
-## modification, are permitted provided that the following conditions are met:
-##
-##  - Redistributions of source code must retain the above copyright notice,
-##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright
-##    notice, this list of conditions and the following disclaimer in the
-##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the New York University nor the names of its
-##    contributors may be used to endorse or promote products derived from
-##    this software without specific prior written permission.
-##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-##
-###############################################################################
-
-from __future__ import division
-
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.modules.basic_modules import File
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
 
-from .identifiers import identifier
-from vistrails.core.modules.basic_modules import List
 
-
-class Entry(QtGui.QWidget):
+class PortFile(QtGui.QWidget):
     remove = QtCore.pyqtSignal()
     changed = QtCore.pyqtSignal()
 
-    def __init__(self, name):
+    radio_button = False
+
+    def __init__(self, buttongroup, uri):
         QtGui.QWidget.__init__(self)
         layout = QtGui.QHBoxLayout()
         self.setLayout(layout)
-        self.lineedit = QtGui.QLineEdit(name)
-        layout.addWidget(QtGui.QLabel(self.prefix))
-        layout.addWidget(self.lineedit)
+
+        layout.addWidget(QtGui.QLabel("URI:"))
+        self.uri_widget = QtGui.QLineEdit(uri)
+        layout.addWidget(self.uri_widget)
         layout.addStretch()
+        if self.radio_button:
+            change = QtGui.QRadioButton()
+            buttongroup.addButton(change)
+            layout.addWidget(change)
         remove_button = QtGui.QPushButton("Remove port")
         remove_button.setSizePolicy(QtGui.QSizePolicy.Fixed,
                                     QtGui.QSizePolicy.Fixed)
@@ -63,37 +32,48 @@ class Entry(QtGui.QWidget):
 
         self.connect(remove_button, QtCore.SIGNAL('clicked()'),
                      self.remove)
-        self.connect(self.lineedit, QtCore.SIGNAL('textEdited(const QString &)'),
-                     self.changed)
+        self.connect(self.uri_widget, QtCore.SIGNAL('textEdited(const QString &)'),
+                     self.uri_changed)
+
+    def uri_changed(self, new_value):
+        if not new_value.startswith('/'):
+            new_value = '/' + new_value
+            self.uri_widget.setText(new_value)
+        self.changed.emit()
 
     @property
-    def name(self):
-        return self.lineedit.text()
+    def uri(self):
+        return self.uri_widget.text()
 
 
-class TableEntry(Entry):
-    prefix = "Table input"
+class DirectFile(PortFile):
+    radio_button = True
 
 
-class ColumnEntry(Entry):
-    prefix = "Single column entry"
-
-
-class BuildTableWidget(StandardModuleConfigurationWidget):
-    """
-    Configuration widget allowing to create the ports of the BuildTable module.
+class WebSiteWidget(StandardModuleConfigurationWidget):
+    """Configuration widget allowing to setup files for the WebSite module.
     """
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
 
         # Window title
-        self.setWindowTitle("Build table configuration")
+        self.setWindowTitle("Web site configuration")
 
         central_layout = QtGui.QVBoxLayout()
         central_layout.setMargin(0)
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
+
+        self._direct_files_group = QtGui.QButtonGroup(self)
+        self._file_contents = {}
+
+        default_uri_layout = QtGui.QHBoxLayout()
+        default_uri_layout.addWidget(QtGui.QLabel("Display URI:"))
+        self._default_uri = QtGui.QLineEdit(
+                self.getPortValue('spreadsheet_page', '/index.html'))
+        default_uri_layout.addWidget(self._default_uri)
+        central_layout.addLayout(default_uri_layout)
 
         scroll_area = QtGui.QScrollArea()
         inner_widget = QtGui.QWidget()
@@ -109,18 +89,20 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
 
         add_buttons = QtGui.QHBoxLayout()
         central_layout.addLayout(add_buttons)
-        add_table = QtGui.QPushButton("Add a whole table")
-        self.connect(add_table, QtCore.SIGNAL('clicked()'),
-                     self.add_table)
-        add_buttons.addWidget(add_table)
-        add_column = QtGui.QPushButton("Add a list as a single column")
-        self.connect(add_column, QtCore.SIGNAL('clicked()'),
-                     self.add_column)
-        add_buttons.addWidget(add_column)
+        add_direct = QtGui.QPushButton("Add an inline file")
+        self.connect(add_direct, QtCore.SIGNAL('clicked()'),
+                     self.add_direct)
+        add_buttons.addWidget(add_direct)
+        add_port = QtGui.QPushButton("Add a File port")
+        self.connect(add_port, QtCore.SIGNAL('clicked()'),
+                     self.add_port)
+        add_buttons.addWidget(add_port)
 
         self.createButtons()
 
         self.createEntries()
+
+        # TODO : text editor for DirectFile
 
     def add_item(self, item):
         self._list_layout.addWidget(item)
@@ -129,14 +111,14 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         self.connect(item, QtCore.SIGNAL('changed()'),
                      self.updateState)
 
-    def add_table(self):
-        self.add_item(TableEntry(
-                "Table #%d" % (self._list_layout.count() + 1)))
+    def add_direct(self):
+        widget = DirectFile(self._direct_files_group, "/index.html")
+        self.add_item(widget)
+        self._file_contents[widget] = ""
         self.updateState()
 
-    def add_column(self):
-        self.add_item(ColumnEntry(
-                "Column #%d" % (self._list_layout.count() + 1)))
+    def add_port(self):
+        self.add_item(PortFile(self._direct_files_group, "/file"))
         self.updateState()
 
     def createButtons(self):
@@ -176,11 +158,22 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         self.askToSaveChanges()
         event.accept()
 
+    def getPortValue(self, portname, default):
+        for i in xrange(self.module.getNumFunctions()):
+            fun = self.module.functions[i]
+            if fun.name == portname:
+                return fun.params[0].strValue
+        return default
+
     def getCurrentPorts(self):
         current_ports = []
         for port_spec in self.module.input_port_specs:
-            is_table = port_spec.signature[0][0] is not List
-            current_ports.append((port_spec.name, is_table))
+            is_direct = port_spec.signature[0][0] is not File
+            if is_direct:
+                code = self.getPortValue(port_spec.name, "")
+                current_ports.append((port_spec.name, is_direct, code))
+            else:
+                current_ports.append((port_spec.name, is_direct, None))
         return current_ports
 
     def updateVistrail(self):
@@ -188,33 +181,35 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         Update Vistrail to contain changes in the port table
 
         """
-        table_sig = '(%s:Table)' % identifier
-        list_sig = '(org.vistrails.vistrails.basic:List)'
+        file_sig = '(%s:File)' % get_vistrails_basic_pkg_id()
+        string_sig = '(%s:String)' % get_vistrails_basic_pkg_id()
         seen_new_ports = set()
-        current_ports = dict(self.getCurrentPorts())
+        current_ports = dict(
+                (uri, (is_direct, data))
+                for uri, is_direct, data in self.getCurrentPorts())
         add_ports = []
         delete_ports = []
         for i in xrange(self._list_layout.count()):
             widget = self._list_layout.itemAt(i).widget()
-            is_table = isinstance(widget, TableEntry)
-            name = widget.name
+            is_direct = isinstance(widget, DirectFile)
+            uri = widget.uri
 
-            if name in seen_new_ports:
+            if uri in seen_new_ports:
                 QtGui.QMessageBox.critical(
                         self,
                         "Duplicated port name",
-                        "There are several input ports with name %r" % name)
+                        "There is several input ports with uri %r" % uri)
                 return
-            seen_new_ports.add(name)
+            seen_new_ports.add(uri)
 
-            if name in current_ports:
-                old_is_table = current_ports.pop(name)
-                if is_table == old_is_table:
+            if uri in current_ports:
+                old_is_direct, _ = current_ports.pop(uri)
+                if is_direct == old_is_direct:
                     continue
-                delete_ports.append(('input', name))
+                delete_ports.append(('input', uri))
 
-            sigstring = table_sig if is_table else list_sig
-            add_ports.append(('input', name,
+            sigstring = string_sig if is_direct else file_sig
+            add_ports.append(('input', uri,
                               sigstring, -1))
 
         delete_ports.extend(('input', unseen_port)
@@ -225,11 +220,30 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         return True
 
     def createEntries(self):
-        for name, is_table in self.getCurrentPorts():
-            if is_table:
-                self.add_item(TableEntry(name))
-            else:
-                self.add_item(ColumnEntry(name))
+        # If there are no ports, create a default for index.html
+        current_ports = self.getCurrentPorts()
+        if not current_ports:
+            widget = DirectFile(self._direct_files_group, "/index.html")
+            self.add_item(widget)
+            self._file_contents[widget] = """\
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body>
+    <p>VisTrails web cell</p>
+  </body>
+</html>
+"""
+            self.saveButton.setEnabled(True)
+            self.resetButton.setEnabled(True)
+        else:
+            for uri, is_direct, data in current_ports:
+                if is_direct:
+                    widget = DirectFile(self._direct_files_group, uri)
+                    self._file_contents[widget] = data
+                    self.add_item(widget)
+                else:
+                    self.add_item(PortFile(self._direct_files_group, uri))
 
     def resetTriggered(self, checked = False):
         for i in xrange(self._list_layout.count()):
