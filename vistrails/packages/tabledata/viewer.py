@@ -101,8 +101,6 @@ class TableCellWidget(QCellWidget):
                     elif not isinstance(elem, unicode):
                         elem = unicode(elem)
                     item = QtGui.QTableWidgetItem(elem)
-                    item.setData(QtCore.Qt.DisplayRole, int(column[row]))
-                    item.setData(QtCore.Qt.EditRole, int(column[row]))
                     item.setFlags(QtCore.Qt.ItemIsEnabled |
                                   QtCore.Qt.ItemIsSelectable)
                     self.table.setItem(row, col + 1, item)
