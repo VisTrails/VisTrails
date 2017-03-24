@@ -36,7 +36,9 @@
 from __future__ import division
 
 import re
+from PyQt4 import QtCore
 
+from vistrails.core.modules.config import IPort
 from vistrails.core.modules.vistrails_module import ModuleError
 
 from .common import get_numpy, TableObject, Table, \
@@ -413,7 +415,53 @@ class AggregateColumn(Table):
         res_table = AggregatedTable(table, op, col_idx, gb_idx)
         self.set_output('value', res_table)
 
-_modules = [JoinTables, ProjectTable, SelectFromTable, AggregateColumn]
+
+class SelectColumnsInteractively(Table):
+    _input_ports = [IPort('table', 'Table'),
+                    IPort('column_names', 'basic:List'),
+                    IPort('select_columns', 'basic:List')]
+
+    def compute(self):
+        table = self.get_input('table')
+        if (self.has_input('column_names') and
+                self.has_input('select_columns') and
+                self.get_input('column_names') == table.names):
+            print "building result"
+            indexes = choose_columns(
+                table.columns,
+                column_names=table.names,
+                names=self.get_input('select_columns'))
+            column_names = []
+            for i in indexes:
+                column_names.append(table.names[i])
+            result = ProjectedTable(table, indexes, column_names)
+            self.set_output('value', result)
+        else:
+            print "settings invalid, must configure"
+            from vistrails.core.configuration import get_vistrails_configuration
+
+            vt_configuration = get_vistrails_configuration()
+            if vt_configuration.check('batch'):
+                print "batch, aborting"
+                raise ModuleError(self, "Need to set column selection")
+            else:
+                print "showing dialog"
+                from .widgets import ColumnSelectionDialog
+                print "creating..."
+                dialog = ColumnSelectionDialog(
+                    table.names,
+                    self.force_get_input('select_columns'),
+                    self.moduleInfo['moduleId'])
+                print "executing..."
+                if dialog.exec_() == 1:
+                    print "finished"
+                    raise ModuleError(self, "Selection changed")
+                else:
+                    raise ModuleError(self, "Selection aborted")
+
+
+_modules = [JoinTables, ProjectTable, SelectFromTable, AggregateColumn,
+            SelectColumnsInteractively]
 
 
 ###############################################################################

@@ -36,6 +36,8 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
+from vistrails.core.application import get_vistrails_application
+from vistrails.core.db.action import create_action
 
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
@@ -248,3 +250,56 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         if not self.state_changed:
             self.state_changed = True
             self.emit(QtCore.SIGNAL('stateChanged'))
+
+
+class ColumnSelectionDialog(QtGui.QDialog):
+    def __init__(self, column_names, selected_columns, moduleId):
+        QtGui.QDialog.__init__(self)
+        self.setWindowTitle("Select table columns")
+        self.setLayout(QtGui.QVBoxLayout())
+
+        self.column_names = sorted(column_names or [])
+        selected_columns = selected_columns or []
+        self.moduleId = moduleId
+
+        print "creating list, names=%r, selected=%r" % (self.column_names, selected_columns)
+        self.list = QtGui.QListWidget(
+            selectionMode=QtGui.QListWidget.MultiSelection)
+        self.list.addItems(self.column_names)
+        # TODO: set selection
+
+        scrollarea = QtGui.QScrollArea()
+        scrollarea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        scrollarea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        scrollarea.setWidget(self.list)
+        self.layout().addWidget(scrollarea)
+
+        buttons = QtGui.QDialogButtonBox(
+                QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.connect(buttons, QtCore.SIGNAL('accepted()'),
+                     self.set_input_port)
+        self.connect(buttons, QtCore.SIGNAL('rejected()'),
+                     self, QtCore.SLOT('reject()'))
+        self.layout().addWidget(buttons)
+
+    def set_input_port(self):
+        selected = [i.text() for i in self.list.selectedItems()]
+        print "selected items: %r, setting module port" % (selected,)
+        controller = \
+            get_vistrails_application().get_current_controller()
+        module = controller.current_pipeline.modules[self.moduleId]
+        ops = controller.update_function_ops(
+            module,
+            'select_columns',
+            [repr(selected)],
+            should_replace=True)
+        ops += controller.update_function_ops(
+            module,
+            'column_names',
+            [repr(self.column_names)],
+            should_replace=True)
+        action = create_action(ops)
+        controller.add_new_action(action, "Selected columns from UI")
+        controller.perform_action(action)
+
+        self.accept()
