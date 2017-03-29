@@ -35,6 +35,8 @@
 
 from __future__ import division
 
+import ast
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.application import get_vistrails_application
 from vistrails.core.db.action import create_action
@@ -266,7 +268,8 @@ class ColumnSelectionDialog(QtGui.QDialog):
         self.list = QtGui.QListWidget(
             selectionMode=QtGui.QListWidget.MultiSelection)
         self.list.addItems(self.column_names)
-        # TODO: set selection
+        for i in selected_columns:
+            self.list.item(column_names.index(i)).setSelected(True)
 
         scrollarea = QtGui.QScrollArea()
         scrollarea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -283,7 +286,7 @@ class ColumnSelectionDialog(QtGui.QDialog):
         self.layout().addWidget(buttons)
 
     def set_input_port(self):
-        selected = [i.text() for i in self.list.selectedItems()]
+        selected = sorted([i.text() for i in self.list.selectedItems()])
         print "selected items: %r, setting module port" % (selected,)
         controller = \
             get_vistrails_application().get_current_controller()
@@ -303,3 +306,129 @@ class ColumnSelectionDialog(QtGui.QDialog):
         controller.perform_action(action)
 
         self.accept()
+
+
+class ColumnSelectionWidget(StandardModuleConfigurationWidget):
+    """
+    Configuration widget allowing to select columns.
+    """
+    def __init__(self, module, controller, parent=None):
+        StandardModuleConfigurationWidget.__init__(self, module,
+                                                   controller, parent)
+
+        # Window title
+        self.setWindowTitle("Select table columns")
+
+        central_layout = QtGui.QVBoxLayout()
+        central_layout.setMargin(0)
+        central_layout.setSpacing(0)
+        self.setLayout(central_layout)
+
+        self.list = QtGui.QListWidget(
+            selectionMode=QtGui.QListWidget.MultiSelection)
+        self.list.itemSelectionChanged.connect(self.updateState)
+
+        scrollarea = QtGui.QScrollArea()
+        scrollarea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        scrollarea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        scrollarea.setWidget(self.list)
+        scrollarea.setWidgetResizable(True)
+        central_layout.addWidget(scrollarea)
+
+        self.createButtons()
+
+        self.setupList()
+
+    def createButtons(self):
+        """ createButtons() -> None
+        Create and connect signals to Ok & Cancel button
+
+        """
+        buttonLayout = QtGui.QHBoxLayout()
+        buttonLayout.setMargin(5)
+        self.saveButton = QtGui.QPushButton("&Save", self)
+        self.saveButton.setFixedWidth(100)
+        self.saveButton.setEnabled(False)
+        buttonLayout.addWidget(self.saveButton)
+        self.resetButton = QtGui.QPushButton("&Reset", self)
+        self.resetButton.setFixedWidth(100)
+        self.resetButton.setEnabled(False)
+        buttonLayout.addWidget(self.resetButton)
+        self.layout().addLayout(buttonLayout)
+        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.saveTriggered)
+        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.resetTriggered)
+
+    def saveTriggered(self, checked = False):
+        """ saveTriggered(checked: bool) -> None
+        Update vistrail controller and module when the user click Ok
+
+        """
+        if self.updateVistrail():
+            self.saveButton.setEnabled(False)
+            self.resetButton.setEnabled(False)
+            self.state_changed = False
+            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+
+    def closeEvent(self, event):
+        self.askToSaveChanges()
+        event.accept()
+
+    def updateVistrail(self):
+        """ updateVistrail() -> None
+        Update Vistrail to contain changes in the port table
+
+        """
+        selected = sorted([i.text() for i in self.list.selectedItems()])
+        ops = self.controller.update_function_ops(
+            self.module,
+            'select_columns',
+            [repr(selected)],
+            should_replace=True)
+        ops += self.controller.update_function_ops(
+            self.module,
+            'column_names',
+            [repr(self.column_names)],
+            should_replace=True)
+        action = create_action(ops)
+        self.controller.add_new_action(action, "Selected columns from UI")
+        self.controller.perform_action(action)
+
+        return True
+
+    def getPort(self, name):
+        for i in xrange(self.module.getNumFunctions()):
+            func = self.module.functions[i]
+            if func.name == name:
+                return ast.literal_eval(func.params[0].strValue)
+        else:
+            return []
+
+    def setupList(self):
+        self.column_names = sorted(self.getPort('column_names'))
+        selected_columns = self.getPort('select_columns')
+        self.list.clear()
+        self.list.addItems(self.column_names)
+        for i in selected_columns:
+            self.list.item(self.column_names.index(i)).setSelected(True)
+
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
+
+    def resetTriggered(self, checked = False):
+        self.setupList()
+
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+        self.state_changed = False
+        self.emit(QtCore.SIGNAL('stateChanged'))
+
+    def updateState(self):
+        self.saveButton.setEnabled(True)
+        self.resetButton.setEnabled(True)
+        if not self.state_changed:
+            self.state_changed = True
+            self.emit(QtCore.SIGNAL('stateChanged'))

@@ -36,9 +36,8 @@
 from __future__ import division
 
 import re
-from PyQt4 import QtCore
 
-from vistrails.core.modules.config import IPort
+from vistrails.core.modules.config import IPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
 
 from .common import get_numpy, TableObject, Table, \
@@ -417,6 +416,8 @@ class AggregateColumn(Table):
 
 
 class SelectColumnsInteractively(Table):
+    _settings = ModuleSettings(configure_widget=
+                               'vistrails.packages.tabledata.widgets:ColumnSelectionWidget')
     _input_ports = [IPort('table', 'Table'),
                     IPort('column_names', 'basic:List'),
                     IPort('select_columns', 'basic:List')]
