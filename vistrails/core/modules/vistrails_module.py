@@ -77,7 +77,7 @@ class ModuleBreakpoint(Exception):
         self.errorTrace = ''
 
     def __str__(self):
-        retstr = "Encoutered breakpoint at Module %s:\n" % (self.module)
+        retstr = "Encountered breakpoint at Module %s:\n" % (self.module)
         for k in self.module.__dict__.keys():
             retstr += "\t%s = %s\n" % (k, self.module.__dict__[k])
 
