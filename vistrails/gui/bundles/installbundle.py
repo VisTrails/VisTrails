@@ -70,7 +70,7 @@ def hide_splash_if_necessary():
 
 
 def shell_escape(arg):
-    return '"%s"' % arg.replace('\\', '\\\\').replace('"', '\\"')
+    return '"%s"' % arg.replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$')
 
 
 def run_install_command(graphical, cmd, args, as_root=True):
