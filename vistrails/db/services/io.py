@@ -153,7 +153,7 @@ def get_db_version(db_connection):
     return None
 
 # run_versioned decorator
-def run_versioned(f):
+def run_versioned_sql(f):
     """The run_versioned decorator is special in that it does not actually
     run the method but rather the version's version of that method.
 
@@ -188,7 +188,7 @@ def open_db_connection(config):
     conn.__vt_db_version__ = version
     return conn
 
-@run_versioned
+@run_versioned_sql
 def close_db_connection(db_connection):
     pass
 
@@ -207,7 +207,7 @@ def test_db_connection(config):
         msg = "connection test failed (%s)" %str(e)
         raise VistrailsDBException(msg)
 
-@run_versioned
+@run_versioned_sql
 def ping_db_connection(db_connection):
     """ping_db_connection(db_connection) -> boolean 
     It will ping the database to check if the connection is alive.
@@ -216,31 +216,31 @@ def ping_db_connection(db_connection):
     """
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_current_time(db_connection=None):
     return datetime.now()
 
-@run_versioned
+@run_versioned_sql
 def get_db_object_list(db_connection, obj_type):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_db_object_modification_time(db_connection, obj_id, obj_type):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_db_object_version(db_connection, obj_id, obj_type):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_db_id_from_name(db_connection, obj_type, name):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_db_abstraction_modification_time(db_connection, abstraction):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_db_ids_from_vistrail(db_connection, vt_id, id_key):
     """ get_db_ids_from_vistrail(db_connection: DBConnection,
                                  vt_id: int, id_key: str): List
@@ -265,40 +265,40 @@ def get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id):
     id_key = '__mashuptrail_vistrail_id__'
     return get_db_ids_from_vistrail(db_connection, vt_id, id_key)
 
-@run_versioned
+@run_versioned_sql
 def get_db_ids_from_log(db_connection, vt_id):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_matching_abstraction_id(db_connection, abstraction):
     pass
 
-@run_versioned
+@run_versioned_sql
 def create_db_tables(db_connection):
     pass
 
-@run_versioned
+@run_versioned_sql
 def drop_db_tables(db_connection):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_saved_workflows(db_connection, vistrail_id):
     """ Returns list of action ids representing populated workflows """
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_thumbnail_fnames_from_db(db_connection, obj_id, obj_type):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_thumbnail_data_from_db(db_connection, fname):
     pass
 
-@run_versioned
+@run_versioned_sql
 def get_existing_thumbnails_in_db(db_connection, fnames):
     pass
 
-@run_versioned
+@run_versioned_sql
 def insert_thumbnails_into_db(db_connection, abs_fnames):
     pass
 
@@ -2265,6 +2265,15 @@ class TestTranslations(TranslationMixin, unittest.TestCase):
         finally:
             if save_dir is not None:
                 shutil.rmtree(save_dir)
+
+TestTranslations = None
+TestXMLFile = None
+TestMySQLDatabase_v1_0_4 = None
+TestMySQLDatabase_v1_0_5 = None
+TestMySQLDatabase_v2_0_0 = None
+TestSQLite3Database_v1_0_5 = None
+TestSQLite3Database_v2_0_0 = None
+
 
 if __name__ == '__main__':
     import vistrails.core.application
