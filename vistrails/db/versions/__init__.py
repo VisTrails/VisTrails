@@ -35,6 +35,7 @@
 ###############################################################################
 from __future__ import division
 
+from distutils.version import LooseVersion
 import inspect
 from itertools import izip
 import os
@@ -110,6 +111,47 @@ def get_sql_utils(version=None):
             msg = "Cannot find utils for version '%s'" % version
             raise VistrailsDBException(msg)
     return utils
+
+def get_persistence(version=None):
+    if version is None:
+        version = currentVersion
+    persistence_dir = 'vistrails.db.versions.' + get_version_name(version) + \
+        '.persistence'
+    try:
+        persistence = __import__(persistence_dir, {}, {}, [''])
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            # assume version is not available
+            msg = "Cannot find persistence for version '%s'" % version
+            raise VistrailsDBException(msg)
+        # assume other error
+        import traceback
+        raise VistrailsDBException(debug.format_exc())
+    return persistence
+
+def version_list():
+    v_list = []
+    for (k,v) in version_map.items():
+        v_list.append(LooseVersion(k))
+    v_list.sort()
+    return v_list
+
+def get_versioned_f(f_name, version=None):
+    if version is None:
+        version = currentVersion
+    v_list = version_list()
+    v_idx = v_list.index(LooseVersion(version))
+    while v_idx >= 0:
+        v = str(v_list[v_idx])
+        persistence = get_persistence(v)
+        if hasattr(persistence, f_name):
+           break
+        v_idx -= 1
+    if v_idx < 0:
+        # FIXME should we use common??
+        raise KeyError('No method "{}" found in version "{}" or earlier.'
+                       .format(f_name, version))
+    return getattr(persistence, f_name)
 
 def getVersionDAO(version=None):
     if version is None:
