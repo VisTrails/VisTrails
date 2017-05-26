@@ -34,4 +34,35 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v2_1_0.domain import *
+from __future__ import division
+
+from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+    DBPortSpec
+from id_scope import IdScope
+
+import copy
+
+class DBRegistry(_DBRegistry):
+    def __init__(self, *args, **kwargs):
+        _DBRegistry.__init__(self, *args, **kwargs)
+        self.id_scope = IdScope()
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = _DBRegistry.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = DBRegistry
+        cp.id_scope = copy.copy(self.id_scope)
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None, update_ids=True):
+        if new_obj is None:
+            new_obj = DBRegistry()
+        new_obj = _DBRegistry.update_version(old_obj, trans_dict, new_obj)
+        if update_ids:
+            new_obj.update_id_scope()
+        return new_obj
+    
+    def update_id_scope(self):
+        pass
+
+

@@ -34,4 +34,10 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v2_1_0.domain import *
+from auto_gen import *
+from mashup import DBMashuptrail
+from registry import DBRegistry
+from workflow import DBWorkflow
+from vistrail import DBVistrail
+from log import DBLog
+from id_scope import IdScope

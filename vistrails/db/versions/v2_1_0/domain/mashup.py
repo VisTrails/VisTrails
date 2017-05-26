@@ -34,4 +34,25 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v2_1_0.domain import *
+from __future__ import division
+
+from auto_gen import DBMashuptrail as _DBMashuptrail
+from id_scope import IdScope
+
+
+class DBMashuptrail(_DBMashuptrail):
+    def __init__(self, *args, **kwargs):
+        _DBMashuptrail.__init__(self, *args, **kwargs)
+        self.id_scope = IdScope()
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBMashuptrail()
+        new_obj = _DBMashuptrail.update_version(old_obj, trans_dict, new_obj)
+        new_obj.update_id_scope()
+        return new_obj
+
+    def update_id_scope(self):
+        pass
+
