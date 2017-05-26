@@ -210,7 +210,10 @@ def get_translate_module(start_version, end_version):
 
     translate_dir = 'vistrails.db.versions.{}.translate.{}'.format(
         get_version_name(end_version), get_version_name(start_version))
-    return __import__(translate_dir, {}, {}, [''])
+    try:
+        return __import__(translate_dir, {}, {}, [''])
+    except ImportError:
+        return None
 
 def get_translate_object_f(obj_type, start_version, end_version):
     m = get_translate_module(start_version, end_version)
