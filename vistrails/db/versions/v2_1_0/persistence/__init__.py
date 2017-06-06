@@ -51,6 +51,20 @@ root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
 
 ElementTree = get_elementtree_library()
 
+def new_bundle():
+    pass
+
+def register_serializers():
+    # register the default directory, zip, and db serializers
+    # registering the dir serializer enables the zip serializers to work
+    pass
+
+def unregister_serializers():
+    # unregister the default directory, zip, and db serializers
+    pass
+
+
+
 class DAOList(dict):
     def __init__(self):
         self['xml'] = XMLDAOListBase()
