@@ -105,7 +105,7 @@ class VistrailEntity(Entity):
         entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['mashuptrail'] = trail_id
-        locator.kwargs['mashup'] = action.id
+        locator.kwargs['mashupVersion'] = action.id
         entity.url = locator.to_url()
         return entity
 

@@ -47,7 +47,7 @@ import uuid
 
 import vistrails.core.system
 from vistrails.db.services import io
-from vistrails.db.services.io import SaveBundle
+from vistrails.db.services.bundle import Bundle, BundleObj
 from vistrails.db.domain import DBVistrail, DBWorkflow
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
@@ -56,6 +56,17 @@ from vistrails.core.system import get_elementtree_library, systemType, \
 
 ElementTree = get_elementtree_library()
 
+def process_workflow_tag(kwargs, value):
+    try:
+        kwargs["version_node"] = int(value)
+    except ValueError:
+        kwargs["version_tag"] = value
+
+def add_properties(cls):
+    """class decorator to programmatically add properties"""
+    for name in cls.KWARG_PROPS:
+        cls.add_property(name)
+    return cls
 
 _drive_regex = re.compile(r"/*([a-zA-Z]:/.+)$")
 def pathname2url(path):
@@ -84,8 +95,69 @@ def url2pathname(urlpath):
         path = path.lstrip('\\')
     return path
 
-
+@add_properties
 class BaseLocator(object):
+    """KWARG_PROPS defines 2-tuples (<python property>, <url tag>).  From
+    this, properties are automatically created and the parse_args and
+    generate_args methods use this info to do the necessary
+    conversions.  If you want to have a new property for a locator,
+    define it here.
+
+    """
+
+    KWARG_PROPS = dict([("obj_type", "type"),
+                        ("obj_id", "id"),
+                        ("version_node", "workflow"),
+                        ("version_tag", "workflow"),
+                        ("workflow_exec", "workflow_exec"),
+                        ("parameterExploration", "parameterExploration"),
+                        ("mashuptrail", "mashuptrail"),
+                        ("mashupVersion", "mashupVersion"),
+                        ("mashup", "mashupVersion")])
+
+    SPECIAL_TAGS = {"workflow": process_workflow_tag}
+
+    @classmethod
+    def add_property(cls, attr):
+        def setter(self, v):
+            self.kwargs[attr] = v
+        def getter(self):
+            return self.kwargs.get(attr, None)
+        setattr(cls, attr, property(getter, setter))
+
+    @classmethod
+    def get_kwarg_props(cls):
+        return cls.KWARG_PROPS
+
+    @classmethod
+    def get_special_tags(cls):
+        return cls.SPECIAL_TAGS
+
+    @classmethod
+    def parse_args(cls, arg_str):
+        kwargs = {}
+        parsed_dict = urlparse.parse_qs(arg_str)
+        special_tags = cls.get_special_tags()
+        for (prop, url_tag) in cls.get_kwarg_props().iteritems():
+            if url_tag in parsed_dict:
+                if url_tag in special_tags:
+                    # special handling
+                    special_tags[url_tag](kwargs, parsed_dict[url_tag][0])
+                elif prop not in kwargs:
+                    # don't overwrite if we already set the prop
+                    kwargs[prop] = parsed_dict[url_tag][0]
+        return kwargs
+
+    @classmethod
+    def generate_args(cls, kwargs):
+        generate_dict = {}
+        for (prop, url_tag) in cls.get_kwarg_props().iteritems():
+            if prop in kwargs and kwargs[prop]:
+                generate_dict[url_tag] = kwargs[prop]
+        return urllib.urlencode(generate_dict)
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
 
     def load(self, type):
         raise NotImplementedError("load is not implemented")
@@ -117,31 +189,19 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
-    def clean_temporaries(self):
-        pass
-
-    def save_temporary(self, obj):
-        pass
-    
-    def serialize(self, dom, element):
-        """Serializes this locator to XML.
-
-        """
-        raise NotImplementedError("serialize is not implemented")
-
-    def to_xml(self, node=None): 
-        """ElementTree port of serialize.
+    def to_xml(self, node=None):
+        """Serialize locator, optionally into existing ElementTree node.
 
         """
         raise NotImplementedError("to_xml is not implemented")
 
     @staticmethod
-    def parse(element):
-        """Parse an XML object representing a locator and returns a Locator.
-        
+    def from_xml(node):
+        """Unserialize locator given ElementTree node.
+
         """
-        raise NotImplementedError("parse is not implemented")
-    
+        raise NotImplementedError("from_xml is not implemented")
+
     @staticmethod
     def real_filename(filename):
         """ Expand relative path and dereference symbolic links
@@ -179,8 +239,8 @@ class BaseLocator(object):
         return 'file://%s%s' % (pathname2url(cls.real_filename(filename)),
                                 urllib.quote(args_str, safe='/?=&'))
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         """Assumes a valid URL if the scheme is specified.  For example,
         'file:///C:/My%20Documents/test.vt'.  If only a filename is
         specified, it converts the filename to a URL.
@@ -203,61 +263,13 @@ class BaseLocator(object):
             scheme, host, path, query, fragment = urlparse.urlsplit(str(url))
             urlparse.uses_query = old_uses_query
             path = url2pathname(path)
-            if path.lower().endswith(".xml"):
+            if path.lower().endswith(".vt"):
+                return ZIPFileLocator.from_url(url)
+            elif path.lower().endswith(".xml"):
                 return XMLFileLocator.from_url(url)
             else:
-                return ZIPFileLocator.from_url(url)
+                return DirectoryLocator.from_url(url)
         return None
-
-    @staticmethod
-    def parse_args(arg_str):
-        args = {}
-        parsed_dict = urlparse.parse_qs(arg_str)
-        if 'type' in parsed_dict:
-            args['obj_type'] = parsed_dict['type'][0]
-        if 'id' in parsed_dict:
-            args['obj_id'] = parsed_dict['id'][0]
-        args['version_node'] = None
-        if 'workflow' in parsed_dict:
-            workflow_arg = parsed_dict['workflow'][0]
-            args['version_node'] = workflow_arg
-        if 'workflow_exec' in parsed_dict:
-            args['workflow_exec'] = parsed_dict['workflow_exec'][0]
-        if 'parameterExploration' in parsed_dict:
-            args['parameterExploration'] = \
-                                        parsed_dict['parameterExploration'][0]
-        if 'mashuptrail' in parsed_dict:
-            args['mashuptrail'] = parsed_dict['mashuptrail'][0]
-        # should use mashupVersion, but also allow (and preserve) mashup
-        if 'mashupVersion' in parsed_dict:
-            args['mashupVersion'] = parsed_dict['mashupVersion'][0]
-        elif 'mashup' in parsed_dict:
-            args['mashup'] = parsed_dict['mashup'][0]
-        if 'workflow_exec' in parsed_dict:
-            args['workflow_exec'] = parsed_dict['workflow_exec'][0]
-        return args
-
-    @staticmethod
-    def generate_args(args):
-        generate_dict = {}
-        if 'obj_type' in args and args['obj_type']:
-            generate_dict['type'] = args['obj_type']
-        if 'obj_id' in args and args['obj_id']:
-            generate_dict['id'] = args['obj_id']
-        if 'version_node' in args and args['version_node']:
-            generate_dict['workflow'] = args['version_node']
-        if 'parameterExploration' in args and args['parameterExploration']:
-            generate_dict['parameterExploration'] = args['parameterExploration']
-        if 'mashuptrail' in args and args['mashuptrail']:
-            generate_dict['mashuptrail'] = args['mashuptrail']
-        if 'mashupVersion' in args and args['mashupVersion']:
-            generate_dict['mashupVersion'] = args['mashupVersion']
-        elif 'mashup' in args and args['mashup']:
-            generate_dict['mashup'] = args['mashup']
-        if 'workflow_exec' in args and args['workflow_exec']:
-            generate_dict['workflow_exec'] = args['workflow_exec']
-        return urllib.urlencode(generate_dict)
-
 
     def _get_name(self):
         return None # Returns a name that will be displayed for the object
@@ -274,6 +286,12 @@ class BaseLocator(object):
         """
         return None
     short_name = property(_get_short_name)
+
+    def _get_version(self):
+        if self.version_tag is not None:
+            return self.version_tag
+        return self.version_node
+    version = property(_get_version)
 
     ###########################################################################
     # Operators
@@ -347,23 +365,59 @@ class SaveTemporariesMixin(object):
         name = urllib.quote_plus(filename) + '_tmp'
         return os.path.join(self.get_autosave_dir(), name)
 
-class UntitledLocator(SaveTemporariesMixin, BaseLocator):
+    def _iter_temporaries(self, f):
+        """_iter_temporaries(f): calls f with each temporary file name, in
+        sequence.
+
+        """
+        latest = None
+        current = 0
+        while True:
+            fname = self.encode_name(self.get_temp_basename()) + str(current)
+            if os.path.isfile(fname):
+                f(fname)
+                current += 1
+            else:
+                break
+
+    def _find_latest_temporary(self):
+        """_find_latest_temporary(): String or None.
+
+        Returns the latest temporary file saved, if it exists. Returns
+        None otherwise.
+        
+        """
+        latest = [None]
+        def set_it(fname):
+            latest[0] = fname
+        self._iter_temporaries(set_it)
+        return latest[0]
+
+    def _next_temporary(self, temporary):
+        """_find_latest_temporary(string or None): String
+
+        Returns the next suitable temporary file given the current
+        latest one.
+
+        """
+        if temporary is None:
+            return self.encode_name(self.get_temp_basename()) + '0'
+        else:
+            split = temporary.rfind('_')+1
+            base = temporary[:split]
+            number = int(temporary[split:])
+            return base + str(number+1)
+
+class UntitledLocator(BaseLocator, SaveTemporariesMixin):
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
     def __init__(self, my_uuid=None, **kwargs):
+        BaseLocator.__init__(self, **kwargs)
         if my_uuid is not None:
             self._uuid = my_uuid
         else:
             self._uuid = uuid.uuid4()
-        self._vnode = kwargs.get('version_node', None)
-        self._mshptrail = kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in kwargs:
-            self._mshpversion = kwargs.get('mashupVersion', None)
-        else:
-            self._mshpversion = kwargs.get('mashup', None)
-        self._parameterexploration = kwargs.get('parameterExploration', None)
-        self.kwargs = kwargs
 
     def load(self, type):
         fname = self.get_temporary()
@@ -392,8 +446,8 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
         return self._get_name().decode('ascii')
     short_name = property(_get_short_name)
 
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         if not url.startswith('untitled:'):
             raise VistrailsDBException("URL does not start with untitled:")
 
@@ -408,13 +462,13 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
         if not rest:
             kwargs = dict()
         elif rest[0] == '?':
-            kwargs = BaseLocator.parse_args(rest[1:])
+            kwargs = cls.parse_args(rest[1:])
         else:
             raise ValueError
-        return UntitledLocator(my_uuid, **kwargs)
+        return cls(my_uuid, **kwargs)
 
     def to_url(self):
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         url_tuple = ('untitled', '', self._uuid.hex, args_str, '')
         return urlparse.urlunsplit(url_tuple)
 
@@ -448,17 +502,67 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
                 locators[my_uuid] = cls(my_uuid)
         return locators.values()
 
-class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
-    def __init__(self, filename, **kwargs):
-        self._name = self.real_filename(filename)
-        self._vnode = kwargs.get('version_node', None)
-        self._mshptrail = kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in kwargs:
-            self._mshpversion = kwargs.get('mashupVersion', None)
+class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
+    def __init__(self, dirname, **kwargs):
+        BaseLocator.__init__(self, **kwargs)
+        self._name = dirname
+
+    def load(self, type=None):
+        # don't require type for locators since Manifest should take care of
+        raise Exception("Need to implement!")
+
+    def save(self, obj, do_copy=True, version=None):
+        raise Exception("Need to implement!")
+
+    def is_valid(self):
+        return os.path.isdir(self._name)
+
+    def get_temporary(self):
+        return self._find_latest_temporary()
+
+    def _get_name(self):
+        return str(self._name)
+    name = property(_get_name)
+
+    def _get_short_filename(self):
+        return os.path.basename(self._name)
+    short_filename = property(_get_short_filename)
+
+    def _get_short_name(self):
+        name = self._get_short_filename()
+        enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
+        return name.decode(enc)
+    short_name = property(_get_short_name)
+
+    @classmethod
+    def from_url(cls, url):
+        if '://' in url:
+            scheme, path = url.split('://', 1)
+            if scheme != 'file':
+                raise ValueError
         else:
-            self._mshpversion = kwargs.get('mashup', None)
-        self._parameterexploration = kwargs.get('parameterExploration', None)
-        self.kwargs = kwargs
+            url = BaseLocator.convert_filename_to_url(url)
+
+        old_uses_query = urlparse.uses_query
+        urlparse.uses_query = urlparse.uses_query + ['file']
+        scheme, host, path, args_str, fragment = urlparse.urlsplit(url)
+        urlparse.uses_query = old_uses_query
+        # De-urlencode pathname
+        path = url2pathname(str(path))
+        kwargs = cls.parse_args(args_str)
+        return cls(os.path.abspath(path), **kwargs)
+
+    def to_url(self):
+        args_str = self.generate_args(self.kwargs)
+        url_tuple = ('file', '',
+                     pathname2url(os.path.abspath(self._name)),
+                     args_str, '')
+        return urlparse.urlunsplit(url_tuple)
+
+class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
+    def __init__(self, filename, **kwargs):
+        BaseLocator.__init__(self, **kwargs)
+        self._name = filename
 
     def load(self, type):
         fname = self.get_temporary()
@@ -471,16 +575,19 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
     def save(self, obj, do_copy=True, version=None):
         is_bundle = False
-        if type(obj) == type(SaveBundle(None)):
+        if isinstance(obj, Bundle):
             is_bundle = True
-            save_bundle = obj
-            obj = save_bundle.get_primary_obj()
+            bundle = obj
+            bundleobj = bundle.get_primary_obj()
+            obj = bundleobj.obj
+
         obj = io.save_to_xml(obj, self._name, version)
         obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
         if is_bundle:
-            return SaveBundle(save_bundle.bundle_type, obj)
+            bundleobj.obj = obj
+            return bundle
         return obj
 
     def is_valid(self):
@@ -515,7 +622,7 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
         urlparse.uses_query = old_uses_query
         # De-urlencode pathname
         path = url2pathname(str(path))
-        kwargs = BaseLocator.parse_args(args_str)
+        kwargs = cls.parse_args(args_str)
 
         return cls(os.path.abspath(path), **kwargs)
 
@@ -525,35 +632,6 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
                      pathname2url(os.path.abspath(self._name)),
                      args_str, '')
         return urlparse.urlunsplit(url_tuple)
-
-    def serialize(self, dom, element):
-        """serialize(dom, element) -> None
-        Convert this object to an XML representation.
-
-        """
-        locator = dom.createElement('locator')
-        locator.setAttribute('type', 'file')
-        node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
-        node.appendChild(filename)
-        locator.appendChild(node)
-        element.appendChild(locator)
-
-    @staticmethod
-    def parse(element):
-        """ parse(element) -> XMLFileLocator or None
-        Parse an XML object representing a locator and returns a
-        XMLFileLocator object.
-
-        """
-        if str(element.getAttribute('type')) == 'file':
-            for n in element.childNodes:
-                if n.localName == "name":
-                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
-                    return XMLFileLocator(filename)
-            return None
-        else:
-            return None
 
     #ElementTree port
     def to_xml(self, node=None):
@@ -605,41 +683,39 @@ class ZIPFileLocator(XMLFileLocator):
     still in xml"""
     def __init__(self, filename, **kwargs):
         XMLFileLocator.__init__(self, filename, **kwargs)
-        self.tmp_dir = None
+        self.bundle = None
 
     def load(self, type):
         fname = self.get_temporary()
         if fname:
-            from vistrails.db.domain import DBVistrail
             obj = io.open_from_xml(fname, type)
-            return SaveBundle(DBVistrail.vtType, obj)
+            bundle = io.new_bundle()
+            bundle.add_object(obj)
+            self.bundle = bundle
+            return bundle
         else:
-            (save_bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)
-            self.tmp_dir = tmp_dir
-            for obj in save_bundle.get_db_objs():
-                obj.locator = self
-            return save_bundle
+            bundle = io.open_bundle_from_zip_xml(self._name)
+            for obj in bundle.get_db_objs():
+                obj.obj.locator = self
+            self.bundle = bundle
+            return bundle
 
-    def save(self, save_bundle, do_copy=True, version=None):
+    def save(self, bundle, do_copy=True, version=None):
         if do_copy:
             # make sure we create a fresh temporary directory if we're
             # duplicating the vistrail
-            tmp_dir = None
-        else:
-            # otherwise, use the existing temp directory if one is set
-            tmp_dir = self.tmp_dir
-        (save_bundle, tmp_dir) = io.save_bundle_to_zip_xml(save_bundle, self._name, tmp_dir, version)
-        self.tmp_dir = tmp_dir
-        for obj in save_bundle.get_db_objs():
-            obj.locator = self
+            bundle.set_metadata("dir_name", None)
+        bundle = io.save_bundle_to_zip_xml(bundle, self._name, version)
+        for obj in bundle.get_db_objs():
+            obj.obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
-        return save_bundle
+        self.bundle = bundle
+        return bundle
 
     def close(self):
-        if self.tmp_dir is not None:
-            io.close_zip_xml(self.tmp_dir)
-            self.tmp_dir = None
+        if self.bundle is not None:
+            self.bundle.cleanup()
 
     ###########################################################################
     # Operators
@@ -691,7 +767,7 @@ class ZIPFileLocator(XMLFileLocator):
 # class URLLocator(ZIPFileLocator):
 #     def load(self, type):
         
-class DBLocator(BaseLocator):
+class DBLocator(BaseLocator, SaveTemporariesMixin):
     cache = {}
     cache_timestamps = {}
     connections = {}
@@ -699,6 +775,7 @@ class DBLocator(BaseLocator):
         
     def __init__(self, host, port, database, user, passwd, name=None,
                  **kwargs):
+        BaseLocator.__init__(self, **kwargs)
         self._host = host
         self._port = int(port)
         self._db = database
@@ -706,19 +783,11 @@ class DBLocator(BaseLocator):
         self._passwd = passwd
         self._name = name
         self._hash = ''
-        self.kwargs = kwargs
         self._obj_id = self.kwargs.get('obj_id', None)
         if self._obj_id is not None:
             self._obj_id = long(self._obj_id)
         self._obj_type = self.kwargs.get('obj_type', None)
         self._conn_id = self.kwargs.get('connection_id', None)
-        self._vnode = self.kwargs.get('version_node', None)
-        self._mshptrail = self.kwargs.get('mashuptrail', None)
-        if 'mashupVersion' in self.kwargs:
-            self._mshpversion = self.kwargs.get('mashupVersion', None)
-        else:
-            self._mshpversion = self.kwargs.get('mashup', None)
-        self._parameterexploration = self.kwargs.get('parameterExploration', None)
         
     def _get_host(self):
         return self._host
@@ -834,7 +903,7 @@ class DBLocator(BaseLocator):
         self._name = primary_obj.db_name
         #print "locator db name:", self._name
         for obj in save_bundle.get_db_objs():
-            obj.locator = self
+            obj.obj.locator = self
         
         _hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()
@@ -844,7 +913,7 @@ class DBLocator(BaseLocator):
     def save(self, save_bundle, do_copy=False, version=None):
         connection = self.get_connection()
         for obj in save_bundle.get_db_objs():
-            obj.db_name = self._name
+            obj.obj.db_name = self._name
         save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy, version)
         primary_obj = save_bundle.get_primary_obj()
         self._obj_id = primary_obj.db_id
@@ -852,7 +921,7 @@ class DBLocator(BaseLocator):
             self._obj_id = long(self._obj_id)
         self._obj_type = primary_obj.vtType
         for obj in save_bundle.get_db_objs():
-            obj.locator = self
+            obj.obj.locator = self
         #update the cache with a copy of the new bundle
         self._hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()
@@ -871,50 +940,9 @@ class DBLocator(BaseLocator):
                                                 obj_type)
         ts = datetime(*time_strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
-        
-    def serialize(self, dom, element):
-        """serialize(dom, element) -> None
-        Convert this object to an XML representation.
 
-        """
-        locator = dom.createElement('locator')
-        locator.setAttribute('type', 'db')
-        locator.setAttribute('host', str(self._host))
-        locator.setAttribute('port', str(self._port))
-        locator.setAttribute('db', str(self._db))
-        locator.setAttribute('vt_id', str(self._obj_id))
-        node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._name))
-        node.appendChild(filename)
-        locator.appendChild(node)
-        element.appendChild(locator)
-
-    @staticmethod
-    def parse(element):
-        """ parse(element) -> DBFileLocator or None
-        Parse an XML object representing a locator and returns a
-        DBFileLocator object.
-
-        """
-        if str(element.getAttribute('type')) == 'db':
-            host = str(element.getAttribute('host'))
-            port = int(element.getAttribute('port'))
-            database = str(element.getAttribute('db'))
-            vt_id = str(element.getAttribute('vt_id'))
-            user = ""
-            passwd = ""
-            for n in element.childNodes:
-                if n.localName == "name":
-                    name = str(n.firstChild.nodeValue).strip(" \n\t")
-                    #print host, port, database, name, vt_id
-                    return DBLocator(host, port, database,
-                                     user, passwd, name, obj_id=vt_id)
-            return None
-        else:
-            return None
-    
-    @staticmethod
-    def from_url(url):
+    @classmethod
+    def from_url(cls, url):
         format = re.compile(
                 r"^"
                 "([a-zA-Z0-9_-]+)://"   # scheme
@@ -936,14 +964,14 @@ class DBLocator(BaseLocator):
             else:
                 host, port = net_loc, None
             db_name = urllib.unquote(str(db_name))
-            kwargs = BaseLocator.parse_args(args_str)
-            return DBLocator(host, port, db_name, user, passwd, **kwargs)
+            kwargs = cls.parse_args(args_str)
+            return cls(host, port, db_name, user, passwd, **kwargs)
     
     def to_url(self):
         # FIXME may also want to allow database type to be encoded in 
         # scheme (ie mysql://host/db, sqlite3://path/to)
         net_loc = '%s:%s' % (self._host, self._port)
-        args_str = BaseLocator.generate_args(self.kwargs)
+        args_str = self.generate_args(self.kwargs)
         # query_str = '%s=%s' % (self._obj_type, self._obj_id)
         url_tuple = ('db', net_loc, urllib.quote(self._db, ''), args_str, '')
         return urlparse.urlunsplit(url_tuple)

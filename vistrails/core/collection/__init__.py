@@ -354,10 +354,10 @@ class Collection(object):
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
             if not vistrail:
-                (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
-                vistrail.abstractions = abstractions
-                vistrail.thumbnails = thumbnails
-                vistrail.mashups = mashups
+                bundle = load_vistrail(locator)
+                vistrail.abstractions = [a.obj for a in bundle.abstractions]
+                vistrail.thumbnails = [t.obj for t in bundle.thumbnails]
+                vistrail.mashups = [m.obj for m in bundle.mashups]
             entity = self.create_vistrail_entity(vistrail)
             for p in workspaces:
                 self.add_to_workspace(entity, p)

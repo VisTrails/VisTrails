@@ -54,7 +54,7 @@ class ReadVistrail(Module):
 
     def read_vistrail(self, fname):
         # open the .vt bundle specified by the filename "fname"
-        bundle = vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(fname)[0]
+        bundle = vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(fname)
 
         # access the vistrail from the bundle
         vistrail = bundle.vistrail
@@ -66,7 +66,7 @@ class ReadVistrail(Module):
 
     def read_log(self, fname):
         # open the .vt bundle specified by the filename "fname"
-        bundle = vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(fname)[0]
+        bundle = vistrails.db.services.io.open_vistrail_bundle_from_zip_xml(fname)
        
         # get the log filename
         log_fname = bundle.vistrail.db_log_filename

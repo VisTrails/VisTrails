@@ -935,10 +935,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.setup_recent_vistrails()
         self.init_toolbar()
 
-    def create_view(self, vistrail, locator,  abstraction_files=None, 
-                    thumbnail_files=None, mashups=None):
-        view = QVistrailView(vistrail, locator, abstraction_files,
-                             thumbnail_files, mashups)
+    def create_view(self, bundle, locator):
+        view = QVistrailView(bundle, locator)
         self.vistrail_widgets.append(view)
         index = self.stack.addWidget(view)
         self.stack.setCurrentIndex(index)
@@ -1639,20 +1637,15 @@ class QVistrailsWindow(QVistrailViewWindow):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-            elif hasattr(locator, '_vnode'):
-                version = locator._vnode
-            mashuptrail = None
-            mashupversion = None
-            execute = False
-            if hasattr(locator, '_mshptrail'):
-                mashuptrail = locator._mshptrail
-            if hasattr(locator, '_mshpversion'):
-                mashupversion = locator._mshpversion
-                if mashupversion:
-                    execute = True
+                version = None
+
+            version = locator.version
+            mashup_trail = locator.mashuptrail
+            mashup_version = locator.mashupVersion
+            execute = True if mashup_version else False
             self.open_vistrail_without_prompt(locator, version,
-                                              mashuptrail=mashuptrail,
-                                              mashupVersion=mashupversion,
+                                              mashuptrail=mashup_trail,
+                                              mashupVersion=mashup_version,
                                               execute_workflow=execute)
             self.set_current_locator(locator)
 

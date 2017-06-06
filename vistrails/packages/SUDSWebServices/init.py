@@ -43,6 +43,7 @@ import vistrails.core.system
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 import traceback
+from vistrails.db.services.bundle import BundleObj
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
@@ -804,41 +805,43 @@ def contextMenuName(signature):
         return "Remove this Web Service"
     return None
 
-def saveVistrailFileHook(vistrail, temp_dir):
+def saveVistrailFileHook(controller, bundle):
     """ This is called when a vistrail is saved
-        We should copy all cached Web Services in vistrail to temp_dir
-        if they do not exist
+        We should copy all cached Web Services in controller.vistrail to
+        bundle if they do not exist
 
     """
+
     # Skip if this is a DBVistrail
-    if not hasattr(vistrail, 'get_used_packages'):
+    if not hasattr(controller.vistrail, 'get_used_packages'):
         return
-    packages = vistrail.get_used_packages()
+    packages = controller.vistrail.get_used_packages()
     # clear old files
-    for name in os.listdir(temp_dir):
-        if name.endswith("-wsdl.px"):
-            os.remove(os.path.join(temp_dir, name))
+    for bundle_obj in list(bundle.values("data")):
+        if bundle_obj.id.endswith("-wsdl.px"):
+            bundle.remove_entry(bundle_obj)
 
     for package in packages:
         if package.startswith("SUDS#"):
             address = toAddress(package)
             name = "suds-%s-wsdl.px" % hashlib.md5(address).hexdigest()
             cached = os.path.join(package_cache.location, name)
-            vt_cached = os.path.join(temp_dir, name)
-            if os.path.exists(cached):
-                shutil.copyfile(cached, vt_cached)
+            if os.path.exists(cached) and not bundle.has_entry('data', name):
+                # no need to delete old wsdl because vistrail only adds
+                if not bundle.has_entry('data', name):
+                    bundle.add_object(BundleObj(cached, 'data', name))
 
-def loadVistrailFileHook(vistrail, temp_dir):
-    """ This is called when a vistrail is loaded
-        We should copy all used Web Services in temp_dir to .vistrails
+def loadVistrailFileHook(controller, bundle):
+    """ This is called when a vistrail is saved
+        We should copy all used Web Services in bundle to .vistrails
+        if they do not exist
+    """
+    for obj in bundle.datas:
+        if obj.id.endswith("-wsdl.px"):
+            dest = os.path.join(package_cache.location, obj.id)
+            if not os.path.exists(dest):
+                shutil.copyfile(obj.obj, dest)
 
-        """
-    for name in os.listdir(temp_dir):
-        src = os.path.join(temp_dir, name)
-        dest = os.path.join(package_cache.location, name)
-        if name.endswith("-wsdl.px") and not os.path.exists(dest):
-            shutil.copyfile(src, dest)
-    
 def callContextMenu(signature):
     global webServicesDict
     if signature == name:

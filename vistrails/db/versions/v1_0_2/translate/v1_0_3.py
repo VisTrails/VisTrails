@@ -188,16 +188,19 @@ class TestTranslate(unittest.TestCase):
         
     def testVistrailvars(self):
         """test translating vistrail variables from 1.0.3 to 1.0.2"""
-        from vistrails.db.services.io import open_vistrail_bundle_from_zip_xml
+        from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        (save_bundle, vt_save_dir) = open_vistrail_bundle_from_zip_xml(
+        bundle = open_bundle_from_zip_xml(
             os.path.join(vistrails_root_directory(),
                         'tests/resources/visvar-1.0.3.vt'),
             do_translate=False)
-        vistrail = translateVistrail(save_bundle.vistrail)
-        visvars = vistrail.db_annotations_key_index['__vistrail_vars__']
-        self.assertTrue(visvars.db_value)
+        try:
+            vistrail = translateVistrail(bundle.vistrail)
+            visvars = vistrail.db_annotations_key_index['__vistrail_vars__']
+            self.assertTrue(visvars.db_value)
+        finally:
+            bundle.cleanup()
 
 if __name__ == '__main__':
     from vistrails.gui.application import start_application

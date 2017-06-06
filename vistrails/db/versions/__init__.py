@@ -64,6 +64,7 @@ version_map = {
     '1.0.0': '1.0.1',
     '1.0.1': '1.0.2',
     '1.0.2': '1.0.3',
+    '0.1.0': '1.0.3', # for startup and mashups
     '1.0.3': '1.0.4',
     '1.0.4': '1.0.5',
     '1.0.5': '2.0.0',
@@ -131,6 +132,8 @@ def get_persistence(version=None):
         raise VistrailsDBException(debug.format_exc())
     return persistence
 
+get_persistence_version = get_persistence
+
 def version_list():
     v_list = []
     for (k,v) in version_map.items():
@@ -155,6 +158,16 @@ def get_versioned_f(f_name, version=None):
                        .format(f_name, version))
     return getattr(persistence, f_name)
 
+def register_bundle_serializers(version=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'register_bundle_serializers'):
+        pkg.register_bundle_serializers()
+
+def unregister_bundle_serializers(version=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'unregister_bundle_serializers'):
+        pkg.unregister_bundle_serializers()
+
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion
@@ -171,7 +184,6 @@ def getVersionDAO(version=None):
         import traceback
         raise VistrailsDBException(debug.format_exc())
     return persistence.DAOList()
-
 
 def get_version_path(version, target_version):
     old_tuple = get_version_tuple(version)

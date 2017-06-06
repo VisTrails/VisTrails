@@ -38,11 +38,10 @@ from __future__ import division
 from vistrails.core.vistrail.action import Action
 from vistrails.core.log.log import Log
 from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from vistrails.db.services.io import SaveBundle
+from vistrails.db.services.bundle import Bundle
 import vistrails.db.services.io
 import vistrails.db.services.vistrail
 import vistrails.db.services.action
-from xml.dom.minidom import parse, getDOMImplementation
 
 def get_db_vistrail_list(config):
     db_connection = vistrails.db.services.io.open_db_connection(config)
@@ -69,26 +68,22 @@ def save_vistrail_to_xml(vistrail, filename):
     vistrails.db.services.io.save_vistrail_to_xml(vistrail, filename)
 
 def load_vistrail(locator, is_abstraction=False):
+    """
+        Opens a vistrail bundle from a locator
+    """
     from vistrails.core.vistrail.vistrail import Vistrail
 
-    abstraction_files = []
-    thumbnail_files = []
-    mashups = []
-    vistrail = None
     if locator is None:
-        vistrail = Vistrail()
-    else:
-        res = locator.load()
-        try:
-            vistrail = res.vistrail
-            abstraction_files.extend(res.abstractions)
-            thumbnail_files.extend(res.thumbnails)
-            mashups.extend(res.mashups)
-        except AttributeError:
-            vistrail = res
-    vistrail.is_abstraction = is_abstraction
-    return (vistrail, abstraction_files, thumbnail_files, mashups)
-    
+        bundle = vistrails.db.services.io.new_bundle()
+        bundle.add_object(Vistrail())
+        return bundle
+    res = locator.load()
+    if isinstance(res, Bundle):
+        return res
+    bundle = vistrails.db.services.io.new_bundle()
+    bundle.add_object(res)
+    return bundle
+
 def open_registry(filename):
     from vistrails.core.modules.module_registry import ModuleRegistry
     registry = vistrails.db.services.io.open_registry_from_xml(filename)

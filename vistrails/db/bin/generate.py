@@ -235,6 +235,7 @@ def main(argv=None):
                     'j:': ('generate object children', False, 'object'),
                     'f:': ('generate foreign key refs', False, 'object'),
                     'c': ('generate sqlalchemy classes', False),
+                    't': ('generate test classes', False),
                     'v:': ('vistrail version tag', True, 'version'),
                     'm': ('make all directories', False),
                     'n': ('do not change current version', False)}

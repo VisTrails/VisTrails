@@ -594,10 +594,10 @@ class Package(DBPackage):
                 self._init_module.callContextMenu(signature)
             return [(self._init_module.contextMenuName(signature), callMenu)]
 
-    def loadVistrailFileHook(self, vistrail, tmp_dir):
+    def loadVistrailFileHook(self, controller, bundle):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
             try:
-                self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+                self._init_module.loadVistrailFileHook(controller, bundle)
             except Exception, e:
                 debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's loadVistrailFileHook(): "
@@ -605,10 +605,10 @@ class Package(DBPackage):
                                            debug.format_exception(e),
                                            traceback.format_exc()))
 
-    def saveVistrailFileHook(self, vistrail, tmp_dir):
+    def saveVistrailFileHook(self, controller, bundle):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
             try:
-                self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
+                self._init_module.saveVistrailFileHook(controller, bundle)
             except Exception, e:
                 debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's saveVistrailFileHook(): "

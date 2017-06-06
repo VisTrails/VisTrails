@@ -477,24 +477,18 @@ else:
 
 def image_test_generator(vtfile, version):
     from vistrails.core.db.locator import FileLocator
-    from vistrails.core.db.io import load_vistrail
     import vistrails.core.console_mode
     def test(self):
-        try:
-            errs = []
-            filename = os.path.join(EXAMPLES_PATH, vtfile)
-            locator = FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
-            errs = vistrails.core.console_mode.run(
-                    [(locator, version)],
-                    update_vistrail=False,
-                    extra_info={'compare_thumbnails': compare_thumbnails})
-            if len(errs) > 0:
-                for err in errs:
-                    print("   *** Error in %s:%s:%s -- %s" % err)
-                    self.fail(str(err))
-        except Exception, e:
-            self.fail(debug.format_exception(e))
+        filename = os.path.join(EXAMPLES_PATH, vtfile)
+        locator = FileLocator(os.path.abspath(filename))
+        errs = vistrails.core.console_mode.run(
+                [(locator, version)],
+                update_vistrail=False,
+                extra_info={'compare_thumbnails': compare_thumbnails})
+        if len(errs) > 0:
+            for err in errs:
+                print("   *** Error in %s:%s:%s -- %s" % err)
+                self.fail(str(err))
     return test
 
 class TestVistrailImages(unittest.TestCase):
@@ -538,7 +532,11 @@ if test_examples:
                                     vtfile)
             print filename
             locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
-            (v, abstractions, thumbnails, mashups) = vistrails.core.db.io.load_vistrail(locator)
+            bundle = vistrails.core.db.io.load_vistrail(locator)
+            (v, abstractions, thumbnails, mashups) = (bundle.vistrail,
+                                        bundle.abstraction,
+                                        bundle.thumbnails,
+                                        bundle.mashups)
             w_list = []
             for version,tag in v.get_tagMap().iteritems():
                 if tag not in VT_EXAMPLES[vtfile]:

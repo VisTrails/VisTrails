@@ -73,9 +73,13 @@ def run_and_get_results(w_list, parameters='',
     params = []
     result = []
     for locator, workflow in w_list:
-        (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails,
-                                        mashups, auto_save=update_vistrail)
+        bundle = load_vistrail(locator)
+        (v, abstractions, thumbnails, mashups) = (bundle.vistrail,
+                                                  bundle.abstractions,
+                                                  bundle.thumbnails,
+                                                  bundle.mashups)
+        controller = VistrailController(bundle=bundle, locator=locator,
+                                        auto_save=update_vistrail)
         if isinstance(workflow, basestring):
             version = v.get_version_id(workflow)
         elif isinstance(workflow, (int, long)):
@@ -108,7 +112,7 @@ def run_and_get_results(w_list, parameters='',
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        jobMonitor = controller.jobMonitor
+        jobMonitor = controller.job_monitor
         current_workflow = jobMonitor.currentWorkflow()
         if not current_workflow:
             for job in jobMonitor.workflows.itervalues():
@@ -172,16 +176,16 @@ def get_wf_graph(w_list, output_dir, pdf=False):
              GUIVistrailController
         for locator, workflow in w_list:
             try:
-                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController(v, locator, abstractions, 
-                                                   thumbnails, mashups,
+                bundle = load_vistrail(locator)
+                controller = GUIVistrailController(bundle=bundle,
+                                                   locator=locator,
                                                    auto_save=False)
                 # FIXME TE: why is this needed
                 controller.current_pipeline_view.set_controller(controller)
 
                 version = None
                 if isinstance(workflow, basestring):
-                    version = v.get_version_id(workflow)
+                    version = controller.vistrail.get_version_id(workflow)
                 elif isinstance(workflow, (int, long)):
                     version = workflow
                 elif workflow is None:
@@ -227,9 +231,9 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
              GUIVistrailController
         for locator in vt_list:
             try:
-                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController(v, locator, abstractions, 
-                                                   thumbnails, mashups)
+                bundle = load_vistrail(locator)
+                controller = GUIVistrailController(bundle=bundle,
+                                                   locator=locator)
                 if tree_info is not None:
                     from vistrails.gui.version_view import QVersionTreeView
                     version_view = QVersionTreeView()
@@ -284,9 +288,9 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
         from vistrails.gui.vistrail_controller import VistrailController as \
              GUIVistrailController
         try:
-            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-            controller = GUIVistrailController(v, locator, abstractions, 
-                                               thumbnails, mashups)
+            bundle = load_vistrail(locator)
+            controller = GUIVistrailController(bundle=bundle,
+                                               locator=locator)
             try:
                 pe_id = int(pe_id)
                 pe = controller.vistrail.get_paramexp(pe_id)

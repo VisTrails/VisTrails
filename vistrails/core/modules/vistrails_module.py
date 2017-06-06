@@ -1840,20 +1840,18 @@ class TestImplicitLooping(unittest.TestCase):
         import os
         filename = os.path.join(vistrails_root_directory(), "tests",
                                 "resources", vt_basename)
-        try:
-            errs = []
-            locator = FileLocator(os.path.abspath(filename))
-            (v, _, _, _) = load_vistrail(locator)
-            w_list = []
-            for tag in v.get_tagMap().itervalues():
-                w_list.append((locator,tag))
-            if len(w_list) > 0:
-                with capture_stdout() as c:
-                    errs = run(w_list, update_vistrail=False)
-                for err in errs:
-                    self.fail(str(err))
-        except Exception, e:
-            self.fail(debug.format_exception(e))
+        errs = []
+        locator = FileLocator(os.path.abspath(filename))
+        bundle = load_vistrail(locator)
+        v = bundle.vistrail
+        w_list = []
+        for tag in v.get_tagMap().itervalues():
+            w_list.append((locator,tag))
+        if len(w_list) > 0:
+            with capture_stdout() as c:
+                errs = run(w_list, update_vistrail=False)
+            for err in errs:
+                self.fail(str(err))
 
     def test_implicit_while(self):
         self.run_vt("test-implicit-while.vt")
