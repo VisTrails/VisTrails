@@ -42,6 +42,7 @@ from vistrails.db.versions.v2_0_0.persistence.sql import alchemy
 
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
+import vistrails.db.services.bundle_legacy
 from vistrails.db.versions.v2_0_0 import version as my_version
 from vistrails.db.versions.v2_0_0.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail
@@ -50,6 +51,12 @@ root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
                 DBLog.vtType, DBRegistry.vtType, DBMashuptrail.vtType])
 
 ElementTree = get_elementtree_library()
+
+def register_bundle_serializers():
+    vistrails.db.services.bundle_legacy.register_bundle_serializers(my_version)
+
+def unregister_bundle_serializers():
+    vistrails.db.services.bundle_legacy.unregister_bundle_serializers(my_version)
 
 class DAOList(dict):
     def __init__(self):

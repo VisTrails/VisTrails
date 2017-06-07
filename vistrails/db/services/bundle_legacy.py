@@ -40,9 +40,8 @@ import unittest
 from vistrails.core import debug
 from vistrails.core.system import resource_directory, vistrails_root_directory
 from vistrails.db import VistrailsDBException
-from vistrails.db.domain import DBVistrail, DBLog, DBWorkflowExec, DBMashuptrail
 import vistrails.db.services.bundle as vtbundle
-import vistrails.db.versions
+from vistrails.db.versions import get_domain_obj
 
 class DummyManifest(vtbundle.Manifest):
     def __init__(self, bundle_type='vistrail', bundle_version='1.0.4', dir_path=None):
@@ -81,18 +80,24 @@ class LegacyAbstractionFileSerializer(vtbundle.FileRefSerializer):
         return 'abstraction_%s' % obj.id
 
 class LegacyLogXMLSerializer(vtbundle.XMLAppendSerializer):
-    def __init__(self, mapping):
+    def __init__(self, mapping, version):
+        self.version = version
+        workflow_exec_type = get_domain_obj('DBWorkflowExec', version).vtType
         vtbundle.XMLAppendSerializer.__init__(self, mapping,
                                      "http://www.vistrails.org/log.xsd",
                                      "translateLog",
-                                              DBWorkflowExec.vtType,
-                                              True, True)
+                                    workflow_exec_type,
+                                    'log',
+                                    True, True)
 
     def create_obj(self, inner_obj_list=None):
+        log_cls = get_domain_obj('DBLog', self.version)
         if inner_obj_list is not None:
-            return DBLog(workflow_execs=inner_obj_list)
+            log = log_cls(workflow_execs=inner_obj_list)
         else:
-            return DBLog()
+            log = log_cls()
+        log.db_version = self.version
+        return log
 
     def get_inner_objs(self, vt_obj):
         return vt_obj.db_workflow_execs
@@ -122,14 +127,18 @@ class AbstractionFileRefMapping(vtbundle.MultipleObjMapping):
 
 def register_bundle_serializers(version):
     # FIXME want to specify serializer at same time--no bobj mapping later
+    vistrail_type = get_domain_obj('DBVistrail').vtType
+    log_type = get_domain_obj('DBLog').vtType
+    mashup_type = get_domain_obj('DBMashuptrail').vtType
+
     legacy_bmap = vtbundle.BundleMapping(version, 'vistrail',
                                          [vtbundle.SingleRootBundleObjMapping(
-                                           DBVistrail.vtType, 'vistrail'),
+                                           vistrail_type, 'vistrail'),
                                            vtbundle.SingleRootBundleObjMapping(
-                                               DBLog.vtType,
+                                               log_type,
                                                'log'),
                                            vtbundle.MultipleObjMapping(
-                                               DBMashuptrail.vtType,
+                                               mashup_type,
                                                lambda obj: obj.db_name,
                                                'mashup'),
                                            vtbundle.MultipleFileRefMapping(
@@ -148,7 +157,7 @@ def register_bundle_serializers(version):
                                                        True, True),
                                                        (LegacyLogXMLSerializer(
                                                            legacy_bmap.get_mapping(
-                                                               "log")), True),
+                                                               "log"), version), True),
                                                        LegacyMashupXMLSerializer(
                                                            legacy_bmap.get_mapping(
                                                                "mashuptrail")),
@@ -191,7 +200,6 @@ class TestLegacyBundles(unittest.TestCase):
 
         b1 = None
         b2 = None
-        b3 = None
         try:
             s = vtbundle.get_serializer("zip_serializer")
             b1 = s.load(in_fname)
@@ -205,8 +213,6 @@ class TestLegacyBundles(unittest.TestCase):
                 b1.cleanup()
             if b2:
                 b2.cleanup()
-            if b3:
-                b3.cleanup()
             # print "OUT FNAME:", out_fname
             os.unlink(out_fname)
 

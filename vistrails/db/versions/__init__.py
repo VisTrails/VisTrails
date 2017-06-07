@@ -134,6 +134,24 @@ def get_persistence(version=None):
 
 get_persistence_version = get_persistence
 
+def get_domain_obj(cls_name, version=None):
+    if version is None:
+        version = currentVersion
+    domain_dir = 'vistrails.db.versions.' + get_version_name(version) + \
+        '.domain'
+    try:
+        domain = __import__(domain_dir, {}, {}, [''])
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            # assume version is not available
+            msg = "Cannot find domain for version '%s'" % version
+            raise VistrailsDBException(msg)
+        # assume other error
+        import traceback
+        raise VistrailsDBException(debug.format_exc())
+
+    return getattr(domain, cls_name)
+
 def version_list():
     v_list = []
     for (k,v) in version_map.items():

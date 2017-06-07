@@ -635,27 +635,26 @@ class XMLFileSerializer(FileSerializer):
         return b_obj
 
     def save(self, b_obj, path, version=None):
-        b_obj = self.save_file(b_obj, path, version)
-
-    def save_file(self, b_obj, file_obj, version=None):
         vt_obj = b_obj.obj
         if version is None:
-            version = vistrails.db.versions.currentVersion
+            version = vistrails.db.versions.get_current_version()
         if not hasattr(vt_obj, 'db_version') or not vt_obj.db_version:
-            vt_obj.db_version = vistrails.db.versions.currentVersion
+            vt_obj.db_version = vistrails.db.versions.get_current_version()
         vt_obj = vistrails.db.versions.translate_object(vt_obj,
                                                         self.translator_f,
                                                         vt_obj.db_version,
                                                         version)
-
-        daoList = vistrails.db.versions.getVersionDAO(version)
-        daoList.save_to_xml(vt_obj, file_obj, self.xml_tags, version)
+        self.save_file(b_obj, path, version)
         vt_obj = vistrails.db.versions.translate_object(vt_obj,
                                                         self.translator_f,
                                                         version)
         b_obj.obj = vt_obj
         self.finish_save(vt_obj)
         return b_obj
+
+    def save_file(self, b_obj, file_obj, version=None):
+        daoList = vistrails.db.versions.getVersionDAO(version)
+        daoList.save_to_xml(b_obj.obj, file_obj, self.xml_tags, version)
 
     # @classmethod
     # def load_xml(cls, filename, obj_type, tree):
@@ -852,17 +851,21 @@ class XMLAppendSerializer(XMLFileSerializer):
             version = self.get_version_for_xml(node)
             daoList = vistrails.db.versions.getVersionDAO(version)
             inner_obj = daoList.read_xml_object(self.inner_obj_type, node)
-            currentVersion = vistrails.db.versions.currentVersion
-            if version != currentVersion:
+            inner_obj.db_version = version
+            current_version = self.create_obj().db_version
+            if version != current_version:
                 # if version is wrong, dump this into a dummy object, 
                 # then translate, then get inner_obj back
                 vt_obj = self.create_obj()
-                vistrails.db.versions.translate_object(vt_obj, self.translator_f,
-                                                       currentVersion, version)
+                vt_obj = vistrails.db.versions.translate_object(vt_obj,
+                                                                self.translator_f,
+                                                                current_version,
+                                                                version)
                 self.add_inner_obj(vt_obj, inner_obj)
                 vt_obj = vistrails.db.versions.translate_object(vt_obj, 
                                                                 self.translator_f,
-                                                                version)
+                                                                version,
+                                                                current_version)
                 inner_obj = self.get_inner_objs(vt_obj)[0]
             obj_list.append(inner_obj)
         vt_obj = self.create_obj(obj_list)
@@ -870,13 +873,17 @@ class XMLAppendSerializer(XMLFileSerializer):
         return b_obj
 
     def save(self, obj, path, version=None):
-        """Here, we assume that obj.obj is a **list**"""
 
         vt_obj = obj.obj
         # FIXME really want version to be whichever version is serializing...
         if version is None:
-            version = vistrails.db.versions.currentVersion
+            version = vistrails.db.versions.get_current_version()
+        if not hasattr(vt_obj, 'db_version') or not vt_obj.db_version:
+            vt_obj.db_version = vistrails.db.versions.get_current_version()
         file_obj = open(path, 'ab')
+
+        vistrails.db.versions.translate_object(vt_obj, self.translator_f,
+                                               vt_obj.db_version, version)
         for inner_obj in self.get_inner_objs(vt_obj):
             cur_id = inner_obj.db_id
             inner_obj.db_id = -1
@@ -1405,7 +1412,7 @@ class DBObjSerializer(BundleObjSerializer):
         if self.version is None:
             version = self.get_db_version(db_connection)
             if version is None:
-                version = vistrails.db.versions.currentVersion
+                version = vistrails.db.versions.get_current_version()
 
         vt_obj = b_obj.obj
         if vt_obj.db_version is None:

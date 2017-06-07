@@ -307,6 +307,8 @@ def insert_thumbnails_into_db(db_connection, abs_fnames):
 # General I/O
 
 register_bundle_serializers(get_current_version())
+register_bundle_serializers('2.0.0') # legacy
+register_bundle_serializers('1.0.5') # legacy
 register_bundle_serializers('1.0.4') # legacy
 register_bundle_serializers('1.0.3') # legacy
 
