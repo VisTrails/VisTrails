@@ -858,8 +858,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
-            c.jobMonitor.deleteWorkflow(i)
+        for i in c.job_monitor.workflows.keys():
+            c.job_monitor.deleteWorkflow(i)
 
     def testGroup(self):
         from vistrails import api
@@ -872,8 +872,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertNotEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
-            c.jobMonitor.deleteWorkflow(i)
+        for i in c.job_monitor.workflows.keys():
+            c.job_monitor.deleteWorkflow(i)
 
     def testMap(self):
         from vistrails import api
@@ -891,8 +891,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
-            c.jobMonitor.deleteWorkflow(i)
+        for i in c.job_monitor.workflows.keys():
+            c.job_monitor.deleteWorkflow(i)
 
     def testLoop(self):
         from vistrails import api
@@ -910,8 +910,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
-            c.jobMonitor.deleteWorkflow(i)
+        for i in c.job_monitor.workflows.keys():
+            c.job_monitor.deleteWorkflow(i)
 
     def testParameterExploration(self):
         from vistrails import api
@@ -923,20 +923,20 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         c.executeParameterExploration(pe)
 
         # Check that we have 2 jobs
-        self.assertEqual(len(c.jobMonitor.workflows.keys()), 2)
-        for i in c.jobMonitor.workflows.keys():
-            wf = c.jobMonitor.workflows[i]
+        self.assertEqual(len(c.job_monitor.workflows.keys()), 2)
+        for i in c.job_monitor.workflows.keys():
+            wf = c.job_monitor.workflows[i]
             self.assertFalse(wf.completed())
 
         c.executeParameterExploration(pe)
 
         # Check that the 2 jobs has completed
-        for i in c.jobMonitor.workflows.keys():
-            wf = c.jobMonitor.workflows[i]
+        for i in c.job_monitor.workflows.keys():
+            wf = c.job_monitor.workflows[i]
             self.assertTrue(wf.completed())
 
-        for i in c.jobMonitor.workflows.keys():
-            c.jobMonitor.deleteWorkflow(i)
+        for i in c.job_monitor.workflows.keys():
+            c.job_monitor.deleteWorkflow(i)
 
     def testMashup(self):
         from vistrails import api
@@ -949,8 +949,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assert_(mashup)
 
         view.open_mashup(mashup)
-        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
-        self.assertFalse(c.jobMonitor.workflows.values()[0].completed())
+        self.assertEqual(len(c.job_monitor.workflows.keys()), 1)
+        self.assertFalse(c.job_monitor.workflows.values()[0].completed())
 
         # close associated mashup apps
         from vistrails.gui.version_prop import QVersionProp
@@ -959,8 +959,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
             app.close()
 
         view.open_mashup(mashup)
-        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
-        self.assertTrue(c.jobMonitor.workflows.values()[0].completed())
+        self.assertEqual(len(c.job_monitor.workflows.keys()), 1)
+        self.assertTrue(c.job_monitor.workflows.values()[0].completed())
 
-        for i in c.jobMonitor.workflows.keys():
-            c.jobMonitor.deleteWorkflow(i)
+        for i in c.job_monitor.workflows.keys():
+            c.job_monitor.deleteWorkflow(i)

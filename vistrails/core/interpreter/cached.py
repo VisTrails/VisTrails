@@ -498,7 +498,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['controller'] = controller
             # extract job monitor from controller if this is the top level
             if controller:
-                obj.moduleInfo['job_monitor'] = controller.jobMonitor
+                obj.moduleInfo['job_monitor'] = controller.job_monitor
             else:
                 obj.moduleInfo['job_monitor'] = job_monitor
 

@@ -599,13 +599,13 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
 
         job_id = 'Mashup %s %s' % (self.currentMashup.version, self.currentMashup.id)
         current_workflow = None
-        for wf in self.view.controller.jobMonitor.workflows.itervalues():
+        for wf in self.view.controller.job_monitor.workflows.itervalues():
             if job_id == wf.version:
                 current_workflow = wf
-                self.view.controller.jobMonitor.startWorkflow(wf)
+                self.view.controller.job_monitor.startWorkflow(wf)
         if not current_workflow:
             current_workflow = JobWorkflow(job_id)
-            self.view.controller.jobMonitor.startWorkflow(current_workflow)
+            self.view.controller.job_monitor.startWorkflow(current_workflow)
 
         self.view.controller.progress = ExecutionProgressDialog(self.view)
         self.view.controller.progress.show()
@@ -613,7 +613,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         try:
             results = self.controller.execute(params)[0]
         finally:
-            self.view.controller.jobMonitor.finishWorkflow()
+            self.view.controller.job_monitor.finishWorkflow()
             jobView.updating_now = False
             self.view.controller.progress.setValue(100)
             self.view.controller.progress.hide()
