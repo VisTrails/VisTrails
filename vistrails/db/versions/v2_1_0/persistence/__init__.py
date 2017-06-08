@@ -486,7 +486,7 @@ class TestPersistence(unittest.TestCase):
 
     def run_sql_save_vistrail(self, test_db):
         from vistrails.db.domain import DBVistrail
-        from vistrails.db.versions.v1_0_5.persistence.sql.sql_dao import SQLDAO
+        from .sql.sql_dao import SQLDAO
         import sqlalchemy
         dao_list = DAOList()
 
