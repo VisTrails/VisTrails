@@ -473,3 +473,118 @@ class DAOList(dict):
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)
             return None
+
+
+import unittest
+import difflib
+import os
+import sys
+import shutil
+import tempfile
+
+class TestPersistence(unittest.TestCase):
+
+    def run_sql_save_vistrail(self, test_db):
+        from vistrails.db.domain import DBVistrail
+        from vistrails.db.versions.v1_0_5.persistence.sql.sql_dao import SQLDAO
+        import sqlalchemy
+        dao_list = DAOList()
+
+        SQLDAO.engine = sqlalchemy.create_engine(test_db)
+        SQLDAO.metadata.create_all(SQLDAO.engine)
+
+        in_fname = os.path.join(vistrails_root_directory(),
+                                'tests/resources/terminator-vt.xml')
+        vt1 = dao_list.open_from_xml(in_fname, DBVistrail.vtType)
+        conn = None
+        out_fname = None
+        try:
+            conn = SQLDAO.engine.connect()
+            trans = conn.begin()
+            dao_list.save_to_db(conn, vt1, True)
+            trans.commit()
+            vt2 = dao_list.open_from_db(conn, DBVistrail.vtType,
+                                        id=vt1.db_id)
+            vt2.db_actions.sort(key=lambda x: x.db_id)
+            for a in vt2.db_actions:
+                a.db_operations.sort(key=lambda x: x.db_id)
+                a.db_annotations.sort(key=lambda x: x.db_id)
+            vt2.db_actionAnnotations.sort(key=lambda x: x.db_id)
+
+            (h, out_fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+            os.close(h)
+            dao_list.save_to_xml(vt2, out_fname, {})
+
+            in_lines = open(in_fname, 'U').readlines()
+            out_lines = open(out_fname, 'U').readlines()
+
+            diff = difflib.unified_diff(in_lines, out_lines, in_fname, out_fname)
+            sys.stdout.writelines(diff)
+        finally:
+            # cleanup
+            if out_fname is not None:
+                os.unlink(out_fname)
+
+            if conn is not None:
+                trans = conn.begin()
+                SQLDAO.metadata.drop_all(conn)
+                trans.commit()
+
+    def test_save_vistrail_mysql(self):
+        test_db = 'mysql+mysqldb://vt_test@localhost/vt_test'
+        self.run_sql_save_vistrail(test_db)
+
+    def test_save_vistrail_sqlite3(self):
+        import os
+        import tempfile
+        (h, fname) = tempfile.mkstemp(prefix='vt_test_db', suffix='.db')
+        os.close(h)
+        test_db = 'sqlite:///%s' % fname
+        try:
+            self.run_sql_save_vistrail(test_db)
+        finally:
+            os.unlink(fname)
+
+    def compare_bundles(self, b1, b2):
+        self.assertEqual(len(b1.get_items()), len(b2.get_items()))
+        for obj_type, obj_id, obj in b1.get_items():
+            obj2 = b2.get_bundle_obj(obj_type, obj_id)
+            # not ideal, but fails when trying to compare objs without __eq__
+            self.assertEqual(obj.obj.__class__, obj2.obj.__class__)
+            # self.assertEqual(str(obj.obj), str(obj2.obj))
+
+    def create_vt_bundle(self):
+        from vistrails.core.system import resource_directory
+        b = vtbundle.new_bundle('vistrail', my_version)
+        b.add_object(DBVistrail())
+        b.add_object(DBLog())
+        fname1 = os.path.join(resource_directory(), 'images', 'info.png')
+        b.add_object(fname1, 'thumbnail') # info.png
+        fname2 = os.path.join(resource_directory(), 'images', 'left.png')
+        b.add_object(fname2, 'thumbnail') # left.png
+        return b
+
+    def test_vt_dir_bundle(self):
+        register_bundle_serializers()
+        d = tempfile.mkdtemp(prefix='vtbundle_test')
+        inner_d = os.path.join(d, 'mybundle')
+
+        s = vtbundle.get_serializer("dir_serializer")
+        b1 = None
+        b2 = None
+        try:
+            b1 = self.create_vt_bundle()
+            s.save(b1, inner_d)
+
+            b2 = s.load(inner_d)
+
+            self.compare_bundles(b1, b2)
+        finally:
+            if b1:
+                b1.cleanup()
+            if b2:
+                b2.cleanup()
+            shutil.rmtree(d)
+
+if __name__ == '__main__':
+    unittest.main()
