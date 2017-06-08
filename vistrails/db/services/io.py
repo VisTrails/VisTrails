@@ -345,8 +345,8 @@ def save_to_xml(obj, filename, version=None):
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
 
-def open_bundle_from_zip_xml(filename):
-    return vtbundle.get_serializer("zip_serializer").load(filename)
+def open_bundle_from_zip_xml(filename, do_translate=True):
+    return vtbundle.get_serializer("zip_serializer").load(filename, do_translate)
 
 def save_bundle_to_zip_xml(bundle, filename, version=None):
     if version is not None:

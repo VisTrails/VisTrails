@@ -302,7 +302,7 @@ def translateRegistry(_registry):
 class TestTranslate(unittest.TestCase):
     def testParamexp(self):
         """test translating parameter explorations from 1.0.2 to 1.0.3"""
-        from vistrails.db.services.io import open_vistrail_bundle_from_zip_xml
+        from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
         bundle = None
@@ -325,7 +325,7 @@ class TestTranslate(unittest.TestCase):
 
     def testVistrailvars(self):
         """test translating vistrail variables from 1.0.2 to 1.0.3"""
-        from vistrails.db.services.io import open_vistrail_bundle_from_zip_xml
+        from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
         bundle = None

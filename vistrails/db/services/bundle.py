@@ -561,7 +561,7 @@ class FileSerializer(BundleObjSerializer):
     def get_basename(self, obj):
         return obj.id
 
-    def load(self, filename):
+    def load(self, filename, do_translate=True):
         """
         :param filename: Full path to file in bundle
         :return: BundleObj
@@ -592,7 +592,7 @@ class FileRefSerializer(FileSerializer):
     # def get_obj_id(self, filename):
     #     return os.path.basename(filename)
 
-    def load(self, filename):
+    def load(self, filename, do_translate=True):
         """ Create a BundleObj containing a reference to a file
             If inner dir name is specified, filename must contain it
         """
@@ -621,14 +621,15 @@ class XMLFileSerializer(FileSerializer):
                          'xsi:schemaLocation': schema}
         self.obj_path_as_type = obj_path_as_type
 
-    def load(self, filename):
+    def load(self, filename, do_translate=True):
         self.check_inner_dir(filename)
         tree = ElementTree.parse(filename)
         version = self.get_version_for_xml(tree.getroot())
         daoList = vistrails.db.versions.getVersionDAO(version)
         obj = daoList.open_from_xml(filename, self.mapping.obj_type, tree)
-        obj = vistrails.db.versions.translate_object(obj, self.translator_f,
-                                                     version)
+        if do_translate:
+            obj = vistrails.db.versions.translate_object(obj, self.translator_f,
+                                                         version)
         b_obj = self.mapping.create_bundle_obj_f(obj)
         # obj_id = self.get_obj_id(obj)
         # b_obj = BundleObj(obj, self.obj_type, obj_id)
@@ -839,7 +840,7 @@ class XMLAppendSerializer(XMLFileSerializer):
         self.inner_obj_type = inner_obj_type
         self.xml_tag = xml_tag
 
-    def load(self, filename):
+    def load(self, filename, do_translate=True):
         parser = ElementTree.XMLTreeBuilder()
         parser.feed("<%s>\n" % self.xml_tag)
         f = open(filename, "rb")
@@ -857,15 +858,19 @@ class XMLAppendSerializer(XMLFileSerializer):
                 # if version is wrong, dump this into a dummy object, 
                 # then translate, then get inner_obj back
                 vt_obj = self.create_obj()
-                vt_obj = vistrails.db.versions.translate_object(vt_obj,
-                                                                self.translator_f,
-                                                                current_version,
-                                                                version)
+                # TODO does it make sense to do this?
+                if do_translate:
+                    vt_obj = vistrails.db.versions.translate_object(vt_obj,
+                                                                    self.translator_f,
+                                                                    current_version,
+                                                                    version)
                 self.add_inner_obj(vt_obj, inner_obj)
-                vt_obj = vistrails.db.versions.translate_object(vt_obj, 
-                                                                self.translator_f,
-                                                                version,
-                                                                current_version)
+                # TODO does it make sense to do this?
+                if do_translate:
+                    vt_obj = vistrails.db.versions.translate_object(vt_obj,
+                                                                    self.translator_f,
+                                                                    version,
+                                                                    current_version)
                 inner_obj = self.get_inner_objs(vt_obj)[0]
             obj_list.append(inner_obj)
         vt_obj = self.create_obj(obj_list)
@@ -1103,7 +1108,7 @@ class DirectoryBaseSerializer(BaseSerializer):
             if f[len(dir_path):] not in manifest_files:
                 os.unlink(f)
 
-    def load(self, dir_path):
+    def load(self, dir_path, do_translate=True):
         # allow manifests to be parsed diff. after serializer is identified
         manifest_fname = os.path.join(dir_path, "MANIFEST")
         if os.path.exists(manifest_fname):
@@ -1113,7 +1118,7 @@ class DirectoryBaseSerializer(BaseSerializer):
         manifest.load()
         s = self.get_serializer(manifest.bundle_type, manifest.bundle_version)
         manifest = self.load_manifest(s.manifest_cls, dir_path)
-        bundle = s.load(dir_path, manifest)
+        bundle = s.load(dir_path, manifest, do_translate)
         bundle.serializer = self
         return bundle
 
@@ -1169,7 +1174,7 @@ class DirectorySerializer(BundleSerializer):
                     raise Exception("No serialzier for {}".format(m.obj_type))
                 self.add_serializer(s)
 
-    def load(self, dir_path, manifest):
+    def load(self, dir_path, manifest, do_translate=True):
         assert self.mapping.bundle_type == manifest.bundle_type
         bundle = self.new_bundle()
 
@@ -1184,7 +1189,7 @@ class DirectorySerializer(BundleSerializer):
                                          obj_type, obj_id)
                 bundle.add_lazy_object(lazy_obj)
             else:
-                obj = serializer.load(path)
+                obj = serializer.load(path, do_translate)
                 if obj is not None:
                     #FIXME test/assert that what serializer loads matches manifest
                     if obj.id is None:
@@ -1216,7 +1221,7 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
     """ a zipped version of a directory bundle
     """
 
-    def load(self, file_path):
+    def load(self, file_path, do_translate=True):
         # have path and temp dir
         #
         # first unzip it to a temporary directory and then
@@ -1230,7 +1235,7 @@ class ZIPBaseSerializer(DirectoryBaseSerializer):
         finally:
             z.close()
 
-        bundle = super(ZIPBaseSerializer,self).load(dir_path)
+        bundle = super(ZIPBaseSerializer,self).load(dir_path, do_translate)
         bundle.set_metadata("zip_fname", file_path)
         return bundle
 
