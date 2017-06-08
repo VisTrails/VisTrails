@@ -1126,7 +1126,7 @@ class TestLocators(unittest.TestCase):
         loc_str = "untitled:e78394a73b87429e952b71b858e03242?workflow=066288ac-9b76-4ad5-ad2c-770d6c73611b"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, UntitledLocator)
-        self.assertEqual(loc.kwargs['version_node'],
+        self.assertEqual(loc.version,
                          '066288ac-9b76-4ad5-ad2c-770d6c73611b')
         self.assertEqual(loc._uuid, 
                          uuid.UUID('e78394a73b87429e952b71b858e03242'))
@@ -1145,7 +1145,7 @@ class TestLocators(unittest.TestCase):
         loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
-        self.assertEqual(loc.kwargs['version_node'], "abc")
+        self.assertEqual(loc.version, "abc")
         self.assertEqual(loc.short_filename, "test_parse_zip_file \xE9 \xEA")
         self.assertEqual(loc.to_url(), loc_str)
 
@@ -1155,7 +1155,7 @@ class TestLocators(unittest.TestCase):
         loc_str += "?workflow=abc"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, ZIPFileLocator)
-        self.assertEqual(loc.kwargs['version_node'], "abc")
+        self.assertEqual(loc.version, "abc")
         self.assertEqual(loc.short_filename,
                          "test_parse_zip_file_no_scheme \xE9 \xEA")
         loc_str = loc_str.replace(os.sep, '/')
@@ -1208,7 +1208,7 @@ class TestLocators(unittest.TestCase):
             loc = BaseLocator.from_url(loc_str)
             self.assertIsInstance(loc, XMLFileLocator)
             self.assertEqual(loc.short_filename, "test_win_xml_file")
-            self.assertEqual(loc.kwargs['version_node'],
+            self.assertEqual(loc.version,
                              '066288ac-9b76-4ad5-ad2c-770d6c73611b')
             self.assertEqual(
                     loc.to_url(),
@@ -1223,7 +1223,7 @@ class TestLocators(unittest.TestCase):
         loc_str = "db://localhost:3306/vistrails?workflow=066288ac-9b76-4ad5-ad2c-770d6c73611b"
         loc = BaseLocator.from_url(loc_str)
         self.assertIsInstance(loc, DBLocator)
-        self.assertEqual(loc.kwargs['version_node'],
+        self.assertEqual(loc.version,
                          '066288ac-9b76-4ad5-ad2c-770d6c73611b')
         self.assertEqual(loc._host, "localhost")
         self.assertEqual(loc._port, 3306)
