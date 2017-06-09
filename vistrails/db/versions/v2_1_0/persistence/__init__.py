@@ -362,8 +362,9 @@ class DAOList(dict):
 
             obj_children.append(children)
 
+        main_obj = children[0][0]
         # Execute all insert/update statements for the main objects
-        results = self['sql'][children[0][0].vtType].executeSQLCommands(
+        results = self['sql'][main_obj.vtType].executeSQLCommands(
                                                     db_connection,
                                                     dbCommandList, False)
 
@@ -410,7 +411,7 @@ class DAOList(dict):
             sub_obj_written.append(subchildren_written)
 
         # Execute all child insert/update statements
-        results = self['sql'][children[0][0].vtType].executeSQLCommands(
+        results = self['sql'][main_obj.vtType].executeSQLCommands(
                                                         db_connection,
                                                         dbCommandList, False)
 
