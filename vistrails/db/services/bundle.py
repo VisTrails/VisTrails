@@ -874,6 +874,11 @@ class XMLAppendSerializer(XMLFileSerializer):
                 inner_obj = self.get_inner_objs(vt_obj)[0]
             obj_list.append(inner_obj)
         vt_obj = self.create_obj(obj_list)
+        if do_translate:
+            vt_obj = vistrails.db.versions.translate_object(vt_obj,
+                                                            self.translator_f,
+                                                            vt_obj.db_version,
+                                                            vistrails.db.versions.get_current_version())
         b_obj = self.mapping.create_bundle_obj_f(vt_obj)
         return b_obj
 
