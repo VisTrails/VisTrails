@@ -1513,7 +1513,7 @@ class DBManifest(Manifest):
         bundle_id integer,
         obj_type varchar(255),
         obj_id varchar(255),
-        db_id int not null,
+        db_id varchar(36) not null,
         PRIMARY KEY (bundle_id, obj_type, obj_id)
     );"""]
     #  engine=InnoDB;
@@ -1576,7 +1576,7 @@ class DBManifest(Manifest):
                                          sa.Column('obj_id',
                                                      sa.types.VARCHAR(255)),
                                          sa.Column('db_id',
-                                                     sa.types.INT))
+                                                     sa.types.VARCHAR(36)))
         return self.items_table
 
     def load(self):
@@ -2028,10 +2028,13 @@ class TestBundle(object):
     def create_vt_bundle(self):
         from vistrails.db.domain import DBVistrail
         from vistrails.db.domain import DBLog
+        from vistrails.db.domain import IdScope
 
         b = new_bundle('vistrail', '0.0.0')
-        b.add_object(BundleObj(DBVistrail(), None, None))
-        b.add_object(BundleObj(DBLog(), None, None))
+        vistrail = DBVistrail(id=IdScope.getNewId())
+        log = DBLog(id=IdScope.getNewId())
+        b.add_object(BundleObj(vistrail, None, vistrail.db_id))
+        b.add_object(BundleObj(log, None, log.db_id))
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         b.add_object(BundleObj(fname1, 'thumbnail', 'info.png'))
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')
@@ -2130,19 +2133,22 @@ class TestFileBundle(TestBundle, unittest.TestCase):
         bmap = self.bundle_mapping
 
         class LogXMLSerializer(XMLAppendSerializer):
-            def __init__(self, mapping):
+            def __init__(self, mapping, version):
                 XMLAppendSerializer.__init__(self, mapping,
                                              "http://www.vistrails.org/log.xsd",
                                              "translateLog",
                                              DBWorkflowExec.vtType,
                                              'log',
                                              True, True)
+                self.version = version
 
             def create_obj(self, inner_obj_list=None):
                 if inner_obj_list is not None:
-                    return DBLog(workflow_execs=inner_obj_list)
+                    log = DBLog(workflow_execs=inner_obj_list)
                 else:
-                    return DBLog()
+                    log = DBLog()
+                log.db_version = self.version
+                return log
 
             def get_inner_objs(self, vt_obj):
                 return vt_obj.db_workflow_execs
@@ -2170,7 +2176,8 @@ class TestFileBundle(TestBundle, unittest.TestCase):
                                                     "translateVistrail",
                                                     True, True),
                                                     (LogXMLSerializer(
-                                                        bmap.get_mapping("log")),
+                                                        bmap.get_mapping("log"),
+                                                    vistrails.db.versions.get_current_version()),
                                                      True),
                                                     MashupXMLSerializer(
                                                         bmap.get_mapping(
@@ -2237,11 +2244,22 @@ class TestSQLDatabase(TestBundle):
 
     @classmethod
     def setUpClass(cls):
-        # from vistrails.db.services.io import open_db_connection, create_db_tables
-        from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
-        utils = vistrails.db.versions.get_sql_utils('1.0.5')
-        cls.conn = utils.open_db_connection(cls.get_config())
-        cls.conn.__vt_db_version__ = '1.0.5'
+        from vistrails.db.services.io import open_db_connection, create_db_tables
+        # from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
+        # utils = vistrails.db.versions.get_sql_utils('1.0.5')
+        # cls.conn = utils.open_db_connection(cls.get_config())
+        # cls.conn.__vt_db_version__ = '1.0.5'
+        version = None
+        try:
+            version = cls.get_config().db_version
+        except AttributeError:
+            pass
+        if version is None:
+            version = vistrails.db.versions.get_current_version()
+        utils = vistrails.db.versions.get_sql_utils(version)
+        cls.conn = open_db_connection(cls.get_config())
+        alchemy = utils.alchemy
+
 
         # cls.conn = open_db_connection(cls.get_config())
         # need to add in the new definitions or modify them (in the case of thumbnail)
@@ -2261,7 +2279,8 @@ class TestSQLDatabase(TestBundle):
     @classmethod
     def tearDownClass(cls):
         # from vistrails.db.services.io import close_db_connection, drop_db_tables
-        utils = vistrails.db.versions.get_sql_utils('1.0.5')
+        utils = vistrails.db.versions.get_sql_utils(
+            vistrails.db.versions.get_current_version())
         utils.drop_db_tables(cls.conn)
         utils.close_db_connection(cls.conn)
         cls.conn = None
@@ -2396,9 +2415,9 @@ class TestSQLDatabase(TestBundle):
         manifest = DBManifest(connection_obj, bundle_type="test",
                               bundle_version='1.0.0')
 
-        entries = [('vistrail', None, 0),
-                   ('thumbnail', 'abc', 23),
-                   ('thumbnail', 'def', 34)]
+        entries = [('vistrail', None, '0'),
+                   ('thumbnail', 'abc', '23'),
+                   ('thumbnail', 'def', '34')]
         for e in entries:
             manifest.add_entry(*e)
         manifest.save()
@@ -2461,7 +2480,7 @@ class TestSQLDatabase(TestBundle):
         # FIXME unit tests need to wrap any call to this module's globals
         import vistrails.db.services.bundle as vtbundle
         # FIXME hack to make sure we have the correct table
-        from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
+        from vistrails.db.versions.v2_1_0.persistence.sql import alchemy
         vtbundle.DBBlobSerializer.alchemy = alchemy
         vtbundle.DBManifest.alchemy = alchemy
 
@@ -2481,6 +2500,9 @@ class TestSQLDatabase(TestBundle):
             # hack to ensure that we get the correct serializer
             b1.mapping.version = '0.0.0'
             vtbundle.get_serializer("db_serializer").save(b1, self.conn)
+
+            # make sure we load the log
+            print b1.log
 
             bundle_id = b1.get_metadata('id')
             # FIXME check if file structure matches what we expect
@@ -2508,8 +2530,11 @@ class TestMySQLDatabase(TestSQLDatabase):
                 "db": "vt_test",
                 "version": cls.db_version}
 
-class TestMySQLDatabase_v1_0_5(TestMySQLDatabase, unittest.TestCase):
-    db_version = '1.0.5'
+# class TestMySQLDatabase_v1_0_5(TestMySQLDatabase, unittest.TestCase):
+#     db_version = '1.0.5'
+
+class TestMySQLDatabase_v2_1_0(TestMySQLDatabase, unittest.TestCase):
+    db_version = '2.1.0'
 
 class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
     db_fname = None
@@ -2528,7 +2553,8 @@ class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
     def get_config(cls):
         return {"dialect": "sqlite",
                 "db": cls.get_db_fname(),
-                "version": "1.0.5"}
+                # "version": "1.0.5"}
+                "version": "2.1.0"}
 
     @classmethod
     def tearDownClass(cls):
