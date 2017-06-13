@@ -66,7 +66,6 @@ Name: {group}\VisTrails.pdf; Filename: {app}\doc\VisTrails.pdf; Components: user
 Name: desktopicon; Description: Create a &desktop icon; GroupDescription: Additional icons:; Components: main
 Name: desktopicon\common; Description: For all users; GroupDescription: Additional icons:; Components: main; Flags: exclusive
 Name: desktopicon\user; Description: For the current user only; GroupDescription: Additional icons:; Components: main; Flags: exclusive unchecked
-Name: quicklaunchicon; Description: Create a &Quick Launch icon; GroupDescription: Additional icons:; Components: main; Flags: unchecked
 Name: associatefiles; Description: Associate *.vt files with VisTrails; GroupDescription: File Association:; Components: main
 [_ISTool]
 LogFile=Output\build.log
