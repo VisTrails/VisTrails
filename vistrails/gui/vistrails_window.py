@@ -880,7 +880,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._focus_owner = None
         self._previous_view = None
         self._is_quitting = False
-        self._first_view = True
+        self._first_view = None
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
