@@ -561,26 +561,41 @@ class FileSerializer(BundleObjSerializer):
     def get_basename(self, obj):
         return obj.id
 
-    def load(self, filename, do_translate=True):
+    def get_full_path(self, dir_name, basename=None, obj=None):
+        if basename is None and obj is None:
+            raise ValueError("Either basename or obj must be passed")
+        if basename is None:
+            basename = self.get_basename(obj)
+        if self.inner_dir_name is not None:
+            return os.path.join(dir_name, self.inner_dir_name, basename)
+        else:
+            return os.path.join(dir_name, basename)
+
+    def load(self, dir_name, basename, do_translate=True):
         """
         :param filename: Full path to file in bundle
         :return: BundleObj
         """
-        if not os.path.exists(filename):
-            raise VistrailsDBException('Cannot open file "%s".' % filename)
-        with open(filename, 'rb') as f:
+        fname = self.get_full_path(dir_name, basename)
+        self.check_inner_dir(fname)
+        if not os.path.exists(fname):
+            raise VistrailsDBException('Cannot open file "%s".' % fname)
+        with open(fname, 'rb') as f:
             data = f.read()
             b_obj = self.mapping.create_bundle_obj_f(data)
             return b_obj
     
-    def save(self, obj, path):
+    def save(self, obj, dir_name):
         """
         :param obj: BundleObj
         :param path: full path to write file to
         :return: full path to written file
         """
-        with open(path, 'wb') as f:
+        fname = self.get_full_path(dir_name, obj=obj)
+        with open(fname, 'wb') as f:
             f.write(obj.obj)
+        # TODO not ideal as it should be what get_full_path uses...
+        return self.get_basename(obj)
 
 class FileRefSerializer(FileSerializer):
     """ Serializes the reference to a file using a root directory,
@@ -592,21 +607,28 @@ class FileRefSerializer(FileSerializer):
     # def get_obj_id(self, filename):
     #     return os.path.basename(filename)
 
-    def load(self, filename, do_translate=True):
+    def get_basename(self, obj):
+        return obj.obj
+
+    def load(self, dir_name, basename, do_translate=True):
         """ Create a BundleObj containing a reference to a file
             If inner dir name is specified, filename must contain it
         """
 
+        filename = self.get_full_path(dir_name, basename)
         #TODO make sure this uses a Ref mapping?
         b_obj = self.mapping.create_bundle_obj_f(filename)
         return b_obj
 
-    def save(self, obj, path):
+    def save(self, obj, dir_name):
         """ Saves the referenced file to the new location
         """
+        path = self.get_full_path(dir_name, obj=obj)
+
         # FIXME check for changed content (e.g. overwrite?)
-        if obj.obj != path:
+        if not os.path.exists(path):
             shutil.copyfile(obj.obj, path)
+        return path
 
 
 class XMLFileSerializer(FileSerializer):
@@ -621,7 +643,8 @@ class XMLFileSerializer(FileSerializer):
                          'xsi:schemaLocation': schema}
         self.obj_path_as_type = obj_path_as_type
 
-    def load(self, filename, do_translate=True):
+    def load(self, dir_name, basename, do_translate=True):
+        filename = self.get_full_path(dir_name, basename)
         self.check_inner_dir(filename)
         tree = ElementTree.parse(filename)
         version = self.get_version_for_xml(tree.getroot())
@@ -635,7 +658,8 @@ class XMLFileSerializer(FileSerializer):
         # b_obj = BundleObj(obj, self.obj_type, obj_id)
         return b_obj
 
-    def save(self, b_obj, path, version=None):
+    def save(self, b_obj, dir_name, version=None):
+        filename = self.get_full_path(dir_name, obj=b_obj)
         vt_obj = b_obj.obj
         if version is None:
             version = vistrails.db.versions.get_current_version()
@@ -645,13 +669,16 @@ class XMLFileSerializer(FileSerializer):
                                                         self.translator_f,
                                                         vt_obj.db_version,
                                                         version)
-        self.save_file(b_obj, path, version)
+        self.save_file(b_obj, filename, version)
         vt_obj = vistrails.db.versions.translate_object(vt_obj,
                                                         self.translator_f,
                                                         version)
         b_obj.obj = vt_obj
         self.finish_save(vt_obj)
-        return b_obj
+        # return b_obj # DK: not sure what this was used for
+        # TODO not ideal as it should be what get_full_path uses...
+        return self.get_basename(b_obj)
+
 
     def save_file(self, b_obj, file_obj, version=None):
         daoList = vistrails.db.versions.getVersionDAO(version)
@@ -840,7 +867,8 @@ class XMLAppendSerializer(XMLFileSerializer):
         self.inner_obj_type = inner_obj_type
         self.xml_tag = xml_tag
 
-    def load(self, filename, do_translate=True):
+    def load(self, dir_name, basename, do_translate=True):
+        filename = self.get_full_path(dir_name, basename)
         parser = ElementTree.XMLTreeBuilder()
         parser.feed("<%s>\n" % self.xml_tag)
         f = open(filename, "rb")
@@ -882,8 +910,9 @@ class XMLAppendSerializer(XMLFileSerializer):
         b_obj = self.mapping.create_bundle_obj_f(vt_obj)
         return b_obj
 
-    def save(self, obj, path, version=None):
+    def save(self, obj, dir_name, version=None):
 
+        path = self.get_full_path(dir_name, obj=obj)
         vt_obj = obj.obj
         # FIXME really want version to be whichever version is serializing...
         if version is None:
@@ -902,6 +931,8 @@ class XMLAppendSerializer(XMLFileSerializer):
                                           file_obj, version)
             inner_obj.db_id = cur_id
         vistrails.db.versions.translate_object(vt_obj, self.translator_f, version)
+        # TODO not ideal as it should be what get_full_path uses...
+        return self.get_basename(obj)
 
 #         if inner_obj_list:
 #             return DBLog(workflow_execs=inner_obj_list)
@@ -1185,16 +1216,13 @@ class DirectorySerializer(BundleSerializer):
 
         for obj_type, obj_id, fname in manifest.get_items(allow_none=True):
             serializer = self.get_serializer(obj_type)
-            path = os.path.join(dir_path, serializer.inner_dir_name or '',
-                                fname)
-            serializer.check_inner_dir(path)
             if self.lazy and self.is_lazy(obj_type):
                 # For lazy, must have obj type and id correct
-                lazy_obj = LazyBundleObj(lambda s=serializer,p=path: s.load(p),
-                                         obj_type, obj_id)
+                load_f = lambda s=serializer,d=dir_path,b=fname: s.load(d,b)
+                lazy_obj = LazyBundleObj(load_f, obj_type, obj_id)
                 bundle.add_lazy_object(lazy_obj)
             else:
-                obj = serializer.load(path, do_translate)
+                obj = serializer.load(dir_path, fname, do_translate)
                 if obj is not None:
                     #FIXME test/assert that what serializer loads matches manifest
                     if obj.id is None:
@@ -1210,12 +1238,8 @@ class DirectorySerializer(BundleSerializer):
         for obj_type, obj_id, bundle_obj in bundle.get_items():
             try:
                 serializer = self.get_serializer(obj_type)
-                # FIXME need to fix this...
-                fname = serializer.get_basename(bundle_obj)
-                path = os.path.join(serializer.get_inner_dir(dir_path),
-                                    fname)
-                serializer.save(bundle_obj, path)
-                manifest.add_entry(obj_type, obj_id, fname)
+                basename = serializer.save(bundle_obj, dir_path)
+                manifest.add_entry(obj_type, obj_id, basename)
             except VistrailsDBException:
                 # cannot serialize object
                 debug.warning('Cannot serialize object(s) of type "%s"' % \
@@ -2006,10 +2030,10 @@ class TestBundle(object):
                           [MultipleFileRefMapping('image', 'image')])
         b = Bundle(m)
         fname1 = os.path.join(resource_directory(), u'images', u'info.png')
-        o1 = BundleObj(fname1, "image", "abc")
+        o1 = BundleObj(fname1, "image", "info.png")
         b.add_object(o1)
         fname2 = os.path.join(resource_directory(), u'images', u'left.png')
-        o2 = BundleObj(fname2, "image", "def")
+        o2 = BundleObj(fname2, "image", "left.png")
         b.add_object(o2)
         return b
 
