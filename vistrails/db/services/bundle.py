@@ -1450,7 +1450,7 @@ class DBObjSerializer(BundleObjSerializer):
 
         vt_obj = b_obj.obj
         if vt_obj.db_version is None:
-            vt_obj.db_version = vistrails.db.versions.currentVersion
+            vt_obj.db_version = vistrails.db.versions.get_current_version()
 
         dao_list = vistrails.db.versions.getVersionDAO(version)
         vt_obj = vistrails.db.versions.translate_object(vt_obj, self.translator_f,
@@ -1459,7 +1459,7 @@ class DBObjSerializer(BundleObjSerializer):
         print "SAVING", vt_obj
         dao_list.save_to_db(db_connection, vt_obj, overwrite)
         vt_obj = vistrails.db.versions.translate_object(vt_obj, version,
-                                                        vistrails.db.versions.currentVersion)
+                                                        vistrails.db.versions.get_current_version())
 
         self.finish_save(vt_obj, db_connection, dao_list)
         # db_connection.commit()
@@ -1485,7 +1485,7 @@ class DBObjSerializer(BundleObjSerializer):
         WHERE o.id = %s
         """
 
-        version = vistrails.db.versions.currentVersion
+        version = vistrails.db.versions.get_current_version()
         try:
             c = db_connection.cursor()
             # print command % (cls.translate_to_tbl_name(obj_type), obj_id)
@@ -1892,7 +1892,7 @@ def unregister_bundle_mapping(bmap=None, bundle_type=None, version=None):
 
 def get_bundle_mapping(bundle_type='vistrail', version=None):
     if version is None:
-        version = vistrails.db.versions.currentVersion
+        version = vistrails.db.versions.get_current_version()
     if (bundle_type, version) not in bundle_mappings:
         raise ValueError('Mapping for version "%s" of bundle type "%s" '
                          'not found.' % (version, bundle_type))
@@ -2337,7 +2337,7 @@ class TestSQLDatabase(TestBundle):
             def save(self, obj, connection_obj, overwrite=True):
                 # current_action holds the current action id
                 # (used by the controller--write_vistrail)
-                version = vistrails.db.versions.currentVersion
+                version = vistrails.db.versions.get_current_version()
                 vt_obj = obj.obj
                 current_action = vt_obj.db_version
 
