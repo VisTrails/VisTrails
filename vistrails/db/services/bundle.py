@@ -545,7 +545,7 @@ class FileSerializer(BundleObjSerializer):
                 debug.warning('Expected "%s" to live in "%s" subdir.' %
                               (filename, self.inner_dir_name))
 
-    def get_inner_dir(self, rootdir):
+    def create_inner_dir(self, rootdir):
         if self.inner_dir_name:
             inner_dir = os.path.join(rootdir, self.inner_dir_name)
             if os.path.exists(inner_dir):
@@ -555,8 +555,7 @@ class FileSerializer(BundleObjSerializer):
             else:
                 os.mkdir(inner_dir)
             return inner_dir
-        else:
-            return rootdir
+        return None
 
     def get_basename(self, obj):
         return obj.id
@@ -608,7 +607,7 @@ class FileRefSerializer(FileSerializer):
     #     return os.path.basename(filename)
 
     def get_basename(self, obj):
-        return obj.obj
+        return os.path.basename(obj.obj)
 
     def load(self, dir_name, basename, do_translate=True):
         """ Create a BundleObj containing a reference to a file
@@ -1238,6 +1237,8 @@ class DirectorySerializer(BundleSerializer):
         for obj_type, obj_id, bundle_obj in bundle.get_items():
             try:
                 serializer = self.get_serializer(obj_type)
+                # FIXME better in the individual serializer save?
+                serializer.create_inner_dir(dir_path)
                 basename = serializer.save(bundle_obj, dir_path)
                 manifest.add_entry(obj_type, obj_id, basename)
             except VistrailsDBException:
