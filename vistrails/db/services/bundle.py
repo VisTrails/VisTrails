@@ -133,8 +133,11 @@ class BundleObjDictionary(object):
         else:
             self.single_types.discard(obj_type)
 
-    def has_entry(self, obj_type, obj_id):
+    def has_entry(self, obj_type, obj_id=None):
         if obj_type in self._objs:
+            # True if obj_id is not specified and an object exists
+            if obj_id is None and len(self._objs[obj_type]) > 0:
+                return True
             return obj_id in self._objs[obj_type]
         return False
 
@@ -165,6 +168,9 @@ class BundleObjDictionary(object):
         """ get_value(obj: translatable) -> BundleObj
         """
         obj_type, obj_id = self._translate_args(obj)
+        # special case for None and length 1, return the single object
+        if obj_id is None and len(self._objs[obj_type]) == 1:
+            return next(self._objs[obj_type].itervalues())
         if not self.has_entry(obj_type, obj_id):
             raise VistrailsDBException('Entry does not exist.')
         return self._objs[obj_type][obj_id]
@@ -232,6 +238,23 @@ class BundleMapping(object):
             self.add_mapping(mapping)
         self.primary_obj_type = primary_obj_type
 
+    def create_mapping(self, obj_type, attr_plural=False, create_bundle_obj_f=None,
+                        attr_name=None, attr_plural_name=None, obj_id_f=None):
+        if create_bundle_obj_f is None:
+            def create_bundle_obj(obj):
+                if obj_id_f is not None:
+                    return BundleObj(obj, obj_type, obj_id_f(obj))
+                if hasattr(obj, 'db_id'):
+                    obj_id = obj.db_id
+                    if not obj_id:
+                        obj_id = None
+                    return BundleObj(obj, obj_type, obj_id)
+                return BundleObj(obj, obj_type, os.path.basename(obj))
+            create_bundle_obj_f = create_bundle_obj
+        self.add_mapping(BundleObjMapping(obj_type, create_bundle_obj_f,
+                                          attr_name, attr_plural,
+                                          attr_plural_name))
+
     def add_mapping(self, mapping):
         self._mappings_by_type[mapping.obj_type] = mapping
         self._mappings_by_name[mapping.attr_name] = mapping
@@ -275,7 +298,7 @@ class BundleMapping(object):
                     return [bo.obj for bo in bundle.get_values(mapping.obj_type)]
                 return []
             else: # have single attr name
-                if bundle.has_entry(mapping.obj_type, None):
+                if bundle.has_entry(mapping.obj_type):
                     return bundle.get_value((mapping.obj_type, None)).obj
         return None
 
@@ -1201,12 +1224,7 @@ class DirectorySerializer(BundleSerializer):
     def add_default_serializers(self):
         for m in self.mapping.mappings():
             if not self.has_serializer(m.obj_type):
-                if isinstance(m, SingleRootBundleObjMapping):
-                    s = FileRefSerializer(m)
-                elif isinstance(m, MultipleFileRefMapping):
-                    s = FileRefSerializer(m, m.attr_plural_name)
-                else:
-                    raise Exception("No serialzier for {}".format(m.obj_type))
+                s = FileRefSerializer(m, m.attr_plural_name)
                 self.add_serializer(s)
 
     def load(self, dir_path, manifest, do_translate=True):

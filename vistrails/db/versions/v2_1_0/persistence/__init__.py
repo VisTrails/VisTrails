@@ -52,27 +52,38 @@ root_set = set([DBVistrail.vtType, DBWorkflow.vtType,
 
 ElementTree = get_elementtree_library()
 
-vistrail_bmap = vtbundle.BundleMapping(my_version, 'vistrail',
-                                       [vtbundle.SingleRootBundleObjMapping(
-                                  DBVistrail.vtType, 'vistrail'),
-                                  vtbundle.SingleRootBundleObjMapping(DBLog.vtType,
-                                                             'log'),
-                                  vtbundle.SingleRootBundleObjMapping(
-                                      DBRegistry.vtType, 'registry'),
-                                  vtbundle.MultipleObjMapping(DBMashuptrail.vtType,
-                                                              lambda obj: obj.db_name,
-                                                     'mashup'),
-                                  vtbundle.MultipleFileRefMapping('thumbnail'),
-                                  vtbundle.MultipleFileRefMapping('abstraction'),
-                                  vtbundle.SingleRootBundleObjMapping('job'),
-                                  vtbundle.MultipleFileRefMapping('data'),
-                              ],
-                                       primary_obj_type='vistrail')
+# class ThumbnailBundleObj(vtbundle.BundleObj):
+#     def __init__(self, obj, id=None, changed=False):
+#         super(ThumbnailBundleObj, self).__init__(obj, "thumbnail", id, changed)
+#
+# class MultiFileSerializer(vtbundle.FileSerializer):
+#     def __init__(self, bundle_obj_mapping, inner_dir_name=None):
+#         super(MultiFileSerializer, self).__init__(bundle_obj_mapping,
+#                                                   inner_dir_name)
+#
+#     def load(self):
+#         if self.inner_dir_name:
+#
+#
+#
+#
+vistrail_bmap = vtbundle.BundleMapping(my_version, 'vistrail', primary_obj_type='vistrail')
+vistrail_bmap.create_mapping(DBVistrail.vtType)
+vistrail_bmap.create_mapping(DBLog.vtType)
+vistrail_bmap.create_mapping(DBRegistry.vtType)
+vistrail_bmap.create_mapping(DBMashuptrail.vtType, True, attr_name='mashup',
+                             obj_id_f=lambda obj: obj.db_name)
+vistrail_bmap.create_mapping('thumbnail', True)
+vistrail_bmap.create_mapping('abstraction', True)
+vistrail_bmap.create_mapping('job')
+vistrail_bmap.create_mapping('data', True)
+
+# serializers = {'vistrail': vtbundle.XMLFileSerializer()}
+
 workflow_bmap = vistrail_bmap.clone(bundle_type='workflow',
                                     primary_obj_type='workflow')
 workflow_bmap.remove_mapping('vistrail')
-workflow_bmap.add_mapping(
-    vtbundle.SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow'))
+workflow_bmap.create_mapping(DBWorkflow.vtType)
 
 log_bmap = vistrail_bmap.clone(bundle_type='log',
                                primary_obj_type='log')
@@ -557,8 +568,8 @@ class TestPersistence(unittest.TestCase):
     def create_vt_bundle(self):
         from vistrails.core.system import resource_directory
         b = vtbundle.new_bundle('vistrail', my_version)
-        b.add_object(DBVistrail())
-        b.add_object(DBLog())
+        b.add_object(DBVistrail(id=''))
+        b.add_object(DBLog(id=''))
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         b.add_object(fname1, 'thumbnail') # info.png
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')

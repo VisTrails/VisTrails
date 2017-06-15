@@ -131,23 +131,16 @@ def register_bundle_serializers(version):
     log_type = get_domain_obj('DBLog').vtType
     mashup_type = get_domain_obj('DBMashuptrail').vtType
 
-    legacy_bmap = vtbundle.BundleMapping(version, 'vistrail',
-                                         [vtbundle.SingleRootBundleObjMapping(
-                                           vistrail_type, 'vistrail'),
-                                           vtbundle.SingleRootBundleObjMapping(
-                                               log_type,
-                                               'log'),
-                                           vtbundle.MultipleObjMapping(
-                                               mashup_type,
-                                               lambda obj: obj.db_name,
-                                               'mashup'),
-                                           vtbundle.MultipleFileRefMapping(
-                                               'thumbnail'),
-                                           AbstractionFileRefMapping(
-                                               'abstraction'),
-                                           vtbundle.SingleRootBundleObjMapping(
-                                               'job'),
-                                       ])
+    legacy_bmap = vtbundle.BundleMapping(version, 'vistrail', primary_obj_type='vistrail')
+    legacy_bmap.create_mapping(vistrail_type)
+    legacy_bmap.create_mapping(log_type)
+    legacy_bmap.create_mapping(mashup_type, True, attr_name='mashup',
+                               obj_id_f=lambda obj: obj.db_name)
+    legacy_bmap.create_mapping('thumbnail', True)
+    legacy_bmap.create_mapping('abstraction', True,
+                               obj_id_f=lambda obj: os.path.basename(obj)[len('abstraction_'):])
+    legacy_bmap.create_mapping('job')
+
     vt_dir_serializer = vtbundle.DirectorySerializer(legacy_bmap,
                                                      [vtbundle.XMLFileSerializer(
                                                        legacy_bmap.get_mapping(
