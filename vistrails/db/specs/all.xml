@@ -276,6 +276,10 @@
       <property ref="true" object="plugin_data" mapping="one-to-one">
 	<xml nodeType="xs:element"/>
       </property>
+      <property ref="true" object="action" mapping="one-to-one" expand="false">
+	    <xml nodeType="xs:element"/>
+      </property>
+
     </choice>
 
     <property name="action" type="str" ref="true" object="action" 
@@ -644,6 +648,9 @@
       </property>
       <property ref="true" object="plugin_data" mapping="one-to-one">
 	<xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="action" mapping="one-to-one" expand="false">
+	    <xml nodeType="xs:element"/>
       </property>
     </choice>
     

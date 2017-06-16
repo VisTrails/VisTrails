@@ -133,6 +133,7 @@
         <xs:element ref="group" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="other" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="plugin_data" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="action" minOccurs="0" maxOccurs="1"/>
       </xs:choice>
       <xs:attribute name="id" type="xs:string"/>
       <xs:attribute name="pos" type="xs:int"/>
@@ -168,6 +169,7 @@
         <xs:element ref="group" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="other" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="plugin_data" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="action" minOccurs="0" maxOccurs="1"/>
       </xs:choice>
       <xs:attribute name="id" type="xs:string"/>
       <xs:attribute name="pos" type="xs:int"/>

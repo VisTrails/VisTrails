@@ -573,6 +573,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child_tag == 'plugin_data':
                 _data = self.getDao('plugin_data').fromXML(child)
                 data = _data
+            elif child_tag == 'action':
+                _data = self.getDao('action').fromXML(child)
+                data = _data
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -643,6 +646,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif data.vtType == 'plugin_data':
                 childNode = ElementTree.SubElement(node, 'plugin_data')
                 self.getDao('plugin_data').toXML(data, childNode)
+            elif data.vtType == 'action':
+                childNode = ElementTree.SubElement(node, 'action')
+                self.getDao('action').toXML(data, childNode)
 
         return node
 
@@ -2231,6 +2237,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child_tag == 'plugin_data':
                 _data = self.getDao('plugin_data').fromXML(child)
                 data = _data
+            elif child_tag == 'action':
+                _data = self.getDao('action').fromXML(child)
+                data = _data
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -2304,6 +2313,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif data.vtType == 'plugin_data':
                 childNode = ElementTree.SubElement(node, 'plugin_data')
                 self.getDao('plugin_data').toXML(data, childNode)
+            elif data.vtType == 'action':
+                childNode = ElementTree.SubElement(node, 'action')
+                self.getDao('action').toXML(data, childNode)
 
         return node
 

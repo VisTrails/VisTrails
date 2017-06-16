@@ -55,6 +55,7 @@ from vistrails.core.vistrail.action import Action
 from vistrails.core.vistrail.action_annotation import ActionAnnotation
 from vistrails.core.vistrail.vistrailvariable import VistrailVariable
 from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -1088,6 +1089,43 @@ class Vistrail(DBVistrail):
             version = upgrade_map.get(version)
         return chain
 
+class MetaVistrail(Vistrail):
+    """Instead of generating pipelines, this class generates Vistrails"""
+
+    def getVistrail(self, version):
+        """getPipeline(number or tagname) -> Pipeline
+        Return a pipeline object given a version number or a version name. 
+
+        """
+        try:
+            if self.has_tag_str(str(version)):
+                return self.getVistrailVersionName(str(version))
+            else:
+                return self.getVistrailVersionNumber(version)
+        except Exception, e:
+            raise InvalidPipeline([e])
+
+    def getVistrailVersionName(self, version):
+        """getPipelineVersionName(version:str) -> Pipeline
+        Returns a pipeline given a version name. If version name doesn't exist
+        it will return None.
+
+        """
+        if self.has_tag_str(version):
+            number = self.get_tag_str(version).action_id
+            return self.getVistrailVersionNumber(number)
+        else:
+            return None
+
+    def getVistrailVersionNumber(self, version):
+        """getPipelineVersionNumber(version:int) -> Pipeline
+        Returns a pipeline given a version number.
+
+        """
+        vistrail = vistrails.core.db.io.get_vistrail(self, version)
+        return vistrail
+
+
 ##############################################################################
 
 class ExplicitExpandedVersionTree(object):
@@ -1345,6 +1383,107 @@ class TestVistrail(unittest.TestCase):
             self.assertTrue(uuids_sim(action1.id, '360de7dd'))
             self.assertTrue(uuids_sim(action2.id, 'cc0d23a4'))
 
+
+class TestMetaVistrail(unittest.TestCase):
+    def create_vistrail(self):
+        vistrail = MetaVistrail()
+
+        def update_ops_ids(actions):
+            for action in actions:
+                for op in action.operations:
+                    if op.id < 0:
+                        op.id = vistrail.idScope.getNewId('operation')
+                        # if op.vtType == 'add' or op.vtType == 'change':
+                        #     vistrail.db_add_object(op.db_data)
+
+        p1 = ModuleParam(
+            id=vistrail.idScope.getNewId(),
+            type='Integer',
+            val='2')
+        f1 = ModuleFunction(id=vistrail.idScope.getNewId(),
+                            name='value',
+                            parameters=[p1])
+        m = Module(id=vistrail.idScope.getNewId(Module.vtType),
+                   name='Float',
+                   package=get_vistrails_basic_pkg_id(),
+                   location=Location(id=vistrail.idScope.getNewId(),x=12,y=12),
+                   functions=[f1])
+        a1 = vistrails.core.db.io.create_action([('add', m)])
+        p2 = ModuleParam(id=vistrail.idScope.getNewId(),
+                         type='Integer',
+                         val='1')
+        a2 = vistrails.core.db.io.create_action(
+            [('change', p1, p2, 'function', f1.id)])
+        a3 = vistrails.core.db.io.create_action(
+            [('delete', f1, 'module', m.id)])
+
+        p1 = ModuleParam(
+            id=vistrail.idScope.getNewId(),
+            type='Integer',
+            val='3')
+        f1 = ModuleFunction(id=vistrail.idScope.getNewId(),
+                            name='value',
+                            parameters=[p1])
+        m = Module(id=vistrail.idScope.getNewId(Module.vtType),
+                   name='Float',
+                   package=get_vistrails_basic_pkg_id(),
+                   location=Location(id=vistrail.idScope.getNewId(), x=12, y=12),
+                   functions=[f1])
+        a4 = vistrails.core.db.io.create_action([('add', m)])
+
+        update_ops_ids([a1,a2,a3,a4])
+
+        print "ACTION a1:", a1, [(op.vtType, op.what, op.objectId) for op in a1.operations]
+
+        meta_a1 = vistrails.core.db.io.create_action([('add', a1)])
+        meta_a2 = vistrails.core.db.io.create_action([('add', a2)])
+        meta_a3 = vistrails.core.db.io.create_action([('add', a3)])
+        meta_a4 = vistrails.core.db.io.create_action([('change', a1, a4)])
+        meta_a5 = vistrails.core.db.io.create_action([('delete', a3)],
+                                                     [('delete', a2)])
+
+        vistrail.add_action(meta_a1, Vistrail.ROOT_VERSION)
+        vistrail.add_action(meta_a2, meta_a1.id)
+        vistrail.add_action(meta_a3, meta_a2.id)
+        vistrail.add_action(meta_a4, meta_a1.id)
+        vistrail.add_action(meta_a5, meta_a3.id)
+
+        print "ACTIONS:", vistrail.getVistrail(meta_a4.id).actions
+
+    def test_meta_vistrail(self):
+        self.create_vistrail()
+
+            # add_op = AddOp(id=vistrail.idScope.getNewId(AddOp.vtType),
+            #                what=Module.vtType,
+            #                objectId=m.id,
+            #                data=m)
+            # function_id = vistrail.idScope.getNewId(ModuleFunction.vtType)
+            # function = ModuleFunction(id=vistrail.getNewId(),
+            #                           name='value')
+            # change_op = ChangeOp(id=vistrail.idScope.getNewId(ChangeOp.vtType),
+            #                      what=ModuleFunction.vtType,
+            #                      oldObjId=2,
+            #                      newObjId=function.real_id,
+            #                      parentObjId=m.id,
+            #                      parentObjType=Module.vtType,
+            #                      data=function)
+            # param = ModuleParam(
+            #     id=vistrail.idScope.getNewId(ModuleParam.vtType),
+            #     type='Integer',
+            #     val='1')
+            # delete_op = DeleteOp(id=vistrail.idScope.getNewId(DeleteOp.vtType),
+            #                      what=ModuleParam.vtType,
+            #                      objectId=param.real_id,
+            #                      parentObjId=function.real_id,
+            #                      parentObjType=ModuleFunction.vtType)
+            # vistrail.add_action(action1, 0)
+            # vistrail.add_action(action2, action1.id)
+            # vistrail.addTag('first action', action1.id)
+            # vistrail.addTag('second action', action2.id)
+            # return vistrail
+
+def load_tests(loader, tests, pattern):
+    return loader.loadTestsFromName('vistrails.core.vistrail.vistrail.TestMetaVistrail')
 
 if __name__ == '__main__':
     unittest.main()

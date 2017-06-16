@@ -1717,6 +1717,8 @@ class DBAdd(object):
             elif obj.vtType == 'plugin_data':
                 new_obj.db_add_data(
                     DBPluginData.update_version(obj, trans_dict))
+            elif obj.vtType == 'action':
+                new_obj.db_add_data(DBAction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_data') and hasattr(new_obj, 'db_deleted_data'):
             for obj in old_obj.db_deleted_data:
                 if obj.vtType == 'module':
@@ -1757,6 +1759,9 @@ class DBAdd(object):
                     new_obj.db_deleted_data.append(n_obj)
                 elif obj.vtType == 'plugin_data':
                     n_obj = DBPluginData.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'action':
+                    n_obj = DBAction.update_version(obj, trans_dict)
                     new_obj.db_deleted_data.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
@@ -7362,6 +7367,8 @@ class DBChange(object):
             elif obj.vtType == 'plugin_data':
                 new_obj.db_add_data(
                     DBPluginData.update_version(obj, trans_dict))
+            elif obj.vtType == 'action':
+                new_obj.db_add_data(DBAction.update_version(obj, trans_dict))
         if hasattr(old_obj, 'db_deleted_data') and hasattr(new_obj, 'db_deleted_data'):
             for obj in old_obj.db_deleted_data:
                 if obj.vtType == 'module':
@@ -7402,6 +7409,9 @@ class DBChange(object):
                     new_obj.db_deleted_data.append(n_obj)
                 elif obj.vtType == 'plugin_data':
                     n_obj = DBPluginData.update_version(obj, trans_dict)
+                    new_obj.db_deleted_data.append(n_obj)
+                elif obj.vtType == 'action':
+                    n_obj = DBAction.update_version(obj, trans_dict)
                     new_obj.db_deleted_data.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty

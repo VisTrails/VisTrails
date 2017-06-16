@@ -75,6 +75,23 @@ def update_id_scope(vistrail):
         # cannot do anything for now
         pass
 
+def materializeVistrail(meta_vt, version, root_version=DBVistrail.ROOT_VERSION):
+    # construct path up through tree and perform each action
+    if meta_vt.db_has_action_with_id(version):
+        vistrail = DBVistrail()
+        #for action in getActionChain(vistrail, version):
+        #    oldPerformAction(action, workflow)
+        performActions(getActionChain(meta_vt, version, root_version),
+                            vistrail)
+        vistrail.db_id = version
+        vistrail.db_vistrailId = meta_vt.db_id
+        return vistrail
+    elif version == DBVistrail.ROOT_VERSION:
+        return DBVistrail()
+    else:
+        raise VistrailsDBException("invalid workflow version %s" % version)
+
+
 def materializeWorkflow(vistrail, version, root_version=DBVistrail.ROOT_VERSION):
     # construct path up through tree and perform each action
     if vistrail.db_has_action_with_id(version):
@@ -118,7 +135,7 @@ def performDeletes(deleteOps, workflow):
                                   operation.db_parentObjType,
                                   operation.db_parentObjId)
 
-def performAdds(addOps, workflow):
+def performAdds(addOps, obj):
     for operation in addOps:
         if operation is None:
             continue
@@ -126,15 +143,15 @@ def performAdds(addOps, workflow):
         #                                operation.db_what)
         # print "    to:  %s %s" % (operation.db_parentObjType,
         #                           operation.db_parentObjId)
-        workflow.db_add_object(operation.db_data,
-                               operation.db_parentObjType,
-                               operation.db_parentObjId)
+        obj.db_add_object(operation.db_data,
+                          operation.db_parentObjType,
+                          operation.db_parentObjId)
 
-def performActions(actions, workflow):
+def performActions(actions, obj):
     # get the current actions and run addObject on the workflow
     # note that delete actions have been removed and
     # a change after an add is effectively an add if the add is discarded
-    performAdds(getCurrentOperations(actions), workflow)
+    performAdds(getCurrentOperations(actions), obj)
 
 def synchronize(old_vistrail, new_vistrail, current_action_id):
     id_remap = {}

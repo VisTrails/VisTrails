@@ -49,6 +49,12 @@ def get_db_vistrail_list(config):
     vistrails.db.services.io.close_db_connection(db_connection)
     return res
 
+def get_vistrail(vt, version):
+    from vistrails.core.vistrail.vistrail import Vistrail
+    vistrail = vistrails.db.services.vistrail.materializeVistrail(vt, version)
+    Vistrail.convert(vistrail)
+    return vistrail
+
 def get_workflow(vt, version):
     from vistrails.core.vistrail.pipeline import Pipeline
     workflow = vistrails.db.services.vistrail.materializeWorkflow(vt, version)
