@@ -325,11 +325,25 @@ class ${obj.getClassName()}(object):
         % else:
         % if not ref.isPlural():
         if self.${ref.getPrivateName()} is not None:
+            % if ref.isChoice() and ref.hasDiscriminator() and ref.hasNotExpand():
+            <%
+            disc_prop = obj.getDiscriminatorProperty( \
+                field.getDiscriminator())
+            lookup_str = "self.%s" % disc_prop.getPrivateName()
+            %>\\
+            if ${lookup_str} not in ${ref.getNotExpandNames()}:
+                children.extend(self.${ref.getPrivateName()}. \!
+                                ${ref.getReferencedObject().getChildren()}( \!
+                                    (self.vtType, self.getPrimaryKey()), orphan, for_action))
+                if orphan:
+                    self.${ref.getPrivateName()} = None
+            % else:
             children.extend(self.${ref.getPrivateName()}. \!
                             ${ref.getReferencedObject().getChildren()}( \!
                                 (self.vtType, self.getPrimaryKey()), orphan, for_action))
             if orphan:
                 self.${ref.getPrivateName()} = None
+            % endif
         % else:
         to_del = []
         for child in self.${ref.getIterator()}:

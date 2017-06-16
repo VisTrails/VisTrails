@@ -129,8 +129,11 @@ class DBVistrail(_DBVistrail):
         #     self.idScope.updateBeginId('parameter_exploration',
         #                                paramexp.db_id+1)
 
-    def db_add_object(self, obj):
-        # print "adding object", obj.vtType, obj.db_id
+    # Extra params to help with meta-vistrail (not used)
+    def db_add_object(self, obj, parent_obj_type=None, parent_obj_id=None):
+        print "adding object", obj.vtType, obj.db_id
+        if obj.vtType == 'action':
+            self.db_add_action(obj)
         self.db_objects[(obj.vtType, obj.db_id)] = obj
 
     def db_get_object(self, type, id):

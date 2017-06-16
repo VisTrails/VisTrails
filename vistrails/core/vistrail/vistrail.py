@@ -1097,13 +1097,10 @@ class MetaVistrail(Vistrail):
         Return a pipeline object given a version number or a version name. 
 
         """
-        try:
-            if self.has_tag_str(str(version)):
-                return self.getVistrailVersionName(str(version))
-            else:
-                return self.getVistrailVersionNumber(version)
-        except Exception, e:
-            raise InvalidPipeline([e])
+        if self.has_tag_str(str(version)):
+            return self.getVistrailVersionName(str(version))
+        else:
+            return self.getVistrailVersionNumber(version)
 
     def getVistrailVersionName(self, version):
         """getPipelineVersionName(version:str) -> Pipeline
@@ -1388,8 +1385,10 @@ class TestMetaVistrail(unittest.TestCase):
     def create_vistrail(self):
         vistrail = MetaVistrail()
 
-        def update_ops_ids(actions):
+        def update_ids(actions):
             for action in actions:
+                if action.id < 0:
+                    action.id = vistrail.idScope.getNewId('action')
                 for op in action.operations:
                     if op.id < 0:
                         op.id = vistrail.idScope.getNewId('operation')
@@ -1409,6 +1408,7 @@ class TestMetaVistrail(unittest.TestCase):
                    location=Location(id=vistrail.idScope.getNewId(),x=12,y=12),
                    functions=[f1])
         a1 = vistrails.core.db.io.create_action([('add', m)])
+
         p2 = ModuleParam(id=vistrail.idScope.getNewId(),
                          type='Integer',
                          val='1')
@@ -1431,16 +1431,17 @@ class TestMetaVistrail(unittest.TestCase):
                    functions=[f1])
         a4 = vistrails.core.db.io.create_action([('add', m)])
 
-        update_ops_ids([a1,a2,a3,a4])
+        update_ids([a1,a2,a3,a4])
 
-        print "ACTION a1:", a1, [(op.vtType, op.what, op.objectId) for op in a1.operations]
+        for num, action in enumerate([a1,a2,a3,a4]):
+            print "ACTION", num, action, [(op.vtType, op.what, op.old_obj_id, op.new_obj_id) for op in action.operations]
 
-        meta_a1 = vistrails.core.db.io.create_action([('add', a1)])
-        meta_a2 = vistrails.core.db.io.create_action([('add', a2)])
-        meta_a3 = vistrails.core.db.io.create_action([('add', a3)])
-        meta_a4 = vistrails.core.db.io.create_action([('change', a1, a4)])
-        meta_a5 = vistrails.core.db.io.create_action([('delete', a3)],
-                                                     [('delete', a2)])
+        meta_a1 = vistrails.core.db.io.create_action([('add', a1)], False)
+        meta_a2 = vistrails.core.db.io.create_action([('add', a2)], False)
+        meta_a3 = vistrails.core.db.io.create_action([('add', a3)], False)
+        meta_a4 = vistrails.core.db.io.create_action([('change', a1, a4)], False)
+        meta_a5 = vistrails.core.db.io.create_action([('delete', a3),
+                                                     ('delete', a2)], False)
 
         vistrail.add_action(meta_a1, Vistrail.ROOT_VERSION)
         vistrail.add_action(meta_a2, meta_a1.id)
@@ -1448,7 +1449,15 @@ class TestMetaVistrail(unittest.TestCase):
         vistrail.add_action(meta_a4, meta_a1.id)
         vistrail.add_action(meta_a5, meta_a3.id)
 
-        print "ACTIONS:", vistrail.getVistrail(meta_a4.id).actions
+        vt = vistrail.getVistrail(meta_a3.id)
+        print "ACTIONS:", vt.actions
+
+        vt2 = vistrail.getVistrail(meta_a4.id)
+        print "ACTIONS:", vt2.actions
+
+        vt3 = vistrail.getVistrail(meta_a5.id)
+        print "ACTIONS:", vt3.actions
+
 
     def test_meta_vistrail(self):
         self.create_vistrail()

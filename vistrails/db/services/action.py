@@ -39,10 +39,13 @@ from vistrails.db.services.action_chain import simplify_ops
 from vistrails.db.domain import DBAction, DBAdd, DBDelete, DBChange
 import copy
 
-def create_delete_op_chain(object, parent=(None, None)):
+def create_delete_op_chain(object, parent=(None, None), expand=True):
     opChain = []
-    for (obj, parentType, parentId) in object.db_children(parent, 
-                                                          for_action=True):
+    if expand:
+        obj_list = object.db_children(parent, for_action=True)
+    else:
+        obj_list = [(object, parent[0], parent[1])]
+    for (obj, parentType, parentId) in obj_list:
         op = DBDelete(id=-1,
                       what=obj.vtType,
                       objectId=obj.db_id,
@@ -52,11 +55,15 @@ def create_delete_op_chain(object, parent=(None, None)):
         opChain.append(op)
     return opChain
 
-def create_add_op_chain(object, parent=(None, None)):
+def create_add_op_chain(object, parent=(None, None), expand=True):
     opChain = []
     object = copy.copy(object)
-    adds = object.db_children(parent, True, for_action=True)
+    if expand:
+        adds = object.db_children(parent, True, for_action=True)
+    else:
+        adds = [(object, parent[0], parent[1])]
     adds.reverse()
+    print "ADDS:", adds
     for (obj, parentType, parentId) in adds:
         op = DBAdd(id=-1,
                    what=obj.vtType,
@@ -68,10 +75,13 @@ def create_add_op_chain(object, parent=(None, None)):
         opChain.append(op)
     return opChain
 
-def create_change_op_chain(old_obj, new_obj, parent=(None,None)):
+def create_change_op_chain(old_obj, new_obj, parent=(None,None), expand=True):
     opChain = []
     new_obj = copy.copy(new_obj)
-    deletes = old_obj.db_children(parent, for_action=True)
+    if expand:
+        deletes = old_obj.db_children(parent, for_action=True)
+    else:
+        deletes = [(old_obj, parent[0], parent[1])]
     deletes.pop()
     for (obj, parentType, parentId) in deletes:
         op = DBDelete(id=-1,
@@ -82,7 +92,10 @@ def create_change_op_chain(old_obj, new_obj, parent=(None,None)):
                       )
         opChain.append(op)
 
-    adds = new_obj.db_children(parent, True, for_action=True)
+    if expand:
+        adds = new_obj.db_children(parent, True, for_action=True)
+    else:
+        adds = [(new_obj, parent[0], parent[1])]
     (obj, parentType, parentId) = adds.pop()
     op = DBChange(id=-1,
                   what=obj.vtType,
@@ -134,7 +147,7 @@ def create_copy_op_chain(object, parent=(None,None), id_scope=None):
     return opChain
     
 
-def create_action(action_list):
+def create_action(action_list, expand=True):
     """create_action(action_list: list) -> DBAction
     where action_list is a list of tuples
      (
@@ -151,21 +164,23 @@ def create_action(action_list):
     for tuple in action_list:
         if tuple[0] == 'add' and len(tuple) >= 2:
             if len(tuple) >= 4:
-                ops.extend(create_add_op_chain(tuple[1], (tuple[2], tuple[3])))
+                ops.extend(create_add_op_chain(tuple[1], (tuple[2], tuple[3]), expand=expand))
             else:
-                ops.extend(create_add_op_chain(tuple[1]))
+                ops.extend(create_add_op_chain(tuple[1], expand=expand))
         elif tuple[0] == 'delete' and len(tuple) >= 2:
             if len(tuple) >= 4:
                 ops.extend(create_delete_op_chain(tuple[1], 
-                                                  (tuple[2], tuple[3])))
+                                                  (tuple[2], tuple[3]),
+                                                  expand=expand))
             else:
-                ops.extend(create_delete_op_chain(tuple[1]))
+                ops.extend(create_delete_op_chain(tuple[1], expand=expand))
         elif tuple[0] == 'change' and len(tuple) >= 3:
             if len(tuple) >= 5:
                 ops.extend(create_change_op_chain(tuple[1], tuple[2],
-                                                  (tuple[3], tuple[4])))
+                                                  (tuple[3], tuple[4]),
+                                                  expand=expand))
             else:
-                ops.extend(create_change_op_chain(tuple[1], tuple[2]))
+                ops.extend(create_change_op_chain(tuple[1], tuple[2], expand=expand))
         else:
             msg = "unable to interpret action tuple " + tuple.__str__()
             raise ValueError(msg)

@@ -250,6 +250,12 @@ class Choice(Field):
     def isChoice(self):
         return True
 
+    def hasNotExpand(self):
+        return not all(p.shouldExpand() for p in self.properties)
+
+    def getNotExpandNames(self):
+        return [p.getName() for p in self.properties if not p.shouldExpand()]
+
 class Property(Field):
     def __init__(self, params, specs):
         Field.__init__(self, params)

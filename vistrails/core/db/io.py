@@ -177,7 +177,7 @@ def convert_operation_list(ops):
         else:
             raise TypeError("Unknown operation type '%s'" % op.vtType)
 
-def create_action(action_list):
+def create_action(action_list, expand=True):
     """create_action(action_list: list) -> Action
     where action_list is a list of tuples
      (
@@ -196,7 +196,7 @@ def create_action(action_list):
     Note that create_action([('add', module)]) adds a module and *all* of its
     children.
     """
-    action = vistrails.db.services.action.create_action(action_list)
+    action = vistrails.db.services.action.create_action(action_list, expand)
     Action.convert(action)
     return action
     
