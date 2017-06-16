@@ -75,6 +75,7 @@ debugLevel: How much information should VisTrails log
 defaultFileType: Default file type/extension for vistrails (.vt or .xml)
 deleteBundleData: Delete data files in vistrail bundle
 detachHistoryView: Show the version tree in a separate window
+detachMetaView: Show the meta version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
@@ -211,6 +212,10 @@ defaultFileType: String
 detachHistoryView: Boolean
 
     Show the version tree in a separate window.
+
+detachMetaView: Boolean
+
+    Show the meta version tree in a separate window.
 
 dotVistrails: Path
 
@@ -748,6 +753,7 @@ base_config = {
     "Interface":
     [ConfigField('autoConnect', True, bool, ConfigType.ON_OFF),
      ConfigField('detachHistoryView', False, bool, ConfigType.ON_OFF),
+     ConfigField('detachMetaView', False, bool, ConfigType.ON_OFF),
      ConfigField('showConnectionErrors', False, bool, ConfigType.SHOW_HIDE),
      ConfigField('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
      ConfigField('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),

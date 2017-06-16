@@ -414,7 +414,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         #second group
         self.view_action_group = QtGui.QActionGroup(self)
         for action in [self.qactions[n] 
-                       for n in ['pipeline', 'history', 
+                       for n in ['pipeline', 'meta', 'history',
                                  'search', 'explore', 'provenance', 'mashup']]:
             self.toolbar.addAction(action)
             self.view_action_group.addAction(action)
@@ -766,6 +766,13 @@ class QVistrailViewWindow(QBaseViewWindow):
                        'callback': \
                            _app.pass_through_bool(self.get_current_view,
                                                   'pipeline_change')}),
+                     ("meta", "Meta Versions",
+                      {'icon': CurrentTheme.HISTORY_ICON,
+                       'checkable': True,
+                       'checked': False,
+                       'callback': \
+                           _app.pass_through_bool(self.get_current_view,
+                                                  'meta_change')}),
                      ("history", "History",
                       {'icon': CurrentTheme.HISTORY_ICON,
                        'checkable': True,

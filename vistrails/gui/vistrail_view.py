@@ -110,6 +110,7 @@ class QVistrailView(QtGui.QWidget):
         # Create the initial views
         self.version_view = None
         pipeline_view = self.create_pipeline_view(set_controller=False)
+        self.meta_version_view = self.create_version_view()
         self.version_view = self.create_version_view()
         self.query_view = self.create_query_view()
         self.pe_view = self.create_pe_view()
@@ -265,6 +266,30 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setTabText(self.tabs.currentIndex(),
                              self.stack.currentWidget().get_title())
 
+    def meta_selected(self):
+        from vistrails.gui.vistrails_window import _app
+        if get_vistrails_configuration().detachMetaView:
+            _app.meta_view.raise_()
+            return
+        if hasattr(self.window(), 'qactions'):
+            window = self.window()
+        else:
+            window = _app
+        #print "VERSION"
+        self.stack.setCurrentIndex(self.stack.indexOf(self.version_view))
+        self.tabs.setTabText(self.tabs.currentIndex(), "Meta")
+        self.tab_state[self.tabs.currentIndex()] = window.qactions['meta']
+        self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
+        self.stack.currentWidget().viewSelected()
+
+    def meta_unselected(self):
+        #print "VERSION UN"
+        self.stack.setCurrentIndex(
+            self.tab_to_stack_idx[self.tabs.currentIndex()])
+        self.tabs.setTabText(self.tabs.currentIndex(),
+                             self.stack.currentWidget().get_title())
+
+
     def history_selected(self):
         from vistrails.gui.vistrails_window import _app
         if get_vistrails_configuration().detachHistoryView:
@@ -378,6 +403,17 @@ class QVistrailView(QtGui.QWidget):
             #print "PIPELINE UNSELECTED"
             self.pipeline_unselected()
         self.view_changed()
+
+    def meta_change(self, checked):
+        from vistrails_window import _app
+        if checked:
+            #print "HISTORY SELECTED"
+            self.meta_selected()
+        else:
+            #print "HISTORY UNSELECTED"
+            self.meta_unselected()
+        self.view_changed()
+
 
     def history_change(self, checked):
         from vistrails_window import _app
