@@ -60,6 +60,7 @@ from vistrails.core.query.visual import VisualQuery
 from vistrails.core.utils import DummyView, VistrailsInternalError, InvalidPipeline
 import vistrails.core.system
 from vistrails.core.vistrail.controller import VistrailController as BaseController
+from vistrails.core.vistrail.meta_controller import MetaVistrailController as BaseMetaController
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
 from vistrails.gui.pipeline_view import QPipelineView
@@ -1410,6 +1411,131 @@ class VistrailController(QtCore.QObject, BaseController):
             from vistrails.gui.vistrails_window import _app
             _app.notify('execution_updated')
             return errors
+
+class MetaVistrailController(QtCore.QObject, BaseMetaController):
+    """
+    VistrailController is the class handling all action control in
+    VisTrails. It updates pipeline, vistrail and emit signals to
+    update the view
+
+    Signals emitted:
+
+    vistrailChanged(): emitted when the version tree needs to be
+    recreated (for example, a node was added/deleted or the layout
+    changed).
+
+    versionWasChanged(): emitted when the current version (the one
+    being displayed by the pipeline view) has changed.
+
+    searchChanged(): emitted when the search statement from the
+    version view has changed.
+
+    stateChanged(): stateChanged is called when a vistrail goes from
+    unsaved to saved or vice-versa.
+
+    notesChanged(): notesChanged is called when the version notes have
+    been updated
+
+    """
+
+    def __init__(self, vistrail=None, locator=None, abstractions=None,
+                 thumbnails=None, mashups=None,
+                 id_scope=None, set_log_on_vt=True, auto_save=True, name='',
+                 bundle=None):
+        """ VistrailController(vistrail: Vistrail,
+                               locator: BaseLocator,
+                               abstractions: [<filename strings>],
+                               thumbnails: [<filename strings>],
+                               mashups: [<filename strings>],
+                               pipeline_view: QPipelineView
+                               id_scope: IdScope,
+                               set_log_on_vt: bool,
+                               auto_save: bool,
+                               name: str) -> VistrailController
+        Create a controller for a vistrail.
+
+        """
+
+        QtCore.QObject.__init__(self)
+
+        self.vistrail_view = None
+        self.reset_pipeline_view = False
+        self.reset_version_view = True
+        self.quiet = False
+        self.progress = None
+        self.create_job = False
+
+        self.analogy = {}
+        # if self._auto_save is True, an auto_saving timer will save a temporary
+        # file every 2 minutes
+        self._auto_save = auto_save
+        self.timer = None
+        # if self._auto_save:
+        #     self.setup_timer()
+
+        # the redo stack stores the undone action ids
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
+
+        def width_f(text):
+            return CurrentTheme.VERSION_FONT_METRIC.width(text)
+
+        self._current_graph_layout = \
+            VistrailsTreeLayoutLW(width_f,
+                                  CurrentTheme.VERSION_FONT_METRIC.height(),
+                                  CurrentTheme.VERSION_LABEL_MARGIN[0],
+                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
+        # this was moved to BaseController
+        # self.num_versions_always_shown = 1
+        BaseMetaController.__init__(self, vistrail, locator, abstractions,
+                                thumbnails, mashups, id_scope, set_log_on_vt,
+                                auto_save, bundle)
+
+    def recompute_terse_graph(self):
+        BaseController.recompute_terse_graph(self)
+        self._current_graph_layout.layout_from(self.vistrail,
+                                               self._current_terse_graph)
+
+    def refine_graph(self, step=1.0):
+        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
+        Refine the graph of the current vistrail based the search
+        status of the controller. It also return the full graph as a
+        reference
+
+        """
+        if self._current_full_graph is None:
+            self.recompute_terse_graph()
+
+        return (self._current_terse_graph, self._current_full_graph,
+                self._current_graph_layout)
+
+    def can_undo(self):
+        return False
+
+    def can_redo(self):
+        return False
+
+    # FIXME need to reference the history view here...
+    # # just need to switch current_pipeline_view to update controller to
+    # # new version and pipeline...
+    # def _get_current_version(self):
+    #     if self.current_pipeline_view is None:
+    #         return -1
+    #     return self.current_pipeline_view.scene().current_version
+    # def _set_current_version(self, version):
+    #     # print "set_current_version:", version, id(self.current_pipeline_view)
+    #     if self.current_pipeline_view is not None:
+    #         self.current_pipeline_view.scene().current_version = version
+    # current_version = property(_get_current_version, _set_current_version)
+    #
+    # def _get_current_pipeline(self):
+    #     if self.current_pipeline_view is None:
+    #         return None
+    #     return self.current_pipeline_view.scene().current_pipeline
+    # def _set_current_pipeline(self, pipeline):
+    #     if self.current_pipeline_view is not None:
+    #         self.current_pipeline_view.scene().current_pipeline = pipeline
+    # current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
 
 ################################################################################

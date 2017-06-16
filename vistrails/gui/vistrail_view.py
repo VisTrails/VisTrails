@@ -45,7 +45,7 @@ from vistrails.core.reportusage import record_vistrail
 from vistrails.core.system import vistrails_default_file_type, \
     vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.vistrail.vistrail import Vistrail
+from vistrails.core.vistrail.vistrail import Vistrail, MetaVistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.log import Log
 from vistrails.core.log.opm_graph import OpmGraph
@@ -66,7 +66,7 @@ from vistrails.gui.query_view import QQueryView, QueryEntry,\
     QQueryResultWorkflowView
 from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.gui.vistrail_controller import VistrailController
+from vistrails.gui.vistrail_controller import VistrailController, MetaVistrailController
 
 ################################################################################
 
@@ -110,7 +110,7 @@ class QVistrailView(QtGui.QWidget):
         # Create the initial views
         self.version_view = None
         pipeline_view = self.create_pipeline_view(set_controller=False)
-        self.meta_version_view = self.create_version_view()
+        self.meta_version_view = self.create_meta_version_view()
         self.version_view = self.create_version_view()
         self.query_view = self.create_query_view()
         self.pe_view = self.create_pe_view()
@@ -119,11 +119,16 @@ class QVistrailView(QtGui.QWidget):
 
         # Initialize the vistrail controller
         self.locator = locator
+        self.meta_vistrail = MetaVistrail()
+        self.meta_controller = MetaVistrailController(vistrail=self.meta_vistrail,
+                                                      locator=self.locator)
+
         self.controller = VistrailController(bundle=bundle,
                                              locator=self.locator,
                                              pipeline_view=pipeline_view)
         
         self.set_controller(self.controller)
+        self.set_meta_controller(self.meta_controller)
         pipeline_view.set_to_current()
 
         self.tabs.setCurrentIndex(0)
@@ -196,12 +201,17 @@ class QVistrailView(QtGui.QWidget):
             self.notifications[notification_id] = []
         self.notifications[notification_id].append(method)
 
+    def set_meta_controller(self, controller):
+        self.meta_controller = controller
+        self.meta_controller.vistrail_view = self
+        self.meta_version_view.set_controller(self.meta_controller)
+
     def set_controller(self, controller):
         self.controller = controller
         self.controller.vistrail_view = self
         for i in xrange(self.stack.count()):
             view = self.stack.widget(i)
-            if hasattr(view, 'set_controller'):
+            if hasattr(view, 'set_controller') and not hasattr(view, '_is_meta'):
                 view.set_controller(controller)
 
     def get_controller(self):
@@ -276,7 +286,7 @@ class QVistrailView(QtGui.QWidget):
         else:
             window = _app
         #print "VERSION"
-        self.stack.setCurrentIndex(self.stack.indexOf(self.version_view))
+        self.stack.setCurrentIndex(self.stack.indexOf(self.meta_version_view))
         self.tabs.setTabText(self.tabs.currentIndex(), "Meta")
         self.tab_state[self.tabs.currentIndex()] = window.qactions['meta']
         self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
@@ -795,6 +805,19 @@ class QVistrailView(QtGui.QWidget):
         self.switch_to_tab(view.tab_idx)
         return view
 
+    def create_meta_version_view(self):
+        view = self.create_view(QVersionTreeView, False)
+        view._is_meta = True
+        self.connect(view.scene(),
+                     QtCore.SIGNAL('versionSelected(QString&,bool,bool,bool,bool)'),
+                     self.meta_version_selected)
+        # TODO a diff view for version trees? sounds interesting...
+        # self.connect(view.scene(),
+        #              QtCore.SIGNAL('diffRequested(int,int)'),
+        #              self.diff_requested)
+        return view
+
+
     def create_version_view(self):
         view = self.create_view(QVersionTreeView, False)
         self.connect(view.scene(), 
@@ -884,6 +907,29 @@ class QVistrailView(QtGui.QWidget):
                    not QModuleInfo.instance().toolWindow().visibleRegion().isEmpty():
                     QVersionProp.instance().set_visible(True)
         return module_selected
+
+    def meta_version_selected(self, version_id, by_click, double_click=False):
+        from vistrails.gui.vistrails_window import _app
+        if hasattr(self.window(), 'qactions'):
+            window = self.window()
+        else:
+            window = _app
+        #print 'got version selected:', version_id
+        if _app._focus_owner in self.detached_views.values():
+            view = _app._focus_owner.view
+        elif _app._previous_view in self.detached_views:
+            view = _app._previous_view
+        else:
+            view = self.stack.widget(
+                self.tab_to_stack_idx[self.tabs.currentIndex()])
+        if view and by_click:
+            self.controller.change_selected_version(version_id, True)
+
+            view.scene().fitToView(view, True)
+            if double_click:
+                window.qactions['history'].trigger()
+            # self.controller.reset_redo_stack()
+        _app.notify("meta_version_changed", self.meta_controller.current_version)
 
     def version_selected(self, version_id, by_click, do_validate=True,
                          from_root=False, double_click=False):

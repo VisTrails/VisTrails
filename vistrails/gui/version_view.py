@@ -1123,7 +1123,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def set_action_links(self):
         self.action_links = \
             {
-             'publishWeb' : ('version_changed', self.check_publish_db),
+             'publishWeb': ('version_changed', self.check_publish_db),
              'publishPaper': ('version_changed', self.check_publish),
              'redo': ('version_changed', self.can_redo),
              'undo': ('version_changed', self.can_undo),
