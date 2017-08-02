@@ -302,10 +302,16 @@ class Vistrail(DBVistrail):
         FIXME: Check if pruning is handled correctly here.
 
         """
+        # use only sinks here (monotonicity, not valid for meta-vistrail)
+        sinks = self.tree.getVersionTree().sinks()
+
         desc_key = Action.ANNOTATION_DESCRIPTION
-        # Get the max id of all actions (excluding upgrade actions)
-        max_ver = max((v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade')),
-                      key=lambda v: self.actionMap[v].date)
+        def has_upgrade(v_id):
+            return (self.actionMap[v_id].has_annotation_with_key(desc_key) and
+                    self.actionMap[v_id].get_annotation_by_key(desc_key).value == 'Upgrade')
+        # Get the max id of all sinks (excluding upgrade actions)
+        max_ver = max((v_id for v_id in sinks if not self.is_pruned(v_id) and not has_upgrade(v_id)),
+                      key=lambda action_id: self.actionMap[action_id].date)
         # If that action has an upgrade, use it
         if self.has_upgrade(max_ver):
             max_ver = self.get_upgrade(max_ver)
