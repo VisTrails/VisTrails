@@ -55,12 +55,14 @@ from vistrails.core.vistrail.action import Action
 from vistrails.core.vistrail.action_annotation import ActionAnnotation
 from vistrails.core.vistrail.vistrailvariable import VistrailVariable
 from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from vistrails.core.vistrail.plugin_data import PluginData
+from vistrails.core.vistrail.port import Port
 
 import unittest
 import copy
@@ -1122,6 +1124,22 @@ class MetaVistrail(Vistrail):
         vistrail = vistrails.core.db.io.get_vistrail(self, version)
         return vistrail
 
+    def add_action(self, action, parent, session=None):
+        # want to have sub-actions be valid actions...
+        # TODO should we assign the same date/user/session info as meta-action?
+        for op in action.operations:
+            if op.db_what == 'action' and (op.vtType == 'change' or
+                                           op.vtType == 'add'):
+                sub_action = op.db_data
+                if sub_action.id < 0:
+                    sub_action.id = self.idScope.getNewId(sub_action.vtType)
+                sub_action.date = self.getDate()
+                sub_action.user = self.getUser()
+                if session is not None:
+                    sub_action.session = session
+
+        super(MetaVistrail, self).add_action(action, parent, session)
+
 
 ##############################################################################
 
@@ -1395,6 +1413,14 @@ class TestMetaVistrail(unittest.TestCase):
                         # if op.vtType == 'add' or op.vtType == 'change':
                         #     vistrail.db_add_object(op.db_data)
 
+        def link_versions(links):
+            for (parent, child) in links:
+                if parent is None:
+                    parent_id = Vistrail.ROOT_VERSION
+                else:
+                    parent_id = parent.id
+                child.parent = parent_id
+
         p1 = ModuleParam(
             id=vistrail.idScope.getNewId(),
             type='Integer',
@@ -1414,26 +1440,53 @@ class TestMetaVistrail(unittest.TestCase):
                          val='1')
         a2 = vistrails.core.db.io.create_action(
             [('change', p1, p2, 'function', f1.id)])
+        f1.parameters = [p2]
         a3 = vistrails.core.db.io.create_action(
             [('delete', f1, 'module', m.id)])
 
-        p1 = ModuleParam(
+        p3 = ModuleParam(
             id=vistrail.idScope.getNewId(),
             type='Integer',
             val='3')
-        f1 = ModuleFunction(id=vistrail.idScope.getNewId(),
+        f2 = ModuleFunction(id=vistrail.idScope.getNewId(),
                             name='value',
-                            parameters=[p1])
-        m = Module(id=vistrail.idScope.getNewId(Module.vtType),
-                   name='Float',
+                            parameters=[p3])
+        m2 = Module(id=vistrail.idScope.getNewId(Module.vtType),
+                   name='Integer',
                    package=get_vistrails_basic_pkg_id(),
                    location=Location(id=vistrail.idScope.getNewId(), x=12, y=12),
-                   functions=[f1])
-        a4 = vistrails.core.db.io.create_action([('add', m)])
+                   functions=[f2])
+        a4 = vistrails.core.db.io.create_action([('add', m2)])
 
-        update_ids([a1,a2,a3,a4])
+        m3 = Module(id=vistrail.idScope.getNewId(Module.vtType),
+                   name='StandardOutput',
+                   package=get_vistrails_basic_pkg_id(),
+                   location=Location(id=vistrail.idScope.getNewId(), x=16, y=16))
 
-        for num, action in enumerate([a1,a2,a3,a4]):
+        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+        source = Port(id=vistrail.idScope.getNewId(),
+                      type='source',
+                      moduleId=m2.id,
+                      moduleName='Integer',
+                      name='value',
+                      signature='(%s:Float)' % basic_pkg)
+        destination = Port(id=vistrail.idScope.getNewId(),
+                           type='destination',
+                           moduleId=m3.id,
+                           moduleName='Module',
+                           name='value',
+                           signature='(%s:Module)' % basic_pkg)
+        c = Connection(id=vistrail.idScope.getNewId(Connection.vtType),
+                       ports=[source, destination])
+
+
+
+        a5 = vistrails.core.db.io.create_action([('add', m3),
+                                                 ('add', c)])
+        update_ids([a1,a2,a3,a4,a5])
+        link_versions([(None, a1), (a1, a2), (a2, a3), (None, a4), (a4, a5)])
+
+        for num, action in enumerate([a1,a2,a3,a4, a5]):
             print "ACTION", num, action, [(op.vtType, op.what, op.old_obj_id, op.new_obj_id) for op in action.operations]
 
         meta_a1 = vistrails.core.db.io.create_action([('add', a1)], False)
@@ -1441,55 +1494,52 @@ class TestMetaVistrail(unittest.TestCase):
         meta_a3 = vistrails.core.db.io.create_action([('add', a3)], False)
         meta_a4 = vistrails.core.db.io.create_action([('change', a1, a4)], False)
         meta_a5 = vistrails.core.db.io.create_action([('delete', a3),
-                                                     ('delete', a2)], False)
+                                                      ('delete', a2)], False)
+        meta_a6 = vistrails.core.db.io.create_action([('add', a5)], False)
 
         vistrail.add_action(meta_a1, Vistrail.ROOT_VERSION)
         vistrail.add_action(meta_a2, meta_a1.id)
         vistrail.add_action(meta_a3, meta_a2.id)
         vistrail.add_action(meta_a4, meta_a1.id)
         vistrail.add_action(meta_a5, meta_a3.id)
+        vistrail.add_action(meta_a6, meta_a4.id)
 
-        vt = vistrail.getVistrail(meta_a3.id)
-        print "ACTIONS:", vt.actions
+        vistrail.addTag('meta_a3', meta_a3.id)
+        vistrail.addTag('meta_a4', meta_a4.id)
+        vistrail.addTag('meta_a5', meta_a5.id)
+        vistrail.addTag('meta_a6', meta_a6.id)
 
-        vt2 = vistrail.getVistrail(meta_a4.id)
-        print "ACTIONS:", vt2.actions
-
-        vt3 = vistrail.getVistrail(meta_a5.id)
-        print "ACTIONS:", vt3.actions
+        return vistrail
 
 
     def test_meta_vistrail(self):
-        self.create_vistrail()
+        mvt = self.create_vistrail()
 
-            # add_op = AddOp(id=vistrail.idScope.getNewId(AddOp.vtType),
-            #                what=Module.vtType,
-            #                objectId=m.id,
-            #                data=m)
-            # function_id = vistrail.idScope.getNewId(ModuleFunction.vtType)
-            # function = ModuleFunction(id=vistrail.getNewId(),
-            #                           name='value')
-            # change_op = ChangeOp(id=vistrail.idScope.getNewId(ChangeOp.vtType),
-            #                      what=ModuleFunction.vtType,
-            #                      oldObjId=2,
-            #                      newObjId=function.real_id,
-            #                      parentObjId=m.id,
-            #                      parentObjType=Module.vtType,
-            #                      data=function)
-            # param = ModuleParam(
-            #     id=vistrail.idScope.getNewId(ModuleParam.vtType),
-            #     type='Integer',
-            #     val='1')
-            # delete_op = DeleteOp(id=vistrail.idScope.getNewId(DeleteOp.vtType),
-            #                      what=ModuleParam.vtType,
-            #                      objectId=param.real_id,
-            #                      parentObjId=function.real_id,
-            #                      parentObjType=ModuleFunction.vtType)
-            # vistrail.add_action(action1, 0)
-            # vistrail.add_action(action2, action1.id)
-            # vistrail.addTag('first action', action1.id)
-            # vistrail.addTag('second action', action2.id)
-            # return vistrail
+        vt = mvt.getVistrail("meta_a3")
+        self.assertEqual(len(vt.actions), 3)
+        self.assertEqual(vt.actions[0].operations[0].data.name, 'Float')
+        print "LATEST VERSION:", vt.get_latest_version()
+        wf = vt.getPipeline(vt.get_latest_version())
+        self.assertEqual(wf.module_list[0].name, "Float")
+
+        vt2 = mvt.getVistrail("meta_a4")
+        self.assertEqual(len(vt2.actions), 1)
+        self.assertEqual(vt2.actions[0].operations[0].data.name, 'Integer')
+        wf2 = vt2.getPipeline(vt2.get_latest_version())
+        self.assertEqual(wf2.module_list[0].name, "Integer")
+
+        vt3 = mvt.getVistrail("meta_a5")
+        self.assertEqual(len(vt3.actions), 1)
+        self.assertEqual(vt3.actions[0].operations[0].data.name, 'Float')
+        wf3 = vt3.getPipeline(vt3.get_latest_version())
+        self.assertEqual(wf3.module_list[0].name, "Float")
+
+        vt4 = mvt.getVistrail("meta_a6")
+        self.assertEqual(len(vt4.actions), 2)
+        self.assertEqual(vt4.actions[0].operations[0].data.name, 'Integer')
+        wf4 = vt4.getPipeline(vt4.get_latest_version())
+        self.assertListEqual([m.name for m in wf4.module_list], ["Integer", "StandardOutput"])
+
 
 def load_tests(loader, tests, pattern):
     return loader.loadTestsFromName('vistrails.core.vistrail.vistrail.TestMetaVistrail')
