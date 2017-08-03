@@ -1491,10 +1491,40 @@ class MetaVistrailController(QtCore.QObject, BaseMetaController):
                                 thumbnails, mashups, id_scope, set_log_on_vt,
                                 auto_save, bundle)
 
+    def add_new_action(self, action, description=None, session=None):
+        """add_new_action(action) -> None
+
+        Call this function to add a new action to the vistrail being
+        controlled by the vistrailcontroller.
+
+        FIXME: In the future, this function should watch the vistrail
+        and get notified of the change.
+
+        """
+        if action is not None:
+            meta_action = BaseMetaController.add_new_action(self, action,
+                                                            description,
+                                                            session)
+            self.emit(QtCore.SIGNAL("new_action"), meta_action)
+            self.invalidate_version_tree(False)
+
+
     def recompute_terse_graph(self):
         BaseController.recompute_terse_graph(self)
         self._current_graph_layout.layout_from(self.vistrail,
                                                self._current_terse_graph)
+
+    def invalidate_version_tree(self, reset_version_view=True,
+                                animate_layout=False):
+        """ invalidate_version_tree(reset_version_tree: bool, animate_layout: bool) -> None
+
+        """
+        self.reset_version_view = reset_version_view
+        # FIXME: in the future, rename the signal
+        try:
+            self.emit(QtCore.SIGNAL('vistrailChanged()'))
+        finally:
+            self.reset_version_view = True
 
     def refine_graph(self, step=1.0):
         """ refine_graph(step: float in [0,1]) -> (Graph, Graph)

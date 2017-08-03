@@ -206,6 +206,8 @@ class VistrailController(object):
                           set_log_on_vt=set_log_on_vt,
                           bundle=bundle)
 
+        self.meta_controller = None
+
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
         return self._current_version
@@ -299,6 +301,28 @@ class VistrailController(object):
             self.set_changed(True)
         if self.vistrail is not None:
             self.recompute_terse_graph()
+
+    def update_vistrail(self, vistrail):
+        """update_vistrail is used to update a vistrail when it changes
+        due to a meta vistrail change
+        """
+
+        self.flush_pipeline_cache()
+        self.clear_delayed_actions()
+
+        self.vistrail = vistrail
+        # don't reset session
+        self.vistrail.session = self.current_session
+        # TODO decide how to handle abstractions/log
+        if self.vistrail is not None:
+            self.recompute_terse_graph()
+
+        # force pipeline to be reloaded
+        self.flush_pipeline_cache()
+        current_version = self.current_version
+        self.change_selected_version(Vistrail.ROOT_VERSION)
+        if current_version in self.vistrail.actionMap:
+            self.change_selected_version(current_version)
 
     def close_vistrail(self, locator):
         if not self.vistrail.is_abstraction:
@@ -643,6 +667,9 @@ class VistrailController(object):
             if description is not None:
                 self.vistrail.change_description(description, action.id)
             self.current_version = action.db_id
+            if self.meta_controller is not None:
+                self.meta_controller.add_new_action(action, "New Action",
+                                                    self.current_session)
             self.set_changed(True)
             self.recompute_terse_graph()
             

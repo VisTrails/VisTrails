@@ -205,9 +205,15 @@ class QVistrailView(QtGui.QWidget):
         self.meta_controller = controller
         self.meta_controller.vistrail_view = self
         self.meta_version_view.set_controller(self.meta_controller)
+        if self.controller is not None:
+            self.controller.meta_controller = controller
+        self.meta_controller.vt_controller = self.controller
 
     def set_controller(self, controller):
         self.controller = controller
+        self.controller.meta_controller = self.meta_controller
+        if self.meta_controller is not None:
+            self.meta_controller.vt_controller = self.controller
         self.controller.vistrail_view = self
         for i in xrange(self.stack.count()):
             view = self.stack.widget(i)
@@ -908,7 +914,8 @@ class QVistrailView(QtGui.QWidget):
                     QVersionProp.instance().set_visible(True)
         return module_selected
 
-    def meta_version_selected(self, version_id, by_click, double_click=False):
+    def meta_version_selected(self, version_id, by_click, do_validate=True,
+                              from_root=False, double_click=False):
         from vistrails.gui.vistrails_window import _app
         if hasattr(self.window(), 'qactions'):
             window = self.window()
@@ -923,7 +930,7 @@ class QVistrailView(QtGui.QWidget):
             view = self.stack.widget(
                 self.tab_to_stack_idx[self.tabs.currentIndex()])
         if view and by_click:
-            self.controller.change_selected_version(version_id, True)
+            self.meta_controller.change_selected_version(version_id, True)
 
             view.scene().fitToView(view, True)
             if double_click:

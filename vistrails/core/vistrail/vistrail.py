@@ -117,12 +117,14 @@ class Vistrail(DBVistrail):
             self.savedQueries = []
             self.is_abstraction = False
             self.locator = None
+            self.meta_vistrail = None
         else:
             self.changed = other.changed
             self.currentVersion = other.currentVersion
             self.savedQueries = copy.copy(other.savedQueries)
             self.is_abstraction = other.is_abstraction
             self.locator = other.locator
+            self.meta_vistrail = other.meta_vistrail
 
         # object to keep explicit expanded 
         # version tree always updated
@@ -492,7 +494,7 @@ class Vistrail(DBVistrail):
                 op.id = self.idScope.getNewId('operation')
                 if op.vtType == 'add' or op.vtType == 'change':
                     self.db_add_object(op.db_data)
-        self.addVersion(action)                
+        self.addVersion(action)
 
 #     def add_abstraction(self, abstraction):
 #         Abstraction.convert(abstraction)
@@ -1128,21 +1130,24 @@ class MetaVistrail(Vistrail):
 
         """
         vistrail = vistrails.core.db.io.get_vistrail(self, version)
+        # make sure the vistrail knows its meta_vistrail
+        vistrail.meta_vistrail = self
         return vistrail
 
-    def add_action(self, action, parent, session=None):
+    def add_action(self, action, parent, session=None, init_inner=False):
         # want to have sub-actions be valid actions...
         # TODO should we assign the same date/user/session info as meta-action?
-        for op in action.operations:
-            if op.db_what == 'action' and (op.vtType == 'change' or
-                                           op.vtType == 'add'):
-                sub_action = op.db_data
-                if sub_action.id < 0:
-                    sub_action.id = self.idScope.getNewId(sub_action.vtType)
-                sub_action.date = self.getDate()
-                sub_action.user = self.getUser()
-                if session is not None:
-                    sub_action.session = session
+        if init_inner:
+            for op in action.operations:
+                if op.db_what == 'action' and (op.vtType == 'change' or
+                                               op.vtType == 'add'):
+                    sub_action = op.db_data
+                    if sub_action.id < 0:
+                        sub_action.id = self.idScope.getNewId(sub_action.vtType)
+                    sub_action.date = self.getDate()
+                    sub_action.user = self.getUser()
+                    if session is not None:
+                        sub_action.session = session
 
         super(MetaVistrail, self).add_action(action, parent, session)
 
@@ -1503,12 +1508,12 @@ class TestMetaVistrail(unittest.TestCase):
                                                       ('delete', a2)], False)
         meta_a6 = vistrails.core.db.io.create_action([('add', a5)], False)
 
-        vistrail.add_action(meta_a1, Vistrail.ROOT_VERSION)
-        vistrail.add_action(meta_a2, meta_a1.id)
-        vistrail.add_action(meta_a3, meta_a2.id)
-        vistrail.add_action(meta_a4, meta_a1.id)
-        vistrail.add_action(meta_a5, meta_a3.id)
-        vistrail.add_action(meta_a6, meta_a4.id)
+        vistrail.add_action(meta_a1, Vistrail.ROOT_VERSION, init_inner=True)
+        vistrail.add_action(meta_a2, meta_a1.id, init_inner=True)
+        vistrail.add_action(meta_a3, meta_a2.id, init_inner=True)
+        vistrail.add_action(meta_a4, meta_a1.id, init_inner=True)
+        vistrail.add_action(meta_a5, meta_a3.id, init_inner=True)
+        vistrail.add_action(meta_a6, meta_a4.id, init_inner=True)
 
         vistrail.addTag('meta_a3', meta_a3.id)
         vistrail.addTag('meta_a4', meta_a4.id)
