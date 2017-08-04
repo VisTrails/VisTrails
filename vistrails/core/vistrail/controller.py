@@ -2832,7 +2832,7 @@ class VistrailController(object):
                     changed = True
                     if highest == self.current_version:
                         new_current_version = full.parent(highest)
-                self.vistrail.pruneVersion(highest)
+                self.prune_version(highest)
         if changed:
             self.set_changed(True)
         if new_current_version is not None:
