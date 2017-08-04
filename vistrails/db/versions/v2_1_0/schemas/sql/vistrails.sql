@@ -225,9 +225,10 @@ CREATE TABLE action(
     date datetime,
     session char(36),
     user varchar(255),
-    parent_id char(36),
+    parent_type char(32),
     entity_id char(36),
-    entity_type char(16)
+    entity_type char(16),
+    parent_id char(36)
 ) engine=InnoDB;
 
 CREATE TABLE port_spec(
@@ -324,9 +325,10 @@ CREATE TABLE action_annotation(
     action_id char(36),
     date datetime,
     user varchar(255),
-    parent_id char(36),
+    parent_type char(32),
     entity_id char(36),
-    entity_type char(16)
+    entity_type char(16),
+    parent_id char(36)
 ) engine=InnoDB;
 
 CREATE TABLE control_parameter(

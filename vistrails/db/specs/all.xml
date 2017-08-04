@@ -179,11 +179,28 @@
 	<xml nodeType="xs:element"/>
       </property>
     </choice>
-    
-    <property ref="true" object="vistrail" type="str" inverse="true" 
-	      mapping="many-to-one">
-      <sql column="parent_id" type="char(36)"/>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
     </property>
+
+    <choice name="parent" type="str" discriminator="parentType" inverse="true"
+            mapping="many-to-one">
+      <property ref="true" object="vistrail">
+	    <sql column="parent_id" type="char(36)"/>
+      </property>
+      <property ref="true" object="add">
+	    <sql column="parent_id" type="char(36)"/>
+      </property>
+      <property ref="true" object="change">
+	    <sql column="parent_id" type="char(36)"/>
+      </property>
+    </choice>
+
+    <!--<property ref="true" object="vistrail" type="str" inverse="true" -->
+	      <!--mapping="many-to-one">-->
+      <!--<sql column="parent_id" type="char(36)"/>-->
+    <!--</property>-->
 
     <property name="entity_id" type="str" inverse="true">
       <sql type="char(36)"/>
@@ -279,7 +296,9 @@
       <property ref="true" object="action" mapping="one-to-one" expand="false">
 	    <xml nodeType="xs:element"/>
       </property>
-
+      <property ref="true" object="actionAnnotation" mapping="one-to-one" expand="false">
+	    <xml nodeType="xs:element"/>
+      </property>
     </choice>
 
     <property name="action" type="str" ref="true" object="action" 
@@ -337,10 +356,22 @@
       <sql type="varchar(255)"/>
     </property>    
 
-    <property ref="true" type="str" object="vistrail" inverse="true" 
-	      mapping="many-to-one">
-      <sql column="parent_id" type="char(36)"/>
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
     </property>
+
+    <choice name="parent" type="str" discriminator="parentType" inverse="true"
+            mapping="many-to-one">
+      <property ref="true" object="vistrail">
+	    <sql column="parent_id" type="char(36)"/>
+      </property>
+      <property ref="true" object="add">
+	    <sql column="parent_id" type="char(36)"/>
+      </property>
+      <property ref="true" object="change">
+	    <sql column="parent_id" type="char(36)"/>
+      </property>
+    </choice>
     
     <property name="entity_id" type="str" inverse="true">
       <sql type="char(36)"/>
@@ -650,6 +681,9 @@
 	<xml nodeType="xs:element"/>
       </property>
       <property ref="true" object="action" mapping="one-to-one" expand="false">
+	    <xml nodeType="xs:element"/>
+      </property>
+      <property ref="true" object="actionAnnotation" mapping="one-to-one" expand="false">
 	    <xml nodeType="xs:element"/>
       </property>
     </choice>

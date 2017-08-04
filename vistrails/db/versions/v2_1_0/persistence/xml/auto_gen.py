@@ -576,6 +576,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child_tag == 'action':
                 _data = self.getDao('action').fromXML(child)
                 data = _data
+            elif child_tag == 'actionAnnotation':
+                _data = self.getDao('actionAnnotation').fromXML(child)
+                data = _data
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -649,6 +652,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif data.vtType == 'action':
                 childNode = ElementTree.SubElement(node, 'action')
                 self.getDao('action').toXML(data, childNode)
+            elif data.vtType == 'actionAnnotation':
+                childNode = ElementTree.SubElement(node, 'actionAnnotation')
+                self.getDao('actionAnnotation').toXML(data, childNode)
 
         return node
 
@@ -2240,6 +2246,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child_tag == 'action':
                 _data = self.getDao('action').fromXML(child)
                 data = _data
+            elif child_tag == 'actionAnnotation':
+                _data = self.getDao('actionAnnotation').fromXML(child)
+                data = _data
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -2316,6 +2325,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif data.vtType == 'action':
                 childNode = ElementTree.SubElement(node, 'action')
                 self.getDao('action').toXML(data, childNode)
+            elif data.vtType == 'actionAnnotation':
+                childNode = ElementTree.SubElement(node, 'actionAnnotation')
+                self.getDao('actionAnnotation').toXML(data, childNode)
 
         return node
 

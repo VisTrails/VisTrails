@@ -1233,7 +1233,8 @@ class DBVistrailSQLDAOBase(SQLDAO):
 
     def to_sql_fast(self, obj, do_copy=True):
         for child in obj.db_actions:
-            child.db_vistrail = obj.getPrimaryKey()
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.getPrimaryKey()
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.getPrimaryKey()
@@ -1245,7 +1246,8 @@ class DBVistrailSQLDAOBase(SQLDAO):
         for child in obj.db_parameter_explorations:
             child.db_vistrail = obj.getPrimaryKey()
         for child in obj.db_actionAnnotations:
-            child.db_vistrail = obj.getPrimaryKey()
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.getPrimaryKey()
 
     def delete_sql_column(self, db, obj, global_props):
         table = 'vistrail'
@@ -3038,8 +3040,8 @@ class DBActionSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'prev_id', 'date', 'session',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'session', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action'
         whereMap = global_props
         orderBy = 'id'
@@ -3054,25 +3056,27 @@ class DBActionSQLDAOBase(SQLDAO):
             date = self.convertFromDB(row[2], 'datetime', 'datetime')
             session = self.convertFromDB(row[3], 'str', 'char(36)')
             user = self.convertFromDB(row[4], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[5], 'str', 'char(36)')
+            parentType = self.convertFromDB(row[5], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[6], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            parent = self.convertFromDB(row[8], 'str', 'str')
 
             action = DBAction(prevId=prevId,
                               date=date,
                               session=session,
                               user=user,
                               id=id)
-            action.db_vistrail = vistrail
+            action.db_parentType = parentType
             action.db_entity_id = entity_id
             action.db_entity_type = entity_type
+            action.db_parent = parent
             action.is_dirty = False
             res[('action', id)] = action
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'prev_id', 'date', 'session',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'session', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action'
         whereMap = global_props
         orderBy = 'id'
@@ -3086,32 +3090,40 @@ class DBActionSQLDAOBase(SQLDAO):
             date = self.convertFromDB(row[2], 'datetime', 'datetime')
             session = self.convertFromDB(row[3], 'str', 'char(36)')
             user = self.convertFromDB(row[4], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[5], 'str', 'char(36)')
+            parentType = self.convertFromDB(row[5], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[6], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            parent = self.convertFromDB(row[8], 'str', 'str')
 
             action = DBAction(prevId=prevId,
                               date=date,
                               session=session,
                               user=user,
                               id=id)
-            action.db_vistrail = vistrail
+            action.db_parentType = parentType
             action.db_entity_id = entity_id
             action.db_entity_type = entity_type
+            action.db_parent = parent
             action.is_dirty = False
             res[('action', id)] = action
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if ('vistrail', obj.db_vistrail) in all_objects:
-            p = all_objects[('vistrail', obj.db_vistrail)]
+        if obj.db_parentType == 'vistrail':
+            p = all_objects[('vistrail', obj.db_parent)]
             p.db_add_action(obj)
+        elif obj.db_parentType == 'add':
+            p = all_objects[('add', obj.db_parent)]
+            p.db_add_data(obj)
+        elif obj.db_parentType == 'change':
+            p = all_objects[('change', obj.db_parent)]
+            p.db_add_data(obj)
 
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'prev_id', 'date', 'session',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'session', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action'
         whereMap = {}
         whereMap.update(global_props)
@@ -3134,15 +3146,18 @@ class DBActionSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
-            columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'str', 'str')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -3154,8 +3169,8 @@ class DBActionSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'prev_id', 'date', 'session',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'prev_id', 'date', 'session', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action'
         whereMap = {}
         whereMap.update(global_props)
@@ -3178,15 +3193,18 @@ class DBActionSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
-            columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'str', 'str')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -4676,8 +4694,8 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props, lock=False):
-        columns = ['id', 'akey', 'value', 'action_id', 'date',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action_annotation'
         whereMap = global_props
         orderBy = 'id'
@@ -4693,9 +4711,10 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
             action_id = self.convertFromDB(row[3], 'str', 'char(36)')
             date = self.convertFromDB(row[4], 'datetime', 'datetime')
             user = self.convertFromDB(row[5], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[6], 'str', 'char(36)')
+            parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
+            parent = self.convertFromDB(row[9], 'str', 'str')
 
             actionAnnotation = DBActionAnnotation(key=key,
                                                   value=value,
@@ -4703,16 +4722,17 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
                                                   date=date,
                                                   user=user,
                                                   id=id)
-            actionAnnotation.db_vistrail = vistrail
+            actionAnnotation.db_parentType = parentType
             actionAnnotation.db_entity_id = entity_id
             actionAnnotation.db_entity_type = entity_type
+            actionAnnotation.db_parent = parent
             actionAnnotation.is_dirty = False
             res[('actionAnnotation', id)] = actionAnnotation
         return res
 
     def get_sql_select(self, db, global_props, lock=False):
-        columns = ['id', 'akey', 'value', 'action_id', 'date',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action_annotation'
         whereMap = global_props
         orderBy = 'id'
@@ -4727,9 +4747,10 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
             action_id = self.convertFromDB(row[3], 'str', 'char(36)')
             date = self.convertFromDB(row[4], 'datetime', 'datetime')
             user = self.convertFromDB(row[5], 'str', 'varchar(255)')
-            vistrail = self.convertFromDB(row[6], 'str', 'char(36)')
+            parentType = self.convertFromDB(row[6], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[7], 'str', 'char(36)')
             entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
+            parent = self.convertFromDB(row[9], 'str', 'str')
 
             actionAnnotation = DBActionAnnotation(key=key,
                                                   value=value,
@@ -4737,23 +4758,30 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
                                                   date=date,
                                                   user=user,
                                                   id=id)
-            actionAnnotation.db_vistrail = vistrail
+            actionAnnotation.db_parentType = parentType
             actionAnnotation.db_entity_id = entity_id
             actionAnnotation.db_entity_type = entity_type
+            actionAnnotation.db_parent = parent
             actionAnnotation.is_dirty = False
             res[('actionAnnotation', id)] = actionAnnotation
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if ('vistrail', obj.db_vistrail) in all_objects:
-            p = all_objects[('vistrail', obj.db_vistrail)]
+        if obj.db_parentType == 'vistrail':
+            p = all_objects[('vistrail', obj.db_parent)]
             p.db_add_actionAnnotation(obj)
+        elif obj.db_parentType == 'add':
+            p = all_objects[('add', obj.db_parent)]
+            p.db_add_data(obj)
+        elif obj.db_parentType == 'change':
+            p = all_objects[('change', obj.db_parent)]
+            p.db_add_data(obj)
 
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'akey', 'value', 'action_id', 'date',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action_annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -4779,15 +4807,18 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
-            columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'str', 'str')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -4799,8 +4830,8 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
     def set_sql_command(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return None
-        columns = ['id', 'akey', 'value', 'action_id', 'date',
-                   'user', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'akey', 'value', 'action_id', 'date', 'user',
+                   'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'action_annotation'
         whereMap = {}
         whereMap.update(global_props)
@@ -4826,15 +4857,18 @@ class DBActionAnnotationSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
-        if hasattr(obj, 'db_vistrail') and obj.db_vistrail is not None:
-            columnMap['parent_id'] = \
-                self.convertToDB(obj.db_vistrail, 'str', 'char(36)')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'str', 'char(36)')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'str', 'str')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
