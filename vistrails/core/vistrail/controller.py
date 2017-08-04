@@ -2802,7 +2802,7 @@ class VistrailController(object):
             current_graph = self._current_full_graph
             # current_graph = self.getVersionGraph()
             current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
-            self.vistrail.set_prune(version, str(True))
+            self.vistrail.set_prune(version, True)
 
     def prune_versions(self, versions):
         """ prune_versions(versions: list of version numbers) -> None
@@ -2819,20 +2819,19 @@ class VistrailController(object):
         changed = False
         new_current_version = None
         for v in versions:
-            if v != Vistrail.ROOT_VERSION: # not root
-                highest = v
-                while True:
-                    p = full.parent(highest)
-                    if p==-1:
-                        break
-                    if p in current.vertices:
-                        break
-                    highest = p
-                if highest != Vistrail.ROOT_VERSION:
-                    changed = True
-                    if highest == self.current_version:
-                        new_current_version = full.parent(highest)
-                self.prune_version(highest)
+            if v != Vistrail.ROOT_VERSION and v != -1:
+                pruned_versions = [v,]
+                v = full.parent(v)
+                while (v != Vistrail.ROOT_VERSION and
+                        v != -1 and
+                        v not in current.vertices):
+                    pruned_versions.append(v)
+                    v = full.parent(v)
+                self.prune_version(pruned_versions[-1])
+                if self.current_version in pruned_versions:
+                    new_current_version = v
+                self.meta_controller.prune_actions(
+                    [self.vistrail.actionMap[v] for v in pruned_versions])
         if changed:
             self.set_changed(True)
         if new_current_version is not None:

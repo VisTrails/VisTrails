@@ -54,3 +54,17 @@ class MetaVistrailController(VistrailController):
             self.set_changed(True)
             self.recompute_terse_graph()
             return meta_action
+
+    def prune_actions(self, action_list):
+        if len(action_list) > 0:
+            meta_action = vistrails.core.db.io.create_action(
+                [('delete', action) for action in action_list])
+            self.vistrail.add_action(meta_action, self.current_version,
+                                     self.vt_controller.current_session)
+            self.vistrail.change_description("Prune", meta_action.id)
+            self.current_version = meta_action.db_id
+            self.set_changed(True)
+            self.recompute_terse_graph()
+            self.invalidate_version_tree(False)
+            return meta_action
+        return None
