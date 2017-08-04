@@ -38,10 +38,11 @@ from __future__ import division
 from vistrails.db.domain import DBAdd, DBChange, DBDelete
 from vistrails.db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
-    DBPortSpec, DBControlParameter, DBAction
+    DBPortSpec, DBControlParameter, DBAction, DBActionAnnotation
 
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.abstraction import Abstraction
+from vistrails.core.vistrail.action_annotation import ActionAnnotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
@@ -62,6 +63,7 @@ def convert_data(_data):
     from vistrails.core.vistrail.action import Action
     map = {
         DBAction.vtType: Action,
+        DBActionAnnotation.vtType: ActionAnnotation,
         DBAnnotation.vtType: Annotation,
         DBAbstraction.vtType: Abstraction,
         DBConnection.vtType: Connection,

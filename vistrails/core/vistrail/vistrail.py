@@ -1432,6 +1432,16 @@ class TestMetaVistrail(unittest.TestCase):
                     parent_id = parent.id
                 child.parent = parent_id
 
+        def create_action_annotation(action_id, key, value):
+            new_id = vistrail.idScope.getNewId(ActionAnnotation.vtType)
+            annotation = ActionAnnotation(id=new_id,
+                                          action_id=action_id,
+                                          key=key,
+                                          value=value,
+                                          date=vistrail.getDate(),
+                                          user=vistrail.getUser())
+            return annotation
+
         p1 = ModuleParam(
             id=vistrail.idScope.getNewId(),
             type='Integer',
@@ -1450,16 +1460,16 @@ class TestMetaVistrail(unittest.TestCase):
                          type='Integer',
                          val='1')
         a2 = vistrails.core.db.io.create_action(
-            [('change', p1, p2, 'function', f1.id)])
+            [('change', p1, p2, 'function', f1.real_id)])
         f1.parameters = [p2]
         a3 = vistrails.core.db.io.create_action(
             [('delete', f1, 'module', m.id)])
 
         p3 = ModuleParam(
-            id=vistrail.idScope.getNewId(),
+            id=p2.real_id,
             type='Integer',
             val='3')
-        f2 = ModuleFunction(id=vistrail.idScope.getNewId(),
+        f2 = ModuleFunction(id=f1.real_id,
                             name='value',
                             parameters=[p3])
         m2 = Module(id=vistrail.idScope.getNewId(Module.vtType),
@@ -1495,30 +1505,54 @@ class TestMetaVistrail(unittest.TestCase):
         a5 = vistrails.core.db.io.create_action([('add', m3),
                                                  ('add', c)])
         update_ids([a1,a2,a3,a4,a5])
-        link_versions([(None, a1), (a1, a2), (a2, a3), (None, a4), (a4, a5)])
+        a4.id = a1.id
+        link_versions([(None, a1), (a1, a2), (a2, a3), (None, a4), (a2, a5)])
 
         for num, action in enumerate([a1,a2,a3,a4, a5]):
             print "ACTION", num, action, [(op.vtType, op.what, op.old_obj_id, op.new_obj_id) for op in action.operations]
+
+        tag_a2 = create_action_annotation(a2.id,
+                                          Vistrail.TAG_ANNOTATION,
+                                          "float")
+        tag_a2_new = create_action_annotation(a2.id,
+                                          Vistrail.TAG_ANNOTATION,
+                                          "integer")
+        tag_a5 = create_action_annotation(a5.db_id,
+                                          Vistrail.TAG_ANNOTATION,
+                                          "connected")
 
         meta_a1 = vistrails.core.db.io.create_action([('add', a1)], False)
         meta_a2 = vistrails.core.db.io.create_action([('add', a2)], False)
         meta_a3 = vistrails.core.db.io.create_action([('add', a3)], False)
         meta_a4 = vistrails.core.db.io.create_action([('change', a1, a4)], False)
-        meta_a5 = vistrails.core.db.io.create_action([('delete', a3),
+        meta_a5 = vistrails.core.db.io.create_action([('delete', tag_a2),
                                                       ('delete', a2)], False)
         meta_a6 = vistrails.core.db.io.create_action([('add', a5)], False)
 
+        meta_a7 = vistrails.core.db.io.create_action([('add', tag_a2)], False)
+        # move tag to updated version
+        meta_a8 = vistrails.core.db.io.create_action([('change', tag_a2, tag_a2_new)], False)
+        meta_a9 = vistrails.core.db.io.create_action([('add', tag_a5)], False)
+
+
         vistrail.add_action(meta_a1, Vistrail.ROOT_VERSION, init_inner=True)
+        # print("MW:", len(vistrail.actions), vistrail.actions)
         vistrail.add_action(meta_a2, meta_a1.id, init_inner=True)
         vistrail.add_action(meta_a3, meta_a2.id, init_inner=True)
-        vistrail.add_action(meta_a4, meta_a1.id, init_inner=True)
-        vistrail.add_action(meta_a5, meta_a3.id, init_inner=True)
-        vistrail.add_action(meta_a6, meta_a4.id, init_inner=True)
+        vistrail.add_action(meta_a7, meta_a2.id)
+        vistrail.add_action(meta_a4, meta_a7.id, init_inner=True)
+        vistrail.add_action(meta_a8, meta_a4.id)
+        vistrail.add_action(meta_a5, meta_a7.id, init_inner=True)
+        vistrail.add_action(meta_a6, meta_a8.id, init_inner=True)
+        vistrail.add_action(meta_a9, meta_a6.id)
 
         vistrail.addTag('meta_a3', meta_a3.id)
         vistrail.addTag('meta_a4', meta_a4.id)
         vistrail.addTag('meta_a5', meta_a5.id)
         vistrail.addTag('meta_a6', meta_a6.id)
+        vistrail.addTag('meta_a7', meta_a7.id)
+        vistrail.addTag('meta_a8', meta_a8.id)
+        vistrail.addTag('meta_a9', meta_a9.id)
 
         return vistrail
 
@@ -1526,30 +1560,43 @@ class TestMetaVistrail(unittest.TestCase):
     def test_meta_vistrail(self):
         mvt = self.create_vistrail()
 
-        vt = mvt.getVistrail("meta_a3")
-        self.assertEqual(len(vt.actions), 3)
-        self.assertEqual(vt.actions[0].operations[0].data.name, 'Float')
-        print "LATEST VERSION:", vt.get_latest_version()
+        # for a in mvt.actions:
+        #     print(a.id, a.parent, [[op.vtType, op.what] for op in a.operations])
+
+        vt = mvt.getVistrail("meta_a7")
+        self.assertEqual(len(vt.actions), 2)
+        # self.assertEqual(vt.actions[0].operations[0].data.name, 'Float')
+        # print("MATERIALIZING PIPELINE", [[[a.id, op.vtType, op.what, op.old_obj_id, op.new_obj_id, op.parentObjId] for op in a.operations] for a in vt.actions])
         wf = vt.getPipeline(vt.get_latest_version())
         self.assertEqual(wf.module_list[0].name, "Float")
+        self.assertEqual(len(vt.action_annotations), 1)
+        self.assertTrue(vt.has_tag_str("float"))
 
-        vt2 = mvt.getVistrail("meta_a4")
-        self.assertEqual(len(vt2.actions), 1)
-        self.assertEqual(vt2.actions[0].operations[0].data.name, 'Integer')
+        vt2 = mvt.getVistrail("meta_a8")
+        self.assertEqual(len(vt2.actions), 2)
+        # self.assertEqual(vt2.actions[0].operations[0].data.name, 'Integer')
         wf2 = vt2.getPipeline(vt2.get_latest_version())
         self.assertEqual(wf2.module_list[0].name, "Integer")
+        self.assertEqual(len(vt2.action_annotations), 1)
+        self.assertFalse(vt2.has_tag_str("float"))
+        self.assertTrue(vt2.has_tag_str("integer"))
 
         vt3 = mvt.getVistrail("meta_a5")
         self.assertEqual(len(vt3.actions), 1)
         self.assertEqual(vt3.actions[0].operations[0].data.name, 'Float')
         wf3 = vt3.getPipeline(vt3.get_latest_version())
         self.assertEqual(wf3.module_list[0].name, "Float")
+        self.assertEqual(len(vt3.action_annotations), 0)
 
-        vt4 = mvt.getVistrail("meta_a6")
-        self.assertEqual(len(vt4.actions), 2)
-        self.assertEqual(vt4.actions[0].operations[0].data.name, 'Integer')
+        vt4 = mvt.getVistrail("meta_a9")
+        self.assertEqual(len(vt4.actions), 3)
+        # self.assertEqual(vt4.actions[0].operations[0].data.name, 'Integer')
         wf4 = vt4.getPipeline(vt4.get_latest_version())
         self.assertListEqual([m.name for m in wf4.module_list], ["Integer", "StandardOutput"])
+        self.assertEqual(len(vt4.action_annotations), 2)
+        self.assertTrue(vt4.has_tag_str("connected"))
+        self.assertTrue(vt4.has_tag_str("integer"))
+        self.assertFalse(vt4.has_tag_str("float"))
 
 
 def load_tests(loader, tests, pattern):

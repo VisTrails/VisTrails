@@ -108,11 +108,10 @@ class ActionAnnotation(DBActionAnnotation):
 ################################################################################
 # Unit tests
 
-from vistrails.core.vistrail.action import Action
-
 class TestActionAnnotation(unittest.TestCase):
 
     def create_annotation(self, id_scope=None):
+        from vistrails.core.vistrail.action import Action
         from vistrails.db.domain import IdScope
 
         if id_scope is None:
