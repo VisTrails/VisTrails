@@ -811,7 +811,7 @@ class VistrailController(QtCore.QObject, BaseController):
         # Remove current tag
         self.vistrail.set_tag(tag_version, None)
 
-        if self.vistrail.hasTag(self.current_version):
+        if self.vistrail.hasTag(self.current_base_version):
             self.vistrail.changeTag(tag, self.current_base_version)
         else:
             self.vistrail.addTag(tag, self.current_base_version)
