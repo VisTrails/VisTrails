@@ -1,4 +1,5 @@
 import vistrails.core.db.io
+from vistrails.core.vistrail.action_annotation import ActionAnnotation
 from vistrails.core.vistrail.vistrail import MetaVistrail
 from vistrails.core.vistrail.controller import VistrailController
 
@@ -68,3 +69,35 @@ class MetaVistrailController(VistrailController):
             self.invalidate_version_tree(False)
             return meta_action
         return None
+
+    def set_tag(self, action_id, tag_str):
+        if action_id is None:
+            return None
+        old_tag = self.vt_controller.vistrail.get_action_annotation(action_id,
+                                                                    MetaVistrail.TAG_ANNOTATION)
+        tag = ActionAnnotation(id=self.vistrail.idScope.getNewId(),
+                               action_id=action_id,
+                               key=MetaVistrail.TAG_ANNOTATION,
+                               value=tag_str)
+        desc = "Tag"
+        if tag is None:
+            meta_action = vistrails.core.db.io.create_action(
+                [('delete', old_tag)])
+            desc = "Delete Tag"
+        elif old_tag is not None:
+            meta_action = vistrails.core.db.io.create_action(
+                [('change', old_tag, tag)])
+            desc = "Change Tag"
+        else:
+            meta_action = vistrails.core.db.io.create_action(
+                [('add', tag)])
+            desc = "Add Tag"
+        self.vistrail.add_action(meta_action, self.current_version,
+                                 self.vt_controller.current_session)
+        self.vistrail.change_description(desc, meta_action.id)
+
+        self.current_version = meta_action.db_id
+        self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False)
+        return meta_action

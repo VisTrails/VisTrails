@@ -816,6 +816,11 @@ class VistrailController(QtCore.QObject, BaseController):
         else:
             self.vistrail.addTag(tag, self.current_base_version)
 
+        # update meta-vistrail
+        if tag_version is not None:
+            self.meta_controller.set_tag(tag_version, None)
+        self.meta_controller.set_tag(self.current_base_version, tag)
+
         self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
