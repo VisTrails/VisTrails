@@ -109,6 +109,7 @@ class AddOp(DBAdd):
     # Properties
 
     id = DBAdd.db_id
+    pos = DBAdd.db_pos
     what = DBAdd.db_what
     objectId = DBAdd.db_objectId
     old_obj_id = DBAdd.db_objectId
@@ -174,6 +175,7 @@ class ChangeOp(DBChange):
     # Properties
     
     id = DBChange.db_id
+    pos = DBChange.db_pos
     what = DBChange.db_what
     oldObjId = DBChange.db_oldObjId
     old_obj_id = DBChange.db_oldObjId
@@ -279,6 +281,7 @@ class DeleteOp(DBDelete):
     # Properties
 
     id = DBDelete.db_id
+    pos = DBDelete.db_pos
     what = DBDelete.db_what
     objectId = DBDelete.db_objectId
     old_obj_id = DBDelete.db_objectId
