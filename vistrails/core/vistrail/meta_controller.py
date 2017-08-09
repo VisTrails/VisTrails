@@ -1,5 +1,7 @@
 import vistrails.core.db.io
+from vistrails.core.vistrail.action import Action
 from vistrails.core.vistrail.action_annotation import ActionAnnotation
+from vistrails.core.vistrail.operation import ChangeOp, AddOp
 from vistrails.core.vistrail.vistrail import MetaVistrail
 from vistrails.core.vistrail.controller import VistrailController
 
@@ -101,3 +103,83 @@ class MetaVistrailController(VistrailController):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
         return meta_action
+
+    def change_action(self, old_action, new_action, init_new_action=False):
+        meta_action = vistrails.core.db.io.create_action(
+            [('change', old_action, new_action)], False)
+        self.vistrail.add_action(meta_action, self.current_version,
+                                 self.vt_controller.current_session,
+                                 init_inner=init_new_action)
+        self.vistrail.change_description("Change Action", meta_action.id)
+
+        self.current_version = meta_action.db_id
+        self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False)
+        return meta_action
+
+    def update_function_meta(self, module, function_name, param_values, old_id=-1L,
+                        aliases=[], query_methods=[], should_replace=True):
+        # search up vistrail for last action that changed the function
+        # may be just a single op in the action...would be better to be able to
+        # change ops...instead of whole actions...
+        vt = self.vt_controller.vistrail
+        # update_function_ops uses a diff parameter order!
+        ops = self.vt_controller.update_function_ops(module, function_name,
+                                                     param_values, old_id,
+                                                     should_replace, aliases,
+                                                     query_methods)
+
+        if not all(op[0] == 'change' for op in ops):
+            # do normal action
+            pass
+        else:
+            found = {}
+            for op in ops:
+                (action_id, op_id) = vt.find_action(self.vt_controller.current_version,
+                                                    op[1].vtType, op[1].real_id,
+                                                    *op[3:])
+                if op_id is not None:
+                    if action_id not in found:
+                        found[action_id] = {}
+                    found[action_id][op_id] = op
+                else:
+                    print "OP NOT FOUND!", op
+            for (action_id, op_dict) in found.iteritems():
+                old_action = vt.actionMap[action_id]
+                # print "REPLACING ACTION:", old_action
+                new_ops = []
+                for old_op in old_action.operations:
+                    if old_op.id in op_dict:
+                        op = op_dict[old_op.id]
+                        # do replace
+                        assert old_op.db_data.vtType == 'parameter'
+                        old_param = old_op.db_data
+                        new_param = op[2]
+                        if old_op.vtType == 'add':
+                            new_op = AddOp(id=old_op.id,
+                                           pos=old_op.pos,
+                                           what=old_op.what,
+                                           objectId=new_param.real_id,
+                                           parentObjId=old_op.parentObjId,
+                                           parentObjType=old_op.parentObjType,
+                                           data=new_param)
+                        else:
+                            new_op = ChangeOp(id=old_op.id,
+                                              pos=old_op.pos,
+                                              what=old_op.what,
+                                              oldObjId=old_op.old_obj_id,
+                                              newObjId=new_param.real_id,
+                                              parentObjId=old_op.parentObjId,
+                                              parentObjType=old_op.parentObjType,
+                                              data=new_param)
+                        new_ops.append(new_op)
+                    else:
+                        new_ops.append(old_op)
+                new_action = Action(id=old_action.id,
+                                    prevId=old_action.parent,
+                                    operations=new_ops)
+                # print "NEW ACTION:", new_action
+                # for op in new_action.operations:
+                #     print "  NEW OP:", op
+                self.change_action(old_action, new_action, init_new_action=True)

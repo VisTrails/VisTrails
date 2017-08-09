@@ -716,6 +716,13 @@ class PortsList(QtGui.QTreeWidget):
                 should_replace = False
             else:
                 should_replace = True
+
+            # FIXME temporary GUI to test meta batch edits
+            reply = QtGui.QMessageBox.question(self, "Update all",
+                                               "Update all dependent versions?",
+                                               QtGui.QMessageBox.Yes,
+                                               QtGui.QMessageBox.No)
+
             self.controller.update_function(self.module,
                                             port_name,
                                             str_values,
@@ -723,7 +730,8 @@ class PortsList(QtGui.QTreeWidget):
                                             [str(label.alias)
                                              for label in labels],
                                             query_methods,
-                                            should_replace)
+                                            should_replace,
+                                            meta_change=(reply == QtGui.QMessageBox.Yes))
 
             # FIXME need to get the function set on the item somehow
             # HACK for now

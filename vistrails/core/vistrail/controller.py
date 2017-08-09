@@ -1240,7 +1240,14 @@ class VistrailController(object):
 
     @vt_action
     def update_function(self, module, function_name, param_values, old_id=-1L,
-                        aliases=[], query_methods=[], should_replace=True):
+                        aliases=[], query_methods=[], should_replace=True,
+                        meta_change=False):
+        if meta_change:
+            return self.meta_controller.update_function_meta(module, function_name,
+                                                             param_values, old_id,
+                                                             aliases, query_methods,
+                                                             should_replace)
+
         op_list = self.update_function_ops(module, function_name, param_values,
                                            old_id, aliases=aliases,
                                            query_methods=query_methods,

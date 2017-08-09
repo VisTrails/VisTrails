@@ -295,6 +295,31 @@ class Vistrail(DBVistrail):
         """
         return sorted(self.actions.itervalues(), key=lambda a: a.date)
 
+    def find_action(self, leaf_version, obj_type, obj_id,
+                    parent_obj_type=None, parent_obj_id=None):
+        # print "FINDING ACTION", leaf_version, obj_type, obj_id, \
+        #     parent_obj_type, parent_obj_id
+        action_id = None
+        op_id = None
+        action_ids = self.tree.getVersionTree().path_to_root(leaf_version)
+        for action_id in action_ids:
+            if action_id == Vistrail.ROOT_VERSION:
+                continue
+            for op in self.actionMap[action_id].operations:
+                if op.vtType == 'add' or op.vType == 'change':
+                    if (op.what == obj_type and
+                        op.new_obj_id == obj_id and
+                        op.parentObjType == parent_obj_type and
+                        op.parentObjId == parent_obj_id):
+                        op_id = op.id
+                        break
+            # break out of outer loop if inner loop broke
+            if op_id is not None:
+                break
+        if op_id is not None:
+            return (action_id, op_id)
+        return (None, None)
+
     def get_latest_version(self):
         """get_latest_version() -> Integer
         Returns the latest version id for the vistrail.
