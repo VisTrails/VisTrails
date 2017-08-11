@@ -900,15 +900,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         ourMaxRank = 0
         otherMaxRank = 0
         am = controller.vistrail.actionMap
-        for nodeId in sorted(self.versions.keys()):
-            if nodeId != Vistrail.ROOT_VERSION:
-                nodeUser = am[nodeId].user
-                if nodeUser==currentUser:
-                    ranks[nodeId] = ourMaxRank
-                    ourMaxRank += 1
-                else:
-                    ranks[nodeId] = otherMaxRank
-                    otherMaxRank += 1
+        # doesn't matter what value ROOT_VERSION is assigned (excluded by if)
+        for (v, a) in sorted(((v, am[v]) for v in self.versions
+                              if v != Vistrail.ROOT_VERSION),
+                             key=lambda t: t[1].date):
+            if a.user == currentUser:
+                ranks[v] = ourMaxRank
+                ourMaxRank += 1
+            else:
+                ranks[v] = otherMaxRank
+                otherMaxRank += 1
         for (nodeId, item) in self.versions.iteritems():
             if nodeId == Vistrail.ROOT_VERSION:
                 item.setGhosted(True)
