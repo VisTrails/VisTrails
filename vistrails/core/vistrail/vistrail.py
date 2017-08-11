@@ -787,7 +787,7 @@ class Vistrail(DBVistrail):
         
         """
         description = "Other action"
-        if not version_number:
+        if version_number == self.ROOT_VERSION:
             description = "" # Root node
         elif version_number in self.actionMap:
             action = self.actionMap[version_number]
