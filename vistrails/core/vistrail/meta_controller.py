@@ -118,6 +118,42 @@ class MetaVistrailController(VistrailController):
         self.invalidate_version_tree(False)
         return meta_action
 
+    def find_meta_impacts(self, meta_version_ids, action_ids):
+        # need to build chains of actions (e.g. if one action changed to another
+        # which then changed to the current meta id)
+        # TODO for now, just get closest upstream / downstream
+        for mv_id in meta_version_ids:
+            if mv_id != MetaVistrail.ROOT_VERSION:
+                meta_action = self.vistrail.actionMap[mv_id]
+                for op in meta_action.operations:
+                    if (op.vtType == 'change' and
+                        op.what == 'action' and
+                        op.new_obj_id in action_ids):
+                        return mv_id
+        return None
+
+    def find_meta_links(self, action_id):
+        # FIXME can be more efficient than processing each version id individually
+
+        # care about any meta-action which changes one of these actions
+        action_ids = set(self.vt_controller.vistrail.tree.path_to_root(action_id))
+
+        # process path to root (reverse links)
+        prev_meta = self.find_meta_impacts(
+            self.vistrail.tree.path_to_root(self.current_version), action_ids)
+
+        # process all children (forward links), sort by date
+        child_dict = self.vistrail.tree.getVersionTree().bfs(self.current_version)
+        children = list(sorted(child_dict.iterkeys(),
+                               key=lambda v: self.vistrail.actionMap[v].date))
+        next_meta = self.find_meta_impacts(children, action_ids)
+
+        # for now, the action id remains the same (depends on how meta action
+        # is set up)
+        prev_t = (prev_meta, action_id) if prev_meta is not None else None
+        next_t = (next_meta, action_id) if next_meta is not None else None
+        return (prev_t, next_t)
+
     def update_function_meta(self, module, function_name, param_values, old_id=-1L,
                         aliases=[], query_methods=[], should_replace=True):
         # search up vistrail for last action that changed the function

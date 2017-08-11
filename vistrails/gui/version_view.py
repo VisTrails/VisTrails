@@ -802,12 +802,14 @@ class QVersionedVersionItem(QGraphicsVersionItem):
         self.meta_links = {"forward": None, "backward": None}
 
     def setupVersion(self, node, action, tag, description,
-                     forward_version=None, backward_version=None):
+                     backward_version=None, forward_version=None):
+        print "SETUP VERSION forward:", forward_version, "backward", backward_version
         QGraphicsVersionItem.setupVersion(self, node, action, tag, description)
         v_rect = None
-        for i, (version, (key, item)) in enumerate(
+        for i, (version, key) in enumerate(
                 zip([forward_version, backward_version],
-                    self.meta_links.items())):
+                    ["forward", "backward"])):
+            item = self.meta_links[key]
             # want this to be based on a version existing... save version id
             if version is None:
                 if item is not None:
@@ -834,7 +836,8 @@ class QVersionedVersionItem(QGraphicsVersionItem):
         QGraphicsVersionItem.update_color(self, isThisUs, new_rank, new_max_rank,
                                           new_ghosted, new_customcolor)
         for item in self.meta_links.itervalues():
-            item.setBrush(self.versionBrush)
+            if item is not None:
+                item.setBrush(self.versionBrush)
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
@@ -860,7 +863,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.connect(self, QtCore.SIGNAL("selectionChanged()"),
                      self.selectionChanged)
 
-    def addVersion(self, node, action, tag, description):
+    def addVersion(self, node, action, tag, description,
+                   prev_meta=None, next_meta=None):
         """ addModule(node, action: DBAction, tag: str, description: str,
                 custom_color: (int, int, int))
                 -> None
@@ -871,13 +875,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # versionShape = QGraphicsVersionItem(None)
         versionShape = QVersionedVersionItem(None)
 
-        # FIXME need actual meta links
-        if action is not None:
-            versionShape.setupVersion(node, action, tag, description,
-                                      (action.id, action.id),
-                                      (action.id, action.id))
-        else:
-            versionShape.setupVersion(node, action, tag, description)
+        versionShape.setupVersion(node, action, tag, description,
+                                  prev_meta, next_meta)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -1074,18 +1073,22 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             tag = tree.vertices.get(v, None)
             action = am.get(v, None)
             description = vistrail.get_description(v)
+            # FIXME don't worry about the query view for now
+            prev_meta, next_meta = None, None
+            if controller.meta_controller is not None:
+                prev_meta, next_meta = controller.meta_controller.find_meta_links(v)
 
             # if the version gui object already exists...
             if v in self.versions:
                 versionShape = self.versions[v]
                 if action is not None:
                     versionShape.setupVersion(node, action, tag, description,
-                                              (action.id, action.id),
-                                              (action.id, action.id))
+                                              prev_meta, next_meta)
                 else:
                     versionShape.setupVersion(node, action, tag, description)
             else:
-                self.addVersion(node, action, tag, description)
+                self.addVersion(node, action, tag, description,
+                                prev_meta, next_meta)
             if select_node:
                 self.versions[v].setSelected(v == controller.current_base_version)
 
