@@ -521,17 +521,6 @@ class Graph(object):
             raise self.VertexHasNoParentError(v)
         return froom
 
-    def path_to_root(self, v):
-        """Returns the ids along the path from a node back up to the root"""
-        path = []
-        try:
-            while True:
-                path.append(v)
-                v = self.parent(v)
-        except self.VertexHasNoParentError:
-            pass
-        return path
-
     def vertices_topological_sort(self,vertex_set=None):
         """ vertices_topological_sort(self,vertex_set=None) ->
         sequence(vertices) Returns a sequence of all vertices, so that

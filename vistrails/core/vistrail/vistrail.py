@@ -301,7 +301,7 @@ class Vistrail(DBVistrail):
         #     parent_obj_type, parent_obj_id
         action_id = None
         op_id = None
-        action_ids = self.tree.getVersionTree().path_to_root(leaf_version)
+        action_ids = self.tree.path_to_root(leaf_version)
         for action_id in action_ids:
             if action_id == Vistrail.ROOT_VERSION:
                 continue
@@ -1197,7 +1197,19 @@ class ExplicitExpandedVersionTree(object):
     
     def getVersionTree(self):
         return self.expandedVersionTree
-        
+
+    def path_to_root(self, v):
+        """Returns the ids along the path from a node back up to the root"""
+        tree = self.expandedVersionTree
+        path = []
+        try:
+            while True:
+                path.append(v)
+                v = tree.parent(v)
+        except tree.VertexHasNoParentError:
+            pass
+        return path
+
 ##############################################################################
 
 class VersionAlreadyTagged(Exception):
