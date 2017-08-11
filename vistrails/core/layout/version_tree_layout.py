@@ -76,7 +76,7 @@ class VistrailsTreeLayoutLW(object):
     
     """
     def __init__(self, text_width_f, text_height, text_horizontal_margin,
-                 text_vertical_margin):
+                 text_vertical_margin, min_horizontal_sep=20, min_vertical_sep=50):
         """ DotLayout() -> DotLayout()
         Initialize DotNode as a data structure holding graph structure
         
@@ -85,6 +85,8 @@ class VistrailsTreeLayoutLW(object):
         self.text_height = text_height
         self.text_horizontal_margin = text_horizontal_margin
         self.text_vertical_margin = text_vertical_margin
+        self.min_horizontal_sep = min_horizontal_sep
+        self.min_vertical_sep = min_vertical_sep
         self.nodes = {}
         self.height = 0.0
         self.scale = 0.0
@@ -168,12 +170,9 @@ class VistrailsTreeLayoutLW(object):
 
         tree = self.generateTreeLW(vistrail, graph)
 
-        min_horizontal_separation = 20
-        min_vertical_separation = 50
-
         layout = TreeLayoutLW(tree, TreeLayoutLW.TOP,
-                              min_horizontal_separation,
-                              min_vertical_separation)
+                              self.min_horizontal_sep,
+                              self.min_vertical_sep)
 
         # prepare the result
         self.nodes = {}

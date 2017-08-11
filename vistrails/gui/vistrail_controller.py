@@ -194,9 +194,9 @@ class VistrailController(QtCore.QObject, BaseController):
         self._current_graph_layout = \
             VistrailsTreeLayoutLW(width_f, 
                                   CurrentTheme.VERSION_FONT_METRIC.height(), 
-                                  CurrentTheme.VERSION_LABEL_MARGIN[0] + \
-                                  2 * CurrentTheme.META_VERSION_LINK_WIDTH,
-                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
+                                  CurrentTheme.VERSION_LABEL_MARGIN[0],
+                                  CurrentTheme.VERSION_LABEL_MARGIN[1],
+                                  2 * CurrentTheme.META_VERSION_LINK_WIDTH + 20)
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
         BaseController.__init__(self, vistrail, locator, abstractions, 
@@ -1490,7 +1490,8 @@ class MetaVistrailController(QtCore.QObject, BaseMetaController):
             VistrailsTreeLayoutLW(width_f,
                                   CurrentTheme.VERSION_FONT_METRIC.height(),
                                   CurrentTheme.VERSION_LABEL_MARGIN[0],
-                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
+                                  CurrentTheme.VERSION_LABEL_MARGIN[1],
+                                  2 * CurrentTheme.META_VERSION_LINK_WIDTH + 20)
         # this was moved to BaseController
         # self.num_versions_always_shown = 1
         BaseMetaController.__init__(self, vistrail, locator, abstractions,
