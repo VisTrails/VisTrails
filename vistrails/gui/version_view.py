@@ -768,7 +768,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.scene().double_click(self.id)
 
 class QVersionedVersionItem(QGraphicsVersionItem):
-    LINK_WIDTH = 15
     def __init__(self, parent=None, scene=None):
         self.forward_item = None
         self.backward_item = None
@@ -798,9 +797,9 @@ class QVersionedVersionItem(QGraphicsVersionItem):
                 item.show()
                 if v_rect is None:
                     rect = self.rect()
-                    v_rect = QtCore.QRectF(rect.x() - self.LINK_WIDTH,
+                    v_rect = QtCore.QRectF(rect.x() - CurrentTheme.META_VERSION_LINK_WIDTH,
                                            rect.y(),
-                                           rect.width() + 2*self.LINK_WIDTH,
+                                           rect.width() + 2*CurrentTheme.META_VERSION_LINK_WIDTH,
                                            rect.height())
                 item.setRect(v_rect)
 

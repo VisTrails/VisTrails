@@ -63,6 +63,9 @@ class DefaultCoreTheme(object):
         # Padded space of Version shape and its label
         self.VERSION_LABEL_MARGIN = (60, 35)
 
+        # Add space for meta version links (edges of nodes)
+        self.META_VERSION_LINK_WIDTH = 15
+
         # Padded space of Module shape into its label
         self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
 
