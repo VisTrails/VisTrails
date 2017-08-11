@@ -83,6 +83,7 @@ import copy
 import math
 import operator
 import string
+import time
 import warnings
 
 import vistrails.api
@@ -2854,6 +2855,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if get_vistrails_configuration().check('autoConnect'):
             if self.tmp_output_conn is not None:
                 if self.tmp_output_conn.isVisible():
+                    time.sleep(0.001) # delay so prev actions' timestamps earlier
                     self.createConnectionFromTmp(self.tmp_output_conn, module)
                 self.tmp_output_conn.disconnect()
                 self.removeItem(self.tmp_output_conn)
@@ -2861,6 +2863,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
 
             if self.tmp_input_conn is not None:
                 if self.tmp_input_conn.isVisible():
+                    time.sleep(0.001) # delay so prev actions' timestamps earlier
                     self.createConnectionFromTmp(self.tmp_input_conn, module)
                 self.tmp_input_conn.disconnect()
                 self.removeItem(self.tmp_input_conn)
