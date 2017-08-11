@@ -767,6 +767,49 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         event.accept()
         self.scene().double_click(self.id)
 
+class QVersionedVersionItem(QGraphicsVersionItem):
+    LINK_WIDTH = 15
+    def __init__(self, parent=None, scene=None):
+        self.forward_item = None
+        self.backward_item = None
+        QGraphicsVersionItem.__init__(self, parent, scene)
+        self.forward_item = QtGui.QGraphicsEllipseItem(self)
+        self.forward_item.setStartAngle(90 * 16)
+        self.forward_item.setSpanAngle(180 * 16)
+        self.backward_item = QtGui.QGraphicsEllipseItem(self)
+        self.backward_item.setStartAngle(-90 * 16)
+        self.backward_item.setSpanAngle(180 * 16)
+        for item in [self.forward_item, self.backward_item]:
+            item.setFlag(QtGui.QGraphicsItem.ItemStacksBehindParent, True)
+            item.setPen(CurrentTheme.VERSION_PEN)
+            item.setBrush(CurrentTheme.VERSION_USER_BRUSH)
+            item.hide()
+
+    def setupVersion(self, node, action, tag, description,
+                     forward_version=None, backward_version=None):
+        QGraphicsVersionItem.setupVersion(self, node, action, tag, description)
+        v_rect = None
+        for version, item in zip([forward_version, backward_version],
+                                 [self.forward_item, self.backward_item]):
+            # want this to be based on a version existing... save version id
+            if version is False:
+                item.hide()
+            elif version is True or item.isVisible():
+                item.show()
+                if v_rect is None:
+                    rect = self.rect()
+                    v_rect = QtCore.QRectF(rect.x() - self.LINK_WIDTH,
+                                           rect.y(),
+                                           rect.width() + 2*self.LINK_WIDTH,
+                                           rect.height())
+                item.setRect(v_rect)
+
+    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted,
+                     new_customcolor):
+        QGraphicsVersionItem.update_color(self, isThisUs, new_rank, new_max_rank,
+                                          new_ghosted, new_customcolor)
+        for item in [self.forward_item, self.backward_item]:
+            item.setBrush(self.versionBrush)
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
@@ -799,8 +842,15 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Add a module to the scene.
 
         """
-        versionShape = QGraphicsVersionItem(None)
-        versionShape.setupVersion(node, action, tag, description)
+
+        # versionShape = QGraphicsVersionItem(None)
+        versionShape = QVersionedVersionItem(None)
+
+        # FIXME make this work with actual data
+        import random
+        versionShape.setupVersion(node, action, tag, description,
+                                  bool(random.getrandbits(1)),
+                                  bool(random.getrandbits(1)))
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
