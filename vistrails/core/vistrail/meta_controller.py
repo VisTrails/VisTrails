@@ -138,9 +138,14 @@ class MetaVistrailController(VistrailController):
         # care about any meta-action which changes one of these actions
         action_ids = set(self.vt_controller.vistrail.tree.path_to_root(action_id))
 
+        # print "META_TREE:", self.vistrail.tree.getVersionTree()
+
         # process path to root (reverse links)
         prev_meta = self.find_meta_impacts(
             self.vistrail.tree.path_to_root(self.current_version), action_ids)
+        # really want the **previous** meta-action, the one right before the change
+        if prev_meta is not None:
+            prev_meta = self.vistrail.tree.getVersionTree().parent(prev_meta)
 
         # process all children (forward links), sort by date
         child_dict = self.vistrail.tree.getVersionTree().bfs(self.current_version)
@@ -150,6 +155,7 @@ class MetaVistrailController(VistrailController):
 
         # for now, the action id remains the same (depends on how meta action
         # is set up)
+        # print "PREV, NEXT", prev_meta, next_meta
         prev_t = (prev_meta, action_id) if prev_meta is not None else None
         next_t = (next_meta, action_id) if next_meta is not None else None
         return (prev_t, next_t)

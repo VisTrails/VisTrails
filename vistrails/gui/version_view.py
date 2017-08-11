@@ -794,7 +794,7 @@ class QVersionedVersionLink(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # may need a signal so that this can complete and then process...
 
         print "LINK CLICKED", self.meta_version, self.version
-        self.scene().emit(QtCore.SIGNAL("metaVersionChanged(str, str)"), self.meta_version, self.version)
+        self.scene().emit(QtCore.SIGNAL("metaVersionSelected(QString&,QString&)"), self.meta_version, self.version)
 
 class QVersionedVersionItem(QGraphicsVersionItem):
     def __init__(self, parent=None, scene=None):

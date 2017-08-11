@@ -832,6 +832,9 @@ class QVistrailView(QtGui.QWidget):
         self.connect(view.scene(),
                      QtCore.SIGNAL('diffRequested(int,int)'),
                      self.diff_requested)
+        self.connect(view.scene(),
+                     QtCore.SIGNAL('metaVersionSelected(QString&,QString&)'),
+                     self.meta_version_selected_helper)
         return view
 
     def create_query_view(self):
@@ -937,6 +940,11 @@ class QVistrailView(QtGui.QWidget):
                 window.qactions['history'].trigger()
             # self.controller.reset_redo_stack()
         _app.notify("meta_version_changed", self.meta_controller.current_version)
+
+    def meta_version_selected_helper(self, meta_version_id, version_id):
+        self.meta_version_selected(meta_version_id, True, double_click=True)
+        self.meta_controller.invalidate_version_tree(False)
+        self.controller.invalidate_version_tree(True)
 
     def version_selected(self, version_id, by_click, do_validate=True,
                          from_root=False, double_click=False):
