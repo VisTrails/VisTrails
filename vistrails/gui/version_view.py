@@ -767,47 +767,73 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         event.accept()
         self.scene().double_click(self.id)
 
+class QVersionedVersionLink(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
+    def __init__(self, meta_version, version, rect, start_dir=1,
+                 parent=None, scene=None):
+        QtGui.QGraphicsEllipseItem.__init__(self, parent, scene)
+        self.meta_version = meta_version
+        self.version = version
+        self.setRect(rect)
+        self.setStartAngle(start_dir * 90 * 16)
+        self.setSpanAngle(180 * 16)
+        self.setFlag(QtGui.QGraphicsItem.ItemStacksBehindParent, True)
+        self.setPen(CurrentTheme.VERSION_PEN)
+        self.setBrush(CurrentTheme.VERSION_USER_BRUSH)
+
+    def update_version_info(self, meta_version, version):
+        self.meta_version = meta_version
+        self.version = version
+
+    def mousePressEvent(self, event):
+        # must be defined to receive the release event
+        pass
+
+    def mouseReleaseEvent(self, event):
+        # need to trigger the update of the entire vistrail to meta-version
+        # linked to by version
+        # may need a signal so that this can complete and then process...
+
+        print "LINK CLICKED", self.meta_version, self.version
+        self.scene().emit(QtCore.SIGNAL("metaVersionChanged(str, str)"), self.meta_version, self.version)
+
 class QVersionedVersionItem(QGraphicsVersionItem):
     def __init__(self, parent=None, scene=None):
-        self.forward_item = None
-        self.backward_item = None
         QGraphicsVersionItem.__init__(self, parent, scene)
-        self.forward_item = QtGui.QGraphicsEllipseItem(self)
-        self.forward_item.setStartAngle(90 * 16)
-        self.forward_item.setSpanAngle(180 * 16)
-        self.backward_item = QtGui.QGraphicsEllipseItem(self)
-        self.backward_item.setStartAngle(-90 * 16)
-        self.backward_item.setSpanAngle(180 * 16)
-        for item in [self.forward_item, self.backward_item]:
-            item.setFlag(QtGui.QGraphicsItem.ItemStacksBehindParent, True)
-            item.setPen(CurrentTheme.VERSION_PEN)
-            item.setBrush(CurrentTheme.VERSION_USER_BRUSH)
-            item.hide()
+        self.meta_links = {"forward": None, "backward": None}
 
     def setupVersion(self, node, action, tag, description,
                      forward_version=None, backward_version=None):
         QGraphicsVersionItem.setupVersion(self, node, action, tag, description)
         v_rect = None
-        for version, item in zip([forward_version, backward_version],
-                                 [self.forward_item, self.backward_item]):
+        for i, (version, (key, item)) in enumerate(
+                zip([forward_version, backward_version],
+                    self.meta_links.items())):
             # want this to be based on a version existing... save version id
-            if version is False:
-                item.hide()
-            elif version is True or item.isVisible():
-                item.show()
-                if v_rect is None:
+            if version is None:
+                if item is not None:
+                    self.scene().removeItem(item)
+                    self.meta_links[key] = None
+            else:
+                if v_rect is None: # used by both forward and backward (cache)
                     rect = self.rect()
-                    v_rect = QtCore.QRectF(rect.x() - CurrentTheme.META_VERSION_LINK_WIDTH,
-                                           rect.y(),
-                                           rect.width() + 2*CurrentTheme.META_VERSION_LINK_WIDTH,
-                                           rect.height())
-                item.setRect(v_rect)
+                    v_rect = QtCore.QRectF(
+                        rect.x() - CurrentTheme.META_VERSION_LINK_WIDTH,
+                        rect.y(),
+                        rect.width() + 2 * CurrentTheme.META_VERSION_LINK_WIDTH,
+                        rect.height())
+                if item is None: # need new item
+                    item = QVersionedVersionLink(version[0], version[1], v_rect, 2*i-1,
+                                                 self, self.scene())
+                    self.meta_links[key] = item
+                else: # just need to update
+                    item.update_version_info(version[0], version[1])
+                    item.setRect(v_rect)
 
     def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted,
                      new_customcolor):
         QGraphicsVersionItem.update_color(self, isThisUs, new_rank, new_max_rank,
                                           new_ghosted, new_customcolor)
-        for item in [self.forward_item, self.backward_item]:
+        for item in self.meta_links.itervalues():
             item.setBrush(self.versionBrush)
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
@@ -845,11 +871,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # versionShape = QGraphicsVersionItem(None)
         versionShape = QVersionedVersionItem(None)
 
-        # FIXME make this work with actual data
-        import random
-        versionShape.setupVersion(node, action, tag, description,
-                                  bool(random.getrandbits(1)),
-                                  bool(random.getrandbits(1)))
+        # FIXME need actual meta links
+        if action is not None:
+            versionShape.setupVersion(node, action, tag, description,
+                                      (action.id, action.id),
+                                      (action.id, action.id))
+        else:
+            versionShape.setupVersion(node, action, tag, description)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -1050,7 +1078,12 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             # if the version gui object already exists...
             if v in self.versions:
                 versionShape = self.versions[v]
-                versionShape.setupVersion(node, action, tag, description)
+                if action is not None:
+                    versionShape.setupVersion(node, action, tag, description,
+                                              (action.id, action.id),
+                                              (action.id, action.id))
+                else:
+                    versionShape.setupVersion(node, action, tag, description)
             else:
                 self.addVersion(node, action, tag, description)
             if select_node:
@@ -1133,7 +1166,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         if len(selected_items) == 2:
             self.emit(
-                QtCore.SIGNAL('twoVersionsSelected(strx, str)'),
+                QtCore.SIGNAL('twoVersionsSelected(str, str)'),
                 selected_items[0].id, selected_items[1].id)
 
     def double_click(self, version_id):
