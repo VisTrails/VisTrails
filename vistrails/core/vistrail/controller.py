@@ -2866,7 +2866,7 @@ class VistrailController(object):
         """
         full = self._current_full_graph
         p = full.parent(v2)
-        while p > v1:
+        while p != v1:
             self.vistrail.expandVersion(p)
             p = full.parent(p)
         self.recompute_terse_graph()

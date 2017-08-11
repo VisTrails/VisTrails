@@ -127,8 +127,8 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Setup a line connecting v1 and v2 items
         
         """
-        self.startVersion = min(v1.id, v2.id)
-        self.endVersion = max(v1.id, v2.id)
+        self.startVersion = v1.id
+        self.endVersion = v2.id
         
         c1 = v1.sceneBoundingRect().center()
         c2 = v2.sceneBoundingRect().center()
