@@ -3111,7 +3111,7 @@ class VistrailController(object):
 
                     # ...and the parent
                     if parent is not None:
-                        collapse_here = not collapsible and not display
+                        collapse_here = not collapsible and am[current].expand
                         tersedVersionTree.add_edge(parent, current,
                                                    (expandable, collapse_here))
                         collapsible = collapsible or collapse_here
