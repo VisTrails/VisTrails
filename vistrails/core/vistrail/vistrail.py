@@ -306,7 +306,7 @@ class Vistrail(DBVistrail):
             if action_id == Vistrail.ROOT_VERSION:
                 continue
             for op in self.actionMap[action_id].operations:
-                if op.vtType == 'add' or op.vType == 'change':
+                if op.vtType == 'add' or op.vtType == 'change':
                     if (op.what == obj_type and
                         op.new_obj_id == obj_id and
                         op.parentObjType == parent_obj_type and
