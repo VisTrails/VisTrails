@@ -786,7 +786,7 @@ class QVersionedVersionLink(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
     def mousePressEvent(self, event):
         # must be defined to receive the release event
-        pass
+        self.setPen(CurrentTheme.VERSION_SELECTED_PEN)
 
     def mouseReleaseEvent(self, event):
         # need to trigger the update of the entire vistrail to meta-version
@@ -794,6 +794,7 @@ class QVersionedVersionLink(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # may need a signal so that this can complete and then process...
 
         print "LINK CLICKED", self.meta_version, self.version
+        self.setPen(CurrentTheme.VERSION_PEN)
         self.scene().emit(QtCore.SIGNAL("metaVersionSelected(QString&,QString&)"), self.meta_version, self.version)
 
 class QVersionedVersionItem(QGraphicsVersionItem):
