@@ -943,7 +943,10 @@ class QVistrailView(QtGui.QWidget):
 
     def meta_version_selected_helper(self, meta_version_id, version_id):
         self.meta_version_selected(meta_version_id, True, double_click=True)
-        self.meta_controller.invalidate_version_tree(False)
+        # TODO something more efficient? need to ensure selected node shown
+        self.meta_controller.recompute_terse_graph()
+        self.meta_controller.invalidate_version_tree(True)
+        self.controller.change_selected_version(version_id)
         self.controller.invalidate_version_tree(True)
 
     def version_selected(self, version_id, by_click, do_validate=True,
