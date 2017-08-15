@@ -81,7 +81,7 @@ def materializeVistrail(meta_vt, version, root_version=DBVistrail.ROOT_VERSION):
         vistrail = DBVistrail()
         #for action in getActionChain(vistrail, version):
         #    oldPerformAction(action, workflow)
-        performActions(getActionChain(meta_vt, version, root_version),
+        performVistrailActions(getActionChain(meta_vt, version, root_version),
                             vistrail)
         vistrail.db_id = version
         vistrail.db_vistrailId = meta_vt.db_id
@@ -152,6 +152,21 @@ def performActions(actions, obj):
     # note that delete actions have been removed and
     # a change after an add is effectively an add if the add is discarded
     performAdds(getCurrentOperations(actions), obj)
+
+def performVistrailActions(actions, obj):
+    addOps = getCurrentOperations(actions)
+    for operation in addOps:
+        if operation is None:
+            continue
+        # print "operation %s: %s %s" % (operation.db_id, operation.vtType,
+        #                                operation.db_what)
+        # print "    to:  %s %s" % (operation.db_parentObjType,
+        #                           operation.db_parentObjId)
+        funname = 'db_add_' + operation.db_what
+        getattr(obj, funname)(operation.db_data)
+        obj.db_add_object(operation.db_data,
+                          operation.db_parentObjType,
+                          operation.db_parentObjId)
 
 def synchronize(old_vistrail, new_vistrail, current_action_id):
     id_remap = {}
