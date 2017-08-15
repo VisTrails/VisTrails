@@ -500,9 +500,6 @@ class Vistrail(DBVistrail):
             action = self.actionMap[action.parent]
         result.reverse()
         return result
-    
-    def update_object(self, obj, **kwargs):
-        self.db_update_object(obj, **kwargs)
 
     def add_action(self, action, parent, session=None):
         # FIXME: this should go to core.db.io
