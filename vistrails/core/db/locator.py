@@ -100,14 +100,14 @@ class CoreLocator(object):
     # function gets called
     @staticmethod
     def get_convert_klass(vt_type):
-        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import MetaVistrail
         from vistrails.core.vistrail.pipeline import Pipeline
         from vistrails.core.log.log import Log
         from vistrails.core.mashup.mashup_trail import Mashuptrail
         from vistrails.core.modules.module_registry import ModuleRegistry
         from vistrails.core.log.opm_graph import OpmGraph
         
-        klass_map = {Vistrail.vtType: Vistrail,
+        klass_map = {MetaVistrail.vtType: MetaVistrail,
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
                      ModuleRegistry.vtType: ModuleRegistry,
@@ -117,9 +117,9 @@ class CoreLocator(object):
 
 class UntitledLocator(_UntitledLocator, CoreLocator):
     def load(self, klass=None):
-        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import MetaVistrail
         if klass is None:
-            klass = Vistrail
+            klass = MetaVistrail
         obj = _UntitledLocator.load(self, klass.vtType)
         klass.convert(obj)
         obj.locator = self
@@ -131,9 +131,9 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         _XMLFileLocator.__init__(self, filename, **kwargs)
         
     def load(self, klass=None):
-        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import MetaVistrail
         if klass is None:
-            klass = Vistrail
+            klass = MetaVistrail
         obj = _XMLFileLocator.load(self, klass.vtType)
         klass.convert(obj)
         obj.locator = self
@@ -221,9 +221,9 @@ class DBLocator(_DBLocator, CoreLocator):
         self.ext_connection_id = -1
 
     def load(self, klass=None):
-        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import MetaVistrail
         if klass is None:
-            klass = Vistrail
+            klass = MetaVistrail
         save_bundle = _DBLocator.load(self, klass.vtType, ThumbnailCache.getInstance().get_directory())
         if klass.vtType == DBWorkflow.vtType:
             wf = save_bundle
@@ -276,10 +276,10 @@ class DBLocator(_DBLocator, CoreLocator):
         return save_bundle
 
     def update_from_gui(self, parent_widget, klass=None):
-        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import MetaVistrail
         import vistrails.gui.extras.core.db.locator as db_gui
         if klass is None:
-            klass = Vistrail
+            klass = MetaVistrail
         config = self.find_connection_info(self._host, self._port, self._db) 
         if config is None or config['succeeded']==False:
             config = db_gui.get_db_connection_from_gui(parent_widget,
@@ -488,9 +488,9 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         _ZIPFileLocator.__init__(self, filename, **kwargs)
 
     def load(self, klass=None):
-        from vistrails.core.vistrail.vistrail import Vistrail
+        from vistrails.core.vistrail.vistrail import MetaVistrail
         if klass is None:
-            klass = Vistrail
+            klass = MetaVistrail
         bundle = _ZIPFileLocator.load(self, klass.vtType)
         for obj in bundle.get_db_objs():
             klass = self.get_convert_klass(obj.obj.vtType)

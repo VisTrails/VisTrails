@@ -1057,7 +1057,8 @@ class QVistrailView(QtGui.QWidget):
             return False
         try:
             record_vistrail('save', self.controller)
-            self.controller.write_vistrail(locator, export=export)
+            # self.controller.write_vistrail(locator, export=export)
+            self.meta_controller.write_vistrail(locator, export=export)
         except Exception:
             debug.critical('Failed to save vistrail', debug.format_exc())
             raise

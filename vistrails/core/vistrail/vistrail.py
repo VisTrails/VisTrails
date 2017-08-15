@@ -1124,6 +1124,11 @@ class Vistrail(DBVistrail):
 class MetaVistrail(Vistrail):
     """Instead of generating pipelines, this class generates Vistrails"""
 
+    @staticmethod
+    def convert(_vistrail):
+        Vistrail.convert(_vistrail)
+        _vistrail.__class__ = MetaVistrail
+
     def getVistrail(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
