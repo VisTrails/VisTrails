@@ -460,15 +460,17 @@ class QLogView(QPipelineView):
         QPipelineView.set_controller(self, controller)
         if not hasattr(self.controller, 'loaded_workflow_execs'):
             self.controller.loaded_workflow_execs = {}
-            for e in self.controller.read_log().workflow_execs:
-                # # set workflow names
-                # # FIXME this will not work without fixing link between
-                # # workflow and workflow_execs...
-                try:
-                    e.db_name = controller.get_pipeline_name(e.parent_version)
-                except:
-                    e.db_name = "Unknown"
-                self.controller.loaded_workflow_execs[e] = e
+            log = self.controller.read_log()
+            if log is not None:
+                for e in log.workflow_execs:
+                    # # set workflow names
+                    # # FIXME this will not work without fixing link between
+                    # # workflow and workflow_execs...
+                    try:
+                        e.db_name = controller.get_pipeline_name(e.parent_version)
+                    except:
+                        e.db_name = "Unknown"
+                    self.controller.loaded_workflow_execs[e] = e
         self.log = self.controller.loaded_workflow_execs
 
     def set_to_current(self):

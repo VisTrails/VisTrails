@@ -77,11 +77,11 @@ def load_vistrail(locator, is_abstraction=False):
     """
         Opens a vistrail bundle from a locator
     """
-    from vistrails.core.vistrail.vistrail import Vistrail
+    from vistrails.core.vistrail.vistrail import MetaVistrail
 
     if locator is None:
         bundle = vistrails.db.services.io.new_bundle()
-        bundle.add_object(Vistrail())
+        bundle.add_object(MetaVistrail())
         return bundle
     res = locator.load()
     if isinstance(res, Bundle):

@@ -4198,6 +4198,8 @@ class VistrailController(object):
         """ Returns the saved log from zip or DB
         
         """
+        if not self.vistrail:
+            return None
         return self.vistrail.get_persisted_log()
  
     def write_registry(self, locator):

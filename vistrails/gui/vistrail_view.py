@@ -119,11 +119,14 @@ class QVistrailView(QtGui.QWidget):
 
         # Initialize the vistrail controller
         self.locator = locator
-        self.meta_vistrail = MetaVistrail()
-        self.meta_controller = MetaVistrailController(vistrail=self.meta_vistrail,
+        # self.meta_vistrail = MetaVistrail()
+        self.meta_controller = MetaVistrailController(bundle=bundle,
+                                                      # vistrail=self.meta_vistrail,
                                                       locator=self.locator)
-
-        self.controller = VistrailController(bundle=bundle,
+        # FIXME generate VistrailController from MetaVistrailController?
+        vistrail =  Vistrail()
+        vistrail.locator = self.locator
+        self.controller = VistrailController(vistrail=vistrail,
                                              locator=self.locator,
                                              pipeline_view=pipeline_view)
         
@@ -934,20 +937,20 @@ class QVistrailView(QtGui.QWidget):
                 self.tab_to_stack_idx[self.tabs.currentIndex()])
         if view and by_click:
             self.meta_controller.change_selected_version(version_id, True)
-
             view.scene().fitToView(view, True)
             if double_click:
                 window.qactions['history'].trigger()
             # self.controller.reset_redo_stack()
         _app.notify("meta_version_changed", self.meta_controller.current_version)
 
-    def meta_version_selected_helper(self, meta_version_id, version_id):
+    def meta_version_selected_helper(self, meta_version_id, version_id=None):
         self.meta_version_selected(meta_version_id, True, double_click=True)
         # TODO something more efficient? need to ensure selected node shown
         self.meta_controller.recompute_terse_graph()
         self.meta_controller.invalidate_version_tree(True)
-        self.controller.change_selected_version(version_id)
-        self.controller.invalidate_version_tree(True)
+        if version_id is not None:
+            self.controller.change_selected_version(version_id)
+            self.controller.invalidate_version_tree(True)
 
     def version_selected(self, version_id, by_click, do_validate=True,
                          from_root=False, double_click=False):

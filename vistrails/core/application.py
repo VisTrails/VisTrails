@@ -60,7 +60,7 @@ from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import VistrailsWarning
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.controller import VistrailController
+from vistrails.core.vistrail.meta_controller import MetaVistrailController
 from vistrails.db import VistrailsDBException
 
 VistrailsApplication = None
@@ -540,7 +540,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def add_vistrail(self, vistrail, locator,
             abstraction_files=None,  thumbnail_files=None, mashups=None):
         objs = vistrail, locator, abstraction_files, thumbnail_files, mashups
-        controller = VistrailController(*objs)
+        controller = MetaVistrailController(*objs)
         self._controllers[locator] = controller
         self._cur_controller = controller
         return self._cur_controller

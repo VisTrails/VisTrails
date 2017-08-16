@@ -1587,7 +1587,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.view_changed(view)
         self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
-        return view.controller
+        return view.meta_controller
 
     def remove_vistrail(self, locator):
         for view in copy.copy(self.vistrail_widgets):
@@ -1606,7 +1606,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def select_version(self, version):
         view = self.get_current_view()
         if view is not None:
-            view.version_selected(version, True, double_click=True)
+            view.meta_version_selected_helper(version)
             return True
         return False
 

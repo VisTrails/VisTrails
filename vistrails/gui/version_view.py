@@ -1038,6 +1038,9 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Construct the scene to view a version tree
         
         """
+        if controller.vistrail is None:
+            return
+
         self.select_by_click = False        
         self.controller = controller
 

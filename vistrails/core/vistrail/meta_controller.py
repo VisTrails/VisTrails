@@ -10,6 +10,14 @@ class MetaVistrailController(VistrailController):
         VistrailController.__init__(self, *args, **kwargs)
         self.vt_controller = None
 
+    def select_latest_version(self):
+        """ select_latest_version() -> None
+        Try to select the latest visible version on the tree
+
+        """
+        self.change_selected_version(self.get_latest_version_in_graph())
+        self.vt_controller.select_latest_version()
+
     def change_selected_version(self, new_version, report_all_errors=True,
                                 do_validate=True, from_root=False):
         self.do_version_switch(new_version, report_all_errors,
