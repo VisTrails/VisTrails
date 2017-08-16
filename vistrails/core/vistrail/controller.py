@@ -3194,9 +3194,13 @@ class VistrailController(object):
             # DAK do we want refine_graph here?
             # (current, full, layout) = self.refine_graph()
             self.recompute_terse_graph()
+
+        # get all leaves and find most recent
         if self._current_terse_graph:
-            return max(self._current_terse_graph.iter_vertices())
-        return max(self.actions)
+            return max(self._current_terse_graph.sinks(),
+                       key=lambda v_id: self.vistrail.actionMap[v_id].date)
+        return max(self.vistrail.actionMap.iteritems(),
+                   key=lambda t: t[1].date)[0]
 
     def select_latest_version(self):
         """ select_latest_version() -> None
