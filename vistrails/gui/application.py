@@ -895,8 +895,13 @@ def linux_default_application_set():
     except OSError, e:
         debug.warning("Error checking mimetypes: %s" % e.message)
         return None
-    if 'application/x-vistrails' == output[0].strip():
-        return True
+
+    try:
+        if 'application/x-vistrails' == output[0].strip():
+            return True
+    except:
+        return False
+
     return False
 
 def linux_update_default_application():
