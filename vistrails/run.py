@@ -142,7 +142,7 @@ def main():
             if app:
                 app.finishSession()
             sys.exit(APP_SUCCESS if v == APP_DONE else APP_FAIL)
-        app = vistrails.gui.application.get_vistrails_application()()
+        app = vistrails.gui.application.get_vistrails_application()
     except SystemExit, e:
         app = vistrails.gui.application.get_vistrails_application()
         if app:
@@ -162,9 +162,10 @@ def main():
         sys.exit(255)
 
     try:
-        if not app.temp_configuration.batch:
-            v = app.exec_()
-        vistrails.gui.application.stop_application()
+        if app:
+            if not app.temp_configuration.batch:
+                v = app.exec_()
+            vistrails.gui.application.stop_application()
     except BaseException, e:
         reportusage.submit_usage_report(result=type(e).__name__)
         raise
