@@ -45,7 +45,6 @@ import json
 import os
 import requests
 import tempfile
-import usagestats
 import weakref
 
 from vistrails.core import debug
@@ -53,13 +52,21 @@ from vistrails.core.system import vistrails_version, \
     vistrails_examples_directory
 
 
+usagestats = None
 usage_report = None
 
 
 def setup_usage_report():
     """Sets up the usagestats module.
     """
+    global usagestats
     global usage_report
+
+    usagestats = pyimport('usagestats', {
+        'linux-debian': ['python-usagestats'],
+        'linux-ubuntu': ['python-usagestats'],
+        'pip': ['usagestats'],
+    })
 
     certificate_file = get_ca_certificate()
 
