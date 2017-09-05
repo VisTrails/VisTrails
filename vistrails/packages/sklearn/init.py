@@ -256,7 +256,7 @@ class Pipeline(Estimator):
         steps = [self.get_input(model) for model in models if model in self.inputPorts]
         pipeline = make_pipeline(*steps)
         if "training_data" in self.inputPorts:
-            training_data = np.vstack(self.get_input("training_data"))
+            training_data = self.get_input("training_data")
             training_target = self.get_input("training_target")
             pipeline.fit(training_data, training_target)
         self.set_output("model", pipeline)
