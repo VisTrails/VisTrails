@@ -40,7 +40,8 @@ from vistrails.core.modules.vistrails_module import Module
 import numpy as np
 from sklearn.base import ClassifierMixin
 from sklearn import datasets
-from sklearn.cross_validation import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.cross_validation import cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
 from sklearn.pipeline import make_pipeline
