@@ -163,6 +163,10 @@ class VistrailsApplicationInterface(object):
 
         self.check_all_requirements()
 
+        # Setup usage reporting
+        from vistrails.core import reportusage
+        reportusage.setup_usage_report()
+
         if self.temp_configuration.check('staticRegistry'):
             self.registry = \
                 self.create_registry(self.temp_configuration.staticRegistry)
@@ -182,6 +186,12 @@ class VistrailsApplicationInterface(object):
                 'linux-ubuntu': 'python-scipy',
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
+
+        # check usagestats
+        vistrails.core.requirements.require_python_module('usagestats', {
+                'linux-debian': 'python-usagestats',
+                'linux-ubuntu': 'python-usagestats',
+                'pip': 'usagestats'})
 
     def destroy(self):
         """ destroy() -> None

@@ -43,10 +43,10 @@ import atexit
 import email.utils
 import json
 import os
-import requests
 import tempfile
 import weakref
 
+from vistrails.core.bundles.pyimport import py_import
 from vistrails.core import debug
 from vistrails.core.system import vistrails_version, \
     vistrails_examples_directory
@@ -62,7 +62,10 @@ def setup_usage_report():
     global usagestats
     global usage_report
 
-    usagestats = pyimport('usagestats', {
+    if usage_report is not None:
+        return
+
+    usagestats = py_import('usagestats', {
         'linux-debian': ['python-usagestats'],
         'linux-ubuntu': ['python-usagestats'],
         'pip': ['usagestats'],
@@ -98,11 +101,13 @@ def setup_usage_report():
 
 def update_config(configuration):
     if getattr(configuration, 'enableUsage', False):
-        usage_report.enable_reporting()
+        if usage_report is not None:
+            usage_report.enable_reporting()
         configuration.reportUsage = 1
         return True
     elif getattr(configuration, 'disableUsage', False):
-        usage_report.disable_reporting()
+        if usage_report is not None:
+            usage_report.disable_reporting()
         configuration.reportUsage = 0
         return True
     return False
@@ -124,7 +129,7 @@ features_for_vistrails = {}
 def record_vistrail(what, vistrail):
     """Record info about a vistrail we used.
     """
-    if not usage_report.recording:
+    if usage_report is None or not usage_report.recording:
         return
 
     from vistrails.core.vistrail.controller import VistrailController
@@ -217,6 +222,9 @@ def submit_usage_report(**kwargs):
     """
     debug.debug("submit_usage_report %r" % (kwargs,))
 
+    if usage_report is None:
+        return
+
     for pkg in ('numpy', 'scipy', 'matplotlib'):
         try:
             pkg_o = __import__(pkg, globals(), locals())
@@ -243,6 +251,12 @@ _server_news = None
 
 def get_server_news():
     global _server_news
+
+    requests = py_import('requests', {
+        'linux-debian': ['python-requests'],
+        'linux-ubuntu': ['python-requests'],
+        'pip': ['requests'],
+    })
 
     if _server_news is not None:
         return _server_news
