@@ -128,12 +128,12 @@ class CSVTable(TableObject):
         numpy = get_numpy(False)
 
         if numeric and numpy is not None:
-            result = numpy.loadtxt(
-                    self.filename,
-                    dtype=numpy.float32,
-                    delimiter=self.delimiter,
-                    skiprows=self.skip_lines,
-                    usecols=[index])
+            with open(self.filename) as fp:
+                result = numpy.genfromtxt(fp,
+                                          dtype=numpy.float32,
+                                          delimiter=self.delimiter,
+                                          skip_header=self.skip_lines,
+                                          usecols=[index])
         else:
             with open(self.filename, 'rb') as fp:
                 for i in xrange(self.skip_lines):

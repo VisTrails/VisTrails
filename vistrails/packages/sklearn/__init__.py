@@ -34,11 +34,21 @@
 
 from __future__ import division
 
+from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.requirements import require_python_module
 
 identifier = 'org.vistrails.vistrails.sklearn'
 name = 'sklearn'
 version = '0.15.2'
+
+
+def package_dependencies():
+    pm = get_package_manager()
+    tabledata_identifier = 'org.vistrails.vistrails.tabledata'
+    if pm.has_package(tabledata_identifier):
+        return [tabledata_identifier]
+    else: # pragma: no cover
+        return []
 
 
 def package_requirements():

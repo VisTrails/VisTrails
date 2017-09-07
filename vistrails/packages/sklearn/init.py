@@ -36,11 +36,13 @@ from __future__ import division
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.packagemanager import get_package_manager
 
 import numpy as np
 from sklearn.base import ClassifierMixin
 from sklearn import datasets
-from sklearn.cross_validation import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.cross_validation import cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
 from sklearn.pipeline import make_pipeline
@@ -183,13 +185,60 @@ class TrainTestSplit(Module):
                      ("test_target", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
-        X_train, X_test, y_train, y_test = \
-            train_test_split(self.get_input("data"), self.get_input("target"),
-                             test_size=try_convert(self.get_input("test_size")))
+        X_train, X_test, y_train, y_test = train_test_split(
+            self.get_input("data"),
+            self.get_input("target"),
+            test_size=try_convert(self.get_input("test_size")))
         self.set_output("training_data", X_train)
         self.set_output("training_target", y_train)
         self.set_output("test_data", X_test)
         self.set_output("test_target", y_test)
+
+
+if get_package_manager().has_package('org.vistrails.vistrails.tabledata'):
+    class TrainTestSplitTable(Module):
+        """Split data into training and testing randomly."""
+        _settings = ModuleSettings(namespace="cross-validation")
+        _input_ports = [("data", "org.vistrails.vistrails.tabledata:Table",
+                         {'shape': 'triangle'}),
+                        ("target", "basic:List", {'shape': 'circle'}),
+                        ("test_size", "basic:Float", {"defaults": [.25]})]
+        _output_ports = [("training_data",
+                          "org.vistrails.vistrails.tabledata:Table",
+                          {'shape': 'triangle'}),
+                         ("training_target", "basic:List", {'shape': 'circle'}),
+                         ("test_data",
+                          "org.vistrails.vistrails.tabledata:Table",
+                          {'shape': 'triangle'}),
+                         ("test_target", "basic:List", {'shape': 'circle'})]
+
+        def compute(self):
+            from vistrails.packages.tabledata.common import TableObject
+
+            X_table = self.get_input('data')
+            columns = X_table.columns
+            arrays = [X_table.get_column(i) for i in xrange(columns)]
+            arrays.append(self.get_input("target"))
+
+            arrays = train_test_split(
+                *arrays,
+                test_size=try_convert(self.get_input("test_size")))
+            assert len(arrays) == 2 * (columns + 1)
+
+            X_train = arrays[:-2:2]
+            X_train = TableObject(X_train, len(X_train[0]),
+                                  names=X_table.names)
+            X_test = arrays[1:-1:2]
+            X_test = TableObject(X_test, len(X_test[0]),
+                                 names=X_table.names)
+            y_train = arrays[-2]
+            y_test = arrays[-1]
+            self.set_output("training_data", X_train)
+            self.set_output("training_target", y_train)
+            self.set_output("test_data", X_test)
+            self.set_output("test_target", y_test)
+else:
+    TrainTestSplitTable = None
 
 
 class CrossValScore(Module):
@@ -256,7 +305,7 @@ class Pipeline(Estimator):
         steps = [self.get_input(model) for model in models if model in self.inputPorts]
         pipeline = make_pipeline(*steps)
         if "training_data" in self.inputPorts:
-            training_data = np.vstack(self.get_input("training_data"))
+            training_data = self.get_input("training_data")
             training_target = self.get_input("training_target")
             pipeline.fit(training_data, training_target)
         self.set_output("model", pipeline)
@@ -416,6 +465,8 @@ _modules = [Digits, Iris, Estimator, SupervisedEstimator,
             UnsupervisedEstimator, ManifoldLearner, Predict, Transform,
             TrainTestSplit, Score, ROCCurve, CrossValScore, GridSearchCV,
             Pipeline]
+if TrainTestSplitTable is not None:
+    _modules.append(TrainTestSplitTable)
 _modules.extend(discover_supervised())
 _modules.extend(discover_clustering())
 _modules.extend(discover_unsupervised_transformers())
