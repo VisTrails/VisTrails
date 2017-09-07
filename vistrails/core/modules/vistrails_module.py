@@ -585,6 +585,7 @@ class Module(object):
             self.had_error, self.was_suspended = False, True
             raise
         except ModuleError, me:
+            debug.unexpected_exception(me)
             if hasattr(me.module, 'interpreter'):
                 if me.errorTrace is None:
                     me.errorTrace = traceback.format_exc()
