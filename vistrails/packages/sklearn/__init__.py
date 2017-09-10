@@ -43,12 +43,8 @@ version = '0.15.2'
 
 
 def package_dependencies():
-    pm = get_package_manager()
     tabledata_identifier = 'org.vistrails.vistrails.tabledata'
-    if pm.has_package(tabledata_identifier):
-        return [tabledata_identifier]
-    else: # pragma: no cover
-        return []
+    return [tabledata_identifier]
 
 
 def package_requirements():
