@@ -1530,6 +1530,11 @@ class ModuleRegistry(DBRegistry):
                  labels=None, defaults=None, values=None, entry_types=None,
                  docstring=None, shape=None, min_conns=0, max_conns=-1,
                  depth=0, union=''):
+        if sort_key < 0:
+            # we assume that if a user sets one sort_key, they will set all
+            # or set outside of the normal integers that would correspond to
+            # port ids
+            sort_key = len(descriptor.port_specs_list)
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
                                      labels, defaults, values, entry_types,
