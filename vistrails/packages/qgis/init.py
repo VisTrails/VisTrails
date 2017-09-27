@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
@@ -110,9 +110,9 @@ class QGISCellWidget(QCellWidget):
         
         """
         QCellWidget.__init__(self, parent)
-        centralLayout = QtGui.QVBoxLayout()
+        centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
 
     def updateContents(self, inputPorts):

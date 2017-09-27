@@ -48,7 +48,7 @@ QVersionMashups
 from __future__ import division
 
 import re
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
@@ -60,14 +60,14 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ###############################################################################
 
-class ColorChooserButton(QtGui.QPushButton):
+class ColorChooserButton(QtWidgets.QPushButton):
     color_selected = QtCore.pyqtSignal(object)
 
     def __init__(self, parent=None):
-        QtGui.QToolButton.__init__(self, parent)
+        QtWidgets.QToolButton.__init__(self, parent)
         self.setColor(None)
 
-        self.connect(self, QtCore.SIGNAL('clicked()'), self.changeColor)
+        self.clicked.connect(self.changeColor)
 
     def setColor(self, color, silent=True):
         self.color = color
@@ -90,13 +90,13 @@ class ColorChooserButton(QtGui.QPushButton):
         if self.color is not None:
             self.setColor(None, silent=False)
         else:
-            color = QtGui.QColorDialog.getColor(QtCore.Qt.white, self)
+            color = QtWidgets.QColorDialog.getColor(QtCore.Qt.white, self)
             if color.isValid():
                 self.setColor(color, silent=False)
 
 ###############################################################################
 
-class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
+class QVersionProp(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """
     QVersionProp is a widget holding property of a version including
     tagname and notes
@@ -107,16 +107,16 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         Initialize the main layout
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setWindowTitle('Workflow Info')
 
-        vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(2)
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(2, 2, 2, 2)
         vLayout.setSpacing(2)
         self.setLayout(vLayout)
 
-        gLayout = QtGui.QGridLayout()
-        gLayout.setMargin(2)
+        gLayout = QtWidgets.QGridLayout()
+        gLayout.setContentsMargins(2, 2, 2, 2)
         gLayout.setSpacing(5)
         gLayout.setColumnMinimumWidth(1,5)
         gLayout.setRowMinimumHeight(0,20)
@@ -125,21 +125,21 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         gLayout.setRowMinimumHeight(3,20)
         vLayout.addLayout(gLayout)
         
-        tagLabel = QtGui.QLabel('Tag:', self)
+        tagLabel = QtWidgets.QLabel('Tag:', self)
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
-        editLayout = QtGui.QHBoxLayout()
-        editLayout.setMargin(2)
+        editLayout = QtWidgets.QHBoxLayout()
+        editLayout.setContentsMargins(2, 2, 2, 2)
         editLayout.setSpacing(2)
-        self.tagEdit = QtGui.QLineEdit()
+        self.tagEdit = QtWidgets.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
         editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
         self.tagEdit.setMinimumHeight(22)
 
-        self.tagReset = QtGui.QToolButton(self)
+        self.tagReset = QtWidgets.QToolButton(self)
         self.tagReset.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
+                self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
         self.tagReset.setIconSize(QtCore.QSize(12,12))
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)
@@ -155,25 +155,25 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
 
         gLayout.addLayout(editLayout, 0, 2, 1, 1)
 
-        userLabel = QtGui.QLabel('User:', self)
+        userLabel = QtWidgets.QLabel('User:', self)
         gLayout.addWidget(userLabel, 1, 0, 1, 1)
         
-        self.userEdit = QtGui.QLabel('', self)
+        self.userEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.userEdit, 1, 2, 1, 1)
 
-        dateLabel = QtGui.QLabel('Date:', self)
+        dateLabel = QtWidgets.QLabel('Date:', self)
         gLayout.addWidget(dateLabel, 2, 0, 1, 1)
 
-        self.dateEdit = QtGui.QLabel('', self)
+        self.dateEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
 
-        idLabel = QtGui.QLabel('ID:', self)
+        idLabel = QtWidgets.QLabel('ID:', self)
         gLayout.addWidget(idLabel, 3, 0, 1, 1)
         
-        self.idEdit = QtGui.QLabel('', self)
+        self.idEdit = QtWidgets.QLabel('', self)
         gLayout.addWidget(self.idEdit, 3, 2, 1, 1)
 
-        self.notesLabel = QtGui.QLabel('Notes:')
+        self.notesLabel = QtWidgets.QLabel('Notes:')
         gLayout.addWidget(self.notesLabel, 4, 0, 1, 1)
 
         self.versionNotes = QVersionNotes()
@@ -186,12 +186,9 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionMashups = QVersionMashups()
         vLayout.addWidget(self.versionMashups)
                 
-        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
-                     self.tagFinished)
-        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
-                     self.tagChanged)
-        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
-                     self.tagCleared)
+        self.tagEdit.editingFinished.connect(self.tagFinished)
+        self.tagEdit.textChanged['QString'].connect(self.tagChanged)
+        self.tagReset.clicked.connect(self.tagCleared)
 
         self.controller = None
         self.versionNumber = -1
@@ -303,7 +300,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.controller.recompute_terse_graph()
         self.controller.invalidate_version_tree()
 
-class QVersionNotes(QtGui.QTextEdit):
+class QVersionNotes(QtWidgets.QTextEdit):
     """
     QVersionNotes is text widget that update/change a version notes
     
@@ -313,7 +310,7 @@ class QVersionNotes(QtGui.QTextEdit):
         Initialize control variables
         
         """
-        QtGui.QTextEdit.__init__(self, parent)
+        QtWidgets.QTextEdit.__init__(self, parent)
         self.controller = None
         self.versionNumber = -1
         self.last_update = self.controller, self.versionNumber
@@ -367,7 +364,7 @@ class QVersionNotes(QtGui.QTextEdit):
         """
         if self.update_on_focus_out:
             self.commit_changes()
-        QtGui.QTextEdit.focusOutEvent(self,event)
+        QtWidgets.QTextEdit.focusOutEvent(self,event)
 
     def trim_first_paragraph(self):
         doc = self.document()
@@ -382,7 +379,7 @@ class QVersionNotes(QtGui.QTextEdit):
 
 ###############################################################################
 
-class QVersionPropOverlay(QtGui.QFrame):
+class QVersionPropOverlay(QtWidgets.QFrame):
     """
     QVersionPropOverlay is a transparent widget that sits on top of the version
     view.  It displays properties of a version: tag, user, date, and notes.
@@ -400,67 +397,67 @@ class QVersionPropOverlay(QtGui.QFrame):
         Setup layout
 
         """
-        QtGui.QFrame.__init__(self, parent)
+        QtWidgets.QFrame.__init__(self, parent)
         self.propagatingWidget = mouseWidget
         self.palette = QtGui.QPalette()
         self.palette.setColor(QtGui.QPalette.Base, QtGui.QColor(0,0,0,0))
         self.setPalette(self.palette)
         self.setAutoFillBackground(True)
-        self.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.setFrameShadow(QtGui.QFrame.Plain)
-        self.layout = QtGui.QGridLayout()
+        self.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.layout = QtWidgets.QGridLayout()
         self.layout.setVerticalSpacing(1)
 
-        self.tag_label = QtGui.QLabel()
+        self.tag_label = QtWidgets.QLabel()
         self.tag_label.palette().setBrush(QtGui.QPalette.Text,
                                           CurrentTheme.VERSION_PROPERTIES_PEN)
         self.tag_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         self.tag_label.setText("Tag:")
 
-        self.tag = QtGui.QLabel()
+        self.tag = QtWidgets.QLabel()
         self.tag.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
 
-        self.description_label = QtGui.QLabel()
+        self.description_label = QtWidgets.QLabel()
         self.description_label.palette().setBrush(QtGui.QPalette.Text,
                                                   CurrentTheme.VERSION_PROPERTIES_PEN)
         self.description_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         self.description_label.setText("Action:")
 
-        self.description = QtGui.QLabel()
+        self.description = QtWidgets.QLabel()
         self.description.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
 
-        self.user_label = QtGui.QLabel()
+        self.user_label = QtWidgets.QLabel()
         self.user_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.user_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         self.user_label.setText("User:")
 
-        self.user = QtGui.QLabel()
+        self.user = QtWidgets.QLabel()
         self.user.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
 
-        self.date_label = QtGui.QLabel()
+        self.date_label = QtWidgets.QLabel()
         self.date_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.date_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         self.date_label.setText("Date:")
         
-        self.date = QtGui.QLabel()
+        self.date = QtWidgets.QLabel()
         self.date.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
 
-        self.notes_label = QtGui.QLabel()
+        self.notes_label = QtWidgets.QLabel()
         self.notes_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.notes_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         self.notes_label.setText("Notes:")
 
-        self.notes = QtGui.QLabel()
+        self.notes = QtWidgets.QLabel()
         self.notes.setTextFormat(QtCore.Qt.PlainText)
         self.notes.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         
         self.notes_button = QExpandButton()
         self.notes_button.hide()
 
-        self.notes_layout = QtGui.QHBoxLayout()
+        self.notes_layout = QtWidgets.QHBoxLayout()
         self.notes_layout.addWidget(self.notes)
         self.notes_layout.addWidget(self.notes_button)
         self.notes_layout.addStretch()
@@ -487,9 +484,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes_dialog = QNotesDialog(self)
         self.notes_dialog.hide()
 
-        QtCore.QObject.connect(self.notes_button,
-                               QtCore.SIGNAL("pressed()"),
-                               self.openNotes)
+        self.notes_button.pressed.connect(self.openNotes)
 
     def updateGeometry(self):
         """ updateGeometry() -> None
@@ -585,24 +580,26 @@ class QVersionPropOverlay(QtGui.QFrame):
             if self.propagatingWidget!=None:
                 QtCore.QCoreApplication.sendEvent(self.propagatingWidget, e)
                 return False
-        return QtGui.QFrame.event(self, e)
+        return QtWidgets.QFrame.event(self, e)
 
 ###############################################################################
 
-class QExpandButton(QtGui.QLabel):
+class QExpandButton(QtWidgets.QLabel):
     """
     A transparent button type with a + draw in 
     """
+    pressed = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         """
         QExpandButton(parent: QWidget) -> QExpandButton
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
         
         self.drawButton(0)
         self.setToolTip('Edit Notes')
         self.setScaledContents(False)
-        self.setFrameShape(QtGui.QFrame.NoFrame)
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -621,7 +618,7 @@ class QExpandButton(QtGui.QLabel):
     
     def mouseReleaseEvent(self, e):
         self.drawButton(0)
-        self.emit(QtCore.SIGNAL('pressed()'))
+        self.pressed.emit()
 
     def drawButton(self, down):
         """ drawButton(down: bool) -> None
@@ -651,7 +648,7 @@ class QExpandButton(QtGui.QLabel):
 
 ###############################################################################
 
-class QNotesDialog(QtGui.QDialog):
+class QNotesDialog(QtWidgets.QDialog):
     """
     A small non-modal dialog with text entry to modify and view notes
 
@@ -661,24 +658,24 @@ class QNotesDialog(QtGui.QDialog):
         QNotesDialog(parent: QWidget) -> QNotesDialog
 
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setModal(False)
         self.notes = QVersionNotes(self)
         self.notes.update_on_focus_out = False
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.notes)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        self.apply_button = QtGui.QPushButton('Apply', self)
+        self.apply_button = QtWidgets.QPushButton('Apply', self)
         self.apply_button.setDefault(False)
         self.apply_button.setAutoDefault(False)
-        self.ok_button = QtGui.QPushButton('Ok', self)
+        self.ok_button = QtWidgets.QPushButton('Ok', self)
         self.ok_button.setDefault(False)
         self.ok_button.setAutoDefault(False)
-        self.cancel_button = QtGui.QPushButton('Cancel', self)
+        self.cancel_button = QtWidgets.QPushButton('Cancel', self)
         self.cancel_button.setDefault(False)
         self.cancel_button.setAutoDefault(False)
-        self.buttonLayout = QtGui.QHBoxLayout()
+        self.buttonLayout = QtWidgets.QHBoxLayout()
         layout.addLayout(self.buttonLayout)
         self.buttonLayout.addWidget(self.apply_button)
         self.buttonLayout.addWidget(self.ok_button)
@@ -687,17 +684,11 @@ class QNotesDialog(QtGui.QDialog):
         self.setLayout(layout)
         self.controller = None
 
-        QtCore.QObject.connect(self.apply_button,
-                               QtCore.SIGNAL("released()"),
-                               self.apply_pressed)
+        self.apply_button.released.connect(self.apply_pressed)
 
-        QtCore.QObject.connect(self.ok_button,
-                               QtCore.SIGNAL("released()"),
-                               self.ok_pressed)
+        self.ok_button.released.connect(self.ok_pressed)
 
-        QtCore.QObject.connect(self.cancel_button,
-                               QtCore.SIGNAL("released()"),
-                               self.cancel_pressed)
+        self.cancel_button.released.connect(self.cancel_pressed)
     def apply_pressed(self):
         """ apply_pressed() -> None
 
@@ -747,19 +738,19 @@ class QNotesDialog(QtGui.QDialog):
         
 ###############################################################################
 
-class QVersionThumbs(QtGui.QWidget):
+class QVersionThumbs(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.versionNumber = None
-        label = QtGui.QLabel("Preview:")
-        self.thumbs = QtGui.QLabel()
-        self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
-        self.scrollArea = QtGui.QScrollArea(self)
-        self.scrollArea.setFrameStyle(QtGui.QFrame.NoFrame)
+        label = QtWidgets.QLabel("Preview:")
+        self.thumbs = QtWidgets.QLabel()
+        self.thumbs.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.scrollArea = QtWidgets.QScrollArea(self)
+        self.scrollArea.setFrameStyle(QtWidgets.QFrame.NoFrame)
         self.scrollArea.setWidget(self.thumbs)
         self.scrollArea.setWidgetResizable(True)
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.addWidget(label)
         layout.addWidget(self.scrollArea)
         self.setLayout(layout)
@@ -792,24 +783,24 @@ class QVersionThumbs(QtGui.QWidget):
                             pixmap = QtGui.QPixmap(fname)
                             self.thumbs.setPixmap(pixmap)
                             self.thumbs.adjustSize()
-                        self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
+                        self.thumbs.setFrameShape(QtWidgets.QFrame.StyledPanel)
                         return
 
         self.thumbs.setPixmap(QtGui.QPixmap())
-        self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
+        self.thumbs.setFrameShape(QtWidgets.QFrame.NoFrame)
 
 ###############################################################################
 
-class QVersionMashups(QtGui.QWidget):
+class QVersionMashups(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.versionNumber = None
         self.controller = None
         self.mtrail = None
         #label = QtGui.QLabel("Mashups:")
-        self.mashupsButton = QtGui.QToolButton()
+        self.mashupsButton = QtWidgets.QToolButton()
         self.mashupsButton.setText("Mashups")
-        self.mashupsButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.mashupsButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         self.mashupsButton.setArrowType(QtCore.Qt.RightArrow)
         self.mashupsButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         
@@ -828,8 +819,8 @@ class QVersionMashups(QtGui.QWidget):
 #        glayout.addWidget(self.mashupsList)
 #        glayout.addWidget(helplabel)
 #        self.group.setLayout(glayout)
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(2)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(5)
         #layout.addStretch()
         layout.addWidget(self.mashupsButton)
@@ -844,11 +835,11 @@ class QVersionMashups(QtGui.QWidget):
         tags = tagMap.keys()
         self.mashupsButton.setText("Mashups (%s)"%str(len(tags)))
         #latestversion = mtrail.getLatestVersion()
-        mashupsMenu = QtGui.QMenu(self)
+        mashupsMenu = QtWidgets.QMenu(self)
         if len(tags) > 0:
             tags.sort()
             for tag in tags:
-                action = QtGui.QAction(str(tag), self, 
+                action = QtWidgets.QAction(str(tag), self, 
                                        triggered=self.mashupSelected)
                 action.setData(tagMap[tag])
                 mashupsMenu.addAction(action)

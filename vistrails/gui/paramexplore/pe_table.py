@@ -37,7 +37,7 @@ from __future__ import division
 
 from getpass import getuser
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
@@ -64,7 +64,7 @@ QParameterExplorationTable
 
 
 ################################################################################
-class QParameterExplorationWidget(QtGui.QScrollArea):
+class QParameterExplorationWidget(QtWidgets.QScrollArea):
     """
     QParameterExplorationWidget is a place holder for
     QParameterExplorationTable
@@ -84,7 +84,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         Put the QParameterExplorationTable as a main widget
         
         """
-        QtGui.QScrollArea.__init__(self, parent)
+        QtWidgets.QScrollArea.__init__(self, parent)
         self.setAcceptDrops(True)
         self.setWidgetResizable(True)
         self.table = QParameterExplorationTable()
@@ -391,6 +391,8 @@ class QParameterExplorationTable(QPromptWidget):
     string and boolean)
     
     """
+    exploreChange = QtCore.pyqtSignal(bool)
+
     def __init__(self, parent=None):
         """ QParameterExplorationTable(parent: QWidget)
                                        -> QParameterExplorationTable
@@ -399,29 +401,27 @@ class QParameterExplorationTable(QPromptWidget):
         """
         QPromptWidget.__init__(self, parent)
         self.pipeline = None
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         self.setPromptText('Drag aliases/parameters here for a parameter '
                            'exploration')
         self.showPrompt()
         
-        vLayout = QtGui.QVBoxLayout(self)
+        vLayout = QtWidgets.QVBoxLayout(self)
         vLayout.setSpacing(0)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(vLayout)
 
         self.label = QDimensionLabel()
 
         for labelIcon in self.label.labelIcons:
-            self.connect(labelIcon.countWidget,
-                         QtCore.SIGNAL('editingFinished()'),
-                         self.updateWidgets)
+            labelIcon.countWidget.editingFinished.connect(self.updateWidgets)
         vLayout.addWidget(self.label)
 
         for i in xrange(2):
-            hBar = QtGui.QFrame()
-            hBar.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
+            hBar = QtWidgets.QFrame()
+            hBar.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
             vLayout.addWidget(hBar)
         self._parameterCount = 0
 
@@ -464,7 +464,7 @@ class QParameterExplorationTable(QPromptWidget):
         self.layout().addWidget(newEditor)
         newEditor.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        self.exploreChange.emit(self.layout().count() > 3)
         return newEditor
 
     def removeParameter(self, ps):
@@ -486,7 +486,7 @@ class QParameterExplorationTable(QPromptWidget):
                         widget.setEnabled(True)
                         break
         self.showPrompt(self.layout().count()<=3)
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        self.exploreChange.emit(self.layout().count() > 3)
 
     def updateWidgets(self):
         """ updateWidgets() -> None
@@ -522,7 +522,7 @@ class QParameterExplorationTable(QPromptWidget):
                 pEditor.deleteLater()
         self.label.resetCounts()
         self.showPrompt()
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
+        self.exploreChange.emit(self.layout().count() > 3)
 
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline: Pipeline) -> None
@@ -608,7 +608,7 @@ class QParameterExplorationTable(QPromptWidget):
                         tmp_id -= 1
         return [zip(*p) for p in parameterValues]
 
-class QDimensionLabel(QtGui.QWidget):
+class QDimensionLabel(QtWidgets.QWidget):
     """
     QDimensionLabel represents a horizontal header item of the
     parameter window. It has 4 small icons represents the dimensions
@@ -620,20 +620,20 @@ class QDimensionLabel(QtGui.QWidget):
         Initialize icons and labels
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setAutoFillBackground(True)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Maximum)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Maximum)
 
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)        
 
         self.params = QDimensionLabelText('Parameters')
         hLayout.addWidget(self.params)
-        self.params.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                  QtGui.QSizePolicy.Expanding)
+        self.params.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                  QtWidgets.QSizePolicy.Expanding)
         hLayout.addWidget(QDimensionLabelSeparator())
         
         pixes = [CurrentTheme.EXPLORE_COLUMN_PIXMAP,
@@ -677,22 +677,24 @@ class QDimensionLabel(QtGui.QWidget):
         for l in self.labelIcons:
             l.countWidget.setValue(1)
     
-class QDimensionSpinBox(QtGui.QSpinBox):
+class QDimensionSpinBox(QtWidgets.QSpinBox):
     """
     QDimensionSpinBox is just an overrided spin box that will also emit
     'editingFinished()' signal when the user interact with mouse
     
     """    
+    editingFinished = QtCore.pyqtSignal()
+
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
         Emit 'editingFinished()' signal when the user release a mouse button
         
         """
-        QtGui.QSpinBox.mouseReleaseEvent(self, event)
+        QtWidgets.QSpinBox.mouseReleaseEvent(self, event)
         # super(QDimensionSpinBox, self).mouseReleaseEvent(event)
-        self.emit(QtCore.SIGNAL("editingFinished()"))
+        self.editingFinished.emit()
 
-class QDimensionLabelIcon(QtGui.QWidget):
+class QDimensionLabelIcon(QtWidgets.QWidget):
     """
     QDimensionLabelIcon describes those icons staying on the header
     view of the table
@@ -704,13 +706,13 @@ class QDimensionLabelIcon(QtGui.QWidget):
         Using size 32x32 and a margin of 2
         
         """
-        QtGui.QWidget.__init__(self, parent)
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        QtWidgets.QWidget.__init__(self, parent)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        label = QtGui.QLabel()
+        label = QtWidgets.QLabel()
         label.setAlignment(QtCore.Qt.AlignCenter)
         label.setPixmap(pix.scaled(32, 32, QtCore.Qt.KeepAspectRatio,
                                   QtCore.Qt.SmoothTransformation))
@@ -728,10 +730,10 @@ class QDimensionLabelIcon(QtGui.QWidget):
             self.countWidget.lineEdit().setPalette(pal)
             layout.addWidget(self.countWidget)
             
-        self.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                            QtGui.QSizePolicy.Maximum)        
+        self.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                            QtWidgets.QSizePolicy.Maximum)        
                 
-class QDimensionLabelText(QtGui.QWidget):
+class QDimensionLabelText(QtWidgets.QWidget):
     """
     QDimensionLabelText describes those texts staying on the header
     view of the table. It also has a button to perform exploration
@@ -743,18 +745,18 @@ class QDimensionLabelText(QtGui.QWidget):
         Putting the text bold in the center
         
         """
-        QtGui.QWidget.__init__(self, parent)
-        hLayout = QtGui.QHBoxLayout()
+        QtWidgets.QWidget.__init__(self, parent)
+        hLayout = QtWidgets.QHBoxLayout()
         self.setLayout(hLayout)
 
         hLayout.addStretch()
         
-        hLayout.addWidget(QtGui.QLabel('<b>Parameters</b>'))
+        hLayout.addWidget(QtWidgets.QLabel('<b>Parameters</b>'))
 
         hLayout.addStretch()
         
         
-class QDimensionLabelSeparator(QtGui.QFrame):
+class QDimensionLabelSeparator(QtWidgets.QFrame):
     """
     QDimensionLabelSeparator is acting as a vertical separator which
     has an appropriate style to go with the QDimensionalLabel
@@ -766,11 +768,11 @@ class QDimensionLabelSeparator(QtGui.QFrame):
         Make sure the frame only has a width of 2
         
         """
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameStyle(QtGui.QFrame.Panel | QtGui.QFrame.Sunken)
+        QtWidgets.QFrame.__init__(self, parent)
+        self.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
         self.setFixedWidth(2)
 
-class QParameterSetEditor(QtGui.QWidget):
+class QParameterSetEditor(QtWidgets.QWidget):
     """
     QParameterSetEditor is a widget controlling a set of
     parameters. The set can contain a single parameter (aliases) or
@@ -786,7 +788,7 @@ class QParameterSetEditor(QtGui.QWidget):
         (described in QParameterTreeWidgetItem)
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.info = info
         self.table = table
         (name, paramList) = info
@@ -795,14 +797,13 @@ class QParameterSetEditor(QtGui.QWidget):
         else:
             size = 1
         
-        vLayout = QtGui.QVBoxLayout(self)
-        vLayout.setMargin(0)
+        vLayout = QtWidgets.QVBoxLayout(self)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
 
         label = QParameterSetLabel(name)
-        self.connect(label.removeButton, QtCore.SIGNAL('clicked()'),
-                     self.removeSelf)
+        label.removeButton.clicked.connect(self.removeSelf)
         vLayout.addWidget(label)
         
         self.paramWidgets = []
@@ -813,8 +814,8 @@ class QParameterSetEditor(QtGui.QWidget):
 
         vLayout.addSpacing(10)
 
-        hBar = QtGui.QFrame()
-        hBar.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
+        hBar = QtWidgets.QFrame()
+        hBar.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
         vLayout.addWidget(hBar)
 
     def removeSelf(self):
@@ -828,7 +829,7 @@ class QParameterSetEditor(QtGui.QWidget):
             self.close()
             self.deleteLater()
 
-class QParameterSetLabel(QtGui.QWidget):
+class QParameterSetLabel(QtWidgets.QWidget):
     """
     QParameterSetLabel is the label bar showing at the top of the
     parameter set editor. It also has a Remove button to remove the
@@ -840,15 +841,15 @@ class QParameterSetLabel(QtGui.QWidget):
         Init a label and a button
         
         """
-        QtGui.QWidget.__init__(self, parent)        
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        QtWidgets.QWidget.__init__(self, parent)        
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
         hLayout.addSpacing(5)
 
-        label = QtGui.QLabel(text)
+        label = QtWidgets.QLabel(text)
         font = QtGui.QFont(label.font())
         font.setBold(True)
         label.setFont(font)
@@ -856,17 +857,17 @@ class QParameterSetLabel(QtGui.QWidget):
 
         hLayout.addSpacing(5)
         
-        self.removeButton = QtGui.QToolButton()
+        self.removeButton = QtWidgets.QToolButton()
         self.removeButton.setAutoRaise(True)
         self.removeButton.setIcon(QtGui.QIcon(
-            self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
+            self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
         self.removeButton.setIconSize(QtCore.QSize(12, 12))
         self.removeButton.setFixedWidth(16)
         hLayout.addWidget(self.removeButton)
 
         hLayout.addStretch()
         
-class QParameterWidget(QtGui.QWidget):
+class QParameterWidget(QtWidgets.QWidget):
     """
     QParameterWidget is a row widget containing a label, a parameter
     editor and a radio group.
@@ -876,18 +877,18 @@ class QParameterWidget(QtGui.QWidget):
         """ QParameterWidget(param: ParameterInfo, size: int, parent: QWidget)
                              -> QParameterWidget
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.param = param
         self.prevWidget = 0
         
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
         hLayout.addSpacing(5+16+5)
 
-        self.label = QtGui.QLabel(param.spec.module)
+        self.label = QtWidgets.QLabel(param.spec.module)
         self.label.setFixedWidth(50)
         hLayout.addWidget(self.label)
 
@@ -898,9 +899,7 @@ class QParameterWidget(QtGui.QWidget):
         hLayout.addWidget(self.editor)
 
         self.selector = QDimensionSelector()
-        self.connect(self.selector.radioButtons[4],
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.disableParameter)
+        self.selector.radioButtons[4].toggled[bool].connect(self.disableParameter)
         hLayout.addWidget(self.selector)
 
     def getDimension(self):
@@ -942,7 +941,7 @@ class QParameterWidget(QtGui.QWidget):
         else:
             self.editor.stackedEditors.setCurrentIndex(self.prevWidget)
 
-class QDimensionSelector(QtGui.QWidget):
+class QDimensionSelector(QtWidgets.QWidget):
     """
     QDimensionSelector provides 5 radio buttons to select dimension of
     exploration or just skipping it.
@@ -954,12 +953,12 @@ class QDimensionSelector(QtGui.QWidget):
         equal to the QDimensionLabel
         
         """
-        QtGui.QWidget.__init__(self, parent)
-        self.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                           QtGui.QSizePolicy.Maximum)
+        QtWidgets.QWidget.__init__(self, parent)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
+                           QtWidgets.QSizePolicy.Maximum)
         
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
+        hLayout = QtWidgets.QHBoxLayout(self)
+        hLayout.setContentsMargins(0, 0, 0, 0)
         hLayout.setSpacing(0)        
         self.setLayout(hLayout)
 
@@ -972,7 +971,7 @@ class QDimensionSelector(QtGui.QWidget):
             hLayout.addWidget(button)
         self.radioButtons[0].setChecked(True)
 
-class QDimensionRadioButton(QtGui.QRadioButton):
+class QDimensionRadioButton(QtWidgets.QRadioButton):
     """
     QDimensionRadioButton is a replacement of QRadioButton with
     simpler appearance. We just need to override the paint event

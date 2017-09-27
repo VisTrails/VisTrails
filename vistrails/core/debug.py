@@ -85,7 +85,7 @@ def unexpected_exception(e, tb=None, frame=None):
 
     # Removes PyQt's input hook
     try:
-        from PyQt4 import QtCore
+        from PyQt5 import QtCore
     except ImportError:
         pass
     else:

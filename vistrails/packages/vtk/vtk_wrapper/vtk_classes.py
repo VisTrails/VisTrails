@@ -157,8 +157,8 @@ def patch_methods(base_module, cls):
 
         widget = None
         if system() == 'Darwin':
-            from PyQt4 import QtCore, QtGui
-            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            from PyQt5 import QtCore, QtGui, QtWidgets
+            widget = QtWidgets.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)
             widget.show()
             window.SetWindowInfo(str(int(widget.winId())))

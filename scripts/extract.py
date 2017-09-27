@@ -34,7 +34,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 import imp
 import sys
 

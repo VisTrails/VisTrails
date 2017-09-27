@@ -1,6 +1,6 @@
 import os
 import sipconfig
-from PyQt4 import pyqtconfig
+from PyQt5 import pyqtconfig
 
 
 from distutils import sysconfig

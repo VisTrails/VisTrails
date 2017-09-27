@@ -1,10 +1,10 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.constant_configuration import ConstantWidgetMixin
 
-class PredictorListWidget(QtGui.QTreeWidget):
+class PredictorListWidget(QtWidgets.QTreeWidget):
     
     def __init__(self, p_value, available_tree, parent=None):
         
@@ -21,7 +21,7 @@ class PredictorListWidget(QtGui.QTreeWidget):
                         "None"]
         
         #print "p_value : ", p_value
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         self.available_tree = available_tree
         self.setColumnCount(5)
         self.headerItem().setText(0, "Include")
@@ -39,20 +39,20 @@ class PredictorListWidget(QtGui.QTreeWidget):
         self.tree_items = {}
         for source, file_list in self.available_tree.iteritems():
             #print source, file_list
-            source_item = QtGui.QTreeWidgetItem([source])
+            source_item = QtWidgets.QTreeWidgetItem([source])
             self.addTopLevelItem(source_item)
             for (file, desc, categorical) in file_list:
-                child_item = QtGui.QTreeWidgetItem([file, desc])#, resVal, aggVal])
+                child_item = QtWidgets.QTreeWidgetItem([file, desc])#, resVal, aggVal])
                 child_item.setFlags(QtCore.Qt.ItemIsUserCheckable |
                                     QtCore.Qt.ItemIsEnabled)
                 child_item.setCheckState(0, QtCore.Qt.Unchecked)
                 source_item.addChild(child_item)
                 
-                resamplingCB = QtGui.QComboBox(self)
+                resamplingCB = QtWidgets.QComboBox(self)
                 resamplingCB.addItems(self.resamplingMethods)
-                aggCB = QtGui.QComboBox(self)
+                aggCB = QtWidgets.QComboBox(self)
                 aggCB.addItems(self.aggregationMethods)
-                catChk = QtGui.QCheckBox(self)
+                catChk = QtWidgets.QCheckBox(self)
 #                self.connect(aggCB, QtCore.SIGNAL('currentIndexChanged(QString)'), self.testing)
                 if categorical == "N":
                     resamplingCB.setCurrentIndex(1)
@@ -239,11 +239,11 @@ class PredictorListConfigurationWidget(PredictorListWidget,
         self._contents = self.get_values()
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        QtGui.QTreeWidget.focusInEvent(self, event)
+        QtWidgets.QTreeWidget.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
         self.update_parent()
-        QtGui.QTreeWidget.focusOutEvent(self, event)
+        QtWidgets.QTreeWidget.focusOutEvent(self, event)
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
@@ -263,7 +263,7 @@ class PredictorListConfiguration(StandardModuleConfigurationWidget):
         self.build_gui(available_tree)
 
     def build_gui(self, available_tree):
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         # precompute tree so we only load once
  
         # factor PredictorListConfigurationWidget so that it can be reused in
@@ -276,55 +276,49 @@ class PredictorListConfiguration(StandardModuleConfigurationWidget):
         self.list_config = PredictorListWidget(self.p_value, available_tree)
         layout.addWidget(self.list_config)
 
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.okButton = QtGui.QPushButton('&OK', self)
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.okButton = QtWidgets.QPushButton('&OK', self)
         self.okButton.setFixedWidth(110)
         self.buttonLayout.addWidget(self.okButton)
-        self.cancelButton = QtGui.QPushButton('&Cancel', self)
+        self.cancelButton = QtWidgets.QPushButton('&Cancel', self)
         self.cancelButton.setShortcut('Esc')
         self.cancelButton.setFixedWidth(110)
         self.buttonLayout.addWidget(self.cancelButton)
         
-        self.selectAllButton = QtGui.QPushButton('&Select All', self)
+        self.selectAllButton = QtWidgets.QPushButton('&Select All', self)
         self.selectAllButton.setFixedWidth(110)
         self.buttonLayout.addWidget(self.selectAllButton)
         
-        self.switchSelectionButton = QtGui.QPushButton('&Switch Selection', self)
+        self.switchSelectionButton = QtWidgets.QPushButton('&Switch Selection', self)
         self.switchSelectionButton.setFixedWidth(110)
         self.buttonLayout.addWidget(self.switchSelectionButton)
         
-        spacerItem = QtGui.QSpacerItem(10, 0, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.buttonLayout.addItem(spacerItem)
         
-        self.queryLabel = QtGui.QLabel("Query")
+        self.queryLabel = QtWidgets.QLabel("Query")
         self.buttonLayout.addWidget(self.queryLabel)
         
-        self.queryText = QtGui.QLineEdit(self)
+        self.queryText = QtWidgets.QLineEdit(self)
         self.queryText.setFixedWidth(110)
         self.buttonLayout.addWidget(self.queryText)
         
-        self.addQuery = QtGui.QPushButton('&Add', self)
+        self.addQuery = QtWidgets.QPushButton('&Add', self)
         self.addQuery.setFixedWidth(60)
         self.buttonLayout.addWidget(self.addQuery)
         
-        self.removeQuery = QtGui.QPushButton('&Remove', self)
+        self.removeQuery = QtWidgets.QPushButton('&Remove', self)
         self.removeQuery.setFixedWidth(60)
         self.buttonLayout.addWidget(self.removeQuery)
         
         layout.addLayout(self.buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), 
-                     self.okTriggered)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), 
-                     self.close)
-        self.connect(self.selectAllButton, QtCore.SIGNAL('clicked(bool)'), 
-                     self.selectAllTriggered)
-        self.connect(self.switchSelectionButton, QtCore.SIGNAL('clicked(bool)'), 
-                     self.switchSelectionTriggered)
-        self.connect(self.addQuery, QtCore.SIGNAL('clicked(bool)'), 
-                     self.queryAdd)
-        self.connect(self.removeQuery, QtCore.SIGNAL('clicked(bool)'), 
-                     self.queryRemove)
+        self.okButton.clicked[bool].connect(self.okTriggered)
+        self.cancelButton.clicked[bool].connect(self.close)
+        self.selectAllButton.clicked[bool].connect(self.selectAllTriggered)
+        self.switchSelectionButton.clicked[bool].connect(self.switchSelectionTriggered)
+        self.addQuery.clicked[bool].connect(self.queryAdd)
+        self.removeQuery.clicked[bool].connect(self.queryRemove)
         self.setLayout(layout)
 
     def okTriggered(self):

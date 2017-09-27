@@ -1,7 +1,7 @@
 ################################################################################
 # ImageViewer widgets/toolbar implementation
 ################################################################################
-from PyQt4 import QtCore, QtGui, QAxContainer
+from PyQt5 import QAxContainer, QtCore, QtGui, QtWidgets
 from core.modules.vistrails_module import Module
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
@@ -15,6 +15,12 @@ import csv
 from packages.sahm.pySAHM.utilities import mds_to_shape
 from utils import getrasterminmax
 ################################################################################
+
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
 
 def setQGIS(qgis):
     globals()["qgis"] = qgis
@@ -135,14 +141,14 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
         """
         QCellWidget.__init__(self, parent)
 
-        centralLayout = QtGui.QVBoxLayout()
+        centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
 
 #        self.setAnimationEnabled(True)
 
-        self.Frame = QtGui.QFrame()
+        self.Frame = QtWidgets.QFrame()
         self.ui = Ui_Frame()
         self.ui.setupUi(self.Frame)
 
@@ -160,7 +166,7 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
         self.canvas = qgis.gui.QgsMapCanvas()
         self.canvas.show()
 
-        self.ui.legend_label.setText(QtCore.QString(inputs["model_tag"]))
+        self.ui.legend_label.setText(QString(inputs["model_tag"]))
 
         self.toolPan = qgis.gui.QgsMapToolPan(self.canvas)
 
@@ -260,29 +266,29 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
         return None
 
     def create_legend_ramp(self, layer_type, raster, min_max, num_tags):
-        legend = QtGui.QFrame()
-        legend.setObjectName(QtCore.QString.fromUtf8("legend"))
-        mainlayout = QtGui.QVBoxLayout(legend)
+        legend = QtWidgets.QFrame()
+        legend.setObjectName("legend")
+        mainlayout = QtWidgets.QVBoxLayout(legend)
         mainlayout.setSpacing(0)
-        mainlayout.setMargin(0)
+        mainlayout.setContentsMargins(0, 0, 0, 0)
 
-        frame_colorbar = QtGui.QFrame(legend)
-        frame_colorbar.setObjectName(QtCore.QString.fromUtf8("frame_colorbar"))
-        layout_colorbar = QtGui.QHBoxLayout(frame_colorbar)
+        frame_colorbar = QtWidgets.QFrame(legend)
+        frame_colorbar.setObjectName("frame_colorbar")
+        layout_colorbar = QtWidgets.QHBoxLayout(frame_colorbar)
         layout_colorbar.setSpacing(0)
         layout_colorbar.setContentsMargins(-1, 2, -1, 0)
 
-        frame_ticks = QtGui.QFrame(legend)
-        frame_ticks.setFrameShape(QtGui.QFrame.StyledPanel)
-        frame_ticks.setFrameShadow(QtGui.QFrame.Raised)
-        frame_ticks.setObjectName(QtCore.QString.fromUtf8("frame_ticks"))
-        layout_ticks = QtGui.QHBoxLayout(frame_ticks)
+        frame_ticks = QtWidgets.QFrame(legend)
+        frame_ticks.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        frame_ticks.setFrameShadow(QtWidgets.QFrame.Raised)
+        frame_ticks.setObjectName("frame_ticks")
+        layout_ticks = QtWidgets.QHBoxLayout(frame_ticks)
         layout_ticks.setSpacing(0)
         layout_ticks.setContentsMargins(-1, 0, -1, 0)
 
-        frame_labels = QtGui.QFrame(legend)
-        frame_labels.setObjectName(QtCore.QString.fromUtf8("frame_labels"))
-        layout_labels = QtGui.QHBoxLayout(frame_labels)
+        frame_labels = QtWidgets.QFrame(legend)
+        frame_labels.setObjectName("frame_labels")
+        layout_labels = QtWidgets.QHBoxLayout(frame_labels)
         layout_labels.setSpacing(0)
         layout_labels.setContentsMargins(4, 0, 4, 0)
 
@@ -298,8 +304,8 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
                 cur_color = ", ".join(row[2:5])
 
                 if prev_color:
-                    color_label = QtGui.QLabel(frame_colorbar)
-                    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.MinimumExpanding)
+                    color_label = QtWidgets.QLabel(frame_colorbar)
+                    sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
                     sizePolicy.setHorizontalStretch(0)
                     sizePolicy.setVerticalStretch(0)
                     sizePolicy.setHeightForWidth(color_label.sizePolicy().hasHeightForWidth())
@@ -310,8 +316,8 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
                     stylesheet += ", 255), stop:1 rgba("
                     stylesheet += cur_color
                     stylesheet += ", 255));"
-                    color_label.setStyleSheet(QtCore.QString.fromUtf8(stylesheet))
-                    color_label.setText(QtCore.QString.fromUtf8(""))
+                    color_label.setStyleSheet(stylesheet)
+                    color_label.setText("")
                     layout_colorbar.addWidget(color_label)
 
                 prev_color = cur_color
@@ -322,30 +328,30 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
         curStep = min
 
         while curStep <= max:
-            line = QtGui.QFrame(frame_ticks)
-            sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+            line = QtWidgets.QFrame(frame_ticks)
+            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
             sizePolicy.setHorizontalStretch(0)
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(line.sizePolicy().hasHeightForWidth())
             line.setSizePolicy(sizePolicy)
             line.setMinimumSize(QtCore.QSize(0, 4))
             line.setSizeIncrement(QtCore.QSize(0, 0))
-            line.setFrameShadow(QtGui.QFrame.Plain)
-            line.setFrameShape(QtGui.QFrame.VLine)
-            line.setFrameShadow(QtGui.QFrame.Sunken)
-            line.setObjectName(QtCore.QString.fromUtf8("line"))
+            line.setFrameShadow(QtWidgets.QFrame.Plain)
+            line.setFrameShape(QtWidgets.QFrame.VLine)
+            line.setFrameShadow(QtWidgets.QFrame.Sunken)
+            line.setObjectName("line")
             layout_ticks.addWidget(line)
-            spacerItem = QtGui.QSpacerItem(133, 2, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+            spacerItem = QtWidgets.QSpacerItem(133, 2, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
             layout_ticks.addItem(spacerItem)
 
-            lbl = QtGui.QLabel(frame_labels)
+            lbl = QtWidgets.QLabel(frame_labels)
             lbl.setMinimumSize(QtCore.QSize(0, 10))
             txt = "%.1f" %curStep
-            lbl.setText(QtCore.QString.fromUtf8(txt))
+            lbl.setText(txt)
             lbl.setAlignment(QtCore.Qt.AlignCenter)
             #lbl.setObjectName(QtCore.QString.fromUtf8("lbl"))
             layout_labels.addWidget(lbl)
-            spacerItem2 = QtGui.QSpacerItem(5, 5, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+            spacerItem2 = QtWidgets.QSpacerItem(5, 5, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
             layout_labels.addItem(spacerItem2)
 
             curStep += step
@@ -391,11 +397,11 @@ class SAHMSpatialOutputViewerCellWidget(QCellWidget):
 #    cellWidget.canvas.repaint()
 
 
-class ViewLayerAction(QtGui.QAction):
+class ViewLayerAction(QtWidgets.QAction):
     def __init__(self, action_dict, parent=None):
         icon = os.path.abspath(os.path.join(
                     os.path.dirname(__file__), "Images", action_dict["icon"]))
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(icon),
                                action_dict["label"],
                                parent)

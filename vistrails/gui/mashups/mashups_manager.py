@@ -40,7 +40,7 @@ import copy
 import os
 import tempfile
 import uuid
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.core.db.action
 from vistrails.core.vistrail.controller import VistrailController as BaseVistrailController
@@ -235,30 +235,30 @@ class MashupsManager(object):
     
     @staticmethod
     def showFoundMashupsDialog(mashup_trail, version_name, parent=None):
-        class FoundMashupDialog(QtGui.QDialog):
+        class FoundMashupDialog(QtWidgets.QDialog):
             
             def __init__(self, mashup_trail, version_name, parent=None):
-                QtGui.QDialog.__init__(self, parent)
+                QtWidgets.QDialog.__init__(self, parent)
                 self.setWindowTitle('VisTrails - Mashup')
-                dlgLayout = QtGui.QVBoxLayout()
+                dlgLayout = QtWidgets.QVBoxLayout()
                 str_label = "VisTrails found mashup(s) already created in parent %s."
-                label = QtGui.QLabel(str_label%str(version_name))
+                label = QtWidgets.QLabel(str_label%str(version_name))
                 label.setWordWrap(True)
-                gb = QtGui.QGroupBox("What would you like to do?")
-                gblayout = QtGui.QVBoxLayout()
+                gb = QtWidgets.QGroupBox("What would you like to do?")
+                gblayout = QtWidgets.QVBoxLayout()
                 
-                self.btnNew = QtGui.QRadioButton("Create new mashup (starting from current pipeline's aliases)")
+                self.btnNew = QtWidgets.QRadioButton("Create new mashup (starting from current pipeline's aliases)")
                 self.btnNew.setChecked(True)
-                self.btnCopy = QtGui.QRadioButton("Copy selected mashup (aliases will be merged)")
-                self.btnMove = QtGui.QRadioButton("Move all mashups to current pipeline")
-                self.mashupsList = QtGui.QListWidget()
-                self.mashupsList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+                self.btnCopy = QtWidgets.QRadioButton("Copy selected mashup (aliases will be merged)")
+                self.btnMove = QtWidgets.QRadioButton("Move all mashups to current pipeline")
+                self.mashupsList = QtWidgets.QListWidget()
+                self.mashupsList.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
                 self.mashupsList.setMaximumSize(100, 120)
                 self.mashupsList.setEnabled(False)
                 self.setMashupsList(mashup_trail)
                 
-                hlayout = QtGui.QHBoxLayout()
-                hlayout.setMargin(5)
+                hlayout = QtWidgets.QHBoxLayout()
+                hlayout.setContentsMargins(5, 5, 5, 5)
                 hlayout.setSpacing(5)
                 hlayout.addWidget(self.mashupsList)
                 hlayout.addStretch()
@@ -269,8 +269,8 @@ class MashupsManager(object):
                 gblayout.addLayout(hlayout)
                 
                 gb.setLayout(gblayout)
-                btnOk = QtGui.QPushButton("OK")
-                btnLayout = QtGui.QHBoxLayout()
+                btnOk = QtWidgets.QPushButton("OK")
+                btnLayout = QtWidgets.QHBoxLayout()
                 btnLayout.addStretch()
                 btnLayout.addWidget(btnOk)
                 btnLayout.addStretch()
@@ -281,10 +281,8 @@ class MashupsManager(object):
                 dlgLayout.addWidget(gb)
                 dlgLayout.addLayout(btnLayout)
                 self.setLayout(dlgLayout)
-                self.connect(self.btnCopy, QtCore.SIGNAL("toggled(bool)"),
-                             self.mashupsList.setEnabled)
-                self.connect(btnOk, QtCore.SIGNAL("clicked()"), 
-                             self.btnOkPressed)      
+                self.btnCopy.toggled[bool].connect(self.mashupsList.setEnabled)
+                btnOk.clicked.connect(self.btnOkPressed)
                 
             def btnOkPressed(self):
                 if self.btnNew.isChecked():
@@ -326,7 +324,7 @@ class MashupsManager(object):
                     return items[0].version
             
         dialog = FoundMashupDialog(mashup_trail, version_name, parent)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             return (dialog.btnPressed,dialog.mashup_version) 
         else:
             return ('New', -1)                

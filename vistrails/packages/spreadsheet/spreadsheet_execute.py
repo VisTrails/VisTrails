@@ -43,7 +43,7 @@ spreadsheet:
 from __future__ import division
 
 import copy
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.interpreter.default import get_default_interpreter
@@ -230,7 +230,7 @@ def executePipelineWithProgress(pipeline,
     """
     withoutCancel = True
     totalProgress = len(pipeline.modules)
-    progress = QtGui.QProgressDialog(pCaption,
+    progress = QtWidgets.QProgressDialog(pCaption,
                                      pCancel,
                                      0, totalProgress)
     progress.setWindowTitle(pTitle)

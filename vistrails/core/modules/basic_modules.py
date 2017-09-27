@@ -606,6 +606,38 @@ class DirectorySink(NotCacheable, Module):
 
 ##############################################################################
 
+# class BundledFile(File):
+#     # use a meta-action to update all file modules to filenames that are
+#     # relative to the bundle directory
+#     # need a menu-item to convert single file or all files
+#     # the compute then needs to look for data relative to the bundle directory
+#     # this should be stored in a /data subdirectory
+#     # for database storage, we need to save this to a blob and/or extract it
+#     # from the blob as needed (if extract-on-demand, need to cache it)
+#     # load-blob delayed action on database
+#
+#     # just implement for files first
+#     # selector dialog should show contents of data subdir
+#     # could just navigate to that and then if user picks something outside of
+#     # that, just disallow
+#     # (issue would be data not actually there yet (e.g. if linked))
+#
+#     # should store relative filename
+#     # then compute prepends with the current bundle's data directory
+#     def get_name(self):
+#         n = Path.get_name(self)
+#         bundle_data_dir = application.get_bundle_data_dir()
+#         return os.path.join(bundle_data_dir)
+#
+# class BundledDirectory(Directory):
+#     # just like bundled file but for directories
+#     def get_name(self):
+#         n = Path.get_name(self)
+#         bundle_data_dir = application.get_bundle_data_dir()
+#         return os.path.join(bundle_data_dir)
+
+##############################################################################
+
 class WriteFile(Converter):
     """Writes a String to a temporary File.
     """

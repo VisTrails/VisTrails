@@ -35,8 +35,8 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSlot
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
@@ -44,12 +44,12 @@ from vistrails.gui.mashups.mashups_manager import MashupsManager
 from vistrails.gui.mashups.alias_list import QAliasListPanel
 from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON, CANCEL_BUTTON
 
-class QMashupView(QtGui.QMainWindow, BaseView):
+class QMashupView(QtWidgets.QMainWindow, BaseView):
     #signals
     #mashupChanged = pyqtSignal()
     
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        QtGui.QMainWindow.__init__(self, parent, f)
+        QtWidgets.QMainWindow.__init__(self, parent, f)
         BaseView.__init__(self)
         self.set_title("Mashup")
         
@@ -60,16 +60,16 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.createToolBar()
         self.tab_to_stack_idx = {}
         self.button_to_tab_idx = Bidict()
-        widget = QtGui.QWidget(self)
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        widget = QtWidgets.QWidget(self)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        self.tabBar = QtGui.QTabBar(self)
+        self.tabBar = QtWidgets.QTabBar(self)
         self.tabBar.setDocumentMode(True)
         self.tabBar.setTabsClosable(False)
         self.tabBar.setExpanding(False)
         self.tabBar.currentChanged.connect(self.switchTab)
-        self.stack = QtGui.QStackedWidget(self)
+        self.stack = QtWidgets.QStackedWidget(self)
         layout.addWidget(self.tabBar)
         layout.addWidget(self.stack)
         widget.setLayout(layout)
@@ -139,9 +139,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                     self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
                     self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
                     if self.mshpController.vtController is not None:
-                        self.disconnect(self.mshpController.vtController,
-                                        QtCore.SIGNAL('vistrailChanged()'),
-                                        self.mshpControllerVistrailChanged)
+                        self.mshpController.vtController.vistrailChanged.disconnect(self.mshpControllerVistrailChanged)
                 except Exception, e:
                     debug.unexpected_exception(e)
                     debug.print_exc()
@@ -152,9 +150,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             #self.pipelineTab.set_controller(self.mshpController.vtController)
             #self.pipelineTab.set_to_current()
             self.mshpController.vtController.change_selected_version(self.vtversion)
-            self.connect(self.mshpController.vtController,
-                         QtCore.SIGNAL('vistrailChanged()'),
-                         self.mshpControllerVistrailChanged)
+            self.mshpController.vtController.vistrailChanged.connect(self.mshpControllerVistrailChanged)
             self.mshpController.versionChanged.connect(self.mshpVersionChanged)
             self.mshpController.stateChanged.connect(self.mshpStateChanged)
             self.aliasPanel.updateController(self.mshpController)
@@ -162,17 +158,17 @@ class QMashupView(QtGui.QMainWindow, BaseView):
             _app.notify('mshpcontroller_changed', self.mshpController)
     
     def createActions(self):
-        self.saveAction = QtGui.QAction("Tag", self,
+        self.saveAction = QtWidgets.QAction("Tag", self,
                                         triggered=self.saveTriggered)
         self.saveAction.setToolTip("Tag current mashup")
         self.saveAction.setEnabled(False)
-        self.previewAction = QtGui.QAction("Preview",  self,
+        self.previewAction = QtWidgets.QAction("Preview",  self,
                                            triggered=self.previewTriggered,
                                            checkable=False)
         self.previewAction.setToolTip("Preview current mashup")
         
     def createToolBar(self):
-        self.toolbar = QtGui.QToolBar(self)
+        self.toolbar = QtWidgets.QToolBar(self)
         
         self.toolbar.addAction(self.previewAction)
         self.toolbar.addSeparator()
@@ -201,8 +197,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                                                   version)
         previewApp.appWasClosed.connect(self.previewTabWasClosed)
         
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         #layout.addWidget(self.refreshButton, QtCore.Qt.AlignLeft)
         layout.addWidget(previewApp)
@@ -214,7 +210,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         self.tab_to_stack_idx[tab_idx] = idx
         closeButton = QMashupViewCloseButton(self.tabBar)
         closeSide = self.tabBar.style().styleHint(
-                                   QtGui.QStyle.SH_TabBar_CloseButtonPosition,
+                                   QtWidgets.QStyle.SH_TabBar_CloseButtonPosition,
                                    None, self.tabBar)
         closeButton.clicked.connect(self.closePreviewTab)
         self.tabBar.setTabButton(tab_idx, closeSide, closeButton)
@@ -293,7 +289,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                 tag_exists = True
                 ok = True
                 while ok and tag_exists:
-                    (text, ok) = QtGui.QInputDialog.getText(self, "VisTrails::Mashups",
+                    (text, ok) = QtWidgets.QInputDialog.getText(self, "VisTrails::Mashups",
                                                             "Enter a new tag:",
                                                             text="")
                     if ok and text:
@@ -330,9 +326,9 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         
 ###############################################################################
 
-class QMashupViewTab(QtGui.QWidget, BaseView):
+class QMashupViewTab(QtWidgets.QWidget, BaseView):
     def __init__(self, mshpController, version, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         BaseView.__init__(self)
         self.mshpController = mshpController
         self.version = version
@@ -357,9 +353,9 @@ class QMashupViewTab(QtGui.QWidget, BaseView):
         
 ###############################################################################
 
-class QMashupViewCloseButton(QtGui.QAbstractButton):
+class QMashupViewCloseButton(QtWidgets.QAbstractButton):
     def __init__(self, parent):
-        QtGui.QAbstractButton.__init__(self)
+        QtWidgets.QAbstractButton.__init__(self)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setCursor(QtCore.Qt.ArrowCursor)
         self.setToolTip("Close Tab")
@@ -367,41 +363,41 @@ class QMashupViewCloseButton(QtGui.QAbstractButton):
         
     def sizeHint(self):
         self.ensurePolished()
-        width = self.style().pixelMetric(QtGui.QStyle.PM_TabCloseIndicatorWidth, 
+        width = self.style().pixelMetric(QtWidgets.QStyle.PM_TabCloseIndicatorWidth, 
                                          None, self)
-        height = self.style().pixelMetric(QtGui.QStyle.PM_TabCloseIndicatorHeight,
+        height = self.style().pixelMetric(QtWidgets.QStyle.PM_TabCloseIndicatorHeight,
                                           None, self)
         return QtCore.QSize(width, height)
     
     def enterEvent(self, event):
         if self.isEnabled():
             self.update()
-        QtGui.QAbstractButton.enterEvent(self, event)
+        QtWidgets.QAbstractButton.enterEvent(self, event)
         
     def leaveEvent(self, event):
         if self.isEnabled():
             self.update()
-        QtGui.QAbstractButton.leaveEvent(self, event)
+        QtWidgets.QAbstractButton.leaveEvent(self, event)
         
     def paintEvent(self, event):
         p = QtGui.QPainter(self)
-        opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.init(self)
-        opt.state |= QtGui.QStyle.State_AutoRaise
+        opt.state |= QtWidgets.QStyle.State_AutoRaise
         if (self.isEnabled() and self.underMouse() and 
             not self.isChecked() and not self.isDown()):
-            opt.state |= QtGui.QStyle.State_Raised
+            opt.state |= QtWidgets.QStyle.State_Raised
         if self.isChecked():
-            opt.state |= QtGui.QStyle.State_On
+            opt.state |= QtWidgets.QStyle.State_On
         if self.isDown():
-            opt.state |= QtGui.QStyle.State_Sunken
+            opt.state |= QtWidgets.QStyle.State_Sunken
         tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
+        if isinstance(tb, QtWidgets.QTabBar):
             index = tb.currentIndex()
-            position = self.style().styleHint(QtGui.QStyle.SH_TabBar_CloseButtonPosition,
+            position = self.style().styleHint(QtWidgets.QStyle.SH_TabBar_CloseButtonPosition,
                                               None, tb)
             if tb.tabButton(index, position) == self:
-                opt.state |= QtGui.QStyle.State_Selected
-        self.style().drawPrimitive(QtGui.QStyle.PE_IndicatorTabClose, opt, p, 
+                opt.state |= QtWidgets.QStyle.State_Selected
+        self.style().drawPrimitive(QtWidgets.QStyle.PE_IndicatorTabClose, opt, p, 
                                    self)
         

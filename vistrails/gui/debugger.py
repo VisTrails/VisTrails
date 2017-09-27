@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.modules.vistrails_module import ModuleError
 import vistrails.core.system
 import copy
@@ -48,16 +48,18 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ############################################################################
 
-class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
+class QDebugger(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """
     This class provides a dockable interface to the debugger tree.
     """
+    debuggerHidden = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent=parent)
+        QtWidgets.QWidget.__init__(self, parent=parent)
         self.app = vistrails.gui.application.get_vistrails_application()
         self.inspector = QObjectInspector()
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self.inspector)
         self.setLayout(layout)
@@ -115,19 +117,19 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
     def closeEvent(self, e):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
-        self.emit(QtCore.SIGNAL("debuggerHidden()"))
+        self.debuggerHidden.emit()
                         
 ###############################################################################
 #  QObjectInspector
 
-class QObjectInspector(QtGui.QTreeWidget):
+class QObjectInspector(QtWidgets.QTreeWidget):
     """
     This class provides the ability to track and inspect breakpoints added to a pipeline.
     It is meant to be embedded in the QDebugger object to allow debugging of workflows in
     VisTrails
     """
     def __init__(self, parent=None):
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         self.setColumnCount(2)
         self.modules = {}
 
@@ -245,11 +247,11 @@ class QObjectInspector(QtGui.QTreeWidget):
 ########################################################################
 # QDebugModuleItem
 
-class QDebugModuleItem(QtGui.QTreeWidgetItem):
+class QDebugModuleItem(QtWidgets.QTreeWidgetItem):
     """
     This class provides a unique container for adding breakpoints in a workflow
     to the debugger.
     """
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
         

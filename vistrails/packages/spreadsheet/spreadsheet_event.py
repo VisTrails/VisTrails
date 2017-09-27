@@ -39,7 +39,7 @@
 
 from __future__ import division
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 # A list of newly added events starting from QtCore.QEvent.User

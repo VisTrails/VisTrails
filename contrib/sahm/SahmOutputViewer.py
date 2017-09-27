@@ -1,7 +1,7 @@
 ################################################################################
 # ImageViewer widgets/toolbar implementation
 ################################################################################
-from PyQt4 import QtCore, QtGui, QAxContainer
+from PyQt5 import QAxContainer, QtCore, QtGui, QtPrintSupport, QtWidgets
 from core.modules.vistrails_module import Module
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
@@ -10,6 +10,12 @@ from SahmViewerCell import Ui_Frame
 #import imageviewer_rc
 import os
 ################################################################################
+
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
 
 class SAHMModelOutputViewerCell(SpreadsheetCell):
     """
@@ -72,15 +78,15 @@ class SAHMOutputViewerCellWidget(QCellWidget):
     def __init__(self, parent=None):
         QCellWidget.__init__(self, parent)
         
-        centralLayout = QtGui.QVBoxLayout()
+        centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
 
         
 #        self.setAnimationEnabled(True)
         
-        self.Frame = QtGui.QFrame()
+        self.Frame = QtWidgets.QFrame()
         self.ui = Ui_Frame()
         self.ui.setupUi(self.Frame)
         
@@ -89,7 +95,7 @@ class SAHMOutputViewerCellWidget(QCellWidget):
 #        self.ui.gv_prob_map.setScene(self.gs_prob_map)
 #        self.gs_prob_map.wheelEvent = self.wheel_event_prob
         
-        self.gs_auc_graph = QtGui.QGraphicsScene()
+        self.gs_auc_graph = QtWidgets.QGraphicsScene()
         self.ui.gv_auc.setScene(self.gs_auc_graph)
         self.gs_auc_graph.wheelEvent = self.wheel_event_auc
         
@@ -150,13 +156,13 @@ class SAHMOutputViewerCellWidget(QCellWidget):
         if self.text_urlSrc!=None:
             self.text_browser.dynamicCall('Navigate(const QString&)', self.text_urlSrc.toString())
         else:
-            self.text_browser.dynamicCall('Navigate(const QString&)', QtCore.QString('about:blank'))
+            self.text_browser.dynamicCall('Navigate(const QString&)', QString('about:blank'))
 
         self.response_urlSrc = QtCore.QUrl.fromLocalFile(response_curves.name)
         if self.response_urlSrc!=None:
             self.response_browser.dynamicCall('Navigate(const QString&)', self.response_urlSrc.toString())
         else:
-            self.response_browser.dynamicCall('Navigate(const QString&)', QtCore.QString('about:blank'))
+            self.response_browser.dynamicCall('Navigate(const QString&)', QString('about:blank'))
 
         self.view_current()
 
@@ -221,9 +227,9 @@ class SAHMOutputViewerCellWidget(QCellWidget):
         Save the current widget contents to a pdf file
         
         """
-        printer = QtGui.QPrinter()
+        printer = QtPrintSupport.QPrinter()
         
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         painter = QtGui.QPainter()
         painter.begin(printer)
@@ -243,7 +249,7 @@ class SAHMOutputViewerCellWidget(QCellWidget):
 #                                                         QtCore.Qt.SmoothTransformation))
 #                
 
-class ImageViewerFitToCellAction(QtGui.QAction):
+class ImageViewerFitToCellAction(QtWidgets.QAction):
     """
     ImageViewerFitToCellAction is the action to stretch the image to
     fit inside a cell
@@ -255,7 +261,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/fittocell.png"),
                                "&Fit To Cell",
                                parent)
@@ -283,7 +289,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         (sheet, row, col, cellWidget) = info
         self.setChecked(cellWidget.label.hasScaledContents())
 
-class ImageViewerSaveAction(QtGui.QAction):
+class ImageViewerSaveAction(QtWidgets.QAction):
     """
     ImageViewerSaveAction is the action to save the image to file
     
@@ -293,7 +299,7 @@ class ImageViewerSaveAction(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/save.png"),
                                "&Save image as...",
                                parent)
@@ -307,14 +313,14 @@ class ImageViewerSaveAction(QtGui.QAction):
         cellWidget = self.toolBar.getSnappedWidget()
         if not cellWidget.label.pixmap() or cellWidget.label.pixmap().isNull():
             return
-        fn = QtGui.QFileDialog.getSaveFileName(None, "Save image as...",
+        fn = QtWidgets.QFileDialog.getSaveFileName(None, "Save image as...",
                                                "screenshot.png",
-                                               "Images (*.png);;PDF files (*.pdf)")
+                                               "Images (*.png);;PDF files (*.pdf)")[0]
         if not fn:
             return
-        if fn.endsWith(QtCore.QString("png"), QtCore.Qt.CaseInsensitive):
+        if fn.endsWith(QString("png"), QtCore.Qt.CaseInsensitive):
             cellWidget.label.pixmap().toImage().save(fn, "png")
-        elif fn.endsWith(QtCore.QString("pdf"), QtCore.Qt.CaseInsensitive):
+        elif fn.endsWith(QString("pdf"), QtCore.Qt.CaseInsensitive):
             cellWidget.saveToPDF(str(fn))
 
 #class testButton(QtGui.QAction):

@@ -13,7 +13,7 @@ import time
 import tempfile
 import subprocess
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 
 from core.modules.basic_modules import File, Path, Directory, new_constant, Constant
 from core.modules.vistrails_module import ModuleError

@@ -18,7 +18,7 @@ from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from core.modules.basic_modules import List
 from core.modules.basic_modules import String
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from widgets import get_predictor_widget, get_predictor_config
 from enum_widget import build_enum_widget
@@ -33,7 +33,7 @@ import packages.sahm.pySAHM.PARC as parc
 import packages.sahm.pySAHM.RasterFormatConverter as RFC
 import packages.sahm.pySAHM.MaxentRunner as MaxentRunner
 from SahmOutputViewer import SAHMModelOutputViewerCell
-from SahmSpatialOutputViewer import SAHMSpatialOutputViewerCell 
+from SahmSpatialOutputViewer import SAHMSpatialOutputViewerCell
 
 from utils import writetolog
 from pySAHM.utilities import TrappedError
@@ -48,7 +48,7 @@ def menu_items():
     def change_session_folder():
         global session_dir
         
-        path = str(QtGui.QFileDialog.getExistingDirectory(None,
+        path = str(QtWidgets.QFileDialog.getExistingDirectory(None,
                                         'Browse to new session folder -'))
         session_dir = path
         utils.setrootdir(path)

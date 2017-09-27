@@ -48,7 +48,7 @@ As the python saying goes, 'we are all consenting adults here'."""
 from __future__ import division
 
 import inspect
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import types
 
 ################################################################################
@@ -127,13 +127,13 @@ def createBogusQtGuiApp(argv=["bogus"]):
     qobjects during test runs.
 
     """    
-    class BogusApplication(QtGui.QApplication):
+    class BogusApplication(QtWidgets.QApplication):
         def __init__(self):
-            QtGui.QApplication.__init__(self, argv)
+            QtWidgets.QApplication.__init__(self, argv)
             allowQObjects()
     global _appHolder
-    if QtGui.qApp:
-        _appHolder = QtGui.qApp
+    if QtWidgets.QApplication.instance():
+        _appHolder = QtWidgets.QApplication.instance()
     if not _appHolder:
         _appHolder = BogusApplication()
     return _appHolder

@@ -40,17 +40,17 @@ QMethodDocumentation
 """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.utils import VistrailsInternalError
 
-class QPortDocumentation(QtGui.QDialog):
+class QPortDocumentation(QtWidgets.QDialog):
     """
     QPortDocumentation is a dialog for showing port documentation. duh.
 
     """
     def __init__(self, module, port_type, port_name, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
 
         if not module.has_port_spec(port_name, port_type):
             doc = None
@@ -72,13 +72,13 @@ class QPortDocumentation(QtGui.QDialog):
                             (port_type, port_name, module.name))
 
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addStrut(600)
-        layout.addWidget(QtGui.QLabel("Port name: %s" % port_name))
-        layout.addWidget(QtGui.QLabel("Module name: %s" % module.name))
-        layout.addWidget(QtGui.QLabel("Module package: %s" % \
+        layout.addWidget(QtWidgets.QLabel("Port name: %s" % port_name))
+        layout.addWidget(QtWidgets.QLabel("Module name: %s" % module.name))
+        layout.addWidget(QtWidgets.QLabel("Module package: %s" % \
                                                  module.package))
-        self.textEdit = QtGui.QTextEdit(self)
+        self.textEdit = QtWidgets.QTextEdit(self)
         layout.addWidget(self.textEdit, 1)
         if doc:
             self.textEdit.insertPlainText(doc)
@@ -86,7 +86,7 @@ class QPortDocumentation(QtGui.QDialog):
             self.textEdit.insertPlainText("(Documentation not available)")
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
-        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+        self.buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
-        self.connect(self.buttonBox, QtCore.SIGNAL('accepted()'), self.accept)
+        self.buttonBox.accepted.connect(self.accept)

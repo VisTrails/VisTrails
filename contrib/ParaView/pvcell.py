@@ -1,4 +1,4 @@
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from core.modules.module_registry import get_module_registry
 from packages.vtk.vtkcell import QVTKWidget
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation

@@ -38,7 +38,7 @@
 # Enumeration Widget for Web Services
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.modules.module_registry import get_module_registry
@@ -48,7 +48,7 @@ from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 import vistrails.packages.webServices
 
 
-class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
+class EnumerationWidget(QtWidgets.QComboBox, ConstantWidgetMixin):
     contentsChanged = QtCore.pyqtSignal(tuple)
     enumerationlist = []
     def __init__(self, param, parent=None):
@@ -62,21 +62,21 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
         dictkey = w + "." + param._type
         obj = typedict[dictkey]
         self.enumerationlist = obj.ports[0][0]
-        QtGui.QComboBox.__init__(self, parent)
+        QtWidgets.QComboBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
-        QtGui.QComboBox.clear(self)
+        QtWidgets.QComboBox.clear(self)
         listqt = []
         for element in self.enumerationlist:
             listqt.append(element)
             
-        QtGui.QComboBox.addItems(self, listqt)
+        QtWidgets.QComboBox.addItems(self, listqt)
         foundindex = self.findText(param.strValue)
         if not foundindex == -1:
             self.setCurrentIndex(foundindex)
         else:
             self.setCurrentIndex(0)
             param.strValue = self.enumerationlist[self.currentIndex()]
-        self.connect(self, QtCore.SIGNAL('activated(int)'), self.change_state)
+        self.activated[int].connect(self.change_state)
 
     def contents(self):
         return self.enumerationlist[self.currentIndex()]

@@ -37,7 +37,7 @@
 operation """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core import system, debug
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -95,7 +95,7 @@ class QFunctionItemModel(QtGui.QStandardItemModel):
         """
         self.disabledRows[row] = None
 
-class QParamTable(QtGui.QTableView):
+class QParamTable(QtWidgets.QTableView):
     """
     QParamTable is a widget represents a diff between two version
     as side-by-side comparisons
@@ -107,24 +107,24 @@ class QParamTable(QtGui.QTableView):
         Initialize the table with two version names on the header view
         
         """
-        QtGui.QTableView.__init__(self, parent)
+        QtWidgets.QTableView.__init__(self, parent)
         itemModel = QFunctionItemModel(0, 2, self)
         itemModel.setHeaderData(0, QtCore.Qt.Horizontal, v1Name)
         itemModel.setHeaderData(1, QtCore.Qt.Horizontal, v2Name)
         # self.setHorizontalHeaderLabels([v1Name, v2Name])
         self.setModel(itemModel)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)        
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)        
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)        
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)        
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)        
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)        
         self.setFont(CurrentTheme.VISUAL_DIFF_PARAMETER_FONT)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         
     def set_names(self, v1_name, v2_name):
         self.model().setHeaderData(0, QtCore.Qt.Horizontal, v1_name)
         self.model().setHeaderData(1, QtCore.Qt.Horizontal, v2_name)
         # self.setHorizontalHeaderLabels([v1_name, v2_name])
 
-class QParamInspector(QtGui.QWidget):
+class QParamInspector(QtWidgets.QWidget):
     """
     QParamInspector is a widget acting as an inspector vistrail modules
     in diff mode. It consists of a function inspector and annotation
@@ -141,15 +141,15 @@ class QParamInspector(QtGui.QWidget):
         corresponding versions.
         
         """
-        QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
+        QtWidgets.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
         self.setWindowTitle('Parameter Inspector - None')
         self.firstTime = True        
-        self.boxLayout = QtGui.QVBoxLayout()
-        self.boxLayout.setMargin(0)
+        self.boxLayout = QtWidgets.QVBoxLayout()
+        self.boxLayout.setContentsMargins(0, 0, 0, 0)
         self.boxLayout.setSpacing(0)
-        self.tabWidget = QtGui.QTabWidget()
-        self.tabWidget.setTabPosition(QtGui.QTabWidget.North)
-        self.tabWidget.setTabShape(QtGui.QTabWidget.Triangular)
+        self.tabWidget = QtWidgets.QTabWidget()
+        self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
+        self.tabWidget.setTabShape(QtWidgets.QTabWidget.Triangular)
         self.functionsTab = QParamTable(v1Name, v2Name)
         self.tabWidget.addTab(self.functionsTab, 'Functions')        
 # FIXME add annotation support back in
@@ -157,7 +157,7 @@ class QParamInspector(QtGui.QWidget):
 #         self.annotationsTab.horizontalHeader().setStretchLastSection(True)
 #         self.tabWidget.addTab(self.annotationsTab, 'Annotations')        
         self.boxLayout.addWidget(self.tabWidget)
-        sizeGrip = QtGui.QSizeGrip(self)
+        sizeGrip = QtWidgets.QSizeGrip(self)
         self.boxLayout.addWidget(sizeGrip)
         self.boxLayout.setAlignment(sizeGrip, QtCore.Qt.AlignRight)
         self.setLayout(self.boxLayout)
@@ -172,7 +172,7 @@ class QParamInspector(QtGui.QWidget):
         self.parent().showInspectorAction.setChecked(False)
         
 
-class QLegendBox(QtGui.QFrame):
+class QLegendBox(QtWidgets.QFrame):
     """
     QLegendBox is just a rectangular box with a solid color
     
@@ -183,8 +183,8 @@ class QLegendBox(QtGui.QFrame):
         Initialize the widget with a color and fixed size
         
         """
-        QtGui.QFrame.__init__(self, parent, f)
-        self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
+        QtWidgets.QFrame.__init__(self, parent, f)
+        self.setFrameStyle(QtWidgets.QFrame.Box | QtWidgets.QFrame.Plain)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
         palette = QtGui.QPalette(self.palette())
@@ -199,7 +199,7 @@ class QLegendBox(QtGui.QFrame):
                 self.setAttribute(QtCore.Qt.WA_MacBrushedMetal, False)
         
 
-class QLegendWindow(QtGui.QWidget):
+class QLegendWindow(QtWidgets.QWidget):
     """
     QLegendWindow contains a list of QLegendBox and its description
     
@@ -212,11 +212,11 @@ class QLegendWindow(QtGui.QWidget):
         Construct a window by default with 4 QLegendBox and 4 QLabels
         
         """
-        QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
+        QtWidgets.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
-        self.gridLayout = QtGui.QGridLayout(self)
-        self.gridLayout.setMargin(10)
+        self.gridLayout = QtWidgets.QGridLayout(self)
+        self.gridLayout.setContentsMargins(10, 10, 10, 10)
         self.gridLayout.setSpacing(10)
         self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
@@ -227,7 +227,7 @@ class QLegendWindow(QtGui.QWidget):
             CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
             self)        
         self.gridLayout.addWidget(self.legendV1Box, 0, 0)
-        self.legendV1 = QtGui.QLabel(v1Name, self)
+        self.legendV1 = QtWidgets.QLabel(v1Name, self)
         self.gridLayout.addWidget(self.legendV1, 0, 1)
         
         self.legendV2Box = QLegendBox(
@@ -235,14 +235,14 @@ class QLegendWindow(QtGui.QWidget):
             CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
             self)        
         self.gridLayout.addWidget(self.legendV2Box, 1, 0)
-        self.legendV2 = QtGui.QLabel(v2Name, self)
+        self.legendV2 = QtWidgets.QLabel(v2Name, self)
         self.gridLayout.addWidget(self.legendV2, 1, 1)
         
         self.legendV12Box = QLegendBox(CurrentTheme.VISUAL_DIFF_SHARED_BRUSH,
                                        CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
                                        self)
         self.gridLayout.addWidget(self.legendV12Box, 2, 0)
-        self.legendV12 = QtGui.QLabel("Shared", self)
+        self.legendV12 = QtWidgets.QLabel("Shared", self)
         self.gridLayout.addWidget(self.legendV12, 2, 1)
         
         self.legendParamBox = QLegendBox(
@@ -250,7 +250,7 @@ class QLegendWindow(QtGui.QWidget):
             CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
             self)
         self.gridLayout.addWidget(self.legendParamBox,3,0)
-        self.legendParam = QtGui.QLabel("Parameter Changes", self)
+        self.legendParam = QtWidgets.QLabel("Parameter Changes", self)
         self.gridLayout.addWidget(self.legendParam,3,1)
 
         # self.legendMatchedBox = \
@@ -276,20 +276,20 @@ class QLegendWindow(QtGui.QWidget):
         e.ignore()
         self.parent().showLegendsAction.setChecked(False)
         
-class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
+class QDiffProperties(QtWidgets.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.controller = None
         self.set_title("Diff Properties")
  
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.legend = QLegendWindow()
-        legend_group = QtGui.QGroupBox("Legend")
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        legend_group = QtWidgets.QGroupBox("Legend")
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.legend)
         legend_group.setLayout(g_layout)
@@ -297,9 +297,9 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.setStretch(0,0)
         layout.addStretch(1)
         self.params = QParamTable()
-        params_group = QtGui.QGroupBox("Parameter Changes")
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        params_group = QtWidgets.QGroupBox("Parameter Changes")
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.params)
         params_group.setLayout(g_layout)
@@ -307,9 +307,9 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.setStretch(2,1000)
 
         self.cparams = QParamTable()
-        params_group = QtGui.QGroupBox("Control Parameter Changes")
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        params_group = QtWidgets.QGroupBox("Control Parameter Changes")
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.cparams)
         params_group.setLayout(g_layout)
@@ -317,9 +317,9 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.setStretch(3,1000)
         
         self.annotations = QParamTable()
-        params_group = QtGui.QGroupBox("Annotation Changes")
-        g_layout = QtGui.QVBoxLayout()
-        g_layout.setMargin(0)
+        params_group = QtWidgets.QGroupBox("Annotation Changes")
+        g_layout = QtWidgets.QVBoxLayout()
+        g_layout.setContentsMargins(0, 0, 0, 0)
         g_layout.setSpacing(0)
         g_layout.addWidget(self.annotations)
         params_group.setLayout(g_layout)
@@ -331,7 +331,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def addButtonsToToolbar(self):
         # Add the create analogy action
-        self.createAnalogyAction = QtGui.QAction(
+        self.createAnalogyAction = QtWidgets.QAction(
             CurrentTheme.VISUAL_DIFF_CREATE_ANALOGY_ICON,
             'Create analogy', None, triggered=self.createAnalogy)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
@@ -349,9 +349,9 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
 
 
         default = 'from %s to %s' % (self.v1_name, self.v2_name)
-        (result, ok) = QtGui.QInputDialog.getText(None, "Enter Analogy Name",
+        (result, ok) = QtWidgets.QInputDialog.getText(None, "Enter Analogy Name",
                                                   "Name of analogy:",
-                                                  QtGui.QLineEdit.Normal,
+                                                  QtWidgets.QLineEdit.Normal,
                                                   default)
         if not ok:
             return
@@ -821,7 +821,7 @@ class QDiffView(QPipelineView):
         scene.updateSceneBoundingRect()
         scene.fitToView(self, True)
 
-class QVisualDiff(QtGui.QMainWindow):
+class QVisualDiff(QtWidgets.QMainWindow):
     """
     QVisualDiff is a main widget for Visual Diff containing a GL
     Widget to draw the pipeline
@@ -852,12 +852,12 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Create the top-level Visual Diff window
         windowDecors = f | QtCore.Qt.Dialog |QtCore.Qt.WindowMaximizeButtonHint
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.setWindowTitle('Visual Diff - from %s to %s' % (v1Name, v2Name))
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding))
         self.createPipelineView()
         self.createToolBar()
         self.createToolWindows(v1Name, v2Name)
@@ -870,7 +870,7 @@ class QVisualDiff(QtGui.QMainWindow):
                 event.modifiers() == QtCore.Qt.ControlModifier:
             event.accept()
             self.close()
-        return QtGui.QMainWindow.eventFilter(self, object, event)
+        return QtWidgets.QMainWindow.eventFilter(self, object, event)
 
     def closeEvent(self, event):
         self.inspector.close()
@@ -890,8 +890,7 @@ class QVisualDiff(QtGui.QMainWindow):
         self.createDiffPipeline()
 
         # Hook shape selecting functions
-        self.connect(self.pipelineView.scene(), QtCore.SIGNAL("moduleSelected"),
-                     self.moduleSelected)
+        self.pipelineView.scene().moduleSelected.connect(self.moduleSelected)
 
     def createToolBar(self):
         """ createToolBar() -> None        
@@ -908,29 +907,26 @@ class QVisualDiff(QtGui.QMainWindow):
             CurrentTheme.VISUAL_DIFF_SHOW_PARAM_ICON,
             'Show Parameter Inspector window')
         self.showInspectorAction.setCheckable(True)
-        self.connect(self.showInspectorAction, QtCore.SIGNAL("toggled(bool)"),
-                     self.toggleShowInspector)
+        self.showInspectorAction.toggled[bool].connect(self.toggleShowInspector)
         
         # Add the Show Legend window action
         self.showLegendsAction = self.toolBar.addAction(
             CurrentTheme.VISUAL_DIFF_SHOW_LEGEND_ICON,
             'Show Legends')
         self.showLegendsAction.setCheckable(True)
-        self.connect(self.showLegendsAction, QtCore.SIGNAL("toggled(bool)"),
-                     self.toggleShowLegend)
+        self.showLegendsAction.toggled[bool].connect(self.toggleShowLegend)
 
         # Add the create analogy action
         self.createAnalogyAction = self.toolBar.addAction(
             CurrentTheme.VISUAL_DIFF_CREATE_ANALOGY_ICON,
             'Create analogy')
-        self.connect(self.createAnalogyAction, QtCore.SIGNAL("triggered()"),
-                     self.createAnalogy)
+        self.createAnalogyAction.triggered.connect(self.createAnalogy)
 
     def createAnalogy(self):
         default = 'from %s to %s' % (self.v1_name, self.v2_name)
-        (result, ok) = QtGui.QInputDialog.getText(None, "Enter Analogy Name",
+        (result, ok) = QtWidgets.QInputDialog.getText(None, "Enter Analogy Name",
                                                   "Name of analogy:",
-                                                  QtGui.QLineEdit.Normal,
+                                                  QtWidgets.QLineEdit.Normal,
                                                   default)
         if not ok:
             return
@@ -1023,7 +1019,7 @@ class QVisualDiff(QtGui.QMainWindow):
         
         """
         if self.inspector.firstTime:
-            max_geom = QtGui.QApplication.desktop().screenGeometry(self)
+            max_geom = QtWidgets.QApplication.desktop().screenGeometry(self)
             if (self.frameSize().width() <
                 max_geom.width() - self.inspector.width()):
                 self.inspector.move(self.pos().x()+self.frameSize().width(),

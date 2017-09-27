@@ -40,7 +40,7 @@ Matplotlib viewer into our spreadsheet
 
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 
 import matplotlib
@@ -97,9 +97,9 @@ class MplFigureCellWidget(QCellWidget):
         """
         QCellWidget.__init__(self, parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        centralLayout = QtGui.QVBoxLayout()
+        centralLayout = QtWidgets.QVBoxLayout()
         self.setLayout(centralLayout)
-        centralLayout.setMargin(0)
+        centralLayout.setContentsMargins(0, 0, 0, 0)
         centralLayout.setSpacing(0)
         self.canvas = None
         self.figure = None
@@ -121,8 +121,8 @@ class MplFigureCellWidget(QCellWidget):
 
             self.canvas = FigureCanvasQTAgg(self.figure)
             self.mplToolbar = MplNavigationToolbar(self.canvas, None)
-            self.canvas.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                      QtGui.QSizePolicy.Expanding)
+            self.canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                      QtWidgets.QSizePolicy.Expanding)
             self.layout().addWidget(self.canvas)
 
     def keyPressEvent(self, event):
@@ -207,7 +207,7 @@ class MplFigureCellToolBar(QCellToolBar):
         actions = {}
         for (text, tooltip_text, image_file, callback, checkable) in toolitems:
             icon = QtGui.QIcon(os.path.join(icondir, image_file))
-            action = QtGui.QAction(icon, text, self)
+            action = QtWidgets.QAction(icon, text, self)
             action.setStatusTip(tooltip_text)
             action.setCheckable(checkable)
             actions[text] = action

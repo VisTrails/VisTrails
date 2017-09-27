@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.modules.basic_modules import Constant
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
@@ -268,7 +268,7 @@ class QCDATWidget(QCellWidget):
         # Place the mainwindow that the plot will be displayed in, into this
         # cell widget's layout
         self.window = VCSQtManager.window(self.windowIndex)
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.window)
         self.setLayout(layout)        
 

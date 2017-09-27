@@ -39,7 +39,7 @@ QReadOnlyPortSelectPipelineView
 """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 from vistrails.gui.pipeline_view import QGraphicsConfigureItem, QGraphicsModuleItem, \
     QAbstractGraphicsPortItem, QPipelineScene, QPipelineView
 from vistrails.gui.theme import CurrentTheme

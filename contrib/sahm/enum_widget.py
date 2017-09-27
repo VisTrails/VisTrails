@@ -1,7 +1,7 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from core.modules.constant_configuration import ConstantWidgetMixin
 
-class EnumWidget(QtGui.QComboBox, ConstantWidgetMixin):
+class EnumWidget(QtWidgets.QComboBox, ConstantWidgetMixin):
     param_values = []
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
@@ -10,7 +10,7 @@ class EnumWidget(QtGui.QComboBox, ConstantWidgetMixin):
         """
         contents = param.strValue
         contentType = param.type
-        QtGui.QComboBox.__init__(self, parent)
+        QtWidgets.QComboBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
         # want to look up in registry based on parameter type
         
@@ -22,9 +22,7 @@ class EnumWidget(QtGui.QComboBox, ConstantWidgetMixin):
         if curIdx != -1:
             self.setCurrentIndex(curIdx)
         self._contentType = contentType
-        self.connect(self,
-                     QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.update_parent)
+        self.currentIndexChanged[int].connect(self.update_parent)
 
     def contents(self):
         curIdx = self.currentIndex()

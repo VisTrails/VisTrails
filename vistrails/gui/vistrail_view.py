@@ -37,7 +37,7 @@
 view and a version tree for each opened Vistrail """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
@@ -70,7 +70,7 @@ from vistrails.gui.vistrail_controller import VistrailController
 
 ################################################################################
 
-class QVistrailView(QtGui.QWidget):
+class QVistrailView(QtWidgets.QWidget):
     """
     QVistrailView is a widget containing four stacked widgets: Pipeline View,
     Version Tree View, Query View and Parameter Exploration view
@@ -81,10 +81,10 @@ class QVistrailView(QtGui.QWidget):
         """ QVistrailView(parent: QWidget) -> QVistrailView
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
-        layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.is_executing = False
         self.is_abstraction = False
@@ -97,7 +97,7 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.hide()
         self.tabs.tabDoubleClicked.connect(self.tabDoubleClicked)
         layout.addWidget(self.tabs)
-        self.stack = QtGui.QStackedWidget(self)
+        self.stack = QtWidgets.QStackedWidget(self)
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
@@ -132,17 +132,13 @@ class QVistrailView(QtGui.QWidget):
         self.tabs.setCurrentIndex(0)
         self.current_tab = self.stack.setCurrentIndex(0)
         self.pipeline_selected()
-        self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
-        self.connect(self.tabs, QtCore.SIGNAL("tabCloseRequested(int)"),
-                     self.tab_close_request)
+        self.tabs.currentChanged[int].connect(self.tab_changed)
+        self.tabs.tabCloseRequested[int].connect(self.tab_close_request)
 
         #self.view_changed()
         #self.tab_changed(0)
 
-        self.connect(self.controller,
-                     QtCore.SIGNAL('stateChanged'),
-                     self.stateChanged)
+        self.controller.stateChanged.connect(self.stateChanged)
 
         from vistrails.gui.vistrails_window import _app
         _app.register_notification("reg_new_abstraction", 
@@ -447,8 +443,7 @@ class QVistrailView(QtGui.QWidget):
             if self.isTabDetachable(tab_idx):
                 self.tabs.setTabToolTip(tab_idx, "Double-click to detach it")
             
-        self.connect(view, QtCore.SIGNAL("windowTitleChanged"),
-                     self.view_title_changed)
+        view.windowTitleChanged.connect(self.view_title_changed)
         if self.tabs.count() == 1:
             #self.tabs.hide()
             self.tabs.setTabsClosable(False)
@@ -476,8 +471,7 @@ class QVistrailView(QtGui.QWidget):
             window = QBaseViewWindow(view=view, parent=None)
             view.set_title(title)
             window.setWindowTitle(title)
-            self.connect(window, QtCore.SIGNAL("viewWasClosed"),
-                         self.detachedViewWasClosed)
+            window.viewWasClosed.connect(self.detachedViewWasClosed)
             self.detached_views[view] = window
             window.move(self.rect().center())
             window.show()
@@ -553,8 +547,7 @@ class QVistrailView(QtGui.QWidget):
             self.remove_view_by_index(index)
 
     def remove_view_by_index(self, index):
-        self.disconnect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
+        self.tabs.currentChanged[int].disconnect(self.tab_changed)
         close_current = False
         if index == self.tabs.currentIndex():
             close_current = True
@@ -564,8 +557,7 @@ class QVistrailView(QtGui.QWidget):
         del self.tab_to_view[index]
         if stack_idx >= 0:
             view = self.stack.widget(stack_idx)
-            self.disconnect(view, QtCore.SIGNAL("windowTitleChanged"),
-                     self.view_title_changed)
+            view.windowTitleChanged.disconnect(self.view_title_changed)
             self.stack.removeWidget(view)
         self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:
@@ -578,8 +570,7 @@ class QVistrailView(QtGui.QWidget):
                 new_index = index
         
             self.tab_changed(new_index)
-        self.connect(self.tabs, QtCore.SIGNAL("currentChanged(int)"),
-                     self.tab_changed)
+        self.tabs.currentChanged[int].connect(self.tab_changed)
 #        self.tabs.setCurrentIndex(new_index)
 #        print self.current_tab
         
@@ -593,7 +584,7 @@ class QVistrailView(QtGui.QWidget):
         self.tab_changed(index)
 
     def get_current_tab(self, query_top_level=False):
-        window = QtGui.QApplication.activeWindow()
+        window = QtWidgets.QApplication.activeWindow()
         if window in self.detached_views.values():
             return window.view   
         else:
@@ -605,7 +596,7 @@ class QVistrailView(QtGui.QWidget):
             return widget
         
     def get_current_outer_tab(self):
-        window = QtGui.QApplication.activeWindow()
+        window = QtWidgets.QApplication.activeWindow()
         if window in self.detached_views.values():
             return window.view   
         else:
@@ -749,8 +740,7 @@ class QVistrailView(QtGui.QWidget):
     def create_pipeline_view(self, read_only=False, set_controller=True):
         view = self.create_view(QPipelineView)
         view.setReadOnlyMode(read_only)
-        self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view))
+        view.scene().moduleSelected.connect(self.gen_module_selected(view))
         if set_controller:
             view.set_controller(self.controller)
             view.set_to_current()
@@ -765,23 +755,15 @@ class QVistrailView(QtGui.QWidget):
 
     def create_version_view(self):
         view = self.create_view(QVersionTreeView, False)
-        self.connect(view.scene(), 
-                     QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
-                     self.version_selected)
-        self.connect(view.scene(),
-                     QtCore.SIGNAL('diffRequested(int,int)'),
-                     self.diff_requested)
+        view.scene().versionSelected[int, bool, bool, bool, bool].connect(self.version_selected)
+        view.scene().diffRequested[int, int].connect(self.diff_requested)
         return view
 
     def create_query_view(self):
         view = self.create_view(QQueryView, False)
-        self.connect(view.pipeline_view.scene(), 
-                     QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view.pipeline_view))
+        view.pipeline_view.scene().moduleSelected.connect(self.gen_module_selected(view.pipeline_view))
         # FIXME: How to make module info read-only
-        self.connect(view.workflow_result_view.scene(),
-                     QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view.workflow_result_view))
+        view.workflow_result_view.scene().moduleSelected.connect(self.gen_module_selected(view.workflow_result_view))
         # FIXME: How to show version info for a query result view
         # self.connect(view.version_result_view.scene(),
         #              QtCore.SIGNAL('versionSelected(int,bool,bool,bool,bool)'),
@@ -796,8 +778,7 @@ class QVistrailView(QtGui.QWidget):
 
     def create_diff_view(self):
         view = self.create_view(QDiffView)
-        self.connect(view.scene(), QtCore.SIGNAL('moduleSelected'),
-                     self.gen_module_selected(view))
+        view.scene().moduleSelected.connect(self.gen_module_selected(view))
         return view
 
     def create_pe_view(self):
@@ -1075,11 +1056,11 @@ class QVistrailView(QtGui.QWidget):
         self.controller.write_registry(locator)
 
     def save_version_graph(self):
-        filename = QtGui.QFileDialog.getSaveFileName(
+        filename = QtWidgets.QFileDialog.getSaveFileName(
             self.window(),
             "Save DOT...",
             vistrails_file_directory(),
-            "Graphviz DOT files (*.dot)")
+            "Graphviz DOT files (*.dot)")[0]
         if not filename:
             return
         self.controller.save_version_graph(filename)

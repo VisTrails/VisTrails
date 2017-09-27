@@ -182,12 +182,12 @@ def show_question(which_files, has_distro_pkg, has_pip):
     if isinstance(which_files, basestring):
         which_files = [which_files]
     if qt_available():
-        from PyQt4 import QtCore, QtGui
-        dialog = QtGui.QDialog()
+        from PyQt5 import QtCore, QtGui, QtWidgets
+        dialog = QtWidgets.QDialog()
         dialog.setWindowTitle("Required packages missing")
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-        label = QtGui.QLabel(
+        label = QtWidgets.QLabel(
                 "One or more required packages are missing: %s. VisTrails can "
                 "automatically install them. If you click OK, VisTrails will "
                 "need administrator privileges, and you might be asked for "
@@ -196,7 +196,7 @@ def show_question(which_files, has_distro_pkg, has_pip):
         layout.addWidget(label)
 
         if pip_installed and has_pip:
-            use_pip = QtGui.QCheckBox("Use pip")
+            use_pip = QtWidgets.QCheckBox("Use pip")
             use_pip.setChecked(
                 not has_distro_pkg or (
                     has_pip and
@@ -205,27 +205,25 @@ def show_question(which_files, has_distro_pkg, has_pip):
             use_pip.setEnabled(has_distro_pkg and has_pip)
             layout.addWidget(use_pip)
 
-            remember_align = QtGui.QHBoxLayout()
+            remember_align = QtWidgets.QHBoxLayout()
             remember_align.addSpacing(20)
-            remember_pip = QtGui.QCheckBox("Remember my choice")
+            remember_pip = QtWidgets.QCheckBox("Remember my choice")
             remember_pip.setChecked(False)
             remember_pip.setEnabled(use_pip.isEnabled())
             remember_align.addWidget(remember_pip)
             layout.addLayout(remember_align)
         elif has_pip:
-            label = QtGui.QLabel("pip package is available but pip is not installed")
+            label = QtWidgets.QLabel("pip package is available but pip is not installed")
             layout.addWidget(label)
-        buttons = QtGui.QDialogButtonBox(
-                QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                               dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                               dialog, QtCore.SLOT('reject()'))
+        buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
 
         dialog.setLayout(layout)
         hide_splash_if_necessary()
-        if dialog.exec_() != QtGui.QDialog.Accepted:
+        if dialog.exec_() != QtWidgets.QDialog.Accepted:
             return False
         else:
             if pip_installed and has_pip:

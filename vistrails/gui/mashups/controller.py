@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from vistrails.core.mashup.controller import MashupController as BaseController
 from vistrails.core.mashup.alias import Alias

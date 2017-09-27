@@ -36,13 +36,14 @@
 
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class BaseView(object):
     """ BaseView is the base class for the views in VisTrails.
 
 
     """
+    windowTitleChanged = QtCore.pyqtSignal()
 
     def __init__(self):
         self.controller = None
@@ -113,8 +114,8 @@ class BaseView(object):
     
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.WindowTitleChange:
-            self.emit(QtCore.SIGNAL("windowTitleChanged"), self)
-        QtGui.QWidget.changeEvent(self, event)
+            self.windowTitleChanged.emit(self)
+        QtWidgets.QWidget.changeEvent(self, event)
 
     def viewSelected(self):
         pass

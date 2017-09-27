@@ -29,7 +29,7 @@ version : description
   0.1   : First automatically generated package based on xml descriptions
 
 """
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 import sip
 import core.modules
 import core.modules.module_registry

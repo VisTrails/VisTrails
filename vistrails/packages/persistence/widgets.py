@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import re
 import uuid
@@ -61,6 +61,8 @@ class PersistentRefModelSingleton(object):
         return PersistentRefModel._instance
 
 class PersistentRefModel(QtCore.QAbstractItemModel):
+    layoutAboutToBeChanged = QtCore.pyqtSignal()
+    layoutChanged = QtCore.pyqtSignal()
 
     _instance = None
 
@@ -223,12 +225,12 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         return QtCore.QModelIndex()
 
     def sort(self, column, order=QtCore.Qt.AscendingOrder):
-        self.emit(QtCore.SIGNAL('layoutAboutToBeChanged()'))
+        self.layoutAboutToBeChanged.emit()
         if column == -1:
             return
         self.id_lists_keys.sort(key=lambda x: self.id_lists[x][0][column], 
                                 reverse=(order==QtCore.Qt.AscendingOrder))
-        self.emit(QtCore.SIGNAL('layoutChanged()'))
+        self.layoutChanged.emit()
 
     def find_row(self, id, version=None):
         if id in self.id_lists:
@@ -285,20 +287,20 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
             del self.id_lists[id]
         self.reset()
 
-class PersistentRefView(QtGui.QTreeView):
+class PersistentRefView(QtWidgets.QTreeView):
     def __init__(self, path_type=None, parent=None):
-        QtGui.QTreeView.__init__(self, parent)
+        QtWidgets.QTreeView.__init__(self, parent)
         self.my_model = PersistentRefModelSingleton()
         print 'my_model:', id(self.my_model)
-        proxy_model = QtGui.QSortFilterProxyModel(self)
+        proxy_model = QtCore.QSortFilterProxyModel(self)
         proxy_model.setSourceModel(self.my_model)
         proxy_model.setFilterKeyColumn(-1)
         self.setModel(proxy_model)
         self.set_visibility(path_type)
 
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setSortingEnabled(True)
         self.current_id = None
         self.current_version = None
@@ -343,8 +345,8 @@ class PersistentRefView(QtGui.QTreeView):
                     expand_index = self.model().mapFromSource(my_expand_index)
                     self.expand(expand_index)
                 self.selectionModel().select(
-                    index, QtGui.QItemSelectionModel.ClearAndSelect | \
-                        QtGui.QItemSelectionModel.Rows)
+                    index, QtCore.QItemSelectionModel.ClearAndSelect | \
+                        QtCore.QItemSelectionModel.Rows)
                 return True
         return False
 
@@ -406,9 +408,12 @@ class PersistentRefView(QtGui.QTreeView):
                               str(info[self.my_model.idxs['tags']])))
         return info_list
 
-class PersistentRefDialog(QtGui.QDialog):
+class PersistentRefDialog(QtWidgets.QDialog):
+    executeSearch = QtCore.pyqtSignal('QString')
+    resetSearch = QtCore.pyqtSignal()
+
     def __init__(self, param, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         # two tabs, one for starting from managed, one for local file
         # options are set accordingly
         # uuid assigned when options are set, either new or existing
@@ -427,106 +432,101 @@ class PersistentRefDialog(QtGui.QDialog):
         self.current_file = ""
         db_file = "/vistrails/managed/files.db"
 
-        layout = QtGui.QVBoxLayout()
-        managed_group = QtGui.QGroupBox("Persistent Data")
-        managed_layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
+        managed_group = QtWidgets.QGroupBox("Persistent Data")
+        managed_layout = QtWidgets.QVBoxLayout()
         search = QSearchBox(False, False)
 
         def keyPressEvent(obj, e):
             print "got to key press event", e.key()
             if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
                 if obj.currentText():
-                    obj.emit(QtCore.SIGNAL('executeSearch(QString)'),  
-                             obj.searchEdit.currentText())
+                    obj.executeSearch.emit(obj.searchEdit.currentText())
                 else:
-                    obj.emit(QtCore.SIGNAL('resetSearch()'))
-            QtGui.QComboBox.keyPressEvent(obj, e)
+                    obj.resetSearch.emit()
+            QtWidgets.QComboBox.keyPressEvent(obj, e)
 
         print 'keyPressEvent:', search.searchEdit.keyPressEvent
         search.searchEdit.keyPressEvent = keyPressEvent
         print 'keyPressEvent:', search.searchEdit.keyPressEvent
-        self.connect(search, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.search_string)
-        self.connect(search, QtCore.SIGNAL('resetSearch()'),
-                     self.reset_search)
+        search.executeSearch['QString'].connect(self.search_string)
+        search.resetSearch.connect(self.reset_search)
         managed_layout.addWidget(search)
         self.table = PersistentRefView(db_file, self)
         managed_layout.addWidget(self.table)
         managed_group.setLayout(managed_layout)
         layout.addWidget(managed_group)
 
-        local_group = QtGui.QGroupBox("Local Data")
-        local_layout = QtGui.QHBoxLayout()
-        self.filename_edit = QtGui.QLineEdit()
+        local_group = QtWidgets.QGroupBox("Local Data")
+        local_layout = QtWidgets.QHBoxLayout()
+        self.filename_edit = QtWidgets.QLineEdit()
         local_layout.addWidget(self.filename_edit)
 
-        filename_button = QtGui.QToolButton()
+        filename_button = QtWidgets.QToolButton()
         filename_button.setIcon(
             QtGui.QIcon(filename_button.style().standardPixmap(
-                    QtGui.QStyle.SP_DirOpenIcon)))
+                    QtWidgets.QStyle.SP_DirOpenIcon)))
         filename_button.setIconSize(QtCore.QSize(12,12))
-        filename_button.connect(filename_button,
-                                QtCore.SIGNAL('clicked()'),
-                                self.choose_file)
+        filename_button.clicked.connect(self.choose_file)
         local_layout.addWidget(filename_button)
         local_group.setLayout(local_layout)
         layout.addWidget(local_group)
 
-        pref_layout = QtGui.QHBoxLayout()
-        version_group = QtGui.QGroupBox("Versioning")
-        version_layout = QtGui.QVBoxLayout()
-        version_off = QtGui.QRadioButton("Create New ID")
+        pref_layout = QtWidgets.QHBoxLayout()
+        version_group = QtWidgets.QGroupBox("Versioning")
+        version_layout = QtWidgets.QVBoxLayout()
+        version_off = QtWidgets.QRadioButton("Create New ID")
         version_layout.addWidget(version_off)
-        version_on = QtGui.QRadioButton("Create New Version")
+        version_on = QtWidgets.QRadioButton("Create New Version")
         version_layout.addWidget(version_on)
         version_group.setLayout(version_layout)
         pref_layout.addWidget(version_group)
 
-        r_priority_group = QtGui.QGroupBox("Read Priority")
-        r_priority_layout = QtGui.QVBoxLayout()
-        r_priority_off = QtGui.QRadioButton("Local")
+        r_priority_group = QtWidgets.QGroupBox("Read Priority")
+        r_priority_layout = QtWidgets.QVBoxLayout()
+        r_priority_off = QtWidgets.QRadioButton("Local")
         r_priority_layout.addWidget(r_priority_off)
-        r_priority_on = QtGui.QRadioButton("Persistent Store")
+        r_priority_on = QtWidgets.QRadioButton("Persistent Store")
         r_priority_layout.addWidget(r_priority_on)
         r_priority_group.setLayout(r_priority_layout)
         pref_layout.addWidget(r_priority_group)
         
-        w_priority_group = QtGui.QGroupBox("Write Priority")
-        w_priority_layout = QtGui.QVBoxLayout()
-        w_priority_off = QtGui.QRadioButton("Local")
+        w_priority_group = QtWidgets.QGroupBox("Write Priority")
+        w_priority_layout = QtWidgets.QVBoxLayout()
+        w_priority_off = QtWidgets.QRadioButton("Local")
         w_priority_layout.addWidget(w_priority_off)
-        w_priority_on = QtGui.QRadioButton("Persistent Store")
+        w_priority_on = QtWidgets.QRadioButton("Persistent Store")
         w_priority_layout.addWidget(w_priority_on)
         w_priority_group.setLayout(w_priority_layout)
         pref_layout.addWidget(w_priority_group)
         layout.addLayout(pref_layout)
 
-        button_layout = QtGui.QHBoxLayout()
-        button_layout.setDirection(QtGui.QBoxLayout.RightToLeft)
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.setDirection(QtWidgets.QBoxLayout.RightToLeft)
         button_layout.setAlignment(QtCore.Qt.AlignRight)
-        ok_button = QtGui.QPushButton("OK")
+        ok_button = QtWidgets.QPushButton("OK")
         ok_button.setFixedWidth(100)
-        self.connect(ok_button, QtCore.SIGNAL('clicked()'), self.close)
+        ok_button.clicked.connect(self.close)
         button_layout.addWidget(ok_button)
-        cancel_button = QtGui.QPushButton("Cancel")
+        cancel_button = QtWidgets.QPushButton("Cancel")
         cancel_button.setFixedWidth(100)
-        self.connect(cancel_button, QtCore.SIGNAL('clicked()'), self.cancel)
+        cancel_button.clicked.connect(self.cancel)
         button_layout.addWidget(cancel_button)
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
     def close(self):
-        self.done(QtGui.QDialog.Accepted)
+        self.done(QtWidgets.QDialog.Accepted)
 
     def cancel(self):
-        self.done(QtGui.QDialog.Rejected)
+        self.done(QtWidgets.QDialog.Rejected)
 
     def choose_file(self):
         chosen_file = \
-            QtGui.QFileDialog.getOpenFileName(self,
+            QtWidgets.QFileDialog.getOpenFileName(self,
                                               'Use File...',
                                               self.current_file,
-                                              'All files (*.*)')
+                                              'All files (*.*)')[0]
         if chosen_file:
             self.current_file = chosen_file
             self.filename_edit.setText(self.current_file)
@@ -566,23 +566,23 @@ class PersistentRefDialog(QtGui.QDialog):
     # local is authoritative
     # keep local copy -- need to allow where to store
 
-class PathChooserLayout(QtGui.QHBoxLayout):
+class PathChooserLayout(QtWidgets.QHBoxLayout):
+    pathnameChanged = QtCore.pyqtSignal()
+
     def __init__(self, is_dir=False, par_widget=None, parent=None):
         # QtGui.QWidget.__init__(self, parent)
-        QtGui.QHBoxLayout.__init__(self, parent)
+        QtWidgets.QHBoxLayout.__init__(self, parent)
         self.par_widget = par_widget
         # layout = QtGui.QHBoxLayout()
-        self.pathname_edit = QtGui.QLineEdit()
+        self.pathname_edit = QtWidgets.QLineEdit()
         self.addWidget(self.pathname_edit)
 
-        pathname_button = QtGui.QToolButton()
+        pathname_button = QtWidgets.QToolButton()
         pathname_button.setIcon(
             QtGui.QIcon(pathname_button.style().standardPixmap(
-                    QtGui.QStyle.SP_DirOpenIcon)))
+                    QtWidgets.QStyle.SP_DirOpenIcon)))
         pathname_button.setIconSize(QtCore.QSize(12,12))
-        pathname_button.connect(pathname_button,
-                                QtCore.SIGNAL('clicked()'),
-                                self.choose_path)
+        pathname_button.clicked.connect(self.choose_path)
         self.addWidget(pathname_button)
         # layout.setContentsMargins(1,1,1,1)
         # self.setLayout(layout)
@@ -591,19 +591,19 @@ class PathChooserLayout(QtGui.QHBoxLayout):
     def choose_path(self):
         if self.is_dir:
             chosen_path = \
-                QtGui.QFileDialog.getExistingDirectory(self.par_widget,
+                QtWidgets.QFileDialog.getExistingDirectory(self.par_widget,
                                                        'Use Directory...',
                                                        self.pathname_edit.text())
         else:
             chosen_path = \
-                QtGui.QFileDialog.getOpenFileName(self.par_widget,
+                QtWidgets.QFileDialog.getOpenFileName(self.par_widget,
                                                   'Use File...',
                                                   self.pathname_edit.text(),
-                                                  'All files (*.*)')
+                                                  'All files (*.*)')[0]
 
         if chosen_path and chosen_path:
             self.pathname_edit.setText(chosen_path)
-            self.emit(QtCore.SIGNAL('pathnameChanged()'))
+            self.pathnameChanged.emit()
 
     def get_path(self):
         return str(self.pathname_edit.text())
@@ -614,26 +614,22 @@ class PathChooserLayout(QtGui.QHBoxLayout):
         else:
             self.pathname_edit.clear()
 
-class PersistentRefViewSearch(QtGui.QGroupBox):
+class PersistentRefViewSearch(QtWidgets.QGroupBox):
     def __init__(self, path_type=None, parent=None):
-        QtGui.QGroupBox.__init__(self, parent)
+        QtWidgets.QGroupBox.__init__(self, parent)
         self.build_gui(path_type)
 
     def build_gui(self, path_type):
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.search_ref = QSearchBox(False, False)
 
-        self.connect(self.search_ref, 
-                     QtCore.SIGNAL('executeSearch(QString)'),
-                     self.search_string)
-        self.connect(self.search_ref, 
-                     QtCore.SIGNAL('resetSearch()'),
-                     self.reset_search)
+        self.search_ref.executeSearch['QString'].connect(self.search_string)
+        self.search_ref.resetSearch.connect(self.reset_search)
 
         layout.addWidget(self.search_ref)
         self.ref_widget = PersistentRefView(path_type, self)
         layout.addWidget(self.ref_widget)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
     def search_string(self, str):
@@ -645,6 +641,8 @@ class PersistentRefViewSearch(QtGui.QGroupBox):
     
 
 class PersistentPathConfiguration(StandardModuleConfigurationWidget):
+    doneConfigure = QtCore.pyqtSignal()
+
     def __init__(self, module, controller, parent=None, 
                  is_input=None, path_type=None):
         StandardModuleConfigurationWidget.__init__(self, module, controller, 
@@ -667,53 +665,45 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
     def build_gui(self, is_input, path_type):
         self.current_path = ""
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 #         layout.setMargin(0)
 #         layout.setSpacing(0)
 
         if not is_input:
             self.managed_change = \
-                QtGui.QRadioButton("Always Create New Reference")
+                QtWidgets.QRadioButton("Always Create New Reference")
             layout.addWidget(self.managed_change)
-            self.connect(self.managed_change, QtCore.SIGNAL("toggled(bool)"),
-                         self.managed_toggle)
+            self.managed_change.toggled[bool].connect(self.managed_toggle)
 
         else:
             self.managed_change = None
 
-        self.managed_new = QtGui.QRadioButton("Create New Reference")
-        self.connect(self.managed_new, QtCore.SIGNAL("toggled(bool)"),
-                     self.new_toggle)
+        self.managed_new = QtWidgets.QRadioButton("Create New Reference")
+        self.managed_new.toggled[bool].connect(self.new_toggle)
         layout.addWidget(self.managed_new)
-        self.new_group = QtGui.QGroupBox()
-        new_layout = QtGui.QGridLayout()
+        self.new_group = QtWidgets.QGroupBox()
+        new_layout = QtWidgets.QGridLayout()
         self.new_file = None
         if is_input:
-            new_layout.addWidget(QtGui.QLabel("Path:"), 0, 0)
+            new_layout.addWidget(QtWidgets.QLabel("Path:"), 0, 0)
             self.new_file = self.get_chooser_layout()
             if hasattr(self.new_file, 'pathname_edit'):
-                self.connect(self.new_file.pathname_edit,
-                             QtCore.SIGNAL("textChanged(QString)"),
-                             self.stateChange)
+                self.new_file.pathname_edit.textChanged['QString'].connect(self.stateChange)
             new_layout.addLayout(self.new_file, 0, 1)
-            self.connect(self.new_file, QtCore.SIGNAL("pathnameChanged()"),
-                         self.new_file_changed)
-        new_layout.addWidget(QtGui.QLabel("Name:"), 1, 0)
-        self.name_edit = QtGui.QLineEdit()
-        self.connect(self.name_edit, QtCore.SIGNAL("textChanged(QString)"),
-                     self.stateChange)
+            self.new_file.pathnameChanged.connect(self.new_file_changed)
+        new_layout.addWidget(QtWidgets.QLabel("Name:"), 1, 0)
+        self.name_edit = QtWidgets.QLineEdit()
+        self.name_edit.textChanged['QString'].connect(self.stateChange)
         new_layout.addWidget(self.name_edit, 1, 1)
-        new_layout.addWidget(QtGui.QLabel("Tags:"), 2, 0)
-        self.tags_edit = QtGui.QLineEdit()
-        self.connect(self.tags_edit, QtCore.SIGNAL("textChanged(QString)"),
-                     self.stateChange)
+        new_layout.addWidget(QtWidgets.QLabel("Tags:"), 2, 0)
+        self.tags_edit = QtWidgets.QLineEdit()
+        self.tags_edit.textChanged['QString'].connect(self.stateChange)
         new_layout.addWidget(self.tags_edit, 2, 1)
         self.new_group.setLayout(new_layout)
         layout.addWidget(self.new_group)
 
-        self.managed_existing = QtGui.QRadioButton("Use Existing Reference")
-        self.connect(self.managed_existing, QtCore.SIGNAL("toggled(bool)"),
-                     self.existing_toggle)
+        self.managed_existing = QtWidgets.QRadioButton("Use Existing Reference")
+        self.managed_existing.toggled[bool].connect(self.existing_toggle)
         layout.addWidget(self.managed_existing)
 
         # self.existing_group = QtGui.QGroupBox()
@@ -733,29 +723,23 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         # self.existing_group.setLayout(existing_layout)
         self.existing_group = PersistentRefViewSearch(path_type)
         self.ref_widget = self.existing_group.ref_widget
-        self.connect(self.ref_widget,
-                     QtCore.SIGNAL("clicked(QModelIndex)"),
-                     self.ref_changed)
+        self.ref_widget.clicked[QModelIndex].connect(self.ref_changed)
         layout.addWidget(self.existing_group)
 
-        self.keep_local = QtGui.QCheckBox("Keep Local Version")
+        self.keep_local = QtWidgets.QCheckBox("Keep Local Version")
         layout.addWidget(self.keep_local)
-        self.connect(self.keep_local, QtCore.SIGNAL("toggled(bool)"),
-                     self.local_toggle)
-        self.local_group = QtGui.QGroupBox()
-        local_layout = QtGui.QGridLayout()
+        self.keep_local.toggled[bool].connect(self.local_toggle)
+        self.local_group = QtWidgets.QGroupBox()
+        local_layout = QtWidgets.QGridLayout()
         self.local_path = self.get_chooser_layout()
         if hasattr(self.local_path, 'pathname_edit'):
-            self.connect(self.local_path.pathname_edit,
-                         QtCore.SIGNAL("textChanged(QString)"),
-                         self.stateChange)
+            self.local_path.pathname_edit.textChanged['QString'].connect(self.stateChange)
         local_layout.addLayout(self.local_path,0,0,1,2)
 
-        self.r_priority_local = QtGui.QCheckBox("Read From Local Path")
+        self.r_priority_local = QtWidgets.QCheckBox("Read From Local Path")
         local_layout.addWidget(self.r_priority_local,1,0)
-        self.write_managed_checkbox = QtGui.QCheckBox("Write To Local Path")
-        self.connect(self.write_managed_checkbox, QtCore.SIGNAL("toggled(bool)"),
-                     self.stateChange)
+        self.write_managed_checkbox = QtWidgets.QCheckBox("Write To Local Path")
+        self.write_managed_checkbox.toggled[bool].connect(self.stateChange)
         local_layout.addWidget(self.write_managed_checkbox,1,1)
         self.local_group.setLayout(local_layout)
         layout.addWidget(self.local_group)
@@ -767,18 +751,16 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
             self.r_priority_local.setEnabled(False)
             self.write_managed_checkbox.setEnabled(True)
 
-        button_layout = QtGui.QHBoxLayout()
-        button_layout.setDirection(QtGui.QBoxLayout.RightToLeft)
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.setDirection(QtWidgets.QBoxLayout.RightToLeft)
         button_layout.setAlignment(QtCore.Qt.AlignRight)
-        self.saveButton = QtGui.QPushButton("Save")
+        self.saveButton = QtWidgets.QPushButton("Save")
         self.saveButton.setFixedWidth(100)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.saveTriggered)
+        self.saveButton.clicked[bool].connect(self.saveTriggered)
         button_layout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton("Reset")
+        self.resetButton = QtWidgets.QPushButton("Reset")
         self.resetButton.setFixedWidth(100)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
-                     self.resetTriggered)
+        self.resetButton.clicked.connect(self.resetTriggered)
         button_layout.addWidget(self.resetButton)
         layout.addLayout(button_layout)
         self.setLayout(layout)
@@ -788,7 +770,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+        self.doneConfigure.emit(self.module.id)
         
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -987,28 +969,28 @@ class PersistentOutputPathConfiguration(PersistentPathConfiguration):
         PersistentPathConfiguration.__init__(self, module, controller, parent,
                                           False, path_type)
 
-class PersistentRefInlineWidget(QtGui.QWidget, ConstantWidgetMixin):
+class PersistentRefInlineWidget(QtWidgets.QWidget, ConstantWidgetMixin):
     contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         self.param = param
         self.strValue = param.strValue
         contentsType = param.type
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         # FIXME Use a greyed QLineEdit?
         # layout.addWidget(QtGui.QLabel("File Info:"))
-        button = QtGui.QPushButton("Configure")
+        button = QtWidgets.QPushButton("Configure")
         button.setMaximumWidth(100)
-        self.connect(button, QtCore.SIGNAL('clicked()'), self.run_dialog)
+        button.clicked.connect(self.run_dialog)
         layout.addWidget(button)
-        layout.setMargin(5)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
         self.setLayout(layout)
         
     def run_dialog(self):
         dialog = PersistentRefDialog(self.param)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.setContents("test")
             #use same translate call?, False)
 
@@ -1051,29 +1033,29 @@ class PersistentOutputDirConfiguration(PersistentOutputPathConfiguration):
     def get_chooser_layout(self):
         return PathChooserLayout(True, self)
     
-class PersistentConfiguration(QtGui.QDialog):
+class PersistentConfiguration(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setModal(False)
         self.build_gui()
         self.db_access = DatabaseAccessSingleton()
 
     def build_gui(self):
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.ref_search = PersistentRefViewSearch(None)
         self.ref_search.ref_widget.setSelectionMode(
-            QtGui.QAbstractItemView.ExtendedSelection)
+            QtWidgets.QAbstractItemView.ExtendedSelection)
         layout.addWidget(self.ref_search)
         
-        button_layout = QtGui.QHBoxLayout()
+        button_layout = QtWidgets.QHBoxLayout()
         button_layout.setAlignment(QtCore.Qt.AlignRight)
-        write_button = QtGui.QPushButton("Write...")
+        write_button = QtWidgets.QPushButton("Write...")
         write_button.setAutoDefault(False)
-        self.connect(write_button, QtCore.SIGNAL("clicked()"), self.write)
+        write_button.clicked.connect(self.write)
         button_layout.addWidget(write_button)
-        delete_button = QtGui.QPushButton("Delete...")
+        delete_button = QtWidgets.QPushButton("Delete...")
         delete_button.setAutoDefault(False)
-        self.connect(delete_button, QtCore.SIGNAL("clicked()"), self.delete)
+        delete_button.clicked.connect(self.delete)
         button_layout.addWidget(delete_button)
         layout.addLayout(button_layout)
         self.setLayout(layout)
@@ -1089,10 +1071,10 @@ class PersistentConfiguration(QtGui.QDialog):
             # save single file/dir
             info = info_list[0]
             name = info[2]
-            chosen_path = QtGui.QFileDialog.getSaveFileName(
+            chosen_path = QtWidgets.QFileDialog.getSaveFileName(
                     self,
                     'Save...',
-                    name)
+                    name)[0]
             if not chosen_path:
                 return
 
@@ -1106,7 +1088,7 @@ class PersistentConfiguration(QtGui.QDialog):
                                              chosen_path)
         else:
             # have multiple files/dirs
-            chosen_path = QtGui.QFileDialog.getExistingDirectory(
+            chosen_path = QtWidgets.QFileDialog.getExistingDirectory(
                     self,
                     'Save All to Directory...')
             has_overwrite = False
@@ -1123,12 +1105,12 @@ class PersistentConfiguration(QtGui.QDialog):
                 question_str = "One or more of the paths already exist.  " + \
                     "Overwrite?"
                 ret_val = \
-                    QtGui.QMessageBox.question(self, "Overwrite", \
+                    QtWidgets.QMessageBox.question(self, "Overwrite", \
                                                    question_str, \
-                                                   QtGui.QMessageBox.Cancel | \
-                                                   QtGui.QMessageBox.No | \
-                                                   QtGui.QMessageBox.Yes)
-                if ret_val != QtGui.QMessageBox.Yes:
+                                                   QtWidgets.QMessageBox.Cancel | \
+                                                   QtWidgets.QMessageBox.No | \
+                                                   QtWidgets.QMessageBox.Yes)
+                if ret_val != QtWidgets.QMessageBox.Yes:
                     return
 
             for info in info_list:
@@ -1145,7 +1127,7 @@ class PersistentConfiguration(QtGui.QDialog):
                                                      full_path)
             
     def delete(self):
-        QtGui.QMessageBox.critical(self, "Delete",
+        QtWidgets.QMessageBox.critical(self, "Delete",
                                    "This feature is not functional in the "
                                    "current version of VisTrails and has been "
                                    "disabled for this release.")
@@ -1158,11 +1140,11 @@ class PersistentConfiguration(QtGui.QDialog):
 
         delete_str = "This will permanently delete the selected data " + \
             "from the peristent store.  This cannot be undone.  Proceed?"
-        question_f = QtGui.QMessageBox.question
+        question_f = QtWidgets.QMessageBox.question
         ret_val = question_f(self, "Delete", delete_str, \
-                                 QtGui.QMessageBox.Cancel | \
-                                 QtGui.QMessageBox.Ok)
-        if ret_val != QtGui.QMessageBox.Ok:
+                                 QtWidgets.QMessageBox.Cancel | \
+                                 QtWidgets.QMessageBox.Ok)
+        if ret_val != QtWidgets.QMessageBox.Ok:
             return
             
         git_util = PersistentPath()

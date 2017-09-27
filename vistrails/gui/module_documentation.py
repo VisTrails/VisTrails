@@ -40,13 +40,13 @@ QModuleDocumentation
 """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.modules.module_registry import ModuleRegistryException
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
-class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
+class QModuleDocumentation(QtWidgets.QDialog, QVistrailsPaletteInterface):
     """
     QModuleDocumentation is a dialog for showing module documentation. duh.
 
@@ -57,17 +57,17 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
         -> None
 
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         # self.setModal(True)
         self.setWindowTitle("Module Documentation")
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         # self.layout().addStrut()
-        self.name_label = QtGui.QLabel("")
+        self.name_label = QtWidgets.QLabel("")
         self.layout().addWidget(self.name_label)
-        self.package_label = QtGui.QLabel("")
+        self.package_label = QtWidgets.QLabel("")
         self.layout().addWidget(self.package_label)
         # self.closeButton = QtGui.QPushButton('Ok', self)
-        self.textEdit = QtGui.QTextEdit(self)
+        self.textEdit = QtWidgets.QTextEdit(self)
         self.layout().addWidget(self.textEdit, 1)
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))

@@ -39,9 +39,10 @@
 from __future__ import division
 
 import os
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import QUrl
-from PyQt4.QtXmlPatterns import QXmlQuery
+from PyQt5 import QtCore, QtGui, QtPrintSupport, QtWidgets
+from PyQt5.QtCore import QUrl
+# FIXME QtXml is no longer supported.
+from PyQt5.QtXmlPatterns import QXmlQuery
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -126,8 +127,8 @@ class RichTextCellWidget(QCellWidget):
 
         """
         QCellWidget.__init__(self, parent)
-        self.setLayout(QtGui.QVBoxLayout(self))
-        self.browser = QtGui.QTextBrowser()
+        self.setLayout(QtWidgets.QVBoxLayout(self))
+        self.browser = QtWidgets.QTextBrowser()
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.browser.controlBarType = None
@@ -165,7 +166,7 @@ class RichTextCellWidget(QCellWidget):
                 super(RichTextCellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)

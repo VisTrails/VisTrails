@@ -2,7 +2,7 @@ from cdat_cell import QCDATWidget, CDATCell
 from core.modules.vistrails_module import (Module, ModuleError, NotCacheable)
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 from packages.spreadsheet.spreadsheet_event import DisplayCellEvent
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore
 
 class quickplot(Module, NotCacheable):
     """hackiness to push a cdat plot to our spreadsheet.

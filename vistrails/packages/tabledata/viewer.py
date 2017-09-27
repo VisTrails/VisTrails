@@ -36,7 +36,7 @@
 from __future__ import division
 
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtPrintSupport, QtWidgets
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
     SpreadsheetMode
@@ -64,12 +64,12 @@ class TableCellWidget(QCellWidget):
     def __init__(self, parent=None):
         QCellWidget.__init__(self, parent)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
 
-        self.table = QtGui.QTableWidget()
+        self.table = QtWidgets.QTableWidget()
 
-        scrollarea = QtGui.QScrollArea(self)
+        scrollarea = QtWidgets.QScrollArea(self)
         scrollarea.setWidgetResizable(True)
         scrollarea.setWidget(self.table)
         layout.addWidget(scrollarea)
@@ -86,7 +86,7 @@ class TableCellWidget(QCellWidget):
         self.table.setRowCount(table.rows)
 
         for row in xrange(table.rows):
-            item = QtGui.QTableWidgetItem()
+            item = QtWidgets.QTableWidgetItem()
             item.setData(QtCore.Qt.EditRole, row)
             item.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(row, 0, item)
@@ -100,7 +100,7 @@ class TableCellWidget(QCellWidget):
                         elem = elem.decode('utf-8', 'replace')
                     elif not isinstance(elem, unicode):
                         elem = unicode(elem)
-                    item = QtGui.QTableWidgetItem(elem)
+                    item = QtWidgets.QTableWidgetItem(elem)
                     item.setFlags(QtCore.Qt.ItemIsEnabled |
                                   QtCore.Qt.ItemIsSelectable)
                     self.table.setItem(row, col + 1, item)
@@ -162,8 +162,8 @@ class TableCellWidget(QCellWidget):
     def saveToPDF(self, filename):
         document = QtGui.QTextDocument()
         document.setHtml(self.write_html())
-        printer = QtGui.QPrinter()
-        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer = QtPrintSupport.QPrinter()
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         document.print_(printer)
 

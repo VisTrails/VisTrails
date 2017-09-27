@@ -19,7 +19,7 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-from PyQt4 import QtCore, QtGui, QtOpenGL
+from PyQt5 import QtCore, QtGui, QtOpenGL, QtWidgets
 import sip
 from core import system
 from core.modules.module_registry import registry
@@ -74,8 +74,8 @@ class QCM2ViewWidget(QtOpenGL.QGLWidget) :
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding))
 
 
         
@@ -90,8 +90,7 @@ class QCM2ViewWidget(QtOpenGL.QGLWidget) :
         #print self._id
         self.full_speed = False
         self.timer = QtCore.QTimer()
-        self.connect(self.timer,
-                     QtCore.SIGNAL("timeout()"), self.updateGL)
+        self.timer.timeout.connect(self.updateGL)
         
     def make_current(self) :
         if self.isValid() :

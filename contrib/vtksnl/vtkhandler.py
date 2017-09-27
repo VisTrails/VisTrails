@@ -20,7 +20,7 @@
 ##
 ############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from core.modules.basic_modules import String
 from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import get_module_registry
@@ -184,6 +184,8 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
     python code to handle a specifc event
     
     """
+    doneConfigure = QtCore.pyqtSignal()
+
     def __init__(self, module, controller, parent=None):
         """ HandlerConfigurationWidget(module: Module,
                                        controller: VistrailController,
@@ -196,7 +198,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
         self.setWindowTitle('Handler Python Script Editor')
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
         self.createEditor()
@@ -232,20 +234,20 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         Construct Ok & Cancel button
         
         """
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.okButton = QtGui.QPushButton('&OK', self)
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.okButton = QtWidgets.QPushButton('&OK', self)
         self.okButton.setAutoDefault(False)
         self.okButton.setFixedWidth(100)
         self.buttonLayout.addWidget(self.okButton)
-        self.cancelButton = QtGui.QPushButton('&Cancel', self)
+        self.cancelButton = QtWidgets.QPushButton('&Cancel', self)
         self.cancelButton.setAutoDefault(False)
         self.cancelButton.setShortcut('Esc')
         self.cancelButton.setFixedWidth(100)
         self.buttonLayout.addWidget(self.cancelButton)
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okTriggered)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
+        self.okButton.clicked[bool].connect(self.okTriggered)
+        self.cancelButton.clicked[bool].connect(self.close)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -271,7 +273,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         self.updateController(self.controller)
-        self.emit(QtCore.SIGNAL('doneConfigure()'))
+        self.doneConfigure.emit()
         self.close()
 
 

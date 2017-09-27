@@ -25,7 +25,7 @@
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKViewWidget
 ################################################################################
 import vtk
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sip
 from core import system
 from core.modules.module_registry import get_module_registry
@@ -127,8 +127,8 @@ class QVTKViewWidget(QCellWidget):
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding))
         self.toolBarType = QVTKViewWidgetToolBar
         self.setAnimationEnabled(True)
         
@@ -561,7 +561,7 @@ class QVTKViewWidget(QCellWidget):
         
         self.SelectActiveRenderer(iren)
         
-        if e.delta()>0:
+        if e.angleDelta().y()>0:
             iren.InvokeEvent("MouseWheelForwardEvent")
         else:
             iren.InvokeEvent("MouseWheelBackwardEvent")
@@ -855,10 +855,10 @@ class QVTKViewWidget(QCellWidget):
         Capture the window contents to file
         
         """
-        fn = QtGui.QFileDialog.getSaveFileName(None,
+        fn = QtWidgets.QFileDialog.getSaveFileName(None,
                                                "Save file as...",
                                                "screenshot.png",
-                                               "Images (*.png)")
+                                               "Images (*.png)")[0]
         if fn.isNull():
             return
         self.saveToPNG(str(fn))
@@ -888,7 +888,7 @@ class QVTKViewWidget(QCellWidget):
         """
         self.saveToPNG(filename)
 
-class QVTKViewWidgetCapture(QtGui.QAction):
+class QVTKViewWidgetCapture(QtWidgets.QAction):
     """
     QVTKViewWidgetCapture is the action to capture the vtk rendering
     window to an image
@@ -899,7 +899,7 @@ class QVTKViewWidgetCapture(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                QtGui.QIcon(":/images/camera.png"),
                                "&Capture image to file",
                                parent)
@@ -913,7 +913,7 @@ class QVTKViewWidgetCapture(QtGui.QAction):
         cellWidget = self.toolBar.getSnappedWidget()
         cellWidget.captureWindow()
 
-class QVTKViewWidgetSaveCamera(QtGui.QAction):
+class QVTKViewWidgetSaveCamera(QtWidgets.QAction):
     """
     QVTKViewWidgetSaveCamera is the action to capture the current camera
     of the vtk renderers and save it back to the pipeline
@@ -924,7 +924,7 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
         Setup the image, status tip, etc. of the action
         
         """
-        QtGui.QAction.__init__(self,
+        QtWidgets.QAction.__init__(self,
                                "Save &Camera",
                                parent)
         self.setStatusTip("Save current camera views to the pipeline")

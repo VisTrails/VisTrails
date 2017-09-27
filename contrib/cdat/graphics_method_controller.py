@@ -1,13 +1,13 @@
 import types
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from gui_controller import gm_name
 
 indentSpacing = 10
 
-class QGraphicsMethodAttributeWindow(QtGui.QMainWindow):
+class QGraphicsMethodAttributeWindow(QtWidgets.QMainWindow):
 
     def __init__(self, canvas=None, parent=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         initialWidth = 480
         initialHeight = 640
         self.resize(initialWidth, initialHeight)        
@@ -15,7 +15,7 @@ class QGraphicsMethodAttributeWindow(QtGui.QMainWindow):
         self.parent = parent
 
         # Create tab widgets
-        self.tabWidget = QtGui.QTabWidget()
+        self.tabWidget = QtWidgets.QTabWidget()
         if canvas is not None:
             self.boxfillEditor = QBoxfillEditor(gm=canvas.getboxfill('ASD'))
             self.continentsEditor = QContinentsEditor(gm=canvas.getcontinents('ASD'))
@@ -56,25 +56,25 @@ class QGraphicsMethodAttributeWindow(QtGui.QMainWindow):
         applyButton = self.getButton('Apply')
         cancelButton = self.getButton('Cancel')
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(previewButton)
         hbox.addWidget(resetButton)
         hbox.addWidget(applyButton)
         hbox.addWidget(cancelButton)
 
         # Setup the layout
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.tabWidget)
         vbox.addLayout(hbox)
-        wrapperWidget = QtGui.QWidget()
+        wrapperWidget = QtWidgets.QWidget()
         wrapperWidget.setLayout(vbox)
         self.setCentralWidget(wrapperWidget)
 
         # Connect Signals
-        self.connect(cancelButton, QtCore.SIGNAL('pressed()'), self.close)
-        self.connect(resetButton, QtCore.SIGNAL('pressed()'), self.resetPressedEvent)
-        self.connect(applyButton, QtCore.SIGNAL('pressed()'), self.applyPressedEvent)
-        self.connect(previewButton, QtCore.SIGNAL('pressed()'), self.previewPressedEvent)
+        cancelButton.pressed.connect(self.close)
+        resetButton.pressed.connect(self.resetPressedEvent)
+        applyButton.pressed.connect(self.applyPressedEvent)
+        previewButton.pressed.connect(self.previewPressedEvent)
 
     def resetPressedEvent(self):
         self.boxfillEditor.initValues()
@@ -119,14 +119,14 @@ class QGraphicsMethodAttributeWindow(QtGui.QMainWindow):
         self.tabWidget.setTabToolTip(9, "The Vector graphics method displays a vector plot\nof a 2D vector field. Vectors are located at the\ncoordinate locations and point in the direction of\nthe data vector field. Vector magnitudes are the\nproduct of data vector field lengths and a scaling\nfactor. ")
 
     def getButton(self, text):
-        button = QtGui.QToolButton()
+        button = QtWidgets.QToolButton()
         button.setText(text)
         return button
 
-class QVectorEditor(QtGui.QScrollArea):
+class QVectorEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         frame = QFramedWidget()
         self.lineType = frame.addLabeledComboBox('Vector Line Type:',
@@ -152,7 +152,7 @@ class QVectorEditor(QtGui.QScrollArea):
         self.reference.setToolTip("Set the vector reference. Note: if the value is 1e+20,\nthen VCS will determine the vector reference.")        
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setLayout(vbox)
         widgetWrapper.setMinimumWidth(580)
         self.setWidget(widgetWrapper)
@@ -165,12 +165,12 @@ class QVectorEditor(QtGui.QScrollArea):
         self.headType.setCurrentIndex(0)
         self.reference.setValue(1e20)
 
-class QTaylorDiagramEditor(QtGui.QScrollArea):
+class QTaylorDiagramEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
-        tabWidget = QtGui.QTabWidget()
+        tabWidget = QtWidgets.QTabWidget()
         interfaceTab = QTaylorInterfaceTab()
         tickAndLabelTab = QTaylorTicksLabels()
         markersTab = QTaylorMarkers()
@@ -180,7 +180,7 @@ class QTaylorDiagramEditor(QtGui.QScrollArea):
         vbox.addWidget(tabWidget)
 
         # Set up the scrollbar / widget size
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.resize(670, 520)
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
@@ -190,38 +190,38 @@ class QTaylorDiagramEditor(QtGui.QScrollArea):
         markersTab.initValues()
         tickAndLabelTab.initValues()
 
-class QTaylorMarkers(QtGui.QScrollArea):
+class QTaylorMarkers(QtWidgets.QScrollArea):
     """ Tabbed Widget for Taylor -> Markers """
     
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
+        QtWidgets.QScrollArea.__init__(self, parent)
         self.row = 1
-        self.grid = QtGui.QGridLayout()
+        self.grid = QtWidgets.QGridLayout()
         self.markerList = []
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         
         # Create Column Labels
-        self.grid.addWidget(QtGui.QLabel(''), 0, 0)
-        self.grid.addWidget(QtGui.QLabel('#'), 0, 1)
-        self.grid.addWidget(QtGui.QLabel('Active'), 0, 2)
-        self.grid.addWidget(QtGui.QLabel('Symbol'), 0, 3)
-        self.grid.addWidget(QtGui.QLabel('Color'), 0, 4)
-        self.grid.addWidget(QtGui.QLabel('Size'), 0, 5)
-        self.grid.addWidget(QtGui.QLabel('Id'), 0, 6)
-        self.grid.addWidget(QtGui.QLabel('Id Size'), 0, 7)
-        self.grid.addWidget(QtGui.QLabel('+X'), 0, 8)
-        self.grid.addWidget(QtGui.QLabel('+Y'), 0, 9)
-        self.grid.addWidget(QtGui.QLabel('Id Color'), 0, 10)
-        self.grid.addWidget(QtGui.QLabel('Id Font'), 0, 11)
-        self.grid.addWidget(QtGui.QLabel('Line'), 0, 12)
-        self.grid.addWidget(QtGui.QLabel('Type'), 0, 13)
-        self.grid.addWidget(QtGui.QLabel('Size'), 0, 14)
-        self.grid.addWidget(QtGui.QLabel('Color'), 0, 15)        
+        self.grid.addWidget(QtWidgets.QLabel(''), 0, 0)
+        self.grid.addWidget(QtWidgets.QLabel('#'), 0, 1)
+        self.grid.addWidget(QtWidgets.QLabel('Active'), 0, 2)
+        self.grid.addWidget(QtWidgets.QLabel('Symbol'), 0, 3)
+        self.grid.addWidget(QtWidgets.QLabel('Color'), 0, 4)
+        self.grid.addWidget(QtWidgets.QLabel('Size'), 0, 5)
+        self.grid.addWidget(QtWidgets.QLabel('Id'), 0, 6)
+        self.grid.addWidget(QtWidgets.QLabel('Id Size'), 0, 7)
+        self.grid.addWidget(QtWidgets.QLabel('+X'), 0, 8)
+        self.grid.addWidget(QtWidgets.QLabel('+Y'), 0, 9)
+        self.grid.addWidget(QtWidgets.QLabel('Id Color'), 0, 10)
+        self.grid.addWidget(QtWidgets.QLabel('Id Font'), 0, 11)
+        self.grid.addWidget(QtWidgets.QLabel('Line'), 0, 12)
+        self.grid.addWidget(QtWidgets.QLabel('Type'), 0, 13)
+        self.grid.addWidget(QtWidgets.QLabel('Size'), 0, 14)
+        self.grid.addWidget(QtWidgets.QLabel('Color'), 0, 15)        
 
         vbox.addLayout(self.grid)
 
         # Create Buttons
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         addButton = self.createButton('Add')
         delButton = self.createButton('Delete')
         insertButton = self.createButton('Insert')
@@ -233,15 +233,15 @@ class QTaylorMarkers(QtGui.QScrollArea):
         vbox.setAlignment(hbox, QtCore.Qt.AlignBottom)
         
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.resize(1200, 440)
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
 
         # Connect Signals
-        self.connect(addButton, QtCore.SIGNAL('pressed()'), self.addMarker)
-        self.connect(delButton, QtCore.SIGNAL('pressed()'), self.removeSelectedMarkers)
-        self.connect(insertButton, QtCore.SIGNAL('pressed()'), self.insertMarkers)
+        addButton.pressed.connect(self.addMarker)
+        delButton.pressed.connect(self.removeSelectedMarkers)
+        insertButton.pressed.connect(self.insertMarkers)
 
     def initValues(self):
         # Delete all markers
@@ -308,34 +308,34 @@ class QTaylorMarkers(QtGui.QScrollArea):
         self.row += 1
         
     def createButton(self, text):
-        button = QtGui.QToolButton()
+        button = QtWidgets.QToolButton()
         button.setText(text)
         return button
 
-class QMarkerEditorEntry(QtGui.QWidget):
+class QMarkerEditorEntry(QtWidgets.QWidget):
     def __init__(self, grid, row, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.widgets = {}
 
         symbolList = ["dot", "plus", "star", "circle", "cross", "diamond", "triangle_up", "triangle_down", "triangle_left", "triangle_right", "square", "diamond_fill", "triangle_up_fill", "triangle_down_fill", "triangle_left_fill", "triangle_right_fill", "square_fill"]
         lineList = ['None', 'Tail', 'Head', 'Line']
         typeList = ['solid', 'dash', 'dot', 'dash-dot', 'long-dash']
         
-        self.widgets['selectedBox'] = QtGui.QCheckBox()
-        self.widgets['entryNumber'] = QtGui.QLabel(str(row))
-        self.widgets['activeBox'] = QtGui.QCheckBox()
+        self.widgets['selectedBox'] = QtWidgets.QCheckBox()
+        self.widgets['entryNumber'] = QtWidgets.QLabel(str(row))
+        self.widgets['activeBox'] = QtWidgets.QCheckBox()
         self.widgets['symbolCombo'] = self.createCombo(symbolList)
         self.widgets['colorCombo1'] = self.createCombo(['TODO'])
-        self.widgets['size'] = QtGui.QLineEdit()
-        self.widgets['id'] = QtGui.QLineEdit()
-        self.widgets['idSize'] = QtGui.QLineEdit()
-        self.widgets['x'] = QtGui.QLineEdit()
-        self.widgets['y'] = QtGui.QLineEdit()
+        self.widgets['size'] = QtWidgets.QLineEdit()
+        self.widgets['id'] = QtWidgets.QLineEdit()
+        self.widgets['idSize'] = QtWidgets.QLineEdit()
+        self.widgets['x'] = QtWidgets.QLineEdit()
+        self.widgets['y'] = QtWidgets.QLineEdit()
         self.widgets['idColorCombo'] = self.createCombo(['TODO'])
         self.widgets['idFontCombo'] = self.createCombo(map(str, range(1,10)))
         self.widgets['lineCombo'] = self.createCombo(lineList)
         self.widgets['typeCombo'] = self.createCombo(typeList)
-        self.widgets['size2'] = QtGui.QLineEdit()
+        self.widgets['size2'] = QtWidgets.QLineEdit()
         self.widgets['colorCombo2'] = self.createCombo(['TODO'])        
         
         grid.addWidget(self.widgets['selectedBox'], row, 0, QtCore.Qt.AlignTop)
@@ -412,7 +412,7 @@ class QMarkerEditorEntry(QtGui.QWidget):
         return self.widgets['selectedBox'].isChecked()
 
     def createCombo(self, entries):
-        comboBox = QtGui.QComboBox()
+        comboBox = QtWidgets.QComboBox()
         comboBox.setMaximumWidth(120)
         comboPalette = comboBox.view().palette()
         comboPalette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)        
@@ -424,12 +424,12 @@ class QMarkerEditorEntry(QtGui.QWidget):
 
         return comboBox
 
-class QTaylorTicksLabels(QtGui.QScrollArea):
+class QTaylorTicksLabels(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         xFrame = QFramedWidget('X axis')
         self.xlabels = xFrame.addLabeledLineEdit('Labels:')
         self.xticks = xFrame.addLabeledLineEdit('Ticks:')
@@ -449,7 +449,7 @@ class QTaylorTicksLabels(QtGui.QScrollArea):
         self.initValues()
 
         # Set up the scrollbar
-        wrapperWidget = QtGui.QWidget()
+        wrapperWidget = QtWidgets.QWidget()
         wrapperWidget.setLayout(vbox)
         wrapperWidget.setMinimumWidth(580)        
         self.setWidget(wrapperWidget)
@@ -462,10 +462,10 @@ class QTaylorTicksLabels(QtGui.QScrollArea):
         self.corLabels.setText('*')
         self.corTicks.setText('*')        
 
-class QTaylorInterfaceTab(QtGui.QScrollArea):
+class QTaylorInterfaceTab(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         # General Aspect
         genFrame = QFramedWidget('General Aspect')
@@ -495,7 +495,7 @@ class QTaylorInterfaceTab(QtGui.QScrollArea):
         vbox.setAlignment(arrowFrame, QtCore.Qt.AlignTop)
 
         # Set up the scrollbar
-        wrapperWidget = QtGui.QWidget()
+        wrapperWidget = QtWidgets.QWidget()
         wrapperWidget.setLayout(vbox)
         wrapperWidget.setMinimumWidth(580)
         self.setWidget(wrapperWidget)        
@@ -504,15 +504,15 @@ class QTaylorInterfaceTab(QtGui.QScrollArea):
         self.initValues()
 
         # Connect Signals
-        self.connect(self.lengthSlider, QtCore.SIGNAL('valueChanged(int)'), self.lengthChangedEvent)
-        self.connect(self.angleSlider, QtCore.SIGNAL('valueChanged(int)'), self.angleChangedEvent)
-        self.connect(self.baseSlider, QtCore.SIGNAL('valueChanged(int)'), self.baseChangedEvent)        
+        self.lengthSlider.valueChanged[int].connect(self.lengthChangedEvent)
+        self.angleSlider.valueChanged[int].connect(self.angleChangedEvent)
+        self.baseSlider.valueChanged[int].connect(self.baseChangedEvent)
 
     def initValues(self):
         # TODO Init w/ non hardcoded values?
 
         # General Aspect
-        self.detailSlider.setTickPosition(QtGui.QSlider.TicksBelow)
+        self.detailSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.detailSlider.setMinimum(0)
         self.detailSlider.setMaximum(100)
         self.detailSlider.setSingleStep(5)
@@ -523,9 +523,9 @@ class QTaylorInterfaceTab(QtGui.QScrollArea):
         self.quadran.setChecked('1')
 
         # Arrows
-        self.lengthSlider.setTickPosition(QtGui.QSlider.TicksBelow)
-        self.angleSlider.setTickPosition(QtGui.QSlider.TicksBelow)
-        self.baseSlider.setTickPosition(QtGui.QSlider.TicksBelow)
+        self.lengthSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.angleSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.baseSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
 
     def lengthChangedEvent(self, int):
         return # TODO
@@ -536,10 +536,10 @@ class QTaylorInterfaceTab(QtGui.QScrollArea):
     def baseChangedEvent(self, int):
         return # TODO
 
-class QScatterEditor(QtGui.QScrollArea):
+class QScatterEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         # Create Widgets
         frame = QFramedWidget()
@@ -565,7 +565,7 @@ class QScatterEditor(QtGui.QScrollArea):
         vbox.setAlignment(frame, QtCore.Qt.AlignTop)
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setMinimumWidth(580)        
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
@@ -575,10 +575,10 @@ class QScatterEditor(QtGui.QScrollArea):
         self.colorIndex.setValue(241)
         self.markerSize.setValue(3)        
 
-class QOutlineEditor(QtGui.QScrollArea):
+class QOutlineEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         # Create Widgets
         frame = QFramedWidget()
@@ -603,15 +603,15 @@ class QOutlineEditor(QtGui.QScrollArea):
         vbox.setAlignment(frame, QtCore.Qt.AlignTop)
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setMinimumWidth(580)        
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)        
 
-class QOutfillEditor(QtGui.QScrollArea):
+class QOutfillEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         # Create Widgets
         frame = QFramedWidget()
@@ -636,7 +636,7 @@ class QOutfillEditor(QtGui.QScrollArea):
         self.indexValues.setToolTip("Outlines are filled to enclose the selected values\nthat appear in the data array. As few as one, or\nas many as ten values, can be specified:\noutline=([n1,[n2,[n3,...[n10]...]]]).")
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setMinimumWidth(580)        
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
@@ -647,14 +647,14 @@ class QOutfillEditor(QtGui.QScrollArea):
         self.fillColorIndex.setValue(241)
         self.indexValues.setText('1')
         
-class Q1DPlotEditor(QtGui.QScrollArea):
+class Q1DPlotEditor(QtWidgets.QScrollArea):
 
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         frame = QFramedWidget()
-        frame.addWidget(QtGui.QLabel('Define up to 15 values:'), QtCore.Qt.AlignTop)
+        frame.addWidget(QtWidgets.QLabel('Define up to 15 values:'), QtCore.Qt.AlignTop)
         self.lineTypes = frame.addLabeledLineEdit('Line Types: ')
         self.lineColors = frame.addLabeledLineEdit('Line Colors: ')
         self.lineWidths = frame.addLabeledLineEdit('Line Widths: ')
@@ -674,7 +674,7 @@ class Q1DPlotEditor(QtGui.QScrollArea):
         vbox.setAlignment(frame, QtCore.Qt.AlignTop)
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setMinimumWidth(580)
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
@@ -688,17 +688,17 @@ class Q1DPlotEditor(QtGui.QScrollArea):
         self.markerColors.setText('None')
         self.markerSizes.setText('None')
 
-class QMeshfillEditor(QtGui.QScrollArea):
+class QMeshfillEditor(QtWidgets.QScrollArea):
 
     def __init__(self, parent=None, gm=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         if type(gm) in [types.ListType, types.TupleType, types.NoneType]:
             self.gm = gm
         else:
             self.gm=[gm,]
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
     
         # General Settings
         genSettings = QFramedWidget('General Settings')
@@ -747,21 +747,15 @@ class QMeshfillEditor(QtGui.QScrollArea):
         self.setToolTips()
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)        
 
         # Connect Signals
-        self.connect(clearButton, QtCore.SIGNAL('pressed()'),
-                     custSettings.clearAllLineEdits)
-        self.connect(self.spacing.getButton('Linear'),
-                     QtCore.SIGNAL('pressed()'),
-                     lambda : self.setEnabledLogLineEdits(False))
-        self.connect(self.spacing.getButton('Log'),
-                     QtCore.SIGNAL('pressed()'),
-                     lambda : self.setEnabledLogLineEdits(True))
-        self.connect(genRangesButton, QtCore.SIGNAL('pressed()'),
-                     self.generateRanges)        
+        clearButton.pressed.connect(custSettings.clearAllLineEdits)
+        self.spacing.getButton('Linear').pressed.connect(lambda : self.setEnabledLogLineEdits(False))
+        self.spacing.getButton('Log').pressed.connect(lambda : self.setEnabledLogLineEdits(True))
+        genRangesButton.pressed.connect(self.generateRanges)
 
     def initValues(self):
         # TODO : init missing, x wrap, y wrap, legend labels
@@ -878,16 +872,16 @@ class QMeshfillEditor(QtGui.QScrollArea):
         self.smallestExp.setToolTip("Disabled. Not in use for linear spacing.")
         self.numNegDec.setToolTip("Disabled. Not in use for linear spacing.")     
 
-class QContourEditor(QtGui.QScrollArea):
+class QContourEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
 
         #### TODO gm stuff
 
         frame = QFramedWidget()
 
-        frame.addWidget(QtGui.QLabel('Define iso level range values:'))
+        frame.addWidget(QtWidgets.QLabel('Define iso level range values:'))
         self.includeZeroButtonGroup = frame.addRadioFrame('Include Zero:',
                                                           ['Off', 'On'],
                                                           newRow=False)
@@ -903,7 +897,7 @@ class QContourEditor(QtGui.QScrollArea):
                                                     ['Off', 'On'])
         self.legendLabels = frame.addLabeledLineEdit('Legend Labels')
         frame.newRow()
-        frame.addWidget(QtGui.QLabel('Define iso level parameters:'))
+        frame.addWidget(QtWidgets.QLabel('Define iso level parameters:'))
         self.spacingButtonGroup = frame.addRadioFrame('Spacing:',
                                                       ['Linear', 'Log'],
                                                       newRow=False)
@@ -924,22 +918,16 @@ class QContourEditor(QtGui.QScrollArea):
         self.setToolTips()
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setLayout(vbox)
         widgetWrapper.setMinimumWidth(630)        
         self.setWidget(widgetWrapper)        
 
         # Connect Signals
-        self.connect(clearButton, QtCore.SIGNAL('pressed()'),
-                     self.frame.clearAllLineEdits)
-        self.connect(genRangesButton, QtCore.SIGNAL('pressed()'),
-                     self.generateRanges)
-        self.connect(self.spacingButtonGroup.getButton('Linear'),
-                     QtCore.SIGNAL('pressed()'),
-                     lambda : self.setEnabledLogLineEdits(False))
-        self.connect(self.spacingButtonGroup.getButton('Log'),
-                     QtCore.SIGNAL('pressed()'),
-                     lambda : self.setEnabledLogLineEdits(True))
+        clearButton.pressed.connect(self.frame.clearAllLineEdits)
+        genRangesButton.pressed.connect(self.generateRanges)
+        self.spacingButtonGroup.getButton('Linear').pressed.connect(lambda : self.setEnabledLogLineEdits(False))
+        self.spacingButtonGroup.getButton('Log').pressed.connect(lambda : self.setEnabledLogLineEdits(True))
 
     def initValues(self):
         self.includeZeroButtonGroup.setChecked('Off')
@@ -1048,10 +1036,10 @@ class QContourEditor(QtGui.QScrollArea):
         self.smallestExp.setToolTip("Disabled. Not in use for linear spacing.")
         self.numNegDec.setToolTip("Disabled. Not in use for linear spacing.")        
 
-class QContinentsEditor(QtGui.QScrollArea):
+class QContinentsEditor(QtWidgets.QScrollArea):
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
         frame = QFramedWidget()
         
         self.lineTypeComboBox = frame.addLabeledComboBox('Continents Line Type:',
@@ -1067,7 +1055,7 @@ class QContinentsEditor(QtGui.QScrollArea):
         self.setToolTips()
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setMinimumWidth(580)
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
@@ -1104,11 +1092,13 @@ class QContinentsEditor(QtGui.QScrollArea):
         except:
             return None        
         
-class QBoxfillEditor(QtGui.QScrollArea):
+class QBoxfillEditor(QtWidgets.QScrollArea):
+    createModule = QtCore.pyqtSignal()
+    updateModuleOps = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, gm=None):
-        QtGui.QScrollArea.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QScrollArea.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
         
         if type(gm) in [types.ListType, types.TupleType, types.NoneType]:
             self.gm = gm
@@ -1116,8 +1106,8 @@ class QBoxfillEditor(QtGui.QScrollArea):
             self.gm=[gm,]
 
         # 'define boxfill attributes + boxfill type radio buttons'
-        hbox1 = QtGui.QHBoxLayout()
-        hbox1.addWidget(QtGui.QLabel('Define boxfill attribute values'))
+        hbox1 = QtWidgets.QHBoxLayout()
+        hbox1.addWidget(QtWidgets.QLabel('Define boxfill attribute values'))
 
         self.boxfillTypeButtonGroup = QRadioButtonFrame('Boxfill type:')
         self.boxfillTypeButtonGroup.addButtonList(['linear', 'log10', 'custom'])
@@ -1151,7 +1141,7 @@ class QBoxfillEditor(QtGui.QScrollArea):
         # Custom Settings
         customSettings = QFramedWidget('Custom Settings')
 
-        customSettings.addWidget(QtGui.QLabel('Define iso level range values:'))
+        customSettings.addWidget(QtWidgets.QLabel('Define iso level range values:'))
         self.includeZeroButtonGroup = customSettings.addRadioFrame('Include Zero:',
                                                                    ['Off', 'On'],
                                                                    newRow=False)
@@ -1159,7 +1149,7 @@ class QBoxfillEditor(QtGui.QScrollArea):
         self.colorsLineEdit = customSettings.addLabeledLineEdit('Colors:')
 
         customSettings.newRow()
-        customSettings.addWidget(QtGui.QLabel('Define iso level parameters:'))
+        customSettings.addWidget(QtWidgets.QLabel('Define iso level parameters:'))
         self.spacingButtonGroup = customSettings.addRadioFrame('spacing:',
                                                                ['Linear', 'Log'],
                                                                newRow=False)
@@ -1179,19 +1169,15 @@ class QBoxfillEditor(QtGui.QScrollArea):
         self.setToolTips()
 
         # Set up the scrollbar
-        widgetWrapper = QtGui.QWidget()
+        widgetWrapper = QtWidgets.QWidget()
         widgetWrapper.setLayout(vbox)
         self.setWidget(widgetWrapper)
 
         # Connect Signals
-        self.connect(clearButton, QtCore.SIGNAL('pressed()'), self.clearCustomSettings)
-        self.connect(genRangesButton, QtCore.SIGNAL('pressed()'), self.generateRanges)
-        self.connect(self.spacingButtonGroup.getButton('Linear'),
-                     QtCore.SIGNAL('pressed()'),
-                     lambda : self.setEnabledLogLineEdits(False))
-        self.connect(self.spacingButtonGroup.getButton('Log'),
-                     QtCore.SIGNAL('pressed()'),
-                     lambda : self.setEnabledLogLineEdits(True))
+        clearButton.pressed.connect(self.clearCustomSettings)
+        genRangesButton.pressed.connect(self.generateRanges)
+        self.spacingButtonGroup.getButton('Linear').pressed.connect(lambda : self.setEnabledLogLineEdits(False))
+        self.spacingButtonGroup.getButton('Log').pressed.connect(lambda : self.setEnabledLogLineEdits(True))
 
     def initValues(self):
         if self.gm is None:
@@ -1361,8 +1347,8 @@ class QBoxfillEditor(QtGui.QScrollArea):
         visInput.append(('level_1', self.getValue(self.level1LineEdit, float)))
         visInput.append(('level_2', self.getValue(self.level2LineEdit, float)))
 
-        varViewWidget.emit(QtCore.SIGNAL('createModule'), gm_name)
-        varViewWidget.emit(QtCore.SIGNAL('updateModuleOps'), gm_name, visInput)
+        varViewWidget.createModule.emit(gm_name)
+        varViewWidget.updateModuleOps.emit(gm_name, visInput)
             
     def getValue(self, lineEdit, convertType, default=None):
         try:
@@ -1370,25 +1356,25 @@ class QBoxfillEditor(QtGui.QScrollArea):
         except:
             return default
         
-class QSimpleMessageBox(QtGui.QMessageBox):
+class QSimpleMessageBox(QtWidgets.QMessageBox):
 
     def __init__(self, text, parent):
-        QtGui.QMessageBox.__init__(self, parent)
+        QtWidgets.QMessageBox.__init__(self, parent)
         self.setText(text)
         
-class QFramedWidget(QtGui.QFrame):
+class QFramedWidget(QtWidgets.QFrame):
 
     def __init__(self, titleText=None, parent=None):
-        QtGui.QFrame.__init__(self, parent)    
-        self.setFrameStyle(QtGui.QFrame.Raised)
-        self.setFrameShape(QtGui.QFrame.Box)
+        QtWidgets.QFrame.__init__(self, parent)    
+        self.setFrameStyle(QtWidgets.QFrame.Raised)
+        self.setFrameShape(QtWidgets.QFrame.Box)
         self.lineEditList = []
-        self.vbox = QtGui.QVBoxLayout()
+        self.vbox = QtWidgets.QVBoxLayout()
         self.setLayout(self.vbox)
         self.indent = 10
 
         if titleText is not None:
-            title = QtGui.QLabel(titleText)
+            title = QtWidgets.QLabel(titleText)
             title.setFont(QtGui.QFont("Times", 14, QtGui.QFont.Bold))
             self.vbox.addWidget(title)
 
@@ -1398,7 +1384,7 @@ class QFramedWidget(QtGui.QFrame):
         self.vbox.setSpacing(spacing)
 
     def newRow(self):
-        self.hbox = QtGui.QHBoxLayout()
+        self.hbox = QtWidgets.QHBoxLayout()
         self.vbox.addLayout(self.hbox)
 
     def addCheckBox(self, text, indent=True, newRow=True):
@@ -1407,7 +1393,7 @@ class QFramedWidget(QtGui.QFrame):
         if indent == True:
             self.hbox.addSpacing(indentSpacing)
 
-        checkbox = QtGui.QCheckBox(text)
+        checkbox = QtWidgets.QCheckBox(text)
         self.addWidget(checkbox)
         return checkbox
 
@@ -1418,7 +1404,7 @@ class QFramedWidget(QtGui.QFrame):
             self.hbox.addSpacing(indentSpacing)
 
         # Init combo box & set text to white on blue
-        comboBox = QtGui.QComboBox()
+        comboBox = QtWidgets.QComboBox()
         comboPalette = comboBox.view().palette()
         comboPalette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)        
         comboPalette.setColor(QtGui.QPalette.Highlight, QtCore.Qt.blue)
@@ -1438,12 +1424,12 @@ class QFramedWidget(QtGui.QFrame):
         if indent == True:
             self.hbox.addSpacing(indentSpacing)
 
-        spinbox = QtGui.QSpinBox()
+        spinbox = QtWidgets.QSpinBox()
         if maxValue is not None:
             spinbox.setMaximum(maxValue)
         if minValue is not None:
             spinbox.setMinimum(minValue)
-        self.addWidget(QtGui.QLabel(text))
+        self.addWidget(QtWidgets.QLabel(text))
         self.addWidget(spinbox)
         
         return spinbox
@@ -1455,7 +1441,7 @@ class QFramedWidget(QtGui.QFrame):
         if indent == True:
             self.hbox.addSpacing(indentSpacing)
 
-        spinbox = QtGui.QDoubleSpinBox()
+        spinbox = QtWidgets.QDoubleSpinBox()
         if maxValue is not None:
             spinbox.setMaximum(maxValue)
         if minValue is not None:
@@ -1463,7 +1449,7 @@ class QFramedWidget(QtGui.QFrame):
         if step is not None:
             spinbox.setSingleStep(step)
             
-        self.addWidget(QtGui.QLabel(text))
+        self.addWidget(QtWidgets.QLabel(text))
         self.addWidget(spinbox)
         return spinbox    
 
@@ -1471,7 +1457,7 @@ class QFramedWidget(QtGui.QFrame):
         if newRow == True:
             self.newRow()
             
-        button = QtGui.QToolButton()
+        button = QtWidgets.QToolButton()
         button.setText(text)
         self.addWidget(button)
         return button
@@ -1494,9 +1480,9 @@ class QFramedWidget(QtGui.QFrame):
         if indent == True:
             self.hbox.addSpacing(indentSpacing)
             
-        lineEdit = QtGui.QLineEdit()
+        lineEdit = QtWidgets.QLineEdit()
         self.lineEditList.append(lineEdit)
-        self.addWidget(QtGui.QLabel(text))
+        self.addWidget(QtWidgets.QLabel(text))
         self.addWidget(lineEdit, align)
 
         if align is not None:
@@ -1510,9 +1496,9 @@ class QFramedWidget(QtGui.QFrame):
         if indent == True:
             self.hbox.addSpacing(indentSpacing)
 
-        lineEdit = QtGui.QLineEdit()
+        lineEdit = QtWidgets.QLineEdit()
         self.lineEditList.append(lineEdit)
-        label = QtGui.QLabel(text)
+        label = QtWidgets.QLabel(text)
         
         self.addWidget(label)
         self.addWidget(lineEdit)
@@ -1525,12 +1511,12 @@ class QFramedWidget(QtGui.QFrame):
             self.hbox.addWidget(widget, alignment=align)
 
     def addLabel(self, text):
-        label = QtGui.QLabel(text)
+        label = QtWidgets.QLabel(text)
         self.addWidget(label)
         return label
 
     def addSlider(self):
-        slider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.addWidget(slider)
         return slider
 
@@ -1542,21 +1528,20 @@ class QFramedWidget(QtGui.QFrame):
         self.addWidget(labeledSlider)
         return labeledSlider.getSlider()
 
-class QLabeledSlider(QtGui.QWidget):
+class QLabeledSlider(QtWidgets.QWidget):
     def __init__(self, text, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout()
+        QtWidgets.QWidget.__init__(self, parent)
+        vbox = QtWidgets.QVBoxLayout()
         vbox.setSpacing(10)
         self.setLayout(vbox)
         self.text = text
-        self.label = QtGui.QLabel(text)
-        self.slider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.label = QtWidgets.QLabel(text)
+        self.slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
 
         vbox.addWidget(self.label)
         vbox.addWidget(self.slider)
 
-        self.connect(self.slider, QtCore.SIGNAL('valueChanged(int)'),
-                     self.updateLabel)
+        self.slider.valueChanged[int].connect(self.updateLabel)
 
     def getSlider(self):
         return self.slider
@@ -1564,20 +1549,20 @@ class QLabeledSlider(QtGui.QWidget):
     def updateLabel(self, value):
         self.label.setText("%s  %d" %(self.text, value))
             
-class QRadioButtonFrame(QtGui.QFrame):
+class QRadioButtonFrame(QtWidgets.QFrame):
     """ Framed widget containing a label and list of radiobuttons """
     def __init__(self, labelText=None, buttonList=None, parent=None):
-        QtGui.QFrame.__init__(self, parent)
-        self.setFrameStyle(QtGui.QFrame.Raised)
-        self.setFrameShape(QtGui.QFrame.Box)
+        QtWidgets.QFrame.__init__(self, parent)
+        self.setFrameStyle(QtWidgets.QFrame.Raised)
+        self.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.hbox = QtGui.QHBoxLayout()
+        self.hbox = QtWidgets.QHBoxLayout()
         self.setLayout(self.hbox)
-        self.buttonGroup = QtGui.QButtonGroup()
+        self.buttonGroup = QtWidgets.QButtonGroup()
         self.buttons = {}
 
         if labelText is not None:
-            self.addLabel(QtGui.QLabel(labelText))
+            self.addLabel(QtWidgets.QLabel(labelText))
         if buttonList is not None:
             self.addButtonList(buttonList)
 
@@ -1608,7 +1593,7 @@ class QRadioButtonFrame(QtGui.QFrame):
     def addButtonList(self, buttonList):
         """ Create and add buttons from a list of strings """
         for buttonText in buttonList:
-            button = QtGui.QRadioButton(buttonText)
+            button = QtWidgets.QRadioButton(buttonText)
             self.buttons[buttonText] = button
             self.addButton(button)
 

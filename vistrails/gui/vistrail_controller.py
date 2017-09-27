@@ -39,7 +39,7 @@ from __future__ import division
 import os
 import uuid
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import vistrails.core.analogy
 from vistrails.core.configuration import get_vistrails_configuration
@@ -72,9 +72,9 @@ from vistrails.gui.version_prop import QVersionProp
 
 ################################################################################
 
-class ExecutionProgressDialog(QtGui.QProgressDialog):
+class ExecutionProgressDialog(QtWidgets.QProgressDialog):
     def __init__(self, parent=None):
-        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
+        QtWidgets.QProgressDialog.__init__(self, 'Executing Workflow',
                                        '&Cancel',
                                        0, 100,
                                        parent, QtCore.Qt.Dialog)
@@ -94,9 +94,9 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.show()
         super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
-class PEProgressDialog(QtGui.QProgressDialog):
+class PEProgressDialog(QtWidgets.QProgressDialog):
     def __init__(self, parent=None, total_progress=100):
-        QtGui.QProgressDialog.__init__(self,
+        QtWidgets.QProgressDialog.__init__(self,
                                        'Performing Parameter Exploration...',
                                        '&Cancel',
                                        0, total_progress,
@@ -143,6 +143,13 @@ class VistrailController(QtCore.QObject, BaseController):
     been updated
 
     """
+    invalidateSingleNodeInVersionTree = QtCore.pyqtSignal()
+    vistrailChanged = QtCore.pyqtSignal()
+    new_action = QtCore.pyqtSignal()
+    notesChanged = QtCore.pyqtSignal()
+    versionWasChanged = QtCore.pyqtSignal()
+    searchChanged = QtCore.pyqtSignal()
+    stateChanged = QtCore.pyqtSignal()
 
     def __init__(self, vistrail=None, locator=None, abstractions=None,
                  thumbnails=None, mashups=None, pipeline_view=None, 
@@ -227,20 +234,18 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def set_pipeline_view(self, pipeline_view):
         if self.current_pipeline_view is not None:
-            self.disconnect(self, QtCore.SIGNAL('versionWasChanged'),
-                            self.current_pipeline_view.version_changed)
+            self.versionWasChanged.disconnect(self.current_pipeline_view.version_changed)
         self.current_pipeline_view = pipeline_view
-        self.connect(self, QtCore.SIGNAL('versionWasChanged'),
-                     self.current_pipeline_view.version_changed)
+        self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
     
     def setup_timer(self):
         self.timer = QtCore.QTimer(self)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+        self.timer.timeout.connect(self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
         
     def stop_timer(self):
         if self.timer:
-            self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+            self.timer.timeout.disconnect(self.write_temporary)
             self.timer.stop()
 
     def reset_redo_stack(self):
@@ -286,8 +291,7 @@ class VistrailController(QtCore.QObject, BaseController):
         a single unnamed node and links need to be updated. Much faster."""
         self.reset_version_view = False
         try:
-            self.emit(QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
-                      old_version, new_version)
+            self.invalidateSingleNodeInVersionTree.emit(old_version, new_version)
         finally:
             self.reset_version_view = True
 
@@ -298,7 +302,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = reset_version_view
         #FIXME: in the future, rename the signal
         try:
-            self.emit(QtCore.SIGNAL('vistrailChanged()'))
+            self.vistrailChanged.emit()
         finally:
             self.reset_version_view = True
 
@@ -388,7 +392,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         if action is not None:
             BaseController.add_new_action(self, action, description)
-            self.emit(QtCore.SIGNAL("new_action"), action)
+            self.new_action.emit(action)
             self.recompute_terse_graph()
 
     ##########################################################################
@@ -413,7 +417,7 @@ class VistrailController(QtCore.QObject, BaseController):
         # Add notes
         if self.vistrail.set_notes(self.current_base_version, str(notes)):
             self.set_changed(True)
-            self.emit(QtCore.SIGNAL('notesChanged()'))
+            self.notesChanged.emit()
 
     ##########################################################################
     # Workflow Execution
@@ -643,7 +647,7 @@ class VistrailController(QtCore.QObject, BaseController):
         #         new_version not in self._current_terse_graph.vertices:
         #     self.recompute_terse_graph()
 
-        self.emit(QtCore.SIGNAL('versionWasChanged'), self.current_version)
+        self.versionWasChanged.emit(self.current_version)
 
     def set_search(self, search, text=''):
         """ set_search(search: SearchStmt, text: str) -> None
@@ -664,7 +668,7 @@ class VistrailController(QtCore.QObject, BaseController):
             else:
                 self.invalidate_version_tree(False)
             
-            self.emit(QtCore.SIGNAL('searchChanged'))
+            self.searchChanged.emit()
 
     def set_refine(self, refine):
         """ set_refine(refine: bool) -> None
@@ -966,10 +970,10 @@ class VistrailController(QtCore.QObject, BaseController):
         else:
             prompt = 'Enter subworkflow name'
             
-        (text, ok) = QtGui.QInputDialog.getText(None, 
+        (text, ok) = QtWidgets.QInputDialog.getText(None, 
                                                 'Set SubWorkflow Name',
                                                 prompt,
-                                                QtGui.QLineEdit.Normal,
+                                                QtWidgets.QLineEdit.Normal,
                                                 name)
         if ok and text:
             return str(text).strip().rstrip()
@@ -989,17 +993,17 @@ class VistrailController(QtCore.QObject, BaseController):
                                         abstraction.internal_version)
         
     def do_export_prompt(self, title, prompt):
-        (text, ok) = QtGui.QInputDialog.getText(None,
+        (text, ok) = QtWidgets.QInputDialog.getText(None,
                                                 title,
                                                 prompt,
-                                                QtGui.QLineEdit.Normal,
+                                                QtWidgets.QLineEdit.Normal,
                                                 '')
         if ok and text:
             return str(text).strip().rstrip()
         return ''
             
     def do_save_dir_prompt(self):
-        dialog = QtGui.QFileDialog.getExistingDirectory
+        dialog = QtWidgets.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
                           vistrails.core.system.vistrails_file_directory())
         if not dir_name:
@@ -1145,7 +1149,7 @@ class VistrailController(QtCore.QObject, BaseController):
         BaseController.set_changed(self, changed)
         if changed:
             # FIXME: emit different signal in the future
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()
 
     def set_file_name(self, file_name):
         """ set_file_name(file_name: str) -> None
@@ -1155,7 +1159,7 @@ class VistrailController(QtCore.QObject, BaseController):
         old_name = self.file_name
         BaseController.set_file_name(self, file_name)
         if old_name != file_name:
-            self.emit(QtCore.SIGNAL('stateChanged'))
+            self.stateChanged.emit()
 
     def write_vistrail(self, locator, version=None, export=False):
         need_invalidate = BaseController.write_vistrail(self, locator,

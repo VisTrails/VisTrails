@@ -44,7 +44,7 @@
 
 from __future__ import division
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 qt_resource_data = b"\
 \x00\x00\x33\x77\

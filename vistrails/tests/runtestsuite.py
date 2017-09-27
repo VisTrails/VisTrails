@@ -169,7 +169,7 @@ def setNewPyQtAPI():
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
     except Exception:
-        print "Could not set PyQt API, is PyQt4 installed?"
+        print "Could not set PyQt API, is PyQt5 installed?"
 setNewPyQtAPI()
 
 # Start debugger on test failure
@@ -301,10 +301,10 @@ print "Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(
 print "Running on %s" % ', '.join(platform.uname())
 print "Python is %s" % sys.version
 try:
-    from PyQt4 import QtCore
-    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+    from PyQt5 import QtCore
+    print "Using PyQt5 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
 except ImportError:
-    print "PyQt4 not available"
+    print "PyQt5 not available"
 for pkg in ('numpy', 'scipy', 'matplotlib'):
     try:
         ipkg = __import__(pkg, globals(), locals(), [], -1)

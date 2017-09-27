@@ -35,16 +35,16 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 from vistrails.gui.common_widgets import QPromptWidget
 
-class StandardModuleConfigurationWidget(QtGui.QWidget):
+class StandardModuleConfigurationWidget(QtWidgets.QWidget):
 
     def __init__(self, module, controller, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.module = module
         self.controller = controller
         self.state_changed = False
@@ -83,7 +83,7 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.prompt.setPromptText("Please use the visibility icon (an eye) in" 
                                   " the Module Information panel to show or"
                                   " hide a port.")
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.prompt)
         self.setLayout(layout)
         self.prompt.showPrompt()
@@ -97,40 +97,41 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     """ This is the Default ModuleConfigurationWidget that shows a list of
         ports to be enabled or disabled """
+    stateChanged = QtCore.pyqtSignal()
+    doneConfigure = QtCore.pyqtSignal()
+
     def __init__(self, module, controller, parent=None):
         StandardModuleConfigurationWidget.__init__(self, module, controller, 
                                                    parent)
        
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
-        self.scrollArea = QtGui.QScrollArea(self)
+        self.scrollArea = QtWidgets.QScrollArea(self)
         self.layout().addWidget(self.scrollArea)
-        self.scrollArea.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.listContainer = QtGui.QWidget(self.scrollArea)
-        self.listContainer.setLayout(QtGui.QGridLayout(self.listContainer))
+        self.scrollArea.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.listContainer = QtWidgets.QWidget(self.scrollArea)
+        self.listContainer.setLayout(QtWidgets.QGridLayout(self.listContainer))
         self.listContainer.setFocusPolicy(QtCore.Qt.WheelFocus)
         self.inputPorts = self.module.destinationPorts()
         self.inputDict = {}
         self.outputPorts = self.module.sourcePorts()
         self.outputDict = {}
         self.constructList()
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.saveButton = QtGui.QPushButton('&Save', self)
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.saveButton = QtWidgets.QPushButton('&Save', self)
         self.saveButton.setFixedWidth(100)
         self.saveButton.setEnabled(False)
         self.buttonLayout.addWidget(self.saveButton)
-        self.resetButton = QtGui.QPushButton('&Reset', self)
+        self.resetButton = QtWidgets.QPushButton('&Reset', self)
         self.resetButton.setFixedWidth(100)
         self.resetButton.setEnabled(False)
         self.buttonLayout.addWidget(self.resetButton)
         
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.saveButton, QtCore.SIGNAL('clicked(bool)'), 
-                     self.saveTriggered)
-        self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'), 
-                     self.resetTriggered)
+        self.saveButton.clicked[bool].connect(self.saveTriggered)
+        self.resetButton.clicked[bool].connect(self.resetTriggered)
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
         self.adjustSize()
@@ -162,7 +163,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 #        self.mouseOver = False
         
     def checkBoxFromPort(self, port, input_=False):
-        checkBox = QtGui.QCheckBox(port.name)
+        checkBox = QtWidgets.QCheckBox(port.name)
         if input_:
             port_visible = port.name in self.module.visible_input_ports
         else:
@@ -176,12 +177,12 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         return checkBox
 
     def constructList(self):
-        label = QtGui.QLabel('Input Ports')
+        label = QtWidgets.QLabel('Input Ports')
         label.setAlignment(QtCore.Qt.AlignHCenter)
         label.font().setBold(True)
         label.font().setPointSize(12)
         self.listContainer.layout().addWidget(label, 0, 0)
-        label = QtGui.QLabel('Output Ports')
+        label = QtWidgets.QLabel('Output Ports')
         label.setAlignment(QtCore.Qt.AlignHCenter)
         label.font().setBold(True)
         label.font().setPointSize(12)
@@ -191,8 +192,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             port = self.inputPorts[i]
             checkBox = self.checkBoxFromPort(port, True)
             checkBox.setFocusPolicy(QtCore.Qt.StrongFocus)
-            self.connect(checkBox, QtCore.SIGNAL("stateChanged(int)"),
-                         self.updateState)
+            checkBox.stateChanged[int].connect(self.updateState)
             self.inputDict[port.name] = checkBox
             self.listContainer.layout().addWidget(checkBox, i+1, 0)
         
@@ -200,8 +200,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             port = self.outputPorts[i]
             checkBox = self.checkBoxFromPort(port)
             checkBox.setFocusPolicy(QtCore.Qt.StrongFocus)
-            self.connect(checkBox, QtCore.SIGNAL("stateChanged(int)"),
-                         self.updateState)
+            checkBox.stateChanged[int].connect(self.updateState)
             self.outputDict[port.name] = checkBox
             self.listContainer.layout().addWidget(checkBox, i+1, 1)
         
@@ -230,8 +229,8 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL("stateChanged"))
-        self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
+        self.stateChanged.emit()
+        self.doneConfigure.emit(self.module.id)
         
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -262,7 +261,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.saveButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.state_changed = False
-        self.emit(QtCore.SIGNAL("stateChanged"))
+        self.stateChanged.emit()
         
     def updateState(self, state):
         self.setFocus(QtCore.Qt.MouseFocusReason)
@@ -270,4 +269,4 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.resetButton.setEnabled(True)
         if not self.state_changed:
             self.state_changed = True
-            self.emit(QtCore.SIGNAL("stateChanged"))
+            self.stateChanged.emit()

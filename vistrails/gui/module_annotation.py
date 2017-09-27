@@ -42,12 +42,12 @@ QModuleAnnotationTable
 """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core import debug
 
 ################################################################################
 
-class QModuleAnnotation(QtGui.QDialog):
+class QModuleAnnotation(QtWidgets.QDialog):
     """
     QModuleAnnotation is a dialog for annotating modules
 
@@ -58,33 +58,33 @@ class QModuleAnnotation(QtGui.QDialog):
         -> None
 
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.module = module
         self.controller = controller
         self.setModal(True)
         self.setWindowTitle('Module Annotations')
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
-        self.scrollArea = QtGui.QScrollArea(self)
+        self.scrollArea = QtWidgets.QScrollArea(self)
         self.layout().addWidget(self.scrollArea)
-        self.scrollArea.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.scrollArea.setFrameStyle(QtWidgets.QFrame.NoFrame)
         self.annotationTable = QModuleAnnotationTable(self.module,
                                                       self.controller,
                                                       self)
         self.scrollArea.setWidget(self.annotationTable)
         self.scrollArea.setWidgetResizable(True)
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.closeButton = QtGui.QPushButton('Close', self)
+        self.buttonLayout = QtWidgets.QHBoxLayout()
+        self.buttonLayout.setContentsMargins(5, 5, 5, 5)
+        self.closeButton = QtWidgets.QPushButton('Close', self)
         self.closeButton.setFixedWidth(100)
         self.buttonLayout.addWidget(self.closeButton)
         self.closeButton.setShortcut('Esc')
         self.layout().addLayout(self.buttonLayout)
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), self.close)
+        self.closeButton.clicked[bool].connect(self.close)
 
         
-class QModuleAnnotationTable(QtGui.QTableWidget):
+class QModuleAnnotationTable(QtWidgets.QTableWidget):
     """
     QModuleAnnotationTable is a table widget that can be dock inside a
     window. It has two columns for key and value pairs to view/edit at
@@ -97,14 +97,14 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         Construct the 1x2 table
         
         """
-        QtGui.QTableWidget.__init__(self, 1, 2, parent)
+        QtWidgets.QTableWidget.__init__(self, 1, 2, parent)
         self.read_only = False
         self.setHorizontalHeaderLabels(['Key', 'Value'])
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        self.horizontalHeader().setMovable(False)
+        self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+        self.horizontalHeader().setSectionsMovable(False)
         self.horizontalHeader().setStretchLastSection(True)
         self.setSortingEnabled(True)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.verticalHeader().hide()
         self.delegate = QKeyValueDelegate(self)
         self.setItemDelegate(self.delegate)
@@ -140,16 +140,16 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
                     # anymore. If it's present we decrease the rowcount by 1
                     self.setRowCount(len(self.module.annotations))
                 else:
-                    self.setItem(curRow, 0, QtGui.QTableWidgetItem(annotation.key))
-                    item = QtGui.QTableWidgetItem(annotation.value)
+                    self.setItem(curRow, 0, QtWidgets.QTableWidgetItem(annotation.key))
+                    item = QtWidgets.QTableWidgetItem(annotation.value)
                     self.setItem(curRow, 1, item)
                     curRow += 1
             self.setEnabled(not self.read_only)
         else:
             self.setRowCount(1)
             self.setEnabled(False)
-        self.setItem(self.rowCount()-1, 0, QtGui.QTableWidgetItem(''))
-        self.setItem(self.rowCount()-1, 1, QtGui.QTableWidgetItem(''))
+        self.setItem(self.rowCount()-1, 0, QtWidgets.QTableWidgetItem(''))
+        self.setItem(self.rowCount()-1, 1, QtWidgets.QTableWidgetItem(''))
         self.setSortingEnabled(True)
 
     def makeItemBold(self, index):
@@ -185,16 +185,16 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         self.resizeRowsToContents()
         self.insertRow(self.rowCount())
         self.setItem(self.rowCount()-1, 0,
-                     QtGui.QTableWidgetItem(''))
+                     QtWidgets.QTableWidgetItem(''))
         self.setItem(self.rowCount()-1, 1,
-                     QtGui.QTableWidgetItem(''))
+                     QtWidgets.QTableWidgetItem(''))
         self.setSortingEnabled(False)
 
     def editNextAvailableCell(self):
         item = self.item(self.rowCount()-1, 0)
         self.editItem(item)
         
-class QKeyValueDelegate(QtGui.QItemDelegate):
+class QKeyValueDelegate(QtWidgets.QItemDelegate):
     """    
     QKeyValueDelegate tries to create a special control widget
     providing a simple interface for adding/deleting module
@@ -208,7 +208,7 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
         
         """
         self.table = table
-        QtGui.QItemDelegate.__init__(self, None)
+        QtWidgets.QItemDelegate.__init__(self, None)
     
     def setEditorData(self, editor, index):
         """ setEditorData(editor: QWidget, index: QModelIndex) -> None
@@ -253,19 +253,19 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                 if (self.table.module and
                     self.table.module.has_annotation_with_key(text)):
                     if text == '__desc__':
-                        QtGui.QMessageBox.information(None,
+                        QtWidgets.QMessageBox.information(None,
                                                       "VisTrails",
                                     'Please use "Set Module Label..." menu option'
                                     ' to set the label for this module.')
                     else:
-                        QtGui.QMessageBox.information(None,
+                        QtWidgets.QMessageBox.information(None,
                                                   "VisTrails",
                                                   text + ' already exists in '
                                                   'the annotations.')
                     return
 
         if col==1 and key=='':
-            QtGui.QMessageBox.information(None,
+            QtWidgets.QMessageBox.information(None,
                                           "VisTrails",
                                           "Must provide a key first.")
             return

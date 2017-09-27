@@ -39,7 +39,7 @@
 # create_module_appearance.py helps VisTrails package developers customize
 # the appearance of modules in their packages.
 
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt5 import Qt, QtCore, QtGui, QtWidgets
 from module_appearance import Ui_MainWindow
 import sys
 
@@ -53,13 +53,13 @@ selected_pen.setColor(QtCore.Qt.yellow)
 
 ##############################################################################
 
-class ModuleFringeJoint(QtGui.QGraphicsEllipseItem):
+class ModuleFringeJoint(QtWidgets.QGraphicsEllipseItem):
     
     brush = QtGui.QBrush(QtGui.QColor(192, 192, 192))
     def __init__(self, leftLine, rightLine):
         pt = rightLine.line().p1()
         sz = 5
-        QtGui.QGraphicsEllipseItem.__init__(self, -sz/2, -sz/2, sz, sz)
+        QtWidgets.QGraphicsEllipseItem.__init__(self, -sz/2, -sz/2, sz, sz)
         self.setPos(pt)
         self.leftLine = leftLine
         self.rightLine = rightLine
@@ -67,8 +67,8 @@ class ModuleFringeJoint(QtGui.QGraphicsEllipseItem):
         self.setPen(default_pen)
         self.setBrush(self.brush)
         self.setZValue(1.0)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsFocusable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
         
     def removeSelf(self):
         scene = self.scene()
@@ -80,7 +80,7 @@ class ModuleFringeJoint(QtGui.QGraphicsEllipseItem):
             self.rightLine.rightJoint.leftLine = self.leftLine
         
     def mouseMoveEvent(self, event):
-        QtGui.QGraphicsItem.mouseMoveEvent(self, event)
+        QtWidgets.QGraphicsItem.mouseMoveEvent(self, event)
         self.leftLine.moveRightPoint(self.scenePos())
         self.rightLine.moveLeftPoint(self.scenePos())
         app.window.update_text_view()
@@ -115,10 +115,10 @@ class ModuleFringeJoint(QtGui.QGraphicsEllipseItem):
         else:
             raise Exception("side must be either 'right' or 'left'")
 
-class ModuleFringeLine(QtGui.QGraphicsLineItem):
+class ModuleFringeLine(QtWidgets.QGraphicsLineItem):
 
     def __init__(self, leftJoint, rightJoint, *args, **kwargs):
-        QtGui.QGraphicsLineItem.__init__(self, *args, **kwargs)
+        QtWidgets.QGraphicsLineItem.__init__(self, *args, **kwargs)
         self.setAcceptHoverEvents(True)
         self.setPen(default_pen)
         self.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
@@ -164,29 +164,21 @@ class ModuleFringeLine(QtGui.QGraphicsLineItem):
 
 ##############################################################################
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, parent=None):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.gv = self.ui.graphicsView
         self.setup_graphics_view()
-        self.connect(self.ui.pushButton_Quit,
-                     QtCore.SIGNAL("clicked()"),
-                     QtGui.qApp.quit)
-        self.connect(self.ui.pushButton_symmetric,
-                     QtCore.SIGNAL("clicked()"),
-                     self.make_symmetric)
-        self.connect(self.ui.pushButton_mirrored,
-                     QtCore.SIGNAL("clicked()"),
-                     self.make_mirrored)
-        self.connect(self.ui.pushButton_Clear,
-                     QtCore.SIGNAL("clicked()"),
-                     self.clear_points)
+        self.ui.pushButton_Quit.clicked.connect(QtWidgets.QApplication.quit)
+        self.ui.pushButton_symmetric.clicked.connect(self.make_symmetric)
+        self.ui.pushButton_mirrored.clicked.connect(self.make_mirrored)
+        self.ui.pushButton_Clear.clicked.connect(self.clear_points)
 
     def setup_graphics_view(self):
-        self.scene = QtGui.QGraphicsScene()
+        self.scene = QtWidgets.QGraphicsScene()
         self.gv.setScene(self.scene)
         self.gv.setBackgroundBrush(QtCore.Qt.gray)
         pen = QtGui.QPen()
@@ -274,7 +266,7 @@ class MainWindow(QtGui.QMainWindow):
 ##############################################################################
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     app.window = MainWindow()
     app.window.show()
     app.exec_()

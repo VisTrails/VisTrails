@@ -39,7 +39,7 @@ QParameterView
 """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
@@ -71,23 +71,23 @@ class ParameterInfo(InstanceObject):
 
 ################################################################################
 
-class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
+class QParameterView(QtWidgets.QWidget, QVistrailsPaletteInterface):
     """
     QParameterView contains the parameter exploration properties and the
     parameter palette
     
     """
     def __init__(self, controller=None, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.set_title('Pipeline Methods')
         
         self.controller = None
-        vLayout = QtGui.QVBoxLayout()
-        vLayout.setMargin(0)
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(0, 0, 0, 0)
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
 
-        self.toggleUnsetParameters = QtGui.QCheckBox('Show Unset Parameters')
+        self.toggleUnsetParameters = QtWidgets.QCheckBox('Show Unset Parameters')
         vLayout.addWidget(self.toggleUnsetParameters, 0, QtCore.Qt.AlignRight)
 
         self.parameterWidget = QParameterWidget()
@@ -102,8 +102,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         vLayout.setStretch(1,1)
         vLayout.setStretch(2,0)
 
-        self.connect(self.toggleUnsetParameters, QtCore.SIGNAL("toggled(bool)"),
-                     self.parameterWidget.treeWidget.toggleUnsetParameters)
+        self.toggleUnsetParameters.toggled[bool].connect(self.parameterWidget.treeWidget.toggleUnsetParameters)
         self.set_controller(controller)
 
     def set_controller(self, controller):
@@ -339,7 +338,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
             if not item.isSet:
                 item.setHidden(not state)
             
-class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
+class QParameterTreeWidgetItemDelegate(QtWidgets.QItemDelegate):
     """    
     QParameterTreeWidgetItemDelegate will override the original
     QTreeWidget paint function to draw buttons for top-level item
@@ -355,7 +354,7 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
         Create the item delegate given the tree view
         
         """
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
         self.treeView = view
 
     def paint(self, painter, option, index):
@@ -404,18 +403,18 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                               QtCore.Qt.AlignLeft |
                                               QtCore.Qt.AlignVCenter)
         else:
-            QtGui.QItemDelegate.paint(self, painter, option, index)
+            QtWidgets.QItemDelegate.paint(self, painter, option, index)
 
     def sizeHint(self, option, index):
         """ sizeHint(option: QStyleOptionViewItem, index: QModelIndex) -> None
         Take into account the size of the top-level button
         
         """
-        return (QtGui.QItemDelegate.sizeHint(self, option, index) +
+        return (QtWidgets.QItemDelegate.sizeHint(self, option, index) +
                 QtCore.QSize(2, 2))
             
 
-class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
+class QParameterTreeWidgetItem(QtWidgets.QTreeWidgetItem):
     """
     QParameterTreeWidgetItem represents module on QParameterTreeWidget
     
@@ -436,7 +435,7 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
         isSet indicates if it represents a set or unset parameter
         """
         self.parameter = info
-        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent, labelList)
         if isinstance(self.parameter, int):
             self.setData(0, QtCore.Qt.UserRole+1,
                          self.parameter)

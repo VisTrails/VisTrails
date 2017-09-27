@@ -48,7 +48,7 @@ import string
 import subprocess
 import sys
 import threading
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9d', '"'],
@@ -119,11 +119,11 @@ class Command(object):
             thread.join()
         return self.status, self.output, self.error
 
-class QCLToolsWizard(QtGui.QWidget):
+class QCLToolsWizard(QtWidgets.QWidget):
     def __init__(self, parent, reload_scripts=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
-        self.vbox = QtGui.QVBoxLayout()
+        self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.setContentsMargins(5,5,5,5)
 
         self.setLayout(self.vbox)
@@ -132,94 +132,85 @@ class QCLToolsWizard(QtGui.QWidget):
         self.conf = None
         self.reload_scripts = reload_scripts
 
-        self.toolBar = QtGui.QToolBar()
+        self.toolBar = QtWidgets.QToolBar()
         self.layout().addWidget(self.toolBar)
-        self.newFileAction = QtGui.QAction(
+        self.newFileAction = QtWidgets.QAction(
             self.get_icon('document-new'), 'New', self)
         self.newFileAction.setToolTip('Start on a new Wrapper')
-        self.connect(self.newFileAction, QtCore.SIGNAL('triggered()'),
-                     self.newFile)
+        self.newFileAction.triggered.connect(self.newFile)
         self.toolBar.addAction(self.newFileAction)
-        self.openFileAction = QtGui.QAction(
+        self.openFileAction = QtWidgets.QAction(
             self.get_icon('document-open'), 'Open', self)
         self.openFileAction.setToolTip('Open an existing wrapper')
-        self.connect(self.openFileAction, QtCore.SIGNAL('triggered()'),
-                     self.openFile)
+        self.openFileAction.triggered.connect(self.openFile)
         self.toolBar.addAction(self.openFileAction)
-        self.saveFileAction = QtGui.QAction(
+        self.saveFileAction = QtWidgets.QAction(
             self.get_icon('document-save'), 'Save', self)
         self.saveFileAction.setToolTip('Save wrapper')
-        self.connect(self.saveFileAction, QtCore.SIGNAL('triggered()'),
-                     self.save)
+        self.saveFileAction.triggered.connect(self.save)
         self.toolBar.addAction(self.saveFileAction)
-        self.saveFileAsAction = QtGui.QAction(
+        self.saveFileAsAction = QtWidgets.QAction(
             self.get_icon('document-save-as'), 'Save As', self)
         self.saveFileAsAction.setToolTip('Save wrapper as a new file')
-        self.connect(self.saveFileAsAction, QtCore.SIGNAL('triggered()'),
-                     self.saveAs)
+        self.saveFileAsAction.triggered.connect(self.saveAs)
         self.toolBar.addAction(self.saveFileAsAction)
 
         if self.reload_scripts:
-            self.reloadAction = QtGui.QAction(
+            self.reloadAction = QtWidgets.QAction(
                 self.get_icon('view-refresh'), 'Refresh', self)
             self.reloadAction.setToolTip('Save and Reload CLTools Modules in VisTrails')
-            self.connect(self.reloadAction, QtCore.SIGNAL('triggered()'),
-                         self.refresh)
+            self.reloadAction.triggered.connect(self.refresh)
             self.toolBar.addAction(self.reloadAction)
         
         self.toolBar.addSeparator()
-        self.addAction = QtGui.QAction(
+        self.addAction = QtWidgets.QAction(
             self.get_icon('list-add'), 'Add', self)
         self.addAction.setToolTip('Add a new argument')
-        self.connect(self.addAction, QtCore.SIGNAL('triggered()'),
-                     self.addArgument)
+        self.addAction.triggered.connect(self.addArgument)
         self.toolBar.addAction(self.addAction)
-        self.removeAction = QtGui.QAction(
+        self.removeAction = QtWidgets.QAction(
             self.get_icon('list-remove'), 'Remove', self)
         self.removeAction.setToolTip('Remove the selected argument')
-        self.connect(self.removeAction, QtCore.SIGNAL('triggered()'),
-                     self.removeArgument)
+        self.removeAction.triggered.connect(self.removeArgument)
         self.toolBar.addAction(self.removeAction)
-        self.upAction = QtGui.QAction(
+        self.upAction = QtWidgets.QAction(
             self.get_icon('go-up'), 'Move up', self)
         self.upAction.setToolTip('Move argument up one position')
-        self.connect(self.upAction, QtCore.SIGNAL('triggered()'),
-                     self.moveUp)
+        self.upAction.triggered.connect(self.moveUp)
         self.toolBar.addAction(self.upAction)
-        self.downAction = QtGui.QAction(
+        self.downAction = QtWidgets.QAction(
             self.get_icon('go-down'), 'Move down', self)
         self.downAction.setToolTip('Move argument down one position')
-        self.connect(self.downAction, QtCore.SIGNAL('triggered()'),
-                     self.moveDown)
+        self.downAction.triggered.connect(self.moveDown)
         self.toolBar.addAction(self.downAction)
         
         self.toolBar.addSeparator()
 
-        self.showStdin = QtGui.QAction('stdin', self)
+        self.showStdin = QtWidgets.QAction('stdin', self)
         self.showStdin.setToolTip('Check to use standard input as an input port')
         self.showStdin.setCheckable(True)
         self.toolBar.addAction(self.showStdin)
-        self.showStdout = QtGui.QAction("stdout", self)
+        self.showStdout = QtWidgets.QAction("stdout", self)
         self.showStdout.setToolTip('Check to use standard output as an output port')
         self.showStdout.setCheckable(True)
         self.toolBar.addAction(self.showStdout)
-        self.showStderr = QtGui.QAction("stderr", self)
+        self.showStderr = QtWidgets.QAction("stderr", self)
         self.showStderr.setToolTip('Check to use standard error as an output port')
         self.showStderr.setCheckable(True)
         self.toolBar.addAction(self.showStderr)
-        self.envPort = QtGui.QAction("env", self)
+        self.envPort = QtWidgets.QAction("env", self)
         self.envPort.setToolTip('Check to add the "env" input port for specifying environment variables')
         self.envPort.setCheckable(True)
         self.toolBar.addAction(self.envPort)
         
         self.toolBar.addSeparator()
 
-        self.stdAsFiles = QtGui.QAction('std file processing', self)
+        self.stdAsFiles = QtWidgets.QAction('std file processing', self)
         self.stdAsFiles.setToolTip('Check to make pipes communicate using files instead of strings\nOnly useful when processing large files')
         self.stdAsFiles.setCheckable(True)
         self.toolBar.addAction(self.stdAsFiles)
 
-        self.failWithCmd = QtGui.QAction('fail execution if return != 0', self)
+        self.failWithCmd = QtWidgets.QAction('fail execution if return != 0', self)
         self.failWithCmd.setToolTip('If selected, VisTrails will check the exitcode, and abort the execution if not 0')
         self.failWithCmd.setCheckable(True)
         self.failWithCmd.setChecked(True)
@@ -227,116 +218,106 @@ class QCLToolsWizard(QtGui.QWidget):
 
         self.toolBar.addSeparator()
 
-        self.previewPorts = QtGui.QAction('preview', self)
+        self.previewPorts = QtWidgets.QAction('preview', self)
         self.previewPorts.setToolTip('Check which ports will be available for this module')
-        self.connect(self.previewPorts, QtCore.SIGNAL('triggered()'),
-                     self.preview_ports)
+        self.previewPorts.triggered.connect(self.preview_ports)
         self.toolBar.addAction(self.previewPorts)
 
         
         self.envOption = None
         
-        self.commandLayout = QtGui.QHBoxLayout()
+        self.commandLayout = QtWidgets.QHBoxLayout()
         self.commandLayout.setContentsMargins(5,5,5,5)
         tooltip = 'The command to execute'
-        label = QtGui.QLabel("Command:")
+        label = QtWidgets.QLabel("Command:")
         label.setFixedWidth(80)
         label.setToolTip(tooltip)
         self.commandLayout.addWidget(label)
-        self.command = QtGui.QLineEdit()
+        self.command = QtWidgets.QLineEdit()
         self.command.setToolTip(tooltip)
         self.commandLayout.addWidget(self.command)
         tooltip = 'Sets directory to execute from. Leave blank to ignore.'
-        label = QtGui.QLabel("Directory:")
+        label = QtWidgets.QLabel("Directory:")
         label.setToolTip(tooltip)
         self.commandLayout.addWidget(label)
-        self.dir = QtGui.QLineEdit()
+        self.dir = QtWidgets.QLineEdit()
         self.dir.setFixedWidth(140)
         self.dir.setToolTip(tooltip)
         self.commandLayout.addWidget(self.dir)
         self.vbox.addLayout(self.commandLayout)
 
-        self.previewLayout = QtGui.QHBoxLayout()
+        self.previewLayout = QtWidgets.QHBoxLayout()
         self.previewLayout.setContentsMargins(5,5,5,5)
         self.previewLayout.setAlignment(QtCore.Qt.AlignLeft)
         tooltip = 'Shows what the command will look like when executed in the command line'
-        label = QtGui.QLabel("Preview:")
+        label = QtWidgets.QLabel("Preview:")
         label.setToolTip(tooltip)
         label.setFixedWidth(80)
         self.previewLayout.addWidget(label)
-        self.preview = QtGui.QLabel()
+        self.preview = QtWidgets.QLabel()
         self.preview.setToolTip(tooltip)
         self.preview.setMaximumWidth(600)
         self.previewLayout.addWidget(self.preview)
         self.vbox.addLayout(self.previewLayout)
 
-        self.importLayout = QtGui.QHBoxLayout()
+        self.importLayout = QtWidgets.QHBoxLayout()
         self.importLayout.setContentsMargins(5,5,5,5)
         self.importLayout.setAlignment(QtCore.Qt.AlignLeft)
-        self.importLayout.addWidget(QtGui.QLabel("Man page:"))
-        self.viewManButton = QtGui.QPushButton("view")
+        self.importLayout.addWidget(QtWidgets.QLabel("Man page:"))
+        self.viewManButton = QtWidgets.QPushButton("view")
         self.viewManButton.setToolTip('View the man page for the current command')
-        self.connect(self.viewManButton, QtCore.SIGNAL('clicked()'),
-                     self.viewManPage)
+        self.viewManButton.clicked.connect(self.viewManPage)
         self.importLayout.addWidget(self.viewManButton)
-        self.importManButton = QtGui.QPushButton("import")
+        self.importManButton = QtWidgets.QPushButton("import")
         self.importManButton.setToolTip('Import arguments from the man page for the current command')
-        self.connect(self.importManButton, QtCore.SIGNAL('clicked()'),
-                     self.generateFromManPage)
+        self.importManButton.clicked.connect(self.generateFromManPage)
         self.importLayout.addWidget(self.importManButton)
 
-        self.importLayout.addWidget(QtGui.QLabel("help page (-h):"))
-        self.viewHelpButton = QtGui.QPushButton("view")
+        self.importLayout.addWidget(QtWidgets.QLabel("help page (-h):"))
+        self.viewHelpButton = QtWidgets.QPushButton("view")
         self.viewHelpButton.setToolTip('View the help (-h) page for the current command')
-        self.connect(self.viewHelpButton, QtCore.SIGNAL('clicked()'),
-                     self.viewHelpPage)
+        self.viewHelpButton.clicked.connect(self.viewHelpPage)
         self.importLayout.addWidget(self.viewHelpButton)
-        self.importHelpButton = QtGui.QPushButton("import")
+        self.importHelpButton = QtWidgets.QPushButton("import")
         self.importHelpButton.setToolTip('Import arguments from the help (-h) page for the current command')
-        self.connect(self.importHelpButton, QtCore.SIGNAL('clicked()'),
-                     self.generateFromHelpPage)
+        self.importHelpButton.clicked.connect(self.generateFromHelpPage)
         self.importLayout.addWidget(self.importHelpButton)
 
-        self.importLayout.addWidget(QtGui.QLabel("help page (--help):"))
-        self.viewHelpButton2 = QtGui.QPushButton("view")
+        self.importLayout.addWidget(QtWidgets.QLabel("help page (--help):"))
+        self.viewHelpButton2 = QtWidgets.QPushButton("view")
         self.viewHelpButton2.setToolTip('View the help (--help) page for the current command')
-        self.connect(self.viewHelpButton2, QtCore.SIGNAL('clicked()'),
-                     self.viewHelpPage2)
+        self.viewHelpButton2.clicked.connect(self.viewHelpPage2)
         self.importLayout.addWidget(self.viewHelpButton2)
-        self.importHelpButton2 = QtGui.QPushButton("import")
+        self.importHelpButton2 = QtWidgets.QPushButton("import")
         self.importHelpButton2.setToolTip('Import arguments from the help (--help) page for the current command')
-        self.connect(self.importHelpButton2, QtCore.SIGNAL('clicked()'),
-                     self.generateFromHelpPage2)
+        self.importHelpButton2.clicked.connect(self.generateFromHelpPage2)
         self.importLayout.addWidget(self.importHelpButton2)
         self.vbox.addLayout(self.importLayout)
 
         self.stdinWidget = QArgWidget('stdin')
-        self.stdinGroup = QtGui.QGroupBox('Standard input')
-        self.stdinGroup.setLayout(QtGui.QHBoxLayout())
+        self.stdinGroup = QtWidgets.QGroupBox('Standard input')
+        self.stdinGroup.setLayout(QtWidgets.QHBoxLayout())
         self.stdinGroup.layout().addWidget(self.stdinWidget)
         self.layout().addWidget(self.stdinGroup)
         self.stdinGroup.setVisible(False)
         self.stdoutWidget = QArgWidget('stdout')
-        self.stdoutGroup = QtGui.QGroupBox('Standard output')
-        self.stdoutGroup.setLayout(QtGui.QHBoxLayout())
+        self.stdoutGroup = QtWidgets.QGroupBox('Standard output')
+        self.stdoutGroup.setLayout(QtWidgets.QHBoxLayout())
         self.stdoutGroup.layout().addWidget(self.stdoutWidget)
         self.layout().addWidget(self.stdoutGroup)
         self.stdoutGroup.setVisible(False)
         self.stderrWidget = QArgWidget('stderr')
-        self.stderrGroup = QtGui.QGroupBox('Standard error')
-        self.stderrGroup.setLayout(QtGui.QHBoxLayout())
+        self.stderrGroup = QtWidgets.QGroupBox('Standard error')
+        self.stderrGroup.setLayout(QtWidgets.QHBoxLayout())
         self.stderrGroup.layout().addWidget(self.stderrWidget)
         self.layout().addWidget(self.stderrGroup)
         self.stderrGroup.setVisible(False)
 
-        self.connect(self.showStdin, QtCore.SIGNAL('toggled(bool)'),
-                     self.stdinGroup.setVisible)
-        self.connect(self.showStdout, QtCore.SIGNAL('toggled(bool)'),
-                     self.stdoutGroup.setVisible)
-        self.connect(self.showStderr, QtCore.SIGNAL('toggled(bool)'),
-                     self.stderrGroup.setVisible)
+        self.showStdin.toggled[bool].connect(self.stdinGroup.setVisible)
+        self.showStdout.toggled[bool].connect(self.stdoutGroup.setVisible)
+        self.showStderr.toggled[bool].connect(self.stderrGroup.setVisible)
         
-        self.argList = QtGui.QListWidget()
+        self.argList = QtWidgets.QListWidget()
         self.layout().addWidget(self.argList)
 
     def get_icon(self, name):
@@ -366,7 +347,7 @@ class QCLToolsWizard(QtGui.QWidget):
             self.argList.takeItem(0)
         self.argList.hide()
         self.layout().takeAt(self.layout().indexOf(self.argList))
-        self.argList = QtGui.QListWidget()
+        self.argList = QtWidgets.QListWidget()
         self.layout().addWidget(self.argList)
         self.stdAsFiles.setChecked(False)
         self.failWithCmd.setChecked(True)
@@ -374,10 +355,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.generate_preview()
     
     def openFile(self):
-        fileName = QtGui.QFileDialog.getOpenFileName(self,
+        fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                 "Open Wrapper",
                 self.file if self.file else default_dir(),
-                "Wrappers (*%s)" % SUFFIX)
+                "Wrappers (*%s)" % SUFFIX)[0]
         if not fileName:
             return
         try:
@@ -405,7 +386,7 @@ class QCLToolsWizard(QtGui.QWidget):
         for argConf in conf.get('args', []):
             arg = QArgWidget()
             arg.fromList(argConf)
-            item = QtGui.QListWidgetItem()
+            item = QtWidgets.QListWidgetItem()
             item.setSizeHint(arg.sizeHint())
             self.argList.addItem(item)
             self.argList.setItemWidget(item, arg)
@@ -464,10 +445,10 @@ class QCLToolsWizard(QtGui.QWidget):
         self.generate_preview()
 
     def saveAs(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self,
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self,
                             "Save Wrapper as",
                             self.file if self.file else default_dir(),
-                            "Wrappers (*%s)" % SUFFIX)
+                            "Wrappers (*%s)" % SUFFIX)[0]
         if fileName:
             self.file = fileName
             if not self.file.endswith(SUFFIX):
@@ -599,14 +580,14 @@ class QCLToolsWizard(QtGui.QWidget):
             arg = QArgWidget()
             arg.guess(argName, pos)
             pos += 1
-            item = QtGui.QListWidgetItem()
+            item = QtWidgets.QListWidgetItem()
             item.setSizeHint(arg.sizeHint())
             self.argList.addItem(item)
             self.argList.setItemWidget(item, arg)
 
     def addArgument(self):
         arg = QArgWidget()
-        item = QtGui.QListWidgetItem()
+        item = QtWidgets.QListWidgetItem()
         item.setSizeHint(arg.sizeHint())
         self.argList.addItem(item)
         self.argList.setItemWidget(item, arg)
@@ -647,7 +628,7 @@ class QCLToolsWizard(QtGui.QWidget):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             self.removeArgument()
         else:
-            QtGui.QWidget.keyPressEvent(self, event)
+            QtWidgets.QWidget.keyPressEvent(self, event)
     
     def parse(self, text):
         """ parse(self, text)
@@ -706,15 +687,13 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         text = self.runProcess(['-c', 'man %s | col -b' % command])
         if not text:
-            QtGui.QMessageBox.warning(self, "Man page not found",
+            QtWidgets.QMessageBox.warning(self, "Man page not found",
                                       "For command '%s'" % command)
             return
         args = self.parse(text)
         title = "Import arguments from man page for '%s'" % command
         self.manpageImport = QManpageImport(title, args, self)
-        self.connect(self.manpageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.manpageImport.importArgs['PyQt_PyObject'].connect(self.importArgs)
         self.manpageImport.show()
 
     def generateFromHelpPage(self):
@@ -723,16 +702,14 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         text = self.runProcess(['-c', command + ' -h'])
         if not text:
-            QtGui.QMessageBox.warning(self, "Help page (-h) not found",
+            QtWidgets.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
             return
         args = self.parse(text)
 
         title = "Import arguments from help page (-h) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.connect(self.helppageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.helppageImport.importArgs['PyQt_PyObject'].connect(self.importArgs)
         self.helppageImport.show()
 
     def generateFromHelpPage2(self):
@@ -741,16 +718,14 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         text = self.runProcess(['-c', command + ' --help'])
         if not text:
-            QtGui.QMessageBox.warning(self, "Help page (--help) not found",
+            QtWidgets.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
             return
         args = self.parse(text)
 
         title = "Import arguments from help page (--help) for '%s'" % command
         self.helppageImport = QManpageImport(title, args, self)
-        self.connect(self.helppageImport,
-                       QtCore.SIGNAL("importArgs(PyQt_PyObject)"),
-                       self.importArgs)
+        self.helppageImport.importArgs['PyQt_PyObject'].connect(self.importArgs)
         self.helppageImport.show()
 
     def viewManPage(self):
@@ -759,7 +734,7 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         text = self.runProcess(['-c', 'man %s | col -b' % command])
         if not text:
-            QtGui.QMessageBox.warning(self, "Man page not found",
+            QtWidgets.QMessageBox.warning(self, "Man page not found",
                                       "For command '%s'" % command)
             return
         title = "man page for '%s'" % command
@@ -772,7 +747,7 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         text = self.runProcess(['-c', command + ' -h'])
         if not text:
-            QtGui.QMessageBox.warning(self, "Help page (-h) not found",
+            QtWidgets.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
             return
         title = "Help page for '%s'" % command
@@ -785,7 +760,7 @@ class QCLToolsWizard(QtGui.QWidget):
             return
         text = self.runProcess(['-c', command + ' --help'])
         if not text:
-            QtGui.QMessageBox.warning(self, "Help page (--help) not found",
+            QtWidgets.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
             return
         title = "Help page for '%s'" % command
@@ -794,12 +769,12 @@ class QCLToolsWizard(QtGui.QWidget):
 
     def importArgs(self, args):
         for arg in args:
-            item = QtGui.QListWidgetItem()
+            item = QtWidgets.QListWidgetItem()
             item.setSizeHint(arg.sizeHint())
             self.argList.insertItem(0, item)
             self.argList.setItemWidget(item, arg)
 
-class QArgWidget(QtGui.QWidget):
+class QArgWidget(QtWidgets.QWidget):
     """ Widget for configuring an argument """
     KLASSES = {
             'input': ['flag', 'file', 'path', 'directory',
@@ -830,7 +805,7 @@ class QArgWidget(QtGui.QWidget):
         }
 
     def __init__(self, argtype='Input', name='untitled', klass='Flag', options={}, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.stdTypes = ['stdin', 'stdout', 'stderr']
         self.stdLabels = ['Standard input', 'Standard output', 'Standard error']
         self.stdDict = dict(zip(self.stdTypes, self.stdLabels))
@@ -840,7 +815,7 @@ class QArgWidget(QtGui.QWidget):
         self.klass = klass.lower()
         self.options = options
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
         self.buildWidget()
@@ -849,18 +824,18 @@ class QArgWidget(QtGui.QWidget):
         layout = self.layout()
         layout.setContentsMargins(2,2,2,2)
         # remove any previous layout
-        layout1 = QtGui.QHBoxLayout()
+        layout1 = QtWidgets.QHBoxLayout()
         layout1.setContentsMargins(2,2,2,2)
         layout.addLayout(layout1)
         if self.argtype not in self.stdTypes:
-            layout2 = QtGui.QHBoxLayout()
+            layout2 = QtWidgets.QHBoxLayout()
             layout2.setContentsMargins(2,2,2,2)
             layout.addLayout(layout2)
         else:
             layout2 = layout1
         # type of argument
         if self.argtype not in self.stdTypes:
-            self.typeList = QtGui.QComboBox()
+            self.typeList = QtWidgets.QComboBox()
             self.typeDict = {}
             for i, n in enumerate(self.TYPES):
                 self.typeList.addItem(self.TYPENAMES[n], n)
@@ -875,7 +850,7 @@ class QArgWidget(QtGui.QWidget):
         else:
             self.typeList = None
         # type of port
-        self.klassList = QtGui.QComboBox()
+        self.klassList = QtWidgets.QComboBox()
         klasses = self.KLASSES[self.argtype]
         self.klassDict = {}
         for i, n in enumerate(klasses):
@@ -889,8 +864,8 @@ class QArgWidget(QtGui.QWidget):
         #layout1.addWidget(label)
         layout1.addWidget(self.klassList)
         # name of port
-        self.nameLine = QtGui.QLineEdit(self.name)
-        label = QtGui.QLabel('Name:')
+        self.nameLine = QtWidgets.QLineEdit(self.name)
+        label = QtWidgets.QLabel('Name:')
         tt = 'Name of the port, or the value for constants'
         label.setToolTip(tt)
         self.nameLine.setToolTip(tt)
@@ -899,8 +874,8 @@ class QArgWidget(QtGui.QWidget):
         # options are different for each widget
         if self.argtype not in self.stdTypes:
             # all args can have flag
-            self.flag = QtGui.QLineEdit(self.options.get('flag', ''))
-            label = QtGui.QLabel('Flag:')
+            self.flag = QtWidgets.QLineEdit(self.options.get('flag', ''))
+            label = QtWidgets.QLabel('Flag:')
             tt = 'a short-style flag before your input. Example: "-f" -> "-f yourinput"'
             label.setToolTip(tt)
             self.flag.setToolTip(tt)
@@ -909,8 +884,8 @@ class QArgWidget(QtGui.QWidget):
             layout1.addWidget(self.flag)
         
             # all args can have prefix
-            self.prefix = QtGui.QLineEdit(self.options.get('prefix', ''))
-            label = QtGui.QLabel('Prefix:')
+            self.prefix = QtWidgets.QLineEdit(self.options.get('prefix', ''))
+            label = QtWidgets.QLabel('Prefix:')
             tt = 'a long-style prefix to your input. Example: "--X=" -> "--X=yourinput"'
             label.setToolTip(tt)
             self.prefix.setToolTip(tt)
@@ -918,9 +893,9 @@ class QArgWidget(QtGui.QWidget):
             layout1.addWidget(self.prefix)
 
         # all can be required
-        self.required = QtGui.QCheckBox()
+        self.required = QtWidgets.QCheckBox()
         self.required.setChecked('required' in self.options)
-        label = QtGui.QLabel('Visible:')
+        label = QtWidgets.QLabel('Visible:')
         tt = 'Check to make port always visible in VisTrails'
         label.setToolTip(tt)
         self.required.setToolTip(tt)
@@ -931,10 +906,10 @@ class QArgWidget(QtGui.QWidget):
         self.subList = ['String', 'Integer', 'Float', 'File', 'Directory', 'Path']
         self.subDict = dict(zip(self.subList, xrange(len(self.subList))))
         self.subDict.update(dict(zip([s.lower() for s in self.subList], xrange(len(self.subList)))))
-        self.subtype = QtGui.QComboBox()
+        self.subtype = QtWidgets.QComboBox()
         self.subtype.addItems(self.subList)
         self.subtype.setCurrentIndex(self.subDict.get(self.options.get('type', 'String'), 0))
-        self.listLabel = QtGui.QLabel('List type:')
+        self.listLabel = QtWidgets.QLabel('List type:')
         self.subtype.setVisible(False)
         tt = 'Choose type of values in List'
         self.subtype.setToolTip(tt)
@@ -945,8 +920,8 @@ class QArgWidget(QtGui.QWidget):
         self.subtype.setVisible(False)
         
         # input files and inputoutput's can set file suffix
-        self.suffix = QtGui.QLineEdit(self.options.get('suffix', ''))
-        self.suffixLabel = QtGui.QLabel('File suffix:')
+        self.suffix = QtWidgets.QLineEdit(self.options.get('suffix', ''))
+        self.suffixLabel = QtWidgets.QLabel('File suffix:')
         tt = 'Sets the specified file ending on the created file, like for example: ".txt"'
         self.suffixLabel.setToolTip(tt)
         self.suffix.setToolTip(tt)
@@ -958,8 +933,8 @@ class QArgWidget(QtGui.QWidget):
         self.klassChanged()
 
         # description
-        self.desc = QtGui.QLineEdit(self.options.get('desc', ''))
-        label = QtGui.QLabel('Description:')
+        self.desc = QtWidgets.QLineEdit(self.options.get('desc', ''))
+        label = QtWidgets.QLabel('Description:')
         tt = 'Add a helpful description of the port'
         label.setToolTip(tt)
         self.desc.setToolTip(tt)
@@ -967,10 +942,8 @@ class QArgWidget(QtGui.QWidget):
         layout2.addWidget(self.desc)
         
         if self.argtype not in self.stdTypes:
-            self.connect(self.klassList, QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.klassChanged)
-            self.connect(self.typeList, QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.typeChanged)
+            self.klassList.currentIndexChanged[int].connect(self.klassChanged)
+            self.typeList.currentIndexChanged[int].connect(self.typeChanged)
 
     def getValues(self):
         """ get the values from the widgets and store them """
@@ -1080,22 +1053,24 @@ class QArgWidget(QtGui.QWidget):
                            {'desc':'"%s" guessed to be an input string' % name}])
             
 
-class QManpageDialog(QtGui.QDialog):
+class QManpageDialog(QtWidgets.QDialog):
     def __init__(self, title, text, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
         text = "<pre>%s</pre>" % text
-        self.textEdit = QtGui.QTextEdit(text)
+        self.textEdit = QtWidgets.QTextEdit(text)
         self.textEdit.setReadOnly(True)
-        self.setLayout(QtGui.QHBoxLayout())
+        self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().addWidget(self.textEdit)
         self.resize(800,600)
 
-class QManpageImport(QtGui.QDialog):
+class QManpageImport(QtWidgets.QDialog):
+    importArgs = QtCore.pyqtSignal('PyQt_PyObject')
+
     def __init__(self, title, args, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
-        self.argLayout = QtGui.QVBoxLayout()
+        self.argLayout = QtWidgets.QVBoxLayout()
         for arg in args:
             if arg[0] == 'Flag':
                 w = QArgWidget(name=arg[1], options={'flag':arg[1],
@@ -1105,40 +1080,36 @@ class QManpageImport(QtGui.QDialog):
                 w = QArgWidget(klass='String', name=arg[1],
                                options={'prefix':arg[1] + '=',
                                         'desc':arg[2]})
-            widgetLayout = QtGui.QHBoxLayout()
-            widgetLayout.addWidget(QtGui.QCheckBox())
+            widgetLayout = QtWidgets.QHBoxLayout()
+            widgetLayout.addWidget(QtWidgets.QCheckBox())
             widgetLayout.addWidget(w)
             self.argLayout.addLayout(widgetLayout)
-        scroll = QtGui.QScrollArea()
-        w = QtGui.QWidget()
+        scroll = QtWidgets.QScrollArea()
+        w = QtWidgets.QWidget()
         w.setLayout(self.argLayout)
         scroll.setWidget(w)
         scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         scroll.setWidgetResizable(True)
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().addWidget(scroll)
-        layout2 = QtGui.QHBoxLayout()
+        layout2 = QtWidgets.QHBoxLayout()
         self.layout().addLayout(layout2)
-        self.closeButton = QtGui.QPushButton('Close')
+        self.closeButton = QtWidgets.QPushButton('Close')
         self.closeButton.setToolTip('Close this window')
-        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
-                     self.close)
+        self.closeButton.clicked.connect(self.close)
         layout2.addWidget(self.closeButton)
-        self.selectAllButton = QtGui.QPushButton('Select All')
+        self.selectAllButton = QtWidgets.QPushButton('Select All')
         self.selectAllButton.setToolTip('Select All arguments')
-        self.connect(self.selectAllButton, QtCore.SIGNAL('clicked()'),
-                     self.selectAll)
+        self.selectAllButton.clicked.connect(self.selectAll)
         layout2.addWidget(self.selectAllButton)
-        self.selectNoneButton = QtGui.QPushButton('Select None')
+        self.selectNoneButton = QtWidgets.QPushButton('Select None')
         self.selectNoneButton.setToolTip('Unselect All arguments')
-        self.connect(self.selectNoneButton, QtCore.SIGNAL('clicked()'),
-                     self.selectNone)
+        self.selectNoneButton.clicked.connect(self.selectNone)
         layout2.addWidget(self.selectNoneButton)
-        self.addSelectedButton = QtGui.QPushButton('Import Selected')
+        self.addSelectedButton = QtWidgets.QPushButton('Import Selected')
         self.addSelectedButton.setToolTip('Import all selected arguments')
-        self.connect(self.addSelectedButton, QtCore.SIGNAL('clicked()'),
-                     self.addSelected)
+        self.addSelectedButton.clicked.connect(self.addSelected)
         layout2.addWidget(self.addSelectedButton)
         self.resize(800,600)
 
@@ -1167,19 +1138,19 @@ class QManpageImport(QtGui.QDialog):
             w.layout().itemAt(1).widget().hide()
             self.argLayout.removeItem(w)
 
-        self.emit(QtCore.SIGNAL('importArgs(PyQt_PyObject)'), args)
+        self.importArgs.emit(args)
 
-class QCLToolsWizardWindow(QtGui.QMainWindow):
+class QCLToolsWizardWindow(QtWidgets.QMainWindow):
 
     def __init__(self, parent=None, reload_scripts=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        QtWidgets.QMainWindow.__init__(self, parent)
         self.wizard = QCLToolsWizard(self, reload_scripts)
         self.setCentralWidget(self.wizard)
         self.setWindowTitle("CLTools Wizard")
         self.resize(1000,600)
         
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = QCLToolsWizardWindow()
     if len(sys.argv)>2 and sys.argv[1] == '-c':
         # read command from command line

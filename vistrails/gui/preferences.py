@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.modules.module_registry import get_module_registry
@@ -52,13 +52,13 @@ from vistrails.core import debug
 
 ##############################################################################
 
-class QPackageConfigurationDialog(QtGui.QDialog):
+class QPackageConfigurationDialog(QtWidgets.QDialog):
 
     def __init__(self, parent, package):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
 
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
 
         
         self.setWindowTitle('Configuration for package "%s"' % package.name)
@@ -67,41 +67,37 @@ class QPackageConfigurationDialog(QtGui.QDialog):
         self._configuration_object = c
         assert c is not None
 
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(layout)
 
         self._configuration_widget = QConfigurationWidget(self, c, c)
         layout.addWidget(self._configuration_widget)
 
-        btns = (QtGui.QDialogButtonBox.Close |
-                QtGui.QDialogButtonBox.RestoreDefaults)
-        self._button_box = QtGui.QDialogButtonBox(btns,
+        btns = (QtWidgets.QDialogButtonBox.Close |
+                QtWidgets.QDialogButtonBox.RestoreDefaults)
+        self._button_box = QtWidgets.QDialogButtonBox(btns,
                                                   QtCore.Qt.Horizontal,
                                                   self)
-        self.connect(self._button_box,
-                     QtCore.SIGNAL('clicked(QAbstractButton *)'),
-                     self.button_clicked)
+        self._button_box.clicked[QAbstractButton].connect(self.button_clicked)
 
-        self.connect(self._configuration_widget._tree.treeWidget,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
+        self._configuration_widget._tree.treeWidget.configuration_changed.connect(self.configuration_changed)
                      
         layout.addWidget(self._button_box)
 
     def button_clicked(self, button):
         role = self._button_box.buttonRole(button)
-        if role == QtGui.QDialogButtonBox.ResetRole:
+        if role == QtWidgets.QDialogButtonBox.ResetRole:
             txt = ("This will reset all configuration values of " +
                    "this package to their default values. Do you " +
                    "want to proceed?")
-            msg_box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+            msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
                                         "Really reset?", txt,
-                                        (QtGui.QMessageBox.Yes |
-                                         QtGui.QMessageBox.No))
-            if msg_box.exec_() == QtGui.QMessageBox.Yes:
+                                        (QtWidgets.QMessageBox.Yes |
+                                         QtWidgets.QMessageBox.No))
+            if msg_box.exec_() == QtWidgets.QMessageBox.Yes:
                 self.reset_configuration()
         else:
-            assert role == QtGui.QDialogButtonBox.RejectRole
+            assert role == QtWidgets.QDialogButtonBox.RejectRole
             self.close_dialog()
 
     def reset_configuration(self):
@@ -118,7 +114,7 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 
 ##############################################################################
 
-class QPackagesWidget(QtGui.QWidget):
+class QPackagesWidget(QtWidgets.QWidget):
 
     # Signals that a package should be selected after the event loop updates (to remove old references)
     select_package_after_update_signal = QtCore.SIGNAL("select_package_after_update_signal")
@@ -127,84 +123,78 @@ class QPackagesWidget(QtGui.QWidget):
     # Initialization
 
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
-        base_layout = QtGui.QHBoxLayout(self)
+        base_layout = QtWidgets.QHBoxLayout(self)
         
-        left = QtGui.QFrame(self)
-        right = QtGui.QFrame(self)
+        left = QtWidgets.QFrame(self)
+        right = QtWidgets.QFrame(self)
 
         base_layout.addWidget(left)
         base_layout.addWidget(right, 1)
         
         ######################################################################
-        left_layout = QtGui.QVBoxLayout(left)
-        left_layout.addWidget(QtGui.QLabel("Disabled packages:", left))
-        self._available_packages_list = QtGui.QListWidget(left)
+        left_layout = QtWidgets.QVBoxLayout(left)
+        left_layout.addWidget(QtWidgets.QLabel("Disabled packages:", left))
+        self._available_packages_list = QtWidgets.QListWidget(left)
         left_layout.addWidget(self._available_packages_list)
-        left_layout.addWidget(QtGui.QLabel("Enabled packages:", left))
-        self._enabled_packages_list = QtGui.QListWidget(left)
+        left_layout.addWidget(QtWidgets.QLabel("Enabled packages:", left))
+        self._enabled_packages_list = QtWidgets.QListWidget(left)
         left_layout.addWidget(self._enabled_packages_list)
-        self.update_button = QtGui.QPushButton("Refresh Lists", left)
+        self.update_button = QtWidgets.QPushButton("Refresh Lists", left)
         left_layout.addWidget(self.update_button, 0, QtCore.Qt.AlignLeft)
         
         self.update_button.clicked.connect(self.populate_lists)
 
-        self.connect(self._available_packages_list,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.selected_available_list,
-                     QtCore.Qt.QueuedConnection)
+        self._available_packages_list.itemSelectionChanged.connect(self.selected_available_list, QtCore.Qt.QueuedConnection)
 
-        self.connect(self._enabled_packages_list,
-                     QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.selected_enabled_list,
-                     QtCore.Qt.QueuedConnection)
+        self._enabled_packages_list.itemSelectionChanged.connect(self.selected_enabled_list, QtCore.Qt.QueuedConnection)
 
-        sm = QtGui.QAbstractItemView.SingleSelection
+        sm = QtWidgets.QAbstractItemView.SingleSelection
         self._available_packages_list.setSelectionMode(sm)
         self._enabled_packages_list.setSelectionMode(sm)
 
 
         ######################################################################
-        right_layout = QtGui.QVBoxLayout(right)
-        info_frame = QtGui.QFrame(right)
+        right_layout = QtWidgets.QVBoxLayout(right)
+        info_frame = QtWidgets.QFrame(right)
 
-        info_layout = QtGui.QVBoxLayout(info_frame)
-        grid_frame = QtGui.QFrame(info_frame)
-        grid_frame.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                 QtGui.QSizePolicy.Expanding)
+        info_layout = QtWidgets.QVBoxLayout(info_frame)
+        grid_frame = QtWidgets.QFrame(info_frame)
+        grid_frame.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                 QtWidgets.QSizePolicy.Expanding)
 
         info_layout.addWidget(grid_frame)
-        grid_layout = QtGui.QGridLayout(grid_frame)
-        l1 = QtGui.QLabel("Package Name:", grid_frame)
+        grid_layout = QtWidgets.QGridLayout(grid_frame)
+        l1 = QtWidgets.QLabel("Package Name:", grid_frame)
         grid_layout.addWidget(l1, 0, 0)
-        l2 = QtGui.QLabel("Identifier:", grid_frame)
+        l2 = QtWidgets.QLabel("Identifier:", grid_frame)
         grid_layout.addWidget(l2, 1, 0)
-        l3 = QtGui.QLabel("Version:", grid_frame)
+        l3 = QtWidgets.QLabel("Version:", grid_frame)
         grid_layout.addWidget(l3, 2, 0)
-        l4 = QtGui.QLabel("Dependencies:", grid_frame)
+        l4 = QtWidgets.QLabel("Dependencies:", grid_frame)
         grid_layout.addWidget(l4, 3, 0)
-        l5 = QtGui.QLabel("Reverse Dependencies:", grid_frame)
+        l5 = QtWidgets.QLabel("Reverse Dependencies:", grid_frame)
         grid_layout.addWidget(l5, 4, 0)
-        l6 = QtGui.QLabel("Description:", grid_frame)
+        l6 = QtWidgets.QLabel("Description:", grid_frame)
         grid_layout.addWidget(l6, 5, 0)
 
-        self._name_label = QtGui.QLabel("", grid_frame)
+        self._name_label = QtWidgets.QLabel("", grid_frame)
         grid_layout.addWidget(self._name_label, 0, 1)
 
-        self._identifier_label = QtGui.QLabel("", grid_frame)
+        self._identifier_label = QtWidgets.QLabel("", grid_frame)
         grid_layout.addWidget(self._identifier_label, 1, 1)
 
-        self._version_label = QtGui.QLabel("", grid_frame)
+        self._version_label = QtWidgets.QLabel("", grid_frame)
         grid_layout.addWidget(self._version_label, 2, 1)
 
-        self._dependencies_label = QtGui.QLabel("", grid_frame)
+        self._dependencies_label = QtWidgets.QLabel("", grid_frame)
         grid_layout.addWidget(self._dependencies_label, 3, 1)
 
-        self._reverse_dependencies_label = QtGui.QLabel("", grid_frame)
+        self._reverse_dependencies_label = QtWidgets.QLabel("", grid_frame)
         grid_layout.addWidget(self._reverse_dependencies_label, 4, 1)
 
-        self._description_label = QtGui.QLabel("", grid_frame)
+        self._description_label = QtWidgets.QLabel("", grid_frame)
         grid_layout.addWidget(self._description_label, 5, 1)
 
         for lbl in [l1, l2, l3, l4, l5, l6,
@@ -222,31 +212,23 @@ class QPackagesWidget(QtGui.QWidget):
 
         right_layout.addWidget(info_frame)
         
-        self._enable_button = QtGui.QPushButton("&Enable")
+        self._enable_button = QtWidgets.QPushButton("&Enable")
         self._enable_button.setEnabled(False)
-        self.connect(self._enable_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.enable_current_package)
-        self._disable_button = QtGui.QPushButton("&Disable")
+        self._enable_button.clicked.connect(self.enable_current_package)
+        self._disable_button = QtWidgets.QPushButton("&Disable")
         self._disable_button.setEnabled(False)
-        self.connect(self._disable_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.disable_current_package)
-        self._configure_button = QtGui.QPushButton("&Configure...")
+        self._disable_button.clicked.connect(self.disable_current_package)
+        self._configure_button = QtWidgets.QPushButton("&Configure...")
         self._configure_button.setEnabled(False)
-        self.connect(self._configure_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.configure_current_package)
-        self._reload_button = QtGui.QPushButton("&Reload")
+        self._configure_button.clicked.connect(self.configure_current_package)
+        self._reload_button = QtWidgets.QPushButton("&Reload")
         self._reload_button.setEnabled(False)
-        self.connect(self._reload_button,
-                     QtCore.SIGNAL("clicked()"),
-                     self.reload_current_package)
-        button_box = QtGui.QDialogButtonBox()
-        button_box.addButton(self._enable_button, QtGui.QDialogButtonBox.ActionRole)
-        button_box.addButton(self._disable_button, QtGui.QDialogButtonBox.ActionRole)
-        button_box.addButton(self._configure_button, QtGui.QDialogButtonBox.ActionRole)
-        button_box.addButton(self._reload_button, QtGui.QDialogButtonBox.ActionRole)
+        self._reload_button.clicked.connect(self.reload_current_package)
+        button_box = QtWidgets.QDialogButtonBox()
+        button_box.addButton(self._enable_button, QtWidgets.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._disable_button, QtWidgets.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._configure_button, QtWidgets.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._reload_button, QtWidgets.QDialogButtonBox.ActionRole)
         right_layout.addWidget(button_box)
 
         self.connect(self,
@@ -538,20 +520,20 @@ class QPackagesWidget(QtGui.QWidget):
         from vistrails.gui.vistrails_window import _app
         _app.invalidate_pipelines()
 
-class QOutputConfigurationPane(QtGui.QWidget):
+class QOutputConfigurationPane(QtWidgets.QWidget):
     def __init__(self, parent, persistent_config, temp_config):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.persistent_config = persistent_config
         self.temp_config = temp_config
 
-        scroll_area = QtGui.QScrollArea()
-        inner_widget =  QtGui.QWidget()
-        self.inner_layout = QtGui.QVBoxLayout()
+        scroll_area = QtWidgets.QScrollArea()
+        inner_widget =  QtWidgets.QWidget()
+        self.inner_layout = QtWidgets.QVBoxLayout()
         inner_widget.setLayout(self.inner_layout)
         scroll_area.setWidget(inner_widget)
         scroll_area.setWidgetResizable(True)
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().addWidget(scroll_area, 1)
         self.layout().setContentsMargins(0,0,0,0)
 
@@ -604,26 +586,26 @@ class QOutputConfigurationPane(QtGui.QWidget):
                 self.temp_config.outputDefaultSettings.set_deep_value(
                     k, v, True)
 
-class QPreferencesDialog(QtGui.QDialog):
+class QPreferencesDialog(QtWidgets.QDialog):
 
     def __init__(self, parent):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowTitle('VisTrails Preferences')
-        layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        f = QtGui.QFrame()
+        f = QtWidgets.QFrame()
         layout.addWidget(f)
         
-        l = QtGui.QVBoxLayout(f)
+        l = QtWidgets.QVBoxLayout(f)
         f.setLayout(l)
         
-        self._tab_widget = QtGui.QTabWidget(f)
+        self._tab_widget = QtWidgets.QTabWidget(f)
         l.addWidget(self._tab_widget)
-        self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                       QtGui.QSizePolicy.Expanding)
+        self._tab_widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                       QtWidgets.QSizePolicy.Expanding)
 
         tabs = [("General", ["General", "Packages"]),
                 ("Interface", ["Interface", "Startup"]),
@@ -648,13 +630,9 @@ class QPreferencesDialog(QtGui.QDialog):
         self._configuration_tab = self.create_configuration_tab()
         self._tab_widget.addTab(self._configuration_tab, 'Expert')
 
-        self.connect(self._tab_widget,
-                     QtCore.SIGNAL('currentChanged(int)'),
-                     self.tab_changed)
+        self._tab_widget.currentChanged[int].connect(self.tab_changed)
 
-        self.connect(self._configuration_tab._tree.treeWidget,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
+        self._configuration_tab._tree.treeWidget.configuration_changed.connect(self.configuration_changed)
 
     def close_dialog(self):
         self.done(0)
@@ -711,36 +689,36 @@ class TestPreferencesDialog(unittest.TestCase):
         prefs = builder.preferencesDialog
         packages = prefs._packages_tab
         prefs._tab_widget.setCurrentWidget(packages)
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # check if package is loaded
         av = packages._available_packages_list
         try:
             item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
             av.setCurrentItem(item)
-            QtGui.QApplication.processEvents()
-            QtGui.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
             packages.enable_current_package()
         except ValueError:
             # Already enabled
             pass
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         inst = packages._enabled_packages_list
         item, = inst.findItems(pkg, QtCore.Qt.MatchExactly)
         inst.setCurrentItem(item)
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
         packages.disable_current_package()
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # force delayed calls
         packages.populate_lists()
         packages.select_package_after_update_slot(pkg)
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # This does not work because the selection is delayed
         av = packages._available_packages_list

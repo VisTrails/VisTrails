@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from cdat_cell import QCDATWidget
 from gui_controller import *
 from graphics_method_controller import QGraphicsMethodAttributeWindow
@@ -11,24 +11,32 @@ import re
 import api
 import vcs
 
-class QCDATWindow(QtGui.QWidget):
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
+QStringList = list
+
+class QCDATWindow(QtWidgets.QWidget):
     """ Main class for VCDAT Window. Contains a menu widget, file widget,
     defined variable widget, and variable widget """
+    closeTeachingCommands = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """ Instantiate the child widgets of the main VCDAT window and setup
         the overall layout """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
         self.setWindowTitle('The Visual Climate Data Analysis Tools - (VCDAT)')
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
         # Init Menu Widget
         self.menuWidget = QMenuWidget(self)
 
         # Init File Widget
-        vsplitter  = QtGui.QSplitter(QtCore.Qt.Vertical)        
+        vsplitter  = QtWidgets.QSplitter(QtCore.Qt.Vertical)        
         fileWidget = QLabeledWidgetContainer(QCDATFileWidget(),
                                              'FILE VARIABLES')
         vsplitter.addWidget(fileWidget)
@@ -37,7 +45,7 @@ class QCDATWindow(QtGui.QWidget):
         definedVar = QLabeledWidgetContainer(QDefinedVariable(),
                                              'DEFINED VARIABLES')
         vsplitter.addWidget(definedVar)
-        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        hsplitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(vsplitter)
 
         # Init Var Plotting Widget
@@ -55,28 +63,19 @@ class QCDATWindow(QtGui.QWidget):
         self.guiController = guiController # So guicontroller doesn't get garbage collected
 
         # Connect signals between self & GuiController
-        self.connect(self, QtCore.SIGNAL('setRecordCommands'),
-                     guiController.setRecordCommands)
-        self.connect(self, QtCore.SIGNAL('viewTeachingCommands'),
-                     guiController.viewTeachingCommands)
-        self.connect(self, QtCore.SIGNAL('closeTeachingCommands'),
-                     guiController.closeTeachingCommands)        
+        self.setRecordCommands.connect(guiController.setRecordCommands)
+        self.viewTeachingCommands.connect(guiController.viewTeachingCommands)
+        self.closeTeachingCommands.connect(guiController.closeTeachingCommands)
 
         # Connect Signals between QVariableView & QDefinedVariable
-        varView.connect(definedVar.getWidget(), QtCore.SIGNAL('selectDefinedVariableEvent'),
-                        varView.getWidget().selectDefinedVariableEvent)
-        varView.connect(definedVar.getWidget(), QtCore.SIGNAL('setupDefinedVariableAxes'),
-                        varView.getWidget().setupDefinedVariableAxes)
-        definedVar.connect(varView.getWidget(), QtCore.SIGNAL('plotPressed'),
-                           definedVar.getWidget().defineQuickplot)
-        definedVar.connect(varView.getWidget(), QtCore.SIGNAL('defineVariable'),
-                           definedVar.getWidget().defineVariable)
+        definedVar.getWidget().selectDefinedVariableEvent.connect(varView.getWidget().selectDefinedVariableEvent)
+        definedVar.getWidget().setupDefinedVariableAxes.connect(varView.getWidget().setupDefinedVariableAxes)
+        varView.getWidget().plotPressed.connect(definedVar.getWidget().defineQuickplot)
+        varView.getWidget().defineVariable.connect(definedVar.getWidget().defineVariable)
 
         # Connect Signals between QFileWidget & QVariableView
-        varView.connect(fileWidget.getWidget(), QtCore.SIGNAL('variableChanged'),
-                        varView.getWidget().setupDefinedVariableAxes)
-        varView.connect(fileWidget.getWidget(), QtCore.SIGNAL('defineVariableEvent'),
-                        varView.getWidget().defineVariableEvent)
+        fileWidget.getWidget().variableChanged.connect(varView.getWidget().setupDefinedVariableAxes)
+        fileWidget.getWidget().defineVariableEvent.connect(varView.getWidget().defineVariableEvent)
 
     def closeEvent(self, event):
         # TODO
@@ -85,22 +84,22 @@ class QCDATWindow(QtGui.QWidget):
         # any functionality we want to execute when vistrails exits is not done
         # unless the user specifically closes this gui.
         
-        self.emit(QtCore.SIGNAL('closeTeachingCommands'))
+        self.closeTeachingCommands.emit()
 
     def sizeHint(self):
         return QtCore.QSize(1024, 600)
 
-class QFileDialogWidget(QtGui.QFileDialog):
+class QFileDialogWidget(QtWidgets.QFileDialog):
     
     def __init__(self, parent=None):
-        QtGui.QFileDialog.__init__(self, parent, QtCore.Qt.Widget)
+        QtWidgets.QFileDialog.__init__(self, parent, QtCore.Qt.Widget)
         self.setModal(False)
         self.setSizeGripEnabled(False)
-        self.setFileMode(QtGui.QFileDialog.ExistingFile)
-        self.setLabelText(QtGui.QFileDialog.LookIn, 'Directory')
+        self.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        self.setLabelText(QtWidgets.QFileDialog.LookIn, 'Directory')
         self.setSidebarUrls([QtCore.QUrl('file://')])
 
-        gridLayout = self.findChild(QtGui.QGridLayout, 'gridLayout')
+        gridLayout = self.findChild(QtWidgets.QGridLayout, 'gridLayout')
         if gridLayout:
             gridLayout.setMargin(0)
             gridLayout.setVerticalSpacing(0)
@@ -110,37 +109,37 @@ class QFileDialogWidget(QtGui.QFileDialog):
                 hBoxLayout.setSpacing(0)
         
         # Hide the Back and Forward button
-        backButton = self.findChild(QtGui.QToolButton, 'backButton')
+        backButton = self.findChild(QtWidgets.QToolButton, 'backButton')
         if backButton: backButton.hide()
-        forwardButton = self.findChild(QtGui.QToolButton, 'forwardButton')
+        forwardButton = self.findChild(QtWidgets.QToolButton, 'forwardButton')
         if forwardButton: forwardButton.hide()            
         
         # Hide the File Name indicators
-        fileNameLabel = self.findChild(QtGui.QLabel, 'fileNameLabel')
+        fileNameLabel = self.findChild(QtWidgets.QLabel, 'fileNameLabel')
         if fileNameLabel: fileNameLabel.hide()
-        fileNameEdit = self.findChild(QtGui.QLineEdit, 'fileNameEdit')
+        fileNameEdit = self.findChild(QtWidgets.QLineEdit, 'fileNameEdit')
         if fileNameEdit: fileNameEdit.hide()
 
         # Hide the File Type indicators
-        fileTypeLabel = self.findChild(QtGui.QLabel, 'fileTypeLabel')
+        fileTypeLabel = self.findChild(QtWidgets.QLabel, 'fileTypeLabel')
         if fileTypeLabel: fileTypeLabel.hide()
-        fileTypeCombo = self.findChild(QtGui.QComboBox, 'fileTypeCombo')
+        fileTypeCombo = self.findChild(QtWidgets.QComboBox, 'fileTypeCombo')
         if fileTypeCombo: fileTypeCombo.hide()
 
         # Hide the dialog buttons
-        buttonBox = self.findChild(QtGui.QDialogButtonBox, 'buttonBox')
+        buttonBox = self.findChild(QtWidgets.QDialogButtonBox, 'buttonBox')
         buttonBox.hide()
 
         # Adjust the sidebar width
-        splitter = self.findChild(QtGui.QSplitter, 'splitter')
+        splitter = self.findChild(QtWidgets.QSplitter, 'splitter')
         splitter.setSizes([0, 1])
 
         # Simplify the Details view to List View
-        stackedWidget = splitter.widget(1).findChild(QtGui.QStackedWidget, 'stackedWidget')
-        listView = stackedWidget.widget(0).findChild(QtGui.QListView, 'listView')
+        stackedWidget = splitter.widget(1).findChild(QtWidgets.QStackedWidget, 'stackedWidget')
+        listView = stackedWidget.widget(0).findChild(QtWidgets.QListView, 'listView')
         listView.setAlternatingRowColors(True)
         listView.setWrapping(False)
-        self.setViewMode(QtGui.QFileDialog.List)
+        self.setViewMode(QtWidgets.QFileDialog.List)
 
     def done(self, result):
         pass
@@ -148,68 +147,72 @@ class QFileDialogWidget(QtGui.QFileDialog):
     def sizeHint(self):
         return QtCore.QSize(384, 150)
 
-class QCDATFileWidget(QtGui.QWidget):
+class QCDATFileWidget(QtWidgets.QWidget):
     """ QCDATFileWidget contains a line-edit to enter the file name and a file
     selection button.  It also has a combo box to choose variables once a file
     is specified. """
+    createModule = QtCore.pyqtSignal()
+    updateModule = QtCore.pyqtSignal()
+    recordTeachingCommand = QtCore.pyqtSignal()
+    variableChanged = QtCore.pyqtSignal()
+    defineVariableEvent = QtCore.pyqtSignal()
 
     FILTER = "CDAT data (*.cdms *.ctl *.dic *.hdf *.nc *.xml)"
 
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.cdmsFile = None
 
         # Start the layout
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.fileDialog = QFileDialogWidget()
         self.fileDialog.setNameFilter(QCDATFileWidget.FILTER)
         layout.addWidget(self.fileDialog)
 
         # A shared layout of the bottom half
-        vbox = QtGui.QVBoxLayout()
-        vbox.setMargin(0)
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
         vbox.setSpacing(0)
         layout.addLayout(vbox)
         self.fileVarLayout = vbox
         
         # Create the bottom horizontal indicator
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         
-        self.drawerButton = QtGui.QToolButton()
+        self.drawerButton = QtWidgets.QToolButton()
         self.drawerButton.setArrowType(QtCore.Qt.UpArrow)
         self.drawerButton.setAutoRaise(True)
         self.drawerButton.setIconSize(QtCore.QSize(8, 8))
         hbox.addWidget(self.drawerButton)
         
-        hline = QtGui.QFrame()
-        hline.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
+        hline = QtWidgets.QFrame()
+        hline.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
         hbox.addWidget(hline)
 
-        self.connect(self.drawerButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.toggleFileDialog)
+        self.drawerButton.clicked[bool].connect(self.toggleFileDialog)
 
         vbox.addLayout(hbox)
         
         # Create the file name box
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setHorizontalSpacing(10)
         vbox.addLayout(grid)
 
         # First line: File
-        fileNameLabel = QtGui.QLabel('File')
+        fileNameLabel = QtWidgets.QLabel('File')
         grid.addWidget(fileNameLabel)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setSpacing(6)
-        self.fileNameEdit = QtGui.QLineEdit()
+        self.fileNameEdit = QtWidgets.QLineEdit()
         self.fileNameEdit.setToolTip('Enter file name or click on button on the right to select a file')
         hbox.addWidget(self.fileNameEdit, 1)
 
-        self.fileSelectButton = QtGui.QToolButton()
+        self.fileSelectButton = QtWidgets.QToolButton()
         self.fileSelectButton.setText('...')
         self.fileSelectButton.setToolTip('View and select files')
         hbox.addWidget(self.fileSelectButton)
@@ -217,14 +220,14 @@ class QCDATFileWidget(QtGui.QWidget):
         grid.addLayout(hbox, 0, 1)
 
         # Second line: Var
-        varNameLabel = QtGui.QLabel('Variable')
+        varNameLabel = QtWidgets.QLabel('Variable')
         grid.addWidget(varNameLabel, 1, 0)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setSpacing(6)
 
         # Init combo box
-        self.varCombo = QtGui.QComboBox()
+        self.varCombo = QtWidgets.QComboBox()
         self.varCombo.setToolTip('View and select variables in file')
         self.varCombo.setMinimumContentsLength(10)
         comboPalette = self.varCombo.view().palette()
@@ -234,23 +237,18 @@ class QCDATFileWidget(QtGui.QWidget):
 
         hbox.addWidget(self.varCombo, 1)
         
-        self.defineVarButton = QtGui.QPushButton('&Define')
+        self.defineVarButton = QtWidgets.QPushButton('&Define')
         self.defineVarButton.setToolTip('Define variable into memory')
         hbox.addWidget(self.defineVarButton)
         
         grid.addLayout(hbox, 1, 1)
 
         # Connect signals
-        self.connect(self.fileDialog, QtCore.SIGNAL('filesSelected(const QStringList&)'),
-                     self.filesSelected)
-        self.connect(self.fileNameEdit, QtCore.SIGNAL('returnPressed()'),
-                     self.updateCDMSFile)
-        self.connect(self.fileSelectButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.openSelectFileDialog)
-        self.connect(self.varCombo, QtCore.SIGNAL('currentIndexChanged(const QString&)'),
-                     self.variableChanged)
-        self.connect(self.defineVarButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.defineVariablePressed)
+        self.fileDialog.filesSelected['QStringList'].connect(self.filesSelected)
+        self.fileNameEdit.returnPressed.connect(self.updateCDMSFile)
+        self.fileSelectButton.clicked[bool].connect(self.openSelectFileDialog)
+        self.varCombo.currentIndexChanged['QString'].connect(self.variableChanged)
+        self.defineVarButton.clicked[bool].connect(self.defineVariablePressed)
 
         # Init the widget with its file dialog hidden
         self.fileDialog.hide()
@@ -287,8 +285,8 @@ class QCDATFileWidget(QtGui.QWidget):
             self.cdmsFile = cdms2.open(fn)
             self.recordOpenFileTeachingCommand(fn)
             # Create and update the open module
-            self.emit(QtCore.SIGNAL('createModule'), open_name)
-            self.emit(QtCore.SIGNAL('updateModule'), open_name, 'uri', fn)
+            self.createModule.emit(open_name)
+            self.updateModule.emit(open_name, 'uri', fn)
         else:
             self.cdmsFile = None
         self.updateVariableList()
@@ -298,8 +296,8 @@ class QCDATFileWidget(QtGui.QWidget):
         varName = 'fid2'
         command = "%s = cdms2.open('%s')\n" %(varName, file)
 
-        self.emit(QtCore.SIGNAL('recordTeachingCommand'), openFileComment)
-        self.emit(QtCore.SIGNAL('recordTeachingCommand'), command)
+        self.recordTeachingCommand.emit(openFileComment)
+        self.recordTeachingCommand.emit(command)
 
     def filesSelected(self, files):
         if files.count()>0:
@@ -326,7 +324,7 @@ class QCDATFileWidget(QtGui.QWidget):
                     if varName[-1]!='[': varName += ' '
                     varName += var.units
                 varName += ']'
-                self.varCombo.addItem(varName, QtCore.QVariant(QtCore.QStringList(['variables', var.id])))
+                self.varCombo.addItem(varName, QtCore.QVariant(QStringList(['variables', var.id])))
 
             # Add Axis List
             count = self.varCombo.count()
@@ -334,15 +332,15 @@ class QCDATFileWidget(QtGui.QWidget):
             self.varCombo.model().item(count, 0).setText('AXIS LIST')
             for axis in self.cdmsFile.axes.itervalues():
                 axisName = axis.id + " (" + str(len(axis)) + ") - [" + axis.units + ":  (" + str(axis[0]) + ", " + str(axis[-1]) + ")]"                
-                self.varCombo.addItem(axisName, QtCore.QVariant(QtCore.QStringList(['axes', axis.id])))
+                self.varCombo.addItem(axisName, QtCore.QVariant(QStringList(['axes', axis.id])))
 
             # By default, not selecting anything
             self.varCombo.setCurrentIndex(-1)
 
     def openSelectFileDialog(self):
-        file = QtGui.QFileDialog.getOpenFileName(self, 'Open CDAT data file...',
+        file = QtWidgets.QFileDialog.getOpenFileName(self, 'Open CDAT data file...',
                                                  self.fileDialog.directory().absolutePath(),
-                                                 QCDATFileWidget.FILTER + ';;All files (*.*)')
+                                                 QCDATFileWidget.FILTER + ';;All files (*.*)')[0]
         if not file.isNull():
             self.setFileName(file)
 
@@ -353,11 +351,10 @@ class QCDATFileWidget(QtGui.QWidget):
         self.defineVarButton.setEnabled(not varName.isNull()) # Enable define button
         
         # Send signal to setup axisList in 'quickplot' tab
-        self.emit(QtCore.SIGNAL('variableChanged'), self.getCDMSFile(),
-                  self.getCDMSVariable(), 'quickplot')
+        self.variableChanged.emit(self.getCDMSFile(), self.getCDMSVariable(), 'quickplot')
         
     def defineVariablePressed(self):
-        self.emit(QtCore.SIGNAL('defineVariableEvent'))
+        self.defineVariableEvent.emit()
 
     def getCDMSFile(self):
         return self.cdmsFile
@@ -376,26 +373,26 @@ class QCDATFileWidget(QtGui.QWidget):
                     return var
         return None
 
-class QLabeledWidgetContainer(QtGui.QWidget):
+class QLabeledWidgetContainer(QtWidgets.QWidget):
     """ Container widget for the 3 main widgets: QVariableView, QCDATFileWidget,
     and QDefinedVariable """
 
     def __init__(self, widget, label='', parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         
-        vbox = QtGui.QVBoxLayout()
-        vbox.setMargin(0)
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
         
-        self.label = QtGui.QLabel(label)
+        self.label = QtWidgets.QLabel(label)
         self.label.setAutoFillBackground(True)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setFrameStyle(QtGui.QFrame.Panel | QtGui.QFrame.Raised)
+        self.label.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Raised)
         vbox.addWidget(self.label, 0)
 
         if widget!=None:
             self.widget = widget
         else:
-            self.widget = QtGui.QWidget()
+            self.widget = QtWidgets.QWidget()
         vbox.addWidget(self.widget, 1)
         
         self.setLayout(vbox)
@@ -409,19 +406,22 @@ class QLabeledWidgetContainer(QtGui.QWidget):
                                       self.widget.maximumHeight(), 16777215))
         return False
 
-class QDefinedVariable(QtGui.QWidget):
+class QDefinedVariable(QtWidgets.QWidget):
     """ QDefinedVariable contains a list of the user defined variables and allows the
     user to apply functions on defined variables """
+    setupDefinedVariableAxes = QtCore.pyqtSignal()
+    selectDefinedVariableEvent = QtCore.pyqtSignal()
+    recordTeachingCommand = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.warningWidget = QDefVarWarningBox(self) # Popup box to warn var is already defined
         self.quickplotItem = None
         self.numVarsSelected = 0
 
         # Create Layout
-        vbox = QtGui.QVBoxLayout()
-        vbox.setMargin(0)
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
 
         # Create Toolbar and add it to the layout
@@ -429,16 +429,14 @@ class QDefinedVariable(QtGui.QWidget):
         vbox.addWidget(self.toolBar)
 
         # Create List for defined variables and add it to the layout
-        self.varList = QtGui.QListWidget()
+        self.varList = QtWidgets.QListWidget()
         self.varList.setAlternatingRowColors(True)
-        self.varList.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        self.varList.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         vbox.addWidget(self.varList)
 
         # Connect Signals
-        self.connect(self.varList, QtCore.SIGNAL('clicked(const QModelIndex&)'),
-                     self.selectVariableFromListEvent)
-        self.connect(self.warningWidget, QtCore.SIGNAL('newVarID'),
-                     self.addVariable)      
+        self.varList.clicked[QModelIndex].connect(self.selectVariableFromListEvent)
+        self.warningWidget.newVarID.connect(self.addVariable)
 
     def defineQuickplot(self, file, var):
         """ When a user plots a variable that isn't explicitly defined a signal
@@ -480,7 +478,7 @@ class QDefinedVariable(QtGui.QWidget):
         self.recordDefineVariableTeachingCommand(varName, var.id, file, axesArgString)
 
         # emit signal to QVariableView to create a new axisList / tab
-        self.emit(QtCore.SIGNAL('setupDefinedVariableAxes'), file, var, varName)
+        self.setupDefinedVariableAxes.emit(file, var, varName)
 
     def selectVariableFromListEvent(self, modelIndex):
         """ Update the number next to the selected defined variable and
@@ -514,11 +512,9 @@ class QDefinedVariable(QtGui.QWidget):
         tabName = item.getVarName()
         
         if item.isQuickplotItem():
-            self.emit(QtCore.SIGNAL('selectDefinedVariableEvent'), 'quickplot',
-                      cdmsFile, selectedVars)
+            self.selectDefinedVariableEvent.emit('quickplot', cdmsFile, selectedVars)
         else:
-            self.emit(QtCore.SIGNAL('selectDefinedVariableEvent'), tabName,
-                      cdmsFile, selectedVars)
+            self.selectDefinedVariableEvent.emit(tabName, cdmsFile, selectedVars)
 
     def isVariableDefined(self, varID):
         """ Return true if a variable with the given id is defined (this does
@@ -544,13 +540,13 @@ class QDefinedVariable(QtGui.QWidget):
             command = '\n# Get new slab\n'
             command += "%s = %s('%s', %s)\n" %(name, fileID, varName, axesArgString)        
 
-            self.emit(QtCore.SIGNAL('recordTeachingCommand'), command)
+            self.recordTeachingCommand.emit(command)
 
     def createToolbar(self):
         ICONPATH = os.path.join(cdms2.__path__[0], '..', '..', '..', '..', 'bin')
 
         # Create options bar
-        self.toolBar = QtGui.QToolBar()
+        self.toolBar = QtWidgets.QToolBar()
         self.toolBar.setIconSize(QtCore.QSize(16, 16))
         actionInfo = [
             ('edit_20.gif', 'Edit (in memory) selected defined variable.'),
@@ -569,13 +565,13 @@ class QDefinedVariable(QtGui.QWidget):
             action.setToolTip(info[1])
         self.toolBar.addSeparator()
 
-        self.opButton = QtGui.QToolButton()
+        self.opButton = QtWidgets.QToolButton()
         self.opButton.setText('Ops')
         
         # Create Operations Menu
-        menu = QtGui.QMenu(self)
-        grid = QtGui.QGridLayout()
-        grid.setMargin(0)
+        menu = QtWidgets.QMenu(self)
+        grid = QtWidgets.QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
         grid.setSpacing(0)
         menu.setLayout(grid)
         opDefs =[
@@ -608,25 +604,25 @@ class QDefinedVariable(QtGui.QWidget):
             ]
         self.opActions = []
         for i in xrange(len(opDefs)):
-            action = QtGui.QAction(QtGui.QIcon(os.path.join(ICONPATH, opDefs[i][1])), opDefs[i][2], menu)
+            action = QtWidgets.QAction(QtGui.QIcon(os.path.join(ICONPATH, opDefs[i][1])), opDefs[i][2], menu)
             action.setStatusTip(opDefs[i][0])
             action.setToolTip(opDefs[i][0])
             self.opActions.append(action)
-            b = QtGui.QToolButton()
+            b = QtWidgets.QToolButton()
             b.setDefaultAction(action)
             grid.addWidget(b, i/2, i%2)
 
         self.opButton.setMenu(menu)
-        self.opButton.setPopupMode(QtGui.QToolButton.InstantPopup)
-        self.connect(self.opButton, QtCore.SIGNAL('clicked(bool)'), self.opButton.showMenu)
+        self.opButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.opButton.clicked[bool].connect(self.opButton.showMenu)
         
         self.toolBar.addWidget(self.opButton)
 
-class QDefinedVariableItem(QtGui.QListWidgetItem):
+class QDefinedVariableItem(QtWidgets.QListWidgetItem):
     """ Item to be stored by QDefinedVariable's list widget """
     
     def __init__(self, cdmsFile, variable, varName, parent=None):
-        QtGui.QListWidgetItem.__init__(self, parent)
+        QtWidgets.QListWidgetItem.__init__(self, parent)
         self.varName = varName # This is also the tabname
         self.cdmsFile = cdmsFile
         self.variable = variable
@@ -665,7 +661,7 @@ class QDefinedVariableItem(QtGui.QListWidgetItem):
             numString = "%s " % num
 
         varString = numString + self.varName + ' ' + str(self.variable.shape)
-        self.setData(0, QtCore.QVariant(QtCore.QString(varString)))
+        self.setData(0, QtCore.QVariant(QString(varString)))
 
     def setFile(self, cdmsFile):
         self.cdmsFile = cdmsFile
@@ -677,28 +673,29 @@ class QDefinedVariableItem(QtGui.QListWidgetItem):
         self.variable = variable
         self.updateVariableString()
 
-class QDefVarWarningBox(QtGui.QDialog):
+class QDefVarWarningBox(QtWidgets.QDialog):
     """ Popup box to warn a user that a variable with same name is already
     defined. Contains a line edit to allow a user to enter a new variable
     name or to replace the existing defined variable """
+    newVarID = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.varID = None
 
         # Init layout
-        vbox = QtGui.QVBoxLayout()
-        hbox = QtGui.QHBoxLayout()
-        hbox.setDirection(QtGui.QBoxLayout.RightToLeft)
+        vbox = QtWidgets.QVBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.setDirection(QtWidgets.QBoxLayout.RightToLeft)
         vbox.setSpacing(10)
 
         # Add LineEdit
-        self.text = QtGui.QLabel()
-        self.lineEdit = QtGui.QLineEdit()
+        self.text = QtWidgets.QLabel()
+        self.lineEdit = QtWidgets.QLineEdit()
 
         # Add OK / Cancel Buttons
-        okButton = QtGui.QPushButton('OK')
-        cancelButton = QtGui.QPushButton('Cancel')
+        okButton = QtWidgets.QPushButton('OK')
+        cancelButton = QtWidgets.QPushButton('Cancel')
         hbox.addWidget(cancelButton)        
         hbox.addWidget(okButton)
 
@@ -708,9 +705,9 @@ class QDefVarWarningBox(QtGui.QDialog):
         self.setLayout(vbox)
 
         # Connect Signals
-        self.connect(okButton, QtCore.SIGNAL('pressed()'), self.okPressedEvent)
-        self.connect(cancelButton, QtCore.SIGNAL('pressed()'), self.close)
-        self.connect(self.lineEdit, QtCore.SIGNAL('returnPressed()'), self.okPressedEvent)
+        okButton.pressed.connect(self.okPressedEvent)
+        cancelButton.pressed.connect(self.close)
+        self.lineEdit.returnPressed.connect(self.okPressedEvent)
 
     def showWarning(self, varID, file, var, axesArgString):
         """ Show warning message and prompt user for a new variable name. Or use
@@ -732,25 +729,24 @@ class QDefVarWarningBox(QtGui.QDialog):
         self.close()        
 
         # Emit signal to QDefinedVar to indicate it's ok to add the variable to defined list
-        self.emit(QtCore.SIGNAL('newVarID'),
-                  self.varID, self.file, self.var, self.axesArgString)
+        self.newVarID.emit(self.varID, self.file, self.var, self.axesArgString)
 
-class QSliderCombo(QtGui.QWidget):
+class QSliderCombo(QtWidgets.QWidget):
     """ Widget containing min slider, max slider, min label, max label, and a
     corresponding combo box.  The comboBox, labels, sliders must always be in
     sync with each other """
 
     def __init__(self, axis, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.isTime = axis.isTime()
         self.indexMode = False
         self.startIndex = 0
 
         # Init Layout
-        hbox = QtGui.QHBoxLayout()
-        vbox = QtGui.QVBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.setSpacing(0)
-        vbox.setMargin(0)        
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(hbox)
 
         # Init combo box
@@ -759,15 +755,15 @@ class QSliderCombo(QtGui.QWidget):
 
         # Init sliders
         hbox.addLayout(vbox)
-        self.topSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
-        self.bottomSlider = QtGui.QSlider(QtCore.Qt.Horizontal)        
+        self.topSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.bottomSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)        
         vbox.addWidget(self.topSlider)
         vbox.addWidget(self.bottomSlider)
 
         # Init axis slider value labels
-        self.bottomLabel = QtGui.QLabel('To', self)
-        self.topLabel = QtGui.QLabel('From', self)
-        hbox = QtGui.QHBoxLayout()        
+        self.bottomLabel = QtWidgets.QLabel('To', self)
+        self.topLabel = QtWidgets.QLabel('From', self)
+        hbox = QtWidgets.QHBoxLayout()        
         hbox.addWidget(self.topLabel)
         hbox.addWidget(self.bottomLabel)
         vbox.addLayout(hbox)
@@ -780,16 +776,10 @@ class QSliderCombo(QtGui.QWidget):
         self.axisCombo.initValues(self.axisValues)
 
         # Connect Signals
-        self.connect(self.topSlider, QtCore.SIGNAL('valueChanged (int)'),
-                     self.updateMin)
-        self.connect(self.bottomSlider, QtCore.SIGNAL('valueChanged (int)'),
-                     self.updateMax)
-        self.connect(self.axisCombo,
-                     QtCore.SIGNAL('axisComboMinValueChanged (int)'),
-                     self.updateTopSlider)
-        self.connect(self.axisCombo,
-                     QtCore.SIGNAL('axisComboMaxValueChanged (int)'),
-                     self.updateBottomSlider)
+        self.topSlider.valueChanged [int].connect(self.updateMin)
+        self.bottomSlider.valueChanged [int].connect(self.updateMax)
+        self.axisCombo.axisComboMinValueChanged [int].connect(self.updateTopSlider)
+        self.axisCombo.axisComboMaxValueChanged [int].connect(self.updateBottomSlider)
 
     def initAxisValues(self, axis):
         """ Initialize list containing the axis values and set the top slider /
@@ -888,20 +878,21 @@ class QSliderCombo(QtGui.QWidget):
     def getIndex(self):
         return (self.minIndex, self.maxIndex)
 
-class QAxis(QtGui.QWidget):
+class QAxis(QtWidgets.QWidget):
     """ Axis widget containing: a button + popup-menu for modifying an axis, combobox
     and sliders for setting axis values, and a function def button + popup-menu """
+    updateModule = QtCore.pyqtSignal()
 
     def __init__(self, axis, axisName, axisIndex, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.myParent = parent
         self.axis = axis
         self.axisName = axisName # Axis name including the label
         self.axisIndex = axisIndex
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setSpacing(0)
-        hbox.setMargin(0)                
+        hbox.setContentsMargins(0, 0, 0, 0)
         self.sliderCombo = QSliderCombo(axis, self)
         hbox.addWidget(self.sliderCombo)
         self.setLayout(hbox)        
@@ -914,19 +905,15 @@ class QAxis(QtGui.QWidget):
         # Connect signals such that when the value of the axis slider is changed,
         # a signal will be emitted to update the value in the corresponding
         # Vistrails 'Variable' or 'Quickplot' box.
-        self.connect(self.sliderCombo.topSlider,
-                     QtCore.SIGNAL('valueChanged (int)'),
-                     parent.setVistrailsVariableAxes)
-        self.connect(self.sliderCombo.bottomSlider,
-                     QtCore.SIGNAL('valueChanged (int)'),
-                     parent.setVistrailsVariableAxes)
+        self.sliderCombo.topSlider.valueChanged [int].connect(parent.setVistrailsVariableAxes)
+        self.sliderCombo.bottomSlider.valueChanged [int].connect(parent.setVistrailsVariableAxes)
 
     def createAxisOperationsButtonAndMenu(self):
         """ Initialize the button to the right of the axis sliders and it's menu
         with operations: def, sum, avg, wgt, gtm, awt, std
         """
-        button = QtGui.QToolButton()
-        menu = QtGui.QMenu(self)        
+        button = QtWidgets.QToolButton()
+        menu = QtWidgets.QMenu(self)        
         
         opDefs = ['def default axis points',
                   'sum summation of selected axis points',
@@ -938,16 +925,14 @@ class QAxis(QtGui.QWidget):
         
         for op in opDefs:
             action = menu.addAction(op)
-            self.connect(action, QtCore.SIGNAL('triggered ()'),
-                         self.selectAxesOperationEvent)
+            action.triggered .connect(self.selectAxesOperationEvent)
 
         button.setText(' def  ')
         button.setMenu(menu)
-        button.setPopupMode(QtGui.QToolButton.InstantPopup)
+        button.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
         # Connect Signals
-        self.connect(button, QtCore.SIGNAL('clicked(bool)'),
-                     button.showMenu)
+        button.clicked[bool].connect(button.showMenu)
 
         return button
 
@@ -971,9 +956,7 @@ class QAxis(QtGui.QWidget):
         # Update the vistrails 'Variable' module's axesOperations input
         axesOperations = self.myParent.getAxesOperations()
         varWidget = self.myParent.getParent()
-        varWidget.emit(QtCore.SIGNAL('updateModule'),
-                       self.myParent.currentTabName(), 'axesOperations',
-                       str(axesOperations)) 
+        varWidget.updateModule.emit(self.myParent.currentTabName(), 'axesOperations', str(axesOperations))
 
     def createAxisButtonAndMenu(self):
         """ createAxisButtonAndMenu(axesNames: list)
@@ -982,8 +965,8 @@ class QAxis(QtGui.QWidget):
         it's menu which currently has options: index, raw, get axis values,
         get axis weight values, replace axis values, re-order dimensions.
         """
-        axisMenu = QtGui.QMenu(self)
-        menuVbox = QtGui.QVBoxLayout()
+        axisMenu = QtWidgets.QMenu(self)
+        menuVbox = QtWidgets.QVBoxLayout()
         axisMenu.setLayout(menuVbox)
         
 
@@ -1011,34 +994,25 @@ class QAxis(QtGui.QWidget):
         axesNames = self.myParent.getAxesNames()                
         for axisID in axesNames:
             reorderAction = reorderAxesMenu.addAction(axisID)
-            self.connect(reorderAction, QtCore.SIGNAL('triggered()'),
-                         self.reorderAxesEvent)
+            reorderAction.triggered.connect(self.reorderAxesEvent)
 
         # Create axis button
-        axisButton = QtGui.QToolButton()
+        axisButton = QtWidgets.QToolButton()
         axisButton.setMenu(axisMenu)
-        axisButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+        axisButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
         # Connect signals emitted by the axis button menu
-        axisButton.connect(axisButton, QtCore.SIGNAL('clicked(bool)'),
-                           axisButton.showMenu)
-        self.connect(indexAction, QtCore.SIGNAL('toggled (bool)'),
-                     self.setIndexModeEvent)
-        self.connect(getAxisValuesAction, QtCore.SIGNAL('triggered ()'),
-                     self.getAxisValuesEvent)
-        self.connect(replaceAxisValuesAction, QtCore.SIGNAL('triggered ()'),
-                     self.getReplacementAxisValuesEvent)        
-        self.connect(getAxisWeightValuesAction, QtCore.SIGNAL('triggered ()'),
-                     self.getAxisWeightValuesEvent)
+        axisButton.clicked[bool].connect(axisButton.showMenu)
+        indexAction.toggled [bool].connect(self.setIndexModeEvent)
+        getAxisValuesAction.triggered .connect(self.getAxisValuesEvent)
+        replaceAxisValuesAction.triggered .connect(self.getReplacementAxisValuesEvent)
+        getAxisWeightValuesAction.triggered .connect(self.getAxisWeightValuesEvent)
         
         if self.axis.isTime():
-            self.connect(rawIndexAction, QtCore.SIGNAL('toggled (bool)'),
-                         self.setRawIndexModeEvent)
+            rawIndexAction.toggled [bool].connect(self.setRawIndexModeEvent)
             # Dont allow _raw and _index to be checked simultaneously
-            self.connect(rawIndexAction, QtCore.SIGNAL('toggled (bool)'),
-                         lambda : indexAction.setChecked(False))
-            self.connect(indexAction, QtCore.SIGNAL('toggled (bool)'),
-                         lambda : rawIndexAction.setChecked(False))                        
+            rawIndexAction.toggled [bool].connect(lambda : indexAction.setChecked(False))
+            indexAction.toggled [bool].connect(lambda : rawIndexAction.setChecked(False))
             
         return axisButton
 
@@ -1257,12 +1231,15 @@ class QAxis(QtGui.QWidget):
     def getAlteredWeightsVar(self):
         return self.alteredWeightsVar
 
-class QAxisComboWidget(QtGui.QComboBox):
+class QAxisComboWidget(QtWidgets.QComboBox):
     """ Specialized ComboBox widget for Axis Values listing / selecting the
     axis' values. """
     
+    axisComboMinValueChanged  = QtCore.pyqtSignal(int)
+    axisComboMaxValueChanged  = QtCore.pyqtSignal(int)
+
     def __init__(self, parent=None):
-        QtGui.QComboBox.__init__(self, parent)
+        QtWidgets.QComboBox.__init__(self, parent)
         self.setMin = False
         self.stride = 1 # TODO : Changing the stride does nothing as of now
         self.minValue = 0
@@ -1273,7 +1250,7 @@ class QAxisComboWidget(QtGui.QComboBox):
         self.setMinimumContentsLength(10)
         self.setCurrentIndex(1)
         self.setMaxVisibleItems(10)
-        self.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToMinimumContentsLengthWithIcon)
 
         # Set highlighted text color to gray instead of default white
         comboPalette = self.view().palette()
@@ -1281,8 +1258,7 @@ class QAxisComboWidget(QtGui.QComboBox):
         self.view().setPalette(comboPalette)
 
         # Connect Signals
-        self.connect(self, QtCore.SIGNAL('currentIndexChanged(const QString&)'),
-                     self.valueChangedEvent)
+        self.currentIndexChanged['QString'].connect(self.valueChangedEvent)
 
     def initValues(self, axisValues):
         """ initValues(axisValues: list)
@@ -1291,7 +1267,7 @@ class QAxisComboWidget(QtGui.QComboBox):
         """
         for axisValue in axisValues:
             self.addItem(str(axisValue),
-                         QtCore.QVariant(QtCore.QStringList(['variables', str(axisValue)])))
+                         QtCore.QVariant(QStringList(['variables', str(axisValue)])))
 
         self.minValue = axisValues[0]
         self.maxValue = axisValues[-1]
@@ -1304,7 +1280,7 @@ class QAxisComboWidget(QtGui.QComboBox):
         or actual values.
         """
         for i in range(len(axisValues)):
-            data = QtCore.QVariant(QtCore.QStringList(['variables', str(axisValues[i])]))
+            data = QtCore.QVariant(QStringList(['variables', str(axisValues[i])]))
             self.setItemData(i, data)
             self.setItemText(i, str(axisValues[i]))
 
@@ -1334,7 +1310,7 @@ class QAxisComboWidget(QtGui.QComboBox):
         value or entering a value into the line edit.  Update the corresponding
         slider / label with the same value
         """
-        index = self.findData(QtCore.QVariant(QtCore.QStringList(['variables', str(axisValue)])))
+        index = self.findData(QtCore.QVariant(QStringList(['variables', str(axisValue)])))
 
         # If user entered a value into the lineEdit.
         if index == -1:
@@ -1347,11 +1323,11 @@ class QAxisComboWidget(QtGui.QComboBox):
         if (self.setMin == True):
             self.setMin = False
             self.minValue = axisValue
-            self.emit(QtCore.SIGNAL('axisComboMinValueChanged (int)'), self.currentIndex())
+            self.axisComboMinValueChanged .emit(self.currentIndex())
         else:
             self.setMin = True
             self.maxValue = axisValue
-            self.emit(QtCore.SIGNAL('axisComboMaxValueChanged (int)'), self.currentIndex())
+            self.axisComboMaxValueChanged .emit(self.currentIndex())
 
         self.setLineEditText()
 
@@ -1377,22 +1353,23 @@ class QAxisComboWidget(QtGui.QComboBox):
 
         minValue = result.group(1)
         maxValue = result.group(2)
-        minIndex = self.findData(QtCore.QVariant(QtCore.QStringList(['variables', str(minValue)])))
-        maxIndex = self.findData(QtCore.QVariant(QtCore.QStringList(['variables', str(maxValue)])))
+        minIndex = self.findData(QtCore.QVariant(QStringList(['variables', str(minValue)])))
+        maxIndex = self.findData(QtCore.QVariant(QStringList(['variables', str(maxValue)])))
 
         # If min or max values are not in the list of values do nothing
         if (minIndex == -1 or maxIndex == -1):
             return
 
         # LineEdit string is valid, emit signal to update the corresponding axis sliders
-        self.emit(QtCore.SIGNAL('axisComboMinValueChanged (int)'), minIndex)
-        self.emit(QtCore.SIGNAL('axisComboMaxValueChanged (int)'), maxIndex)            
+        self.axisComboMinValueChanged .emit(minIndex)
+        self.axisComboMaxValueChanged .emit(maxIndex)
 
-class QAxisList(QtGui.QWidget):
+class QAxisList(QtWidgets.QWidget):
     """ Widget containing a list of axis widgets for the selected variable """
+    updateModule = QtCore.pyqtSignal()
 
     def __init__(self, file=None, var=[], parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.axisWidgets = [] # List of QAxis widgets
         self.axesNames = [] # List of axis names (including labels)
         self.axisOrder = [] # List of ints to specify axes ordering
@@ -1402,14 +1379,14 @@ class QAxisList(QtGui.QWidget):
         self.myParent = parent
 
         # Init & set the layout
-        vbox = QtGui.QVBoxLayout()
-        self.gridLayout = QtGui.QGridLayout()
-        self.gridLayout.setMargin(0)
+        vbox = QtWidgets.QVBoxLayout()
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setSpacing(0)
         vbox.addLayout(self.gridLayout)
         vbox.addStretch()
         vbox.setSpacing(0)
-        vbox.setMargin(5)
+        vbox.setContentsMargins(5, 5, 5, 5)
         self.setLayout(vbox)
 
     def clear(self):
@@ -1459,8 +1436,8 @@ class QAxisList(QtGui.QWidget):
             self.gridLayout.addWidget(axisWidget.getAxisOperationsButton(), row, 2)
 
             # Create separator line between each axis widget
-            vline = QtGui.QFrame()
-            vline.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
+            vline = QtWidgets.QFrame()
+            vline.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
             self.gridLayout.addWidget(vline, row+1, 0, 1,
                                       self.gridLayout.columnCount())
 
@@ -1611,33 +1588,40 @@ class QAxisList(QtGui.QWidget):
         axesKwargs['squeeze'] = 0
         axesKwargs['order'] = self.getAxesOrderString()
 
-        self.myParent.emit(QtCore.SIGNAL('updateModule'),
-                         self.myParent.currentTabName(), 'axes', str(axesKwargs))
+        self.myParent.updateModule.emit(self.myParent.currentTabName(), 'axes', str(axesKwargs))
 
-class QVariableView(QtGui.QWidget):
+class QVariableView(QtWidgets.QWidget):
     """ Main widget containing plotting related information / options. Contains
     a tab widget with a tab for each defined variable, plotting options widget,
     and variable information widget """
     
+    createModule = QtCore.pyqtSignal()
+    updateModule = QtCore.pyqtSignal()
+    recordTeachingCommand = QtCore.pyqtSignal()
+    defineVariable = QtCore.pyqtSignal()
+    plot = QtCore.pyqtSignal()
+    plotPressed = QtCore.pyqtSignal()
+    updateModuleOps = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.selectedVars = []
         
         # Init layout
-        vbox = QtGui.QVBoxLayout()
-        vbox.setMargin(0)
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
 
         self.plotOptions = QPlotOptionsWidget(self)
         self.tabWidget = QAxisListTabWidget(self)
 
         # Init variable information widget
-        self.varInfoWidget = QtGui.QTextEdit()
+        self.varInfoWidget = QtWidgets.QTextEdit()
         self.varInfoWidget.setText('')
         self.varInfoWidget.setReadOnly(True)
 
         # Create splitter for tabWidget and variable information text
-        vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        vsplitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         vsplitter.addWidget(self.tabWidget)
         vsplitter.addWidget(self.varInfoWidget)
         vsplitter.setStretchFactor(1,1)
@@ -1718,17 +1702,12 @@ class QVariableView(QtGui.QWidget):
         # Create the vistrails variable module if it doesn't exist, and update
         # the modules input ports' values
         if tabName == 'quickplot':
-            self.emit(QtCore.SIGNAL('createModule'), quickplot_name,
-                      quickplot_name.lower())
+            self.createModule.emit(quickplot_name, quickplot_name.lower())
         else:
-            self.emit(QtCore.SIGNAL('createModule'), variable_name, tabName)
-        self.emit(QtCore.SIGNAL('updateModule'), tabName, 'id',
-                  var.id)        
-        self.emit(QtCore.SIGNAL('updateModule'), tabName, 'axes',
-                  str(self.generateKwArgs()))
-        self.emit(QtCore.SIGNAL('updateModule'),
-                  tabName, 'axesOperations',
-                  str(axisList.getAxesOperations()))
+            self.createModule.emit(variable_name, tabName)
+        self.updateModule.emit(tabName, 'id', var.id)
+        self.updateModule.emit(tabName, 'axes', str(self.generateKwArgs()))
+        self.updateModule.emit(tabName, 'axesOperations', str(axisList.getAxesOperations()))
 
     def defineVarAxis(self, var, teachingCommand):
         """ Create a new tab/axisList, store it in defined var list, and record
@@ -1740,8 +1719,8 @@ class QVariableView(QtGui.QWidget):
         axisList.setupVariableAxes()
         argString = self.generateKwargsAsString()
 
-        self.emit(QtCore.SIGNAL('recordTeachingCommand'), teachingCommand)
-        self.emit(QtCore.SIGNAL('defineVariable'), cdmsFile, var, argString)
+        self.recordTeachingCommand.emit(teachingCommand)
+        self.defineVariable.emit(cdmsFile, var, argString)
 
     def defineVariableEvent(self):
         """ Get a copy of the updated var and file and pass it to the Defined
@@ -1753,7 +1732,7 @@ class QVariableView(QtGui.QWidget):
         var = self.getUpdatedVar()
         argString = self.generateKwargsAsString()        
 
-        self.emit(QtCore.SIGNAL('defineVariable'), cdmsFile, var, argString)
+        self.defineVariable.emit(cdmsFile, var, argString)
 
     def selectDefinedVariableEvent(self, tabName, cdmsFile, selectedVars):
         """ Save the list of selected variables and show the selected variable,
@@ -1784,8 +1763,8 @@ class QVariableView(QtGui.QWidget):
         # existing Graphics Method / CDATCell module.  This results in plots 
         # being plotted multiple times.
         axisList = self.tabWidget.currentWidget()
-        self.emit(QtCore.SIGNAL('createModule'), gm_name)
-        self.emit(QtCore.SIGNAL('createModule'), cdatcell_name)        
+        self.createModule.emit(gm_name)
+        self.createModule.emit(cdatcell_name)
         self.setVistrailsGraphicsMethod() 
         self.setVistrailsCDATCell()
 
@@ -1798,12 +1777,12 @@ class QVariableView(QtGui.QWidget):
             var2 = None
 
         # Emit signal to GuiController to connect ports and plot
-        self.emit(QtCore.SIGNAL('plot'), var1, var2)
+        self.plot.emit(var1, var2)
 
         # If a quickplot is plotted, define current variable under 'quickplot'
         if (self.currentTabName() == 'quickplot'):
             var = self.getUpdatedVar()
-            self.emit(QtCore.SIGNAL('plotPressed'), axisList.getFile(), var)
+            self.plotPressed.emit(axisList.getFile(), var)
 
         # Record plot teaching commands
         self.recordPlotTeachingCommand()
@@ -1842,7 +1821,7 @@ class QVariableView(QtGui.QWidget):
         plotCommand += "%s = vcs_canvas_list[%d].plot(%s)\n" %(plotID, canvasNum, plotArgs)
 
         command = slabCommand + clearCommand + plotCommand
-        self.emit(QtCore.SIGNAL('recordTeachingCommand'), command)
+        self.recordTeachingCommand.emit(command)
 
     def requiresTwoSlabs(self, plotType):
         """ Returns true if the plot requires 2 slabs """
@@ -1907,7 +1886,7 @@ class QVariableView(QtGui.QWidget):
         if self.plotOptions.getContinentType() is not None:
             visInput.append(('continents', self.plotOptions.getContinentType())) # TODO
 
-        self.emit(QtCore.SIGNAL('updateModuleOps'), cdatcell_name, visInput)
+        self.updateModuleOps.emit(cdatcell_name, visInput)
 
     def setVistrailsGraphicsMethod(self):
         """ Vistrails: Update the vistrails' Graphics Method modules' boxfill
@@ -1920,13 +1899,13 @@ class QVariableView(QtGui.QWidget):
         
         visInput.append(('plotType', plotType))
         visInput.append(('gmName', self.getGraphicsMethodName(plotType)))
-        self.emit(QtCore.SIGNAL('updateModuleOps'), gm_name, visInput)
+        self.updateModuleOps.emit(gm_name, visInput)
 
     def showError(self, title, text):
         """ Show an error message in a simple popup message box. Currently there
         is no error icon. """
         
-        errorWidget = QtGui.QMessageBox(self)
+        errorWidget = QtWidgets.QMessageBox(self)
         errorWidget.setWindowTitle(title)
         errorWidget.setText(text)
         errorWidget.show()
@@ -1934,25 +1913,25 @@ class QVariableView(QtGui.QWidget):
     def currentTabName(self):
         return self.tabWidget.currentTabName()
 
-class QSelectVarDialog(QtGui.QDialog):
+class QSelectVarDialog(QtWidgets.QDialog):
     """ Popup box that allows user to selected a defined variable to replace an
     axis """
 
     def __init__(self, definedVars, parent):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.selectedVariable = None
         self.currentListIndex = None
         self.definedVars = definedVars
         self.myParent = parent
         
-        vbox = QtGui.QVBoxLayout()
-        hbox = QtGui.QHBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         self.setLayout(vbox)        
 
-        vbox.addWidget(QtGui.QLabel("Defined Variables:"))
+        vbox.addWidget(QtWidgets.QLabel("Defined Variables:"))
 
         # Add List of defined vars
-        self.varList = QtGui.QListWidget()
+        self.varList = QtWidgets.QListWidget()
         self.varList.setAlternatingRowColors(True)
         vbox.addWidget(self.varList)
 
@@ -1960,23 +1939,21 @@ class QSelectVarDialog(QtGui.QDialog):
         # self.definedVars = parent.getDefinedVars()
         for name, var in self.definedVars:
             label = name + ' ' + str(var.shape)
-            item = QtGui.QListWidgetItem()
-            item.setData(0, QtCore.QVariant(QtCore.QString(label)))
+            item = QtWidgets.QListWidgetItem()
+            item.setData(0, QtCore.QVariant(QString(label)))
             self.varList.addItem(item)
 
         # Add OK / Cancel Buttons
-        okButton = QtGui.QPushButton('OK')
-        cancelButton = QtGui.QPushButton('Cancel')
+        okButton = QtWidgets.QPushButton('OK')
+        cancelButton = QtWidgets.QPushButton('Cancel')
         hbox.addWidget(okButton)
         hbox.addWidget(cancelButton)                
         vbox.addLayout(hbox)
 
         # Connect Signals
-        self.connect(self.varList, QtCore.SIGNAL('clicked(const QModelIndex&)'),
-                     self.selectVariableFromListEvent)        
-        self.connect(okButton, QtCore.SIGNAL('pressed()'),
-                     self.selectDefinedVariableEvent)
-        self.connect(cancelButton, QtCore.SIGNAL('pressed()'), self.close)
+        self.varList.clicked[QModelIndex].connect(self.selectVariableFromListEvent)
+        okButton.pressed.connect(self.selectDefinedVariableEvent)
+        cancelButton.pressed.connect(self.close)
 
     def selectVariableFromListEvent(self, modelIndex):
         self.currentListIndex = modelIndex
@@ -1993,7 +1970,7 @@ class QSelectVarDialog(QtGui.QDialog):
 
     def showError(self):
         errorMsg = "Invalid shape or size. Axis requiers a 1D \narray that matches in size."
-        errorMessageBox = QtGui.QMessageBox(self)
+        errorMessageBox = QtWidgets.QMessageBox(self)
         errorMessageBox.setWindowTitle("Error")
         errorMessageBox.setText(errorMsg)
         errorMessageBox.show()
@@ -2043,23 +2020,23 @@ class QReplaceAxisWeightsDialog(QSelectVarDialog):
         else:
             self.showError()
 
-class QPlotOptionsWidget(QtGui.QWidget):
+class QPlotOptionsWidget(QtWidgets.QWidget):
     """ Widget containing plot options: plot button, plot type combobox, cell
     col and row selection combo box, and an options button """
     
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.myParent = parent
         self.cellRow = -1 # if row/col = -1, then automatically plot in an open cell
         self.cellCol = -1
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
 
         # Add plot button
-        self.plotButton = QtGui.QPushButton('&Plot')
+        self.plotButton = QtWidgets.QPushButton('&Plot')
         hbox.addWidget(self.plotButton)
 
         # Add plot type combo box
-        self.plotTypeCombo = QtGui.QComboBox()
+        self.plotTypeCombo = QtWidgets.QComboBox()
         comboPalette = self.plotTypeCombo.view().palette()
         comboPalette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)
         comboPalette.setColor(QtGui.QPalette.Highlight, QtCore.Qt.blue)                
@@ -2072,10 +2049,10 @@ class QPlotOptionsWidget(QtGui.QWidget):
         hbox.addWidget(self.plotTypeCombo)
 
         # Add cell row / col combo boxes
-        rowLabel = QtGui.QLabel('Row')
-        colLabel = QtGui.QLabel('Col')
-        self.cellRowCombo = QtGui.QComboBox()
-        self.cellColCombo = QtGui.QComboBox()
+        rowLabel = QtWidgets.QLabel('Row')
+        colLabel = QtWidgets.QLabel('Col')
+        self.cellRowCombo = QtWidgets.QComboBox()
+        self.cellColCombo = QtWidgets.QComboBox()
 
         comboPalette = self.cellRowCombo.view().palette()
         comboPalette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)
@@ -2099,9 +2076,9 @@ class QPlotOptionsWidget(QtGui.QWidget):
         hbox.addWidget(self.cellColCombo)
 
         # Create the options menu
-        optionsMenu = QtGui.QMenu(self)
-        menuVbox = QtGui.QVBoxLayout()
-        menuVbox.setMargin(2)
+        optionsMenu = QtWidgets.QMenu(self)
+        menuVbox = QtWidgets.QVBoxLayout()
+        menuVbox.setContentsMargins(2, 2, 2, 2)
         optionsMenu.setLayout(menuVbox)
 
         # Create the Continents Types Menu
@@ -2133,27 +2110,23 @@ class QPlotOptionsWidget(QtGui.QWidget):
 
         # Create Colormap option / widget
         colorMapAction = optionsMenu.addAction("&Colormap Editor")
-        self.colorDialog = QtGui.QColorDialog(self)
-        self.connect(colorMapAction, QtCore.SIGNAL('triggered ()'),
-                     self.colorDialog.open)
+        self.colorDialog = QtWidgets.QColorDialog(self)
+        colorMapAction.triggered .connect(self.colorDialog.open)
 
         # Create the options button
-        self.optionButton = QtGui.QToolButton()
+        self.optionButton = QtWidgets.QToolButton()
         self.optionButton.setText(' Options  ')
         self.optionButton.setMenu(optionsMenu)
-        self.optionButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.optionButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
         hbox.addWidget(self.optionButton)
         hbox.addStretch()        
         self.setLayout(hbox)
 
         # Connect Signals
-        self.connect(self.plotButton, QtCore.SIGNAL('clicked(bool)'),
-                     parent.plot)
-        self.connect(self.optionButton, QtCore.SIGNAL('clicked(bool)'),
-                     self.optionButton.showMenu)
-        self.connect(graphicMethodAction, QtCore.SIGNAL('triggered ()'),
-                     self.graphicsMethodController.show)
+        self.plotButton.clicked[bool].connect(parent.plot)
+        self.optionButton.clicked[bool].connect(self.optionButton.showMenu)
+        graphicMethodAction.triggered .connect(self.graphicsMethodController.show)
 
     def getRow(self):
         if self.cellRowCombo.currentText() == 'Auto':
@@ -2185,11 +2158,11 @@ class QPlotOptionsWidget(QtGui.QWidget):
     def getParent(self):
         return self.myParent
 
-class QCheckMenu(QtGui.QMenu):
+class QCheckMenu(QtWidgets.QMenu):
     """ Menu where only a single 'checkable' action can be checked at a time """
 
     def __init__(self, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
         self.defaultAction = None
         self.currentAction = None
         self.handleCheckEvent = False
@@ -2199,7 +2172,7 @@ class QCheckMenu(QtGui.QMenu):
         action = self.addAction(actionText)
         action.setCheckable(True)
         self.actions[actionText] = action
-        self.connect(action, QtCore.SIGNAL('toggled (bool)'), self.checkEvent)
+        action.toggled [bool].connect(self.checkEvent)
 
     def setDefaultAction(self, actionText):
         if actionText in list(self.actions):
@@ -2227,15 +2200,16 @@ class QCheckMenu(QtGui.QMenu):
             self.handleCheckEvent = False
             self.defaultAction.setChecked(True)
 
-class QAxisListTabWidget(QtGui.QTabWidget):
+class QAxisListTabWidget(QtWidgets.QTabWidget):
     """ TabWidget where each tab contains a QAxisList """
     
+    updateVarInfo = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
-        QtGui.QTabWidget.__init__(self, parent)
+        QtWidgets.QTabWidget.__init__(self, parent)
         self.myParent = parent
 
-        self.connect(self, QtCore.SIGNAL('currentChanged(int)'),
-                     self.tabChangeEvent)        
+        self.currentChanged[int].connect(self.tabChangeEvent)
 
     def createNewTab(self, axisList, tabName):
         """ Create a new tab given the axisList widget and tab name.  If a
@@ -2297,7 +2271,7 @@ class QAxisListTabWidget(QtGui.QTabWidget):
             axisList = self.currentWidget()
             axisList.setupVariableAxes()
 
-        self.emit(QtCore.SIGNAL('updateVarInfo'), axisList)        
+        self.updateVarInfo.emit(axisList)
 
     def tabExists(self, name):
         """ Returns True if a tab with the given name exists """
@@ -2318,9 +2292,13 @@ class QAxisListTabWidget(QtGui.QTabWidget):
         currentTab = self.currentIndex()
         return str(self.tabText(currentTab))
 
-class QMenuWidget(QtGui.QMenuBar):
+class QMenuWidget(QtWidgets.QMenuBar):
+    setRecordCommands = QtCore.pyqtSignal()
+    viewTeachingCommands = QtCore.pyqtSignal()
+    closeTeachingCommands = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
-        QtGui.QMenuBar.__init__(self, parent)
+        QtWidgets.QMenuBar.__init__(self, parent)
         self.myParent = parent
         
         self.file = self.addMenu('&File')
@@ -2338,19 +2316,16 @@ class QMenuWidget(QtGui.QMenuBar):
         viewTeachingAction = self.tools.addAction('View Teaching Commands')
         closeTeachingAction = self.tools.addAction('Close Teaching Commands')        
 
-        self.connect(viewTeachingAction, QtCore.SIGNAL('triggered ()'),
-                     self.viewTeachingCommands)
-        self.connect(closeTeachingAction, QtCore.SIGNAL('triggered ()'),
-                     self.closeTeachingCommands)        
-        self.connect(recordTeachingAction, QtCore.SIGNAL('toggled (bool)'),
-                     self.setRecordCommands)
+        viewTeachingAction.triggered .connect(self.viewTeachingCommands)
+        closeTeachingAction.triggered .connect(self.closeTeachingCommands)
+        recordTeachingAction.toggled [bool].connect(self.setRecordCommands)
 
     def setRecordCommands(self, checked):
-        self.myParent.emit(QtCore.SIGNAL('setRecordCommands'), checked)
+        self.myParent.setRecordCommands.emit(checked)
 
     def viewTeachingCommands(self):
-        self.myParent.emit(QtCore.SIGNAL('viewTeachingCommands'))
+        self.myParent.viewTeachingCommands.emit()
 
     def closeTeachingCommands(self):
-        self.myParent.emit(QtCore.SIGNAL('closeTeachingCommands'))
+        self.myParent.closeTeachingCommands.emit()
 

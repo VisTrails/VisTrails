@@ -48,7 +48,7 @@ import sys
 import StringIO
 import usagestats
 
-from PyQt4 import QtGui, QtCore, QtNetwork
+from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets
 
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
@@ -87,7 +87,7 @@ def global_ui_fixes():
 
 
 class VistrailsApplicationSingleton(VistrailsApplicationInterface,
-                                    QtGui.QApplication):
+                                    QtWidgets.QApplication):
     """
     VistrailsApplicationSingleton is the singleton of the application,
     there will be only one instance of the application during VisTrails
@@ -110,7 +110,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def __init__(self):
         global_ui_fixes()
 
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtWidgets.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
         if self.use_event_filter:
@@ -165,8 +165,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                "of vistrails application")
                 return
             self.local_server = QtNetwork.QLocalServer(self)
-            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                         self.message_received)
+            self.local_server.newConnection.connect(self.message_received)
             if self.local_server.listen(self._unique_key):
                 debug.log("Listening on %s"%self.local_server.fullServerName())
             else:
@@ -185,8 +184,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                    "of vistrails application")
                     return
                 self.local_server = QtNetwork.QLocalServer(self)
-                self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                             self.message_received)
+                self.local_server.newConnection.connect(self.message_received)
                 if self.local_server.listen(self._unique_key):
                     debug.log("Listening on %s"%self.local_server.fullServerName())
                 else:
@@ -281,28 +279,26 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         news = reportusage.get_server_news()
         if hasattr(self, 'splashScreen') and self.splashScreen:
             self.splashScreen.hide()
-        dialog = QtGui.QDialog()
+        dialog = QtWidgets.QDialog()
         dialog.setWindowTitle(u"Anonymous usage statistics")
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         dialog.setLayout(layout)
-        descr = QtGui.QTextBrowser()
+        descr = QtWidgets.QTextBrowser()
         descr.setOpenExternalLinks(True)
         descr.setHtml(news['usage_report_prompt_html'])
         layout.addWidget(descr)
-        layout.addWidget(QtGui.QLabel(
+        layout.addWidget(QtWidgets.QLabel(
             u"Send anonymous reports to the developers?"))
-        dont_ask = QtGui.QCheckBox(u"Don't ask again")
+        dont_ask = QtWidgets.QCheckBox(u"Don't ask again")
         layout.addWidget(dont_ask)
-        buttons = QtGui.QDialogButtonBox(
-                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No)
         layout.addWidget(buttons)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                     dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                     dialog, QtCore.SLOT('reject()'))
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
 
         res = dialog.exec_()
-        if res == QtGui.QDialog.Accepted:
+        if res == QtWidgets.QDialog.Accepted:
             reportusage.usage_report.enable_reporting()
         else:
             if dont_ask.isChecked():
@@ -318,17 +314,17 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if news['news_html']:
             if hasattr(self, 'splashScreen') and self.splashScreen:
                 self.splashScreen.hide()
-            dialog = QtGui.QDialog()
+            dialog = QtWidgets.QDialog()
             dialog.setWindowTitle(u"VisTrails News")
-            layout = QtGui.QVBoxLayout()
+            layout = QtWidgets.QVBoxLayout()
             dialog.setLayout(layout)
-            descr = QtGui.QTextBrowser()
+            descr = QtWidgets.QTextBrowser()
             descr.setOpenExternalLinks(True)
             descr.setHtml(news['news_html'])
             layout.addWidget(descr)
 
-            hlayout = QtGui.QHBoxLayout()
-            button = QtGui.QPushButton('&Close')
+            hlayout = QtWidgets.QHBoxLayout()
+            button = QtWidgets.QPushButton('&Close')
             hlayout.addStretch(1)
             hlayout.addWidget(button)
             hlayout.addStretch(1)
@@ -341,42 +337,40 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def ask_update_default_application(self, dont_ask_checkbox=True):
         if hasattr(self, 'splashScreen') and self.splashScreen:
             self.splashScreen.hide()
-        dialog = QtGui.QDialog()
+        dialog = QtWidgets.QDialog()
         dialog.setWindowTitle(u"Install .vt .vtl handler")
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         dialog.setLayout(layout)
-        layout.addWidget(QtGui.QLabel(u"Install VisTrails as default handler "
+        layout.addWidget(QtWidgets.QLabel(u"Install VisTrails as default handler "
                                       u"to open .vt and .vtl files?"))
         if dont_ask_checkbox:
-            dont_ask = QtGui.QCheckBox(u"Don't ask on startup")
+            dont_ask = QtWidgets.QCheckBox(u"Don't ask on startup")
             dont_ask_setting = self.configuration.check('handlerDontAsk')
             dont_ask.setChecked(dont_ask_setting)
             layout.addWidget(dont_ask)
-        buttons = QtGui.QDialogButtonBox(
-                QtGui.QDialogButtonBox.Yes | QtGui.QDialogButtonBox.No)
+        buttons = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No)
         layout.addWidget(buttons)
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
-                     dialog, QtCore.SLOT('accept()'))
-        QtCore.QObject.connect(buttons, QtCore.SIGNAL('rejected()'),
-                     dialog, QtCore.SLOT('reject()'))
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
 
         res = dialog.exec_()
         if dont_ask_checkbox:
             if dont_ask.isChecked() != dont_ask_setting:
                 self.configuration.handlerDontAsk = dont_ask.isChecked()
                 self.configuration.handlerDontAsk = dont_ask.isChecked()
-        if res != QtGui.QDialog.Accepted:
+        if res != QtWidgets.QDialog.Accepted:
             return False
         if system.systemType == 'Linux':
             if not linux_update_default_application():
-                QtGui.QMessageBox.warning(
+                QtWidgets.QMessageBox.warning(
                         None,
                         u"Install .vt .vtl handler",
                         u"Couldn't set VisTrails as default handler "
                         u"to open .vt and .vtl files")
                 return False
         else:
-            QtGui.QMessageBox.warning(
+            QtWidgets.QMessageBox.warning(
                     None,
                     u"Install .vt .vtl handler",
                     u"Can't install a default handler on this platform")
@@ -709,7 +703,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
-            self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
+            self.splashScreen = QtWidgets.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
             self.splashScreen.setFont(vistrails.gui.theme.CurrentTheme.SPLASH_SCREEN_FONT)
             debug.DebugPrint.getInstance().register_splash(self)
             self.splashScreen.show()
@@ -765,14 +759,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 create_event = 15
                 mac_attribute = QtCore.Qt.WA_MacBrushedMetal
             if (event.type() == create_event and
-                    isinstance(o, QtGui.QWidget) and
-                    not isinstance(o, QtGui.QSplashScreen) and
+                    isinstance(o, QtWidgets.QWidget) and
+                    not isinstance(o, QtWidgets.QSplashScreen) and
                     not (o.windowFlags() & QtCore.Qt.Popup)):
                 o.setAttribute(mac_attribute)
         if event.type() == QtCore.QEvent.FileOpen:
             self.input = [str(event.file())]
             self.process_interactive_input()
-        return QtGui.QApplication.eventFilter(self,o,event)
+        return QtWidgets.QApplication.eventFilter(self,o,event)
     
     def is_running(self):
         return self._is_running

@@ -1,47 +1,53 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import paraview.simple as pv
 from configuration import configuration
 
-class QPVConfigWindow(QtGui.QWidget):
+try:
+    QString = unicode
+except NameError:
+    # Python 3
+    QString = str
+
+class QPVConfigWindow(QtWidgets.QWidget):
 
     def __init__(self, proc_num=4, port=11111, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setWindowTitle('ParaView Local Server')
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
         
-        hbox.addWidget(QtGui.QLabel('# Procs'))
-        self.procSpin = QtGui.QSpinBox()
+        hbox.addWidget(QtWidgets.QLabel('# Procs'))
+        self.procSpin = QtWidgets.QSpinBox()
         self.procSpin.setRange(1, 1024*1024)
         self.procSpin.setValue(proc_num)
         hbox.addWidget(self.procSpin)
         
-        hbox.addWidget(QtGui.QLabel('Port'))
-        self.portSpin = QtGui.QSpinBox()
+        hbox.addWidget(QtWidgets.QLabel('Port'))
+        self.portSpin = QtWidgets.QSpinBox()
         self.portSpin.setRange(0, 64*1024)
         self.portSpin.setValue(port)
         hbox.addWidget(self.portSpin)
         
         hbox.addStretch()
         
-        self.cmdOut = QtGui.QTextEdit()
+        self.cmdOut = QtWidgets.QTextEdit()
         self.cmdOut.setReadOnly(True)
         vbox.addWidget(self.cmdOut)
 
-        self.runButton = QtGui.QPushButton('Start')
+        self.runButton = QtWidgets.QPushButton('Start')
         vbox.addWidget(self.runButton)
 
         self.pvProcess = QtCore.QProcess()
         self.pvProcess.setProcessChannelMode(QtCore.QProcess.MergedChannels)
-        self.connect(self.pvProcess, QtCore.SIGNAL('readyReadStandardOutput()'), self.updateLogs)
-        self.connect(self.pvProcess, QtCore.SIGNAL('error()'), self.updateError)
-        self.connect(self.pvProcess, QtCore.SIGNAL('finished(int,QProcess::ExitStatus)'), self.pvServerFinished)
+        self.pvProcess.readyReadStandardOutput.connect(self.updateLogs)
+        self.pvProcess.error.connect(self.updateError)
+        self.pvProcess.finished[int, QProcess.ExitStatus].connect(self.pvServerFinished)
         
-        self.connect(self.runButton, QtCore.SIGNAL('clicked()'), self.togglePVServer)
+        self.runButton.clicked.connect(self.togglePVServer)
 
     def buildArguments(self):
         #defaults
@@ -73,7 +79,7 @@ class QPVConfigWindow(QtGui.QWidget):
             self.pvProcess.waitForFinished()
 
     def updateLogs(self):
-        self.cmdOut.append(QtCore.QString(self.pvProcess.readAllStandardOutput()))
+        self.cmdOut.append(QString(self.pvProcess.readAllStandardOutput()))
 
     def updateError(self, error):
         self.cmdOut.append('ERROR %s\n' % error)
@@ -83,7 +89,7 @@ class QPVConfigWindow(QtGui.QWidget):
         self.runButton.setText('Start')
 
 if __name__=='__main__':
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = QPVConfigWindow()
     window.show()
     app.exec_()

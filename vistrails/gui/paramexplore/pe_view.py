@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget
@@ -50,9 +50,7 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
         BaseView.__init__(self)
 
         self.set_title("Explore")
-        self.connect(self.table,
-                     QtCore.SIGNAL('exploreChange(bool)'),
-                     self.exploreChange)
+        self.table.exploreChange[bool].connect(self.exploreChange)
 
     def set_controller(self, controller):
         if self.controller == controller:

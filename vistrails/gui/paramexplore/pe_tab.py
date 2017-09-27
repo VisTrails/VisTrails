@@ -39,7 +39,7 @@ QParameterExplorationTab
 """
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
@@ -63,6 +63,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
     related to parameter exploration
     
     """
+    exploreChange = QtCore.pyqtSignal(bool)
     explorationId = 0
     
     def __init__(self, parent=None):
@@ -74,14 +75,12 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         QDockContainer.__init__(self, parent)
         self.setWindowTitle('Parameter Exploration')
-        self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+        self.toolWindow().setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
         self.toolWindow().hide()
 
         self.peWidget = QParameterExplorationWidget()
         self.setCentralWidget(self.peWidget)
-        self.connect(self.peWidget.table,
-                     QtCore.SIGNAL('exploreChange(bool)'),
-                     self.exploreChange)
+        self.peWidget.table.exploreChange[bool].connect(self.exploreChange)
 
         self.paramView = QParameterView(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
@@ -301,7 +300,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                 
             # Now execute the pipelines
             totalProgress = sum([len(p.modules) for p in modifiedPipelines])
-            progress = QtGui.QProgressDialog('Performing Parameter '
+            progress = QtWidgets.QProgressDialog('Performing Parameter '
                                              'Exploration...',
                                              '&Cancel',
                                              0, totalProgress)
@@ -340,4 +339,4 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         echo the signal
         
         """
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), notEmpty)
+        self.exploreChange.emit(notEmpty)

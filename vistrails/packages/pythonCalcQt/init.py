@@ -38,10 +38,10 @@ from __future__ import division
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from ast import literal_eval
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import vistrails.api
 
-class QPythonCalc(QtGui.QWidget):
+class QPythonCalc(QtWidgets.QWidget):
     """QPythonCalc is a widget used for specifying PythonCalc
     parameters and providing two buttons for compute and add that
     module to the pipeline. """
@@ -55,39 +55,37 @@ class QPythonCalc(QtGui.QWidget):
         current pipeline.
 
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setWindowTitle('PythonCalc GUI')
-        gridLayout = QtGui.QGridLayout()
+        gridLayout = QtWidgets.QGridLayout()
         self.setLayout(gridLayout)
-        gridLayout.addWidget(QtGui.QLabel('value1'), 0, 0)
-        gridLayout.addWidget(QtGui.QLabel('value2'), 1, 0)
-        gridLayout.addWidget(QtGui.QLabel('op'), 2, 0)
-        gridLayout.addWidget(QtGui.QLabel('result'), 3, 0)
+        gridLayout.addWidget(QtWidgets.QLabel('value1'), 0, 0)
+        gridLayout.addWidget(QtWidgets.QLabel('value2'), 1, 0)
+        gridLayout.addWidget(QtWidgets.QLabel('op'), 2, 0)
+        gridLayout.addWidget(QtWidgets.QLabel('result'), 3, 0)
         
         numberValidator = QtGui.QIntValidator(self)
-        self.value1Edit = QtGui.QLineEdit('0')
-        self.value2Edit = QtGui.QLineEdit('0')
+        self.value1Edit = QtWidgets.QLineEdit('0')
+        self.value2Edit = QtWidgets.QLineEdit('0')
         self.value1Edit.setValidator(numberValidator)
         self.value2Edit.setValidator(numberValidator)
         gridLayout.addWidget(self.value1Edit, 0, 1)
         gridLayout.addWidget(self.value2Edit, 1, 1)
         
-        self.opCombo = QtGui.QComboBox()
+        self.opCombo = QtWidgets.QComboBox()
         self.opCombo.addItems(['+', '-', '*', '/'])
         gridLayout.addWidget(self.opCombo, 2, 1)
 
-        self.resultLabel = QtGui.QLabel()
+        self.resultLabel = QtWidgets.QLabel()
         gridLayout.addWidget(self.resultLabel, 3, 1)
 
-        self.calculateButton = QtGui.QPushButton('Calculate')
+        self.calculateButton = QtWidgets.QPushButton('Calculate')
         gridLayout.addWidget(self.calculateButton, 4, 0)
-        self.connect(self.calculateButton, QtCore.SIGNAL('clicked()'),
-                     self.calculate)
+        self.calculateButton.clicked.connect(self.calculate)
 
-        self.createModuleButton = QtGui.QPushButton('Create Module')
+        self.createModuleButton = QtWidgets.QPushButton('Create Module')
         gridLayout.addWidget(self.createModuleButton, 4, 1)
-        self.connect(self.createModuleButton, QtCore.SIGNAL('clicked()'),
-                     self.createModule)
+        self.createModuleButton.clicked.connect(self.createModule)
 
     def calculate(self):
         """ calculate() -> None        

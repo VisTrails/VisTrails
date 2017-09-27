@@ -3,7 +3,7 @@ import core.modules.vistrails_module
 from logging import debug, warn
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore
 import api
 import vcs
 import os
@@ -165,30 +165,19 @@ class GuiController(QtCore.QObject):
         # functionality.  If a childwidget of the 3 main widgets wants to
         # send signals to GuiController, then it must send it through one of the
         # main widgets to try to keep things less messy
-        self.connect(fileWidget, QtCore.SIGNAL('createModule'),
-                     self.createModule)            
-        self.connect(fileWidget, QtCore.SIGNAL('updateModule'),
-                     self.updateModule)
-        self.connect(fileWidget, QtCore.SIGNAL('recordTeachingCommand'),
-                     self.recordTeachingCommand)        
+        fileWidget.createModule.connect(self.createModule)
+        fileWidget.updateModule.connect(self.updateModule)
+        fileWidget.recordTeachingCommand.connect(self.recordTeachingCommand)
 
-        self.connect(defVarWidget, QtCore.SIGNAL('createModule'),
-                     self.createModule)            
-        self.connect(defVarWidget, QtCore.SIGNAL('updateModule'),
-                     self.updateModule)
-        self.connect(defVarWidget, QtCore.SIGNAL('recordTeachingCommand'),
-                     self.recordTeachingCommand)                
+        defVarWidget.createModule.connect(self.createModule)
+        defVarWidget.updateModule.connect(self.updateModule)
+        defVarWidget.recordTeachingCommand.connect(self.recordTeachingCommand)
 
-        self.connect(varWidget, QtCore.SIGNAL('recordTeachingCommand'),
-                     self.recordTeachingCommand)                
-        self.connect(varWidget, QtCore.SIGNAL('createModule'),
-                     self.createModule)
-        self.connect(varWidget, QtCore.SIGNAL('updateModule'),
-                     self.updateModule)
-        self.connect(varWidget, QtCore.SIGNAL('updateModuleOps'),
-                     self.updateModuleOps)
-        self.connect(varWidget, QtCore.SIGNAL('plot'),
-                     self.plot)
+        varWidget.recordTeachingCommand.connect(self.recordTeachingCommand)
+        varWidget.createModule.connect(self.createModule)
+        varWidget.updateModule.connect(self.updateModule)
+        varWidget.updateModuleOps.connect(self.updateModuleOps)
+        varWidget.plot.connect(self.plot)
 
     def createNewWorkflow(self):
         """ createnewWorkflow(filename: str)

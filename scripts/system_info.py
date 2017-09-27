@@ -70,10 +70,10 @@ except ImportError:
 print
 
 try:
-    import PyQt4.Qt
+    import PyQt5.Qt
     print "  PyQt installed."
-    print "    Qt version: " + PyQt4.Qt.QT_VERSION_STR
-    print "    PyQt version: " + PyQt4.Qt.PYQT_VERSION_STR
+    print "    Qt version: " + PyQt5.Qt.QT_VERSION_STR
+    print "    PyQt version: " + PyQt5.Qt.PYQT_VERSION_STR
 except ImportError:
     print "  PyQt NOT installed."
 print
