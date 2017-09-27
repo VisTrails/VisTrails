@@ -430,7 +430,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         
         self.toolbar.addWidget(create_spacer())
         self.toolbar.addWidget(create_spacer())
-        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
+        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly) #TextUnderIcon)
         self.addToolBar(self.toolbar)
         self.setUnifiedTitleAndToolBarOnMac(True)
 

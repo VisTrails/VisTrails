@@ -366,7 +366,8 @@ class DefaultTheme(DefaultCoreTheme):
         # The execute icons in the first spot of vistrail view toolbar
         self.EXECUTE_PIPELINE_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/execute.png')
+            # '/gui/resources/images/execute.png')
+            '/gui/resources/icons/player/play-button.svg')
         self.EXECUTE_EXPLORE_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/images/execute_explore.png')
@@ -404,12 +405,14 @@ class DefaultTheme(DefaultCoreTheme):
         # Toolbar icon for creating a new Vistrail
         self.NEW_VISTRAIL_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/new_vistrail.png')
+            '/gui/resources/icons/interface/document.svg')
+#            '/gui/resources/images/new_vistrail.png')
         
         # Toolbar icon for opening a vistrail
         self.OPEN_VISTRAIL_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/open_vistrail.png')
+            #'/gui/resources/images/open_vistrail.png')
+            '/gui/resources/icons/interface/folder.svg')
 
         #Toolbar icon for opening a vistrail from a database
         self.OPEN_VISTRAIL_DB_ICON = QtGui.QIcon(
@@ -429,7 +432,9 @@ class DefaultTheme(DefaultCoreTheme):
         # Toolbar icon for save the current Vistrail
         self.SAVE_VISTRAIL_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/save_vistrail.png')
+            '/gui/resources/icons/interface/download.svg')
+            #'/gui/resources/images/save_vistrail.png')
+        print("AVAILBLE SIZES:", self.SAVE_VISTRAIL_ICON.availableSizes())
     
         # Toolbar icon for toggling console mode window
         self.CONSOLE_MODE_ICON = QtGui.QIcon(
@@ -502,22 +507,28 @@ class DefaultTheme(DefaultCoreTheme):
         # Toolbar icons for views
         self.PIPELINE_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/pipeline.png')
+            # '/gui/resources/images/pipeline.png')
+            '/gui/resources/icons/custom/pipeline.svg')
         self.HISTORY_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/history.png')
+            '/gui/resources/icons/custom/vistrail.svg')
+        #'/gui/resources/images/history.png')
         self.QUERY_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/full_tree.png')
+            # '/gui/resources/images/full_tree.png')
+            '/gui/resources/icons/custom/search.svg')
         self.EXPLORE_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/explore.png')
+            # '/gui/resources/images/explore.png')
+            '/gui/resources/icons/player/equalizer.svg')
         self.PROVENANCE_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/search_database.png')
+            # '/gui/resources/images/search_database.png')
+            '/gui/resources/icons/e-commerce/list.svg')
         self.MASHUP_ICON = QtGui.QIcon(
             vistrails.core.system.vistrails_root_directory() +
-            '/gui/resources/images/mashup.png')
+            # '/gui/resources/images/mashup.png')
+            '/gui/resources/icons/e-commerce/package.svg')
 
         # Toolbar icon for visual query on a vistrail
         self.VISUAL_QUERY_ICON = QtGui.QIcon(
