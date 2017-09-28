@@ -150,9 +150,10 @@ class Predict(Module):
         clf = self.get_input("model")
         data = self.get_input("data")
         predictions = clf.predict(data)
-        decision_function = clf.decision_function(data)
         self.set_output("prediction", predictions)
-        self.set_output("decision_function", decision_function)
+        if hasattr(clf, 'decision_function'):
+            decision_function = clf.decision_function(data)
+            self.set_output("decision_function", decision_function)
 
 
 class Transform(Module):
