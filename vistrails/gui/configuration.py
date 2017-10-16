@@ -169,6 +169,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         self.setColumnCount(3)
         lst = ['Name', 'Value', 'Type']
         self.setHeaderLabels(lst)
+        self.itemChanged[QtWidgets.QTreeWidgetItem, int].connect(self.change_configuration)
         self.create_tree(persistent_config, temp_config)
 
     def create_tree(self, persistent_config, temp_config):
@@ -183,7 +184,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         # disconnect() and clear() are here because create_tree might
         # also be called when an entirely new configuration object is set.
 
-        self.itemChanged[QTreeWidgetItem, int].disconnect(self.change_configuration)
+        self.itemChanged[QtWidgets.QTreeWidgetItem, int].disconnect(self.change_configuration)
         self.clear()
         self._configuration = persistent_config
         self._temp_configuration = temp_config
@@ -192,7 +193,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
 
         self.expandAll()
         self.resizeColumnToContents(0)
-        self.itemChanged[QTreeWidgetItem, int].connect(self.change_configuration)
+        self.itemChanged[QtWidgets.QTreeWidgetItem, int].connect(self.change_configuration)
 
     def change_configuration(self, item, col):
         if item.flags() & QtCore.Qt.ItemIsEditable:
@@ -245,7 +246,8 @@ class QConfigurationWidget(QtWidgets.QWidget):
         self._tree.treeWidget.create_tree(persistent_config, temp_config)
 
 class QConfigurationWidgetItem(object):
-    def __init__(self, key, field, callback_f):
+    def __init__(self, key=None, field=None, callback_f=None, **kwargs):
+        super(QConfigurationWidgetItem, self).__init__(**kwargs)
         self.key = key
         self.field = field
         self.change_callback_f = callback_f
@@ -279,9 +281,10 @@ class QConfigurationWidgetItem(object):
         return options
 
 class QConfigurationCheckBox(QtWidgets.QCheckBox, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f, parent=None):
-        QtWidgets.QCheckBox.__init__(self, parent)
-        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+    def __init__(self, key, field, callback_f, **kwargs):
+        super(QConfigurationCheckBox, self).__init__(key=key, field=field, callback_f=callback_f, **kwargs)
+        # QtWidgets.QCheckBox.__init__(self, parent)
+        # QConfigurationWidgetItem.__init__(self, key, field, callback_f)
         self.setText(self.get_desc())
         self.toggled.connect(self.value_changed)
 

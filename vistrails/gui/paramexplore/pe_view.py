@@ -43,11 +43,14 @@ from vistrails.gui.theme import CurrentTheme
 from vistrails.core import debug
 
 class QParamExploreView(QParameterExplorationWidget, BaseView):
+    viewTitleChanged = QtCore.pyqtSignal('PyQt_PyObject')
+
     explorationId = 0
     
     def __init__(self, parent=None):
-        QParameterExplorationWidget.__init__(self, parent)
-        BaseView.__init__(self)
+        # QParameterExplorationWidget.__init__(self, parent)
+        # BaseView.__init__(self)
+        super(QParamExploreView, self).__init__(parent=parent)
 
         self.set_title("Explore")
         self.table.exploreChange[bool].connect(self.exploreChange)

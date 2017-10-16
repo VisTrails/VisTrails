@@ -51,6 +51,7 @@ from __future__ import division
 import copy
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QWidget
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -612,8 +613,8 @@ class QListEditDialog(QtWidgets.QDialog):
         hLayout.addWidget(addButton)
         
         removeButton = QtWidgets.QPushButton('&Del')
-        removeButton.setIcon(QtGui.QIcon(
-            self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCancelButton)))
+        removeButton.setIcon(
+            self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
         removeButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
                                    QtWidgets.QSizePolicy.Maximum)
         removeButton.clicked.connect(self.removeSelection)

@@ -341,12 +341,12 @@ class QQueryBox(QtWidgets.QWidget):
         layout.addLayout(options_layout)
         self.setLayout(layout)
 
-        self.searchBox.resetSearch.connect(self.resetSearch)
-        self.searchBox.executeSearch['QString'].connect(self.executeSearch)
-        self.searchBox.refineMode[bool].connect(self.refineMode)
+        self.searchBox.resetSearchSignal.connect(self.resetSearch)
+        self.searchBox.executeSearchSignal['QString'].connect(self.executeSearch)
+        self.searchBox.refineModeSignal[bool].connect(self.refineMode)
         self.backButton.clicked.connect(self.backToSearch)
         self.editButton.clicked.connect(self.doEdit)
-        self.level_group.buttonClicked[QAbstractButton].connect(self.levelChanged)
+        self.level_group.buttonClicked[QtWidgets.QAbstractButton].connect(self.levelChanged)
         useRegex.stateChanged[int].connect(self.useRegexChanged)
 
     def resetSearch(self, emit_signal=True):
@@ -422,9 +422,12 @@ class QQueryView(QtWidgets.QWidget, BaseView):
                 (QueryController.LEVEL_VISTRAIL, VERSION_RESULT_VIEW),
                 (QueryController.LEVEL_WORKFLOW, WORKFLOW_RESULT_VIEW)])
 
+    viewTitleChanged = QtCore.pyqtSignal('PyQt_PyObject')
+
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
-        BaseView.__init__(self)
+        super(QQueryView, self).__init__(parent=parent)
+        # QtWidgets.QWidget.__init__(self, parent)
+        # BaseView.__init__(self)
         self.build_widget()
         self.set_title("Search")
 

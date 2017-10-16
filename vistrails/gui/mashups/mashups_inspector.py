@@ -160,8 +160,8 @@ class QMashupProp(QtWidgets.QWidget):
         self.tagEdit.setEnabled(False)
 
         self.tagReset = QtWidgets.QToolButton(self)
-        self.tagReset.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
+        self.tagReset.setIcon(
+                self.style().standardIcon(QtWidgets.QStyle.SP_DialogCloseButton))
         self.tagReset.setIconSize(QtCore.QSize(12,12))
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)

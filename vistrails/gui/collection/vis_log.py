@@ -269,7 +269,7 @@ class QLogDetails(QtWidgets.QWidget, QVistrailsPaletteInterface):
 #        self.connect(self.executionList, QtCore.SIGNAL(
 #         "itemClicked(QTreeWidgetItem *, int)"),
 #         self.singleClick)
-        self.executionList.itemDoubleClicked[QTreeWidgetItem, int].connect(self.doubleClick)
+        self.executionList.itemDoubleClicked[QtWidgets.QTreeWidgetItem, int].connect(self.doubleClick)
         self.addButtonsToToolbar()
 
     def addButtonsToToolbar(self):

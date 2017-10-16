@@ -358,6 +358,7 @@ class QVirtualCellConfiguration(QtWidgets.QWidget):
         self.setLayout(gridLayout)
         label = QVirtualCellLabel('')
         self.layout().addWidget(label, 0, 0, 1, 1, QtCore.Qt.AlignCenter)
+        label.finishedDragAndDrop.connect(self.compressCells)
         self.cells = [[label]]
         self.numCell = 1
 
@@ -557,7 +558,7 @@ class QVirtualCellLabel(QtWidgets.QLabel):
             else:
                 painter.setPen(QtCore.Qt.black)
                 painter.setBrush(QtCore.Qt.lightGray)
-        painter.drawRoundRect(QtCore.QRectF(0.5, 0.5, image.width()-1,
+        painter.drawRoundedRect(QtCore.QRectF(0.5, 0.5, image.width()-1,
                                             image.height()-1), 25, 25)
 
         painter.setFont(font)

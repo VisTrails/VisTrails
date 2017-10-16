@@ -463,9 +463,8 @@ class PersistentRefDialog(QtWidgets.QDialog):
         local_layout.addWidget(self.filename_edit)
 
         filename_button = QtWidgets.QToolButton()
-        filename_button.setIcon(
-            QtGui.QIcon(filename_button.style().standardPixmap(
-                    QtWidgets.QStyle.SP_DirOpenIcon)))
+        filename_button.setIcon(filename_button.style().standardIcon(
+                    QtWidgets.QStyle.SP_DirOpenIcon))
         filename_button.setIconSize(QtCore.QSize(12,12))
         filename_button.clicked.connect(self.choose_file)
         local_layout.addWidget(filename_button)
@@ -579,8 +578,8 @@ class PathChooserLayout(QtWidgets.QHBoxLayout):
 
         pathname_button = QtWidgets.QToolButton()
         pathname_button.setIcon(
-            QtGui.QIcon(pathname_button.style().standardPixmap(
-                    QtWidgets.QStyle.SP_DirOpenIcon)))
+            pathname_button.style().standardIcon(
+                    QtWidgets.QStyle.SP_DirOpenIcon))
         pathname_button.setIconSize(QtCore.QSize(12,12))
         pathname_button.clicked.connect(self.choose_path)
         self.addWidget(pathname_button)

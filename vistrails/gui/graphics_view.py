@@ -232,7 +232,7 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
         Initialize the graphics view with interactive options
         
         """
-        QtWidgets.QGraphicsView.__init__(self, parent)
+        super(QInteractiveGraphicsView, self).__init__(parent=parent)
         self.setInteractive(True)
 #        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
@@ -393,7 +393,7 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
         
         """
         scenePos = self.mapToScene(e.pos())
-        item = self.scene().itemAt(scenePos)
+        item = self.scene().itemAt(scenePos, self.transform())
         buttons = self.translateButton(e)
         if buttons == QtCore.Qt.LeftButton:
             if item is None:
@@ -538,7 +538,7 @@ class QInteractiveGraphicsView(QtWidgets.QGraphicsView):
         Compute the current scale based on the view matrix
         
         """
-        self.currentScale = (math.log(self.matrix().m11(), 2.0)*
+        self.currentScale = (math.log(self.transform().m11(), 2.0)*
                              self.scaleRatio + self.scaleMax/2 +
                              self.scaleOffset)
 
@@ -688,7 +688,10 @@ class QPIPGraphicsView(QtWidgets.QWidget):
         self.palette().setColor(QtGui.QPalette.Base,
                                 CurrentTheme.PIP_FRAME_COLOR)
         self.setLayout(QtWidgets.QHBoxLayout(self))
-        self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+        self.layout().setContentsMargins(CurrentTheme.PIP_OUT_FRAME_WIDTH,
+                                        CurrentTheme.PIP_OUT_FRAME_WIDTH,
+                                        CurrentTheme.PIP_OUT_FRAME_WIDTH,
+                                        CurrentTheme.PIP_OUT_FRAME_WIDTH)
         self.graphicsView = QInteractiveGraphicsView()
         self.layout().addWidget(self.graphicsView)
         self.firstShow = True
@@ -816,7 +819,10 @@ class QPIPGraphicsView(QtWidgets.QWidget):
         resizing
         
         """
-        self.layout().setMargin(CurrentTheme.PIP_IN_FRAME_WIDTH)
+        self.layout().setContentsMargins(CurrentTheme.PIP_IN_FRAME_WIDTH,
+                                         CurrentTheme.PIP_IN_FRAME_WIDTH,
+                                         CurrentTheme.PIP_IN_FRAME_WIDTH,
+                                         CurrentTheme.PIP_IN_FRAME_WIDTH)
 
     def leaveEvent(self, event):
         """ leaveEvent(event: QLeaveEvent) -> None        
@@ -824,7 +830,10 @@ class QPIPGraphicsView(QtWidgets.QWidget):
         more view
         
         """
-        self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+        self.layout().setContentsMargin (CurrentTheme.PIP_OUT_FRAME_WIDTH,
+                                         CurrentTheme.PIP_OUT_FRAME_WIDTH,
+                                         CurrentTheme.PIP_OUT_FRAME_WIDTH,
+                                         CurrentTheme.PIP_OUT_FRAME_WIDTH)
 
 
 class QResetQueryButton(QtWidgets.QLabel):

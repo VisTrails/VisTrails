@@ -59,13 +59,14 @@ class QModuleOptions(QtWidgets.QDialog, QVistrailsPaletteInterface):
     stateChanged = QtCore.pyqtSignal()
     doneConfigure = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, **kwargs):
         """ 
         QModuleIteration(parent)
         -> None
 
         """
-        QtWidgets.QDialog.__init__(self, parent)
+        # QtWidgets.QDialog.__init__(self, parent)
+        super(QModuleOptions, self).__init__(**kwargs)
         self.setWindowTitle("Module Execution Options")
         self.createButtons()
         self.update_module()

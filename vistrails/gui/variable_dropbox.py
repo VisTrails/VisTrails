@@ -46,6 +46,7 @@ QHoverVariableLabel
 from __future__ import division
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QWidget
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -197,7 +198,7 @@ class QVerticalWidget(QPromptWidget):
         QPromptWidget.__init__(self, parent)
         self.setPromptText("Drag a constant from the Modules panel to create a variable")
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(5)
         self.layout().setAlignment(QtCore.Qt.AlignTop)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
@@ -265,7 +266,7 @@ class QVariableInputWidget(QtWidgets.QDockWidget):
         title_layout = QtWidgets.QHBoxLayout()
         self.closeButton = QtWidgets.QToolButton()
         self.closeButton.setAutoRaise(True)
-        self.closeButton.setIcon(QtGui.QIcon(self.style().standardPixmap(QtWidgets.QStyle.SP_TitleBarCloseButton)))
+        self.closeButton.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_TitleBarCloseButton))
         self.closeButton.setIconSize(QtCore.QSize(13, 13))
         self.closeButton.setFixedWidth(16)
         self.label = QHoverVariableLabel(name)
@@ -328,7 +329,7 @@ class QVariableInputForm(QtWidgets.QGroupBox):
         """
         QtWidgets.QGroupBox.__init__(self, parent)
         self.setLayout(QtWidgets.QGridLayout())
-        self.layout().setMargin(5)
+        self.layout().setContentsMargins(5,5,5,5)
         self.layout().setSpacing(5)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,

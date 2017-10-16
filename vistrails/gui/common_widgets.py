@@ -320,9 +320,9 @@ class QSearchTreeWindow(QtWidgets.QWidget):
         self.treeWidget = self.createTreeWidget()
         vLayout.addWidget(self.treeWidget)
         
-        self.searchBox.executeIncrementalSearch['QString'].connect(self.treeWidget.searchItemName)
-        self.searchBox.executeSearch['QString'].connect(self.treeWidget.searchItemName)
-        self.searchBox.resetSearch.connect(self.clearTreeWidget)
+        self.searchBox.executeIncrementalSearchSignal['QString'].connect(self.treeWidget.searchItemName)
+        self.searchBox.executeSearchSignal['QString'].connect(self.treeWidget.searchItemName)
+        self.searchBox.resetSearchSignal.connect(self.clearTreeWidget)
                      
     def clearTreeWidget(self):
         """ clearTreeWidget():
@@ -523,10 +523,10 @@ class QSearchBox(QtWidgets.QWidget):
     a search icon.
 
     """
-    resetSearch = QtCore.pyqtSignal()
-    refineMode = QtCore.pyqtSignal(bool)
-    executeIncrementalSearch = QtCore.pyqtSignal('QString')
-    executeSearch = QtCore.pyqtSignal('QString')
+    resetSearchSignal = QtCore.pyqtSignal()
+    refineModeSignal = QtCore.pyqtSignal(bool)
+    executeIncrementalSearchSignal = QtCore.pyqtSignal('QString')
+    executeSearchSignal = QtCore.pyqtSignal('QString')
 
     def __init__(self, refine=True, incremental=True, parent=None):
         """ QSearchBox(parent: QWidget) -> QSearchBox
@@ -578,8 +578,9 @@ class QSearchBox(QtWidgets.QWidget):
         hLayout.addWidget(self.searchEdit)
 
         self.resetButton = QtWidgets.QToolButton(self)
-        self.resetButton.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
+        self.resetButton.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogCloseButton))
+            # QtGui.QIcon(
+            #     self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
         self.resetButton.setIconSize(QtCore.QSize(12,12))
         self.resetButton.setAutoRaise(True)
         self.resetButton.setEnabled(False)
@@ -604,7 +605,7 @@ class QSearchBox(QtWidgets.QWidget):
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
         self.manualResetEnabled = False
-        self.resetSearch.emit()
+        self.resetSearchSignal.emit()
 
     def clearSearch(self):
         """ clearSearch() -> None
@@ -622,14 +623,14 @@ class QSearchBox(QtWidgets.QWidget):
         searchMode() -> None
 
         """
-        self.refineMode.emit(False)
+        self.refineModeSignal.emit(False)
     
     def refineMode(self):
         """
         refineMode() -> None
 
         """
-        self.refineMode.emit(True)
+        self.refineModeSignal.emit(True)
 
     def resetToggle(self, text):
         self.resetButton.setEnabled((str(text) != '') or 
@@ -643,10 +644,10 @@ class QSearchBox(QtWidgets.QWidget):
         """
         self.resetButton.setEnabled((str(text)!='') or
                                     self.manualResetEnabled)
-        self.executeIncrementalSearch.emit(text)
+        self.executeIncrementalSearchSignal.emit(text)
 
     def executeTextSearch(self, text):
-        self.executeSearch.emit(text)
+        self.executeSearchSignal.emit(text)
 
     def executeSearch(self, index):
         """
@@ -661,7 +662,7 @@ class QSearchBox(QtWidgets.QWidget):
             self.resetSearch() 
         else: 
             self.resetButton.setEnabled(True) 
-            self.executeSearch.emit(self.searchEdit.currentText())
+            self.executeSearchSignal.emit(self.searchEdit.currentText())
 
     def getCurrentText(self):
         return str(self.searchEdit.currentText())
@@ -719,8 +720,8 @@ class QPathChooserToolButton(QtWidgets.QToolButton):
 
         """
         QtWidgets.QToolButton.__init__(self, parent)
-        self.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtWidgets.QStyle.SP_DirOpenIcon)))
+        self.setIcon(
+                self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon))
         self.setIconSize(QtCore.QSize(12,12))
         if toolTip is None:
             toolTip = 'Open a path chooser'

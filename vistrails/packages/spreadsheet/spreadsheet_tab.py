@@ -832,7 +832,7 @@ class StandardWidgetTabBar(QtWidgets.QTabBar):
     """
     tabTextChanged = QtCore.pyqtSignal(int, 'QString')
     tabMoveRequest = QtCore.pyqtSignal(int, int)
-    tabSplitRequest = QtCore.pyqtSignal(int, QPoint)
+    tabSplitRequest = QtCore.pyqtSignal(int, QtCore.QPoint)
 
     def __init__(self, parent=None):
         """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar

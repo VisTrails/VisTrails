@@ -73,8 +73,8 @@ class QJobTree(QtWidgets.QTreeWidget):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.setContentsMargins(0, 0, 0, 0)
         self.setColumnCount(2)
-        self.header().setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        self.header().setResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        self.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.header().close()
         self.setExpandsOnDoubleClick(False)
         self.controller = None

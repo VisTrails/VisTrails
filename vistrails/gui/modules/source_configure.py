@@ -71,7 +71,7 @@ class SourceWidget(PortTableConfigurationWidget):
         self.codeEditor = editor_class(parent)
         self.setWindowTitle('%s Configuration' % module.name)
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
         self.has_inputs = has_inputs
         self.has_outputs = has_outputs

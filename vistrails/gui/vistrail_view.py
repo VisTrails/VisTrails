@@ -443,7 +443,7 @@ class QVistrailView(QtWidgets.QWidget):
             if self.isTabDetachable(tab_idx):
                 self.tabs.setTabToolTip(tab_idx, "Double-click to detach it")
             
-        view.windowTitleChanged.connect(self.view_title_changed)
+        view.viewTitleChanged.connect(self.view_title_changed)
         if self.tabs.count() == 1:
             #self.tabs.hide()
             self.tabs.setTabsClosable(False)
@@ -557,7 +557,7 @@ class QVistrailView(QtWidgets.QWidget):
         del self.tab_to_view[index]
         if stack_idx >= 0:
             view = self.stack.widget(stack_idx)
-            view.windowTitleChanged.disconnect(self.view_title_changed)
+            view.viewTitleChanged.disconnect(self.view_title_changed)
             self.stack.removeWidget(view)
         self.update_indexes(index, stack_idx)
         if self.tabs.count() == 1:

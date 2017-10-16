@@ -533,9 +533,8 @@ class QVersionEmbed(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.copyButton.clicked.connect(self.copyClicked)
         
         self.cbcontent.activated['QString'].connect(self.changeOption)
-        
-        optlist = [self.cbcontent,
-                   self.chbPdf,
+
+        optlist = [self.chbPdf,
                    self.chbSmartTag,
                    self.chbCache,
                    self.chbLatexVTL,

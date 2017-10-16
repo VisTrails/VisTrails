@@ -199,7 +199,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
                                                    controller, parent)
         self.setWindowTitle('Handler Python Script Editor')
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
         self.createEditor()
         self.createButtonLayout()        

@@ -51,12 +51,16 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
     marking on a pipeline view
     
     """
+
+    viewTitleChanged = QtCore.pyqtSignal('PyQt_PyObject')
+
     def __init__(self, parent=None):
         """ QPipelineView(parent: QWidget) -> QPipelineView
         Initialize the graphics view and its properties
         
         """
-        QPipelineView.__init__(self, parent)
+        super(QAnnotatedPipelineView, self).__init__(parent=parent)
+        # QPipelineView.__init__(self, parent)
         self.setWindowTitle('Annotated Pipeline')
         self.inspector = PipelineInspector()
 

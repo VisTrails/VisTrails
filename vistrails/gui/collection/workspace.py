@@ -476,6 +476,9 @@ class QExplorerWidgetItem(QtWidgets.QTreeWidgetItem):
         Collection.getInstance().commit()
 
 class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
+    vistrailChanged = QtCore.pyqtSignal('PyQt_PyObject')
+    detachVistrail = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
@@ -622,7 +625,6 @@ class QWorkspaceWindow(QtWidgets.QWidget, QVistrailsPaletteInterface):
         self.open_list.remove_vt_window(vistrail_window)
 
 class QVistrailEntityItem(QBrowserWidgetItem):
-    detachVistrail = QtCore.pyqtSignal()
 
     def __init__(self, entity, window=None):
         QBrowserWidgetItem.__init__(self, entity)
@@ -714,11 +716,11 @@ class QVistrailList(QtWidgets.QTreeWidget):
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-        self.itemDoubleClicked[QTreeWidgetItem, int].connect(self.item_selected)
+        self.itemDoubleClicked[QtWidgets.QTreeWidgetItem, int].connect(self.item_selected)
         
         self.setIconSize(QtCore.QSize(16,16))
 
-        self.itemPressed[QTreeWidgetItem, int].connect(self.onItemPressed)
+        self.itemPressed[QtWidgets.QTreeWidgetItem, int].connect(self.onItemPressed)
         self.updateHideExecutions()
         self.connect_current_changed()
 
@@ -741,15 +743,13 @@ class QVistrailList(QtWidgets.QTreeWidget):
     def connect_current_changed(self):
         # using currentItemChanged makes sure a drag selects the dragged-from
         # vistrail
-        self.currentItemChanged[QTreeWidgetItem, "
-                                   "QTreeWidgetItem].connect(self.item_changed)
+        self.currentItemChanged.connect(self.item_changed)
         # using item_clicked makes sure even selected items can be clicked
-        self.itemClicked[QTreeWidgetItem, int].connect(self.item_changed)
+        self.itemClicked[QtWidgets.QTreeWidgetItem, int].connect(self.item_changed)
 
     def disconnect_current_changed(self):
-        self.currentItemChanged[QTreeWidgetItem, "
-                                      "QTreeWidgetItem].disconnect(self.item_changed)
-        self.itemClicked[QTreeWidgetItem, int].disconnect(self.item_changed)
+        self.currentItemChanged.disconnect(self.item_changed)
+        self.itemClicked[QtWidgets.QTreeWidgetItem, int].disconnect(self.item_changed)
     
     def show_search_results(self):
         self.searchResultsItem = QtWidgets.QTreeWidgetItem(['Search Results'])

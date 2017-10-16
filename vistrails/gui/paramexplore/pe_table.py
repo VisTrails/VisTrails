@@ -84,7 +84,8 @@ class QParameterExplorationWidget(QtWidgets.QScrollArea):
         Put the QParameterExplorationTable as a main widget
         
         """
-        QtWidgets.QScrollArea.__init__(self, parent)
+        super(QParameterExplorationWidget, self).__init__(parent=parent)
+        # QtWidgets.QScrollArea.__init__(self, parent)
         self.setAcceptDrops(True)
         self.setWidgetResizable(True)
         self.table = QParameterExplorationTable()
@@ -859,8 +860,8 @@ class QParameterSetLabel(QtWidgets.QWidget):
         
         self.removeButton = QtWidgets.QToolButton()
         self.removeButton.setAutoRaise(True)
-        self.removeButton.setIcon(QtGui.QIcon(
-            self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)))
+        self.removeButton.setIcon(
+            self.style().standardIcon(QtWidgets.QStyle.SP_DialogCloseButton))
         self.removeButton.setIconSize(QtCore.QSize(12, 12))
         self.removeButton.setFixedWidth(16)
         hLayout.addWidget(self.removeButton)

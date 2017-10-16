@@ -41,6 +41,7 @@ API in the classes.
 from __future__ import division
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QWidget
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core import debug
 from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
@@ -226,7 +227,6 @@ def make_interpolator(widget_class, interpolator_class, name):
             hLayout.addSpacing(5)
 
             rightArrow = QtWidgets.QLabel()
-            pixmap = self.style().standardPixmap(QtWidgets.QStyle.SP_ArrowRight)
             rightArrow.setPixmap(CurrentTheme.RIGHT_ARROW_PIXMAP)
             hLayout.addWidget(rightArrow)
 
@@ -467,8 +467,8 @@ class QListEditDialog(QtWidgets.QDialog):
         hLayout.addWidget(addButton)
         
         removeButton = QtWidgets.QPushButton('&Del')
-        removeButton.setIcon(QtGui.QIcon(
-            self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCancelButton)))
+        removeButton.setIcon(
+            self.style().standardIcon(QtWidgets.QStyle.SP_DialogCancelButton))
         removeButton.setSizePolicy(QtWidgets.QSizePolicy.Maximum,
                                    QtWidgets.QSizePolicy.Maximum)
         removeButton.clicked.connect(self.removeSelection)

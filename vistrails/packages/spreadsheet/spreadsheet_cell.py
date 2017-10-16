@@ -310,12 +310,12 @@ class QCellToolBar(QtWidgets.QToolBar):
         self.sheet = sheet
         self.row = -1
         self.col = -1
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-        pixmap = self.style().standardPixmap(QtWidgets.QStyle.SP_DialogCloseButton)
+        icon = self.style().standardIcon(QtWidgets.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
         self.addExecuteCellAction()
-        self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
+        self.appendAction(QCellToolBarRemoveCell(icon, self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
 
@@ -828,7 +828,6 @@ class QCellPresenter(QtWidgets.QLabel):
 
         layout = QtWidgets.QGridLayout(self)
         layout.setSpacing(2)
-        layout.setContentsMargins(self.margin(, self.margin(, self.margin(, self.margin()
         layout.setRowStretch(1, 1)
         self.setLayout(layout)
 

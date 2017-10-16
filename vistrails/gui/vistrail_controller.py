@@ -145,7 +145,7 @@ class VistrailController(QtCore.QObject, BaseController):
     """
     invalidateSingleNodeInVersionTree = QtCore.pyqtSignal()
     vistrailChanged = QtCore.pyqtSignal()
-    new_action = QtCore.pyqtSignal()
+    new_action = QtCore.pyqtSignal('PyQt_PyObject')
     notesChanged = QtCore.pyqtSignal()
     versionWasChanged = QtCore.pyqtSignal()
     searchChanged = QtCore.pyqtSignal()
@@ -168,12 +168,24 @@ class VistrailController(QtCore.QObject, BaseController):
 
         """
 
-        QtCore.QObject.__init__(self)
-
+        # QtCore.QObject.__init__(self)
         if pipeline_view is None:
             self.current_pipeline_view = QPipelineView()
         else:
             self.current_pipeline_view = pipeline_view
+
+        def width_f(text):
+            return CurrentTheme.VERSION_FONT_METRIC.width(text)
+        self._current_graph_layout = \
+            VistrailsTreeLayoutLW(width_f,
+                                  CurrentTheme.VERSION_FONT_METRIC.height(),
+                                  CurrentTheme.VERSION_LABEL_MARGIN[0],
+                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
+
+        super(VistrailController, self).__init__(vistrail=vistrail, locator=locator, abstractions=abstractions,
+                                thumbnails=thumbnails, mashups=mashups, id_scope=id_scope, set_log_on_vt=set_log_on_vt,
+                                auto_save=auto_save)
+        self.versionWasChanged.connect(self.current_pipeline_view.version_changed)
 
         self.vistrail_view = None
         self.reset_pipeline_view = False
@@ -194,18 +206,8 @@ class VistrailController(QtCore.QObject, BaseController):
         # (undo is automatic with us, through the version tree)
         self.redo_stack = []
 
-        def width_f(text):
-            return CurrentTheme.VERSION_FONT_METRIC.width(text)
-        self._current_graph_layout = \
-            VistrailsTreeLayoutLW(width_f, 
-                                  CurrentTheme.VERSION_FONT_METRIC.height(), 
-                                  CurrentTheme.VERSION_LABEL_MARGIN[0], 
-                                  CurrentTheme.VERSION_LABEL_MARGIN[1])
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
-        BaseController.__init__(self, vistrail, locator, abstractions, 
-                                thumbnails, mashups, id_scope, set_log_on_vt, 
-                                auto_save)
 
     def _get_current_pipeline_scene(self):
         return self.current_pipeline_view.scene()
@@ -647,7 +649,7 @@ class VistrailController(QtCore.QObject, BaseController):
         #         new_version not in self._current_terse_graph.vertices:
         #     self.recompute_terse_graph()
 
-        self.versionWasChanged.emit(self.current_version)
+        self.versionWasChanged.emit()
 
     def set_search(self, search, text=''):
         """ set_search(search: SearchStmt, text: str) -> None

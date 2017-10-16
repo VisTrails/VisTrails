@@ -117,7 +117,8 @@ class QPackageConfigurationDialog(QtWidgets.QDialog):
 class QPackagesWidget(QtWidgets.QWidget):
 
     # Signals that a package should be selected after the event loop updates (to remove old references)
-    select_package_after_update_signal = QtCore.SIGNAL("select_package_after_update_signal")
+    # select_package_after_update_signal = QtCore.SIGNAL("select_package_after_update_signal")
+    select_package_after_update_signal = QtCore.pyqtSignal()
 
     ##########################################################################
     # Initialization
@@ -231,8 +232,7 @@ class QPackagesWidget(QtWidgets.QWidget):
         button_box.addButton(self._reload_button, QtWidgets.QDialogButtonBox.ActionRole)
         right_layout.addWidget(button_box)
 
-        self.connect(self,
-                     self.select_package_after_update_signal,
+        self.select_package_after_update_signal.connect(
                      self.select_package_after_update_slot,
                      QtCore.Qt.QueuedConnection)
 
@@ -404,7 +404,7 @@ class QPackagesWidget(QtWidgets.QWidget):
         # Selecting the package causes self._current_package to be set,
         # which reference prevents the package from being freed, so we
         # queue it to select after the event loop completes.
-        self.emit(self.select_package_after_update_signal, codepath)
+        self.select_package_after_update_signal().emit(codepath)
 
     def select_package_after_update_slot(self, codepath):
         inst = self._enabled_packages_list

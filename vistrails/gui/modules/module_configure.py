@@ -42,6 +42,8 @@ from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 from vistrails.gui.common_widgets import QPromptWidget
 
 class StandardModuleConfigurationWidget(QtWidgets.QWidget):
+    doneConfigure = QtCore.pyqtSignal()
+    stateChanged = QtCore.pyqtSignal()
 
     def __init__(self, module, controller, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
@@ -105,7 +107,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
                                                    parent)
        
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
         self.scrollArea = QtWidgets.QScrollArea(self)
         self.layout().addWidget(self.scrollArea)

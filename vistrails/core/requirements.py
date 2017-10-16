@@ -123,8 +123,7 @@ def qt_available():
     try:
         require_python_module('sip')
         setNewPyQtAPI()
-        require_python_module('PyQt4.QtGui')
-        require_python_module('PyQt4.QtOpenGL')
+        require_python_module('PyQt5.QtWidgets')
     except MissingRequirement:
         return False
     else:

@@ -769,6 +769,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
     """
     versionSelected = QtCore.pyqtSignal(int, bool, bool, bool, bool)
     twoVersionsSelected = QtCore.pyqtSignal(int, int)
+    diffRequested = QtCore.pyqtSignal(int, int)
 
     def __init__(self, parent=None):
         """ QVersionTree(parent: QWidget) -> QVersionTree
@@ -784,7 +785,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.fullGraph = None
         self.emit_selection = True
         self.select_by_click = True
-        self.selectionChanged.connect(self.selectionChanged)
+        self.selectionChanged.connect(self.selectionChangedCb)
 
     def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: str, description: str,
@@ -1001,7 +1002,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 self.versions[v].setSelected(v == controller.current_base_version)
 
         self.emit_selection = True
-        self.selectionChanged()
+        self.selectionChangedCb()
 
         # remove gui edges from scene
         for (v1, v2) in removeEdgeSet:
@@ -1057,7 +1058,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         else:
             qt_super(QVersionTreeScene, self).keyPressEvent(event)
 
-    def selectionChanged(self):
+    def selectionChangedCb(self):
         if not self.emit_selection:
             return
 
@@ -1086,14 +1087,16 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     
     """
     vistrailChanged = QtCore.pyqtSignal()
+    viewTitleChanged = QtCore.pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent=None):
         """ QVersionTreeView(parent: QWidget) -> QVersionTreeView
         Initialize the graphics view and its properties
         
         """
-        QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        # QInteractiveGraphicsView.__init__(self, parent)
+        # BaseView.__init__(self)
+        super(QVersionTreeView, self).__init__(parent=parent)
         self.controller = None
         self.set_title('Version Tree')
         self.setScene(QVersionTreeScene(self))
@@ -1193,12 +1196,12 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
-                oldController.vistrailChanged.disconnect(self.vistrailChanged)
+                oldController.vistrailChanged.disconnect(self.vistrailChangedCb)
                 oldController.invalidateSingleNodeInVersionTree.disconnect(self.single_node_changed)
                 oldController.notesChanged.disconnect(self.notesChanged)
             self.controller = controller
             self.scene().controller = controller
-            controller.vistrailChanged.connect(self.vistrailChanged)
+            controller.vistrailChanged.connect(self.vistrailChangedCb)
             controller.invalidateSingleNodeInVersionTree.connect(self.single_node_changed)
             controller.notesChanged.connect(self.notesChanged)
             if controller:
@@ -1208,8 +1211,8 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
                 # self.versionProp.updateController(controller)
                 # self.versionView.versionProp.updateController(controller)
 
-    def vistrailChanged(self):
-        """ vistrailChanged() -> None
+    def vistrailChangedCb(self):
+        """ vistrailChangedCb() -> None
         An action was performed on the current vistrail
         
         """

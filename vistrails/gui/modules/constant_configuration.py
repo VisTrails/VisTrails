@@ -94,7 +94,8 @@ class ConstantWidgetBase(ConstantWidgetMixin):
                 self.__cwidget._focus_out(event)
             return False
 
-    def __init__(self, param):
+    def __init__(self, **kwargs):
+        param = kwargs.pop('param', None)
         if param is None:
             raise ValueError("Must pass param as first argument.")
         psi = param.port_spec_item
@@ -290,9 +291,11 @@ class QGraphicsLineEdit(QtWidgets.QGraphicsTextItem, ConstantWidgetBase):
 class StandardConstantWidget(QtWidgets.QLineEdit,ConstantWidgetBase):
     contentsChanged = QtCore.pyqtSignal(tuple)
     GraphicsItem = QGraphicsLineEdit
-    def __init__(self, param, parent=None):
-        QtWidgets.QLineEdit.__init__(self, parent)
-        ConstantWidgetBase.__init__(self, param)
+    def __init__(self, param, **kwargs):
+        kwargs['param'] = param
+        super(StandardConstantWidget, self).__init__(**kwargs)
+        # QtWidgets.QLineEdit.__init__(self, parent)
+        # ConstantWidgetBase.__init__(self, param)
         self.returnPressed.connect(self.update_parent)
 
     def setContents(self, value, silent=False):

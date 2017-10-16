@@ -81,12 +81,14 @@ class QConfigurationWidget(QtWidgets.QWidget):
 class QModuleConfiguration(QtWidgets.QScrollArea, QVistrailsPaletteInterface):
     doneConfigure = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None, scene=None):
+    def __init__(self, **kwargs):
         """QModuleConfiguration(parent: QWidget) -> QModuleConfiguration
         Initialize widget constraints
         
         """
-        QtWidgets.QScrollArea.__init__(self, parent)
+        # QtWidgets.QScrollArea.__init__(self, parent)
+        scene = kwargs.pop('scene', None)
+        super(QModuleConfiguration, self).__init__(**kwargs)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowTitle('Module Configuration')
         self.setWidgetResizable(True)
@@ -146,7 +148,6 @@ class QModuleConfiguration(QtWidgets.QScrollArea, QVistrailsPaletteInterface):
     
     def configureDone(self):
         from vistrails.gui.vistrails_window import _app
-        self.doneConfigure.emit(self.module.id)
         _app.notify('module_done_configure', self.module.id)
         
     def stateChanged(self):

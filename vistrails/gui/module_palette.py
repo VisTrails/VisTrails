@@ -257,7 +257,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
         self.setRootIsDecorated(False)
         self.delegate = QModuleTreeWidgetItemDelegate(self, self)
         self.setItemDelegate(self.delegate)
-        self.itemPressed[QTreeWidgetItem, int].connect(self.onItemPressed)
+        self.itemPressed[QtWidgets.QTreeWidgetItem, int].connect(self.onItemPressed)
 
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
@@ -265,7 +265,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
 
         """
         if item and item.parent() is None:
-            self.setItemExpanded(item, not self.isItemExpanded(item))
+            item.setExpanded(not item.isExpanded())
 
     def contextMenuEvent(self, event):
         """Just dispatches the menu event to the widget item"""

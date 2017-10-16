@@ -64,7 +64,7 @@ class QModuleAnnotation(QtWidgets.QDialog):
         self.setModal(True)
         self.setWindowTitle('Module Annotations')
         self.setLayout(QtWidgets.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0,0,0,0)
         self.layout().setSpacing(0)
         self.scrollArea = QtWidgets.QScrollArea(self)
         self.layout().addWidget(self.scrollArea)

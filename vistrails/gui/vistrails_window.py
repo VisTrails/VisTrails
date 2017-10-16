@@ -405,7 +405,8 @@ class QVistrailViewWindow(QBaseViewWindow):
         self.selected_mode = None
         self.toolbar = QtWidgets.QToolBar(self)
         print "TOOLBAR ICON SIZE:", QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_ToolBarIconSize)
-        # self.toolbar.setIconSize(QtCore.QSize(48,48))
+        self.toolbar.setIconSize(QtCore.QSize(48,48))
+        print "TOOLBAR ICON SIZE:", QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_ToolBarIconSize)
 
         #left side
         for action in [self.qactions[n] 
@@ -433,7 +434,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         
         self.toolbar.addWidget(create_spacer())
         self.toolbar.addWidget(create_spacer())
-        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly) #TextUnderIcon)
+        # self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.addToolBar(self.toolbar)
         self.setUnifiedTitleAndToolBarOnMac(True)
 
@@ -885,7 +886,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._is_quitting = False
         self._first_view = True
         QtWidgets.QApplication.clipboard().dataChanged.connect(self.clipboard_changed)
-        QtWidgets.QApplication.instance().focusChanged[QWidget, QWidget].connect(self.applicationFocusChanged)
+        QtWidgets.QApplication.instance().focusChanged[QtWidgets.QWidget, QtWidgets.QWidget].connect(self.applicationFocusChanged)
 
         self.preferencesDialog = QPreferencesDialog(self)
 
@@ -1835,17 +1836,14 @@ class QVistrailsWindow(QVistrailViewWindow):
             if name=='':
                 name = 'Untitled%s'%vistrails.core.system.vistrails_default_file_type()
             text = ('Vistrail ' +
-                    QtCore.Qt.escape(name) +
+                    name +
                     ' contains unsaved changes.\n Do you want to '
                     'save changes before closing it?')
-            res = QtWidgets.QMessageBox.information(window,
+            res = QtWidgets.QMessageBox.question(window,
                                                 'Vistrails',
-                                                text, 
-                                                '&Save', 
-                                                '&Discard',
-                                                'Cancel',
-                                                0,
-                                                2)
+                                                text,
+                                                QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Discard | QtWidgets.QMessageBox.Cancel,
+                                                QtWidgets.QMessageBox.Save)
         else:
             res = DISCARD_BUTTON
         

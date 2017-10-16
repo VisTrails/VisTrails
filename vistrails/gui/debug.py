@@ -97,7 +97,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
 
         # message list
         self.list = QtWidgets.QListWidget()
-        self.list.currentItemChanged[QListWidgetItem, QListWidgetItem].connect(self.showMessage)
+        self.list.currentItemChanged[QtWidgets.QListWidgetItem, QtWidgets.QListWidgetItem].connect(self.showMessage)
         layout.addWidget(self.list)
 
         # message details field
@@ -218,7 +218,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
             msg_box.setEscapeButton(QtWidgets.QMessageBox.Ok)
             msg_box.addButton('&Show Messages', msg_box.RejectRole)
             self.manyButton = None
-            msg_box.buttonClicked[QAbstractButton].connect(self.messageButtonClicked)
+            msg_box.buttonClicked[QtWidgets.QAbstractButton].connect(self.messageButtonClicked)
             msg_box.rejected.connect(self.rejectMessage)
             self.updateMessageBox(item)
         else:
@@ -282,7 +282,7 @@ class DebugView(QtWidgets.QWidget, QVistrailsPaletteInterface):
         item.setFlags(item.flags()&~QtCore.Qt.ItemIsEditable)
         self.list.addItem(item)
         item.setForeground(CurrentTheme.DEBUG_COLORS[msgs[0]])
-        self.list.setItemHidden(item, not self.levels[msgs[0]].isChecked())
+        item.setHidden(not self.levels[msgs[0]].isChecked())
         alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
                                        'showDebugPopups',
                                        False)

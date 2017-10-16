@@ -39,8 +39,9 @@ from PyQt5 import QtCore
 from vistrails.gui.common_widgets import QToolWindowInterface
 
 class QVistrailsPaletteInterface(QToolWindowInterface):
-    def __init__(self):
-        QToolWindowInterface.__init__(self)
+    def __init__(self, **kwargs):
+        super(QVistrailsPaletteInterface, self).__init__(**kwargs)
+        # QToolWindowInterface.__init__(self)
         self.controller = None
         self.title = None
         self.p_id = None

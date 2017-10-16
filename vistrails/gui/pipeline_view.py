@@ -1022,15 +1022,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtWidgets.QGraphicsItem):
     ('output port' end of the connection)
     
     """
-    moduleSelected = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None, scene=None):
+    def __init__(self, parent=None):
         """ QGraphicsModuleItem(parent: QGraphicsItem, scene: QGraphicsScene)
                                 -> QGraphicsModuleItem
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtWidgets.QGraphicsItem.__init__(self, parent, scene)
+        QtWidgets.QGraphicsItem.__init__(self, parent)
         self.paddedRect = QtCore.QRectF()
         if QtCore.QT_VERSION >= 0x40600:
             #Qt 4.6 specific flags
@@ -1436,13 +1435,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtWidgets.QGraphicsItem):
         painter.translate(center_x, center_y)
         self.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
         for port in self.inputPorts.itervalues():
-            m = port.matrix()
+            m = port.transform()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
             painter.restore()
         for port in self.outputPorts.itervalues():
-            m = port.matrix()
+            m = port.transform()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtWidgets.QStyleOptionGraphicsItem())
@@ -1738,7 +1737,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtWidgets.QGraphicsItem):
             configureShape.moduleId = self.id
             configureShape.setGhosted(self.ghosted)
             configureShape.setBreakpoint(self.module.is_breakpoint)
-            configureShape.translate(x, y)
+            configureShape.setTransform(QtGui.QTransform.fromTranslate(x,y))
             return configureShape
         return None
 
@@ -2089,7 +2088,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     pipeline scenes, i.e. modules, connections, selection
     
     """
-    moduleSelected = QtCore.pyqtSignal()
+    moduleSelected = QtCore.pyqtSignal(int, list)
 
     def __init__(self, parent=None):
         """ QPipelineScene(parent: QWidget) -> QPipelineScene
@@ -2694,7 +2693,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def unselect_all(self):
         self.clearSelection()
         if self.pipeline_tab:
-            self.pipeline_tab.moduleSelected(-1)
+            self.pipeline_tab.moduleSelected(-1, [])
 
     def createConnectionFromTmp(self, tmp_connection_item, module, 
                                 start_is_src=False):
@@ -3652,13 +3651,17 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     
     """
 
+    viewTitleChanged = QtCore.pyqtSignal('PyQt_PyObject')
+
     def __init__(self, parent=None):
         """ QPipelineView(parent: QWidget) -> QPipelineView
         Initialize the graphics view and its properties
         
         """
-        QInteractiveGraphicsView.__init__(self, parent)
-        BaseView.__init__(self)
+        print "INITING QPIPELINE VIEW"
+        super(QPipelineView, self).__init__(parent=parent)
+        # QInteractiveGraphicsView.__init__(self, parent)
+        # BaseView.__init__(self)
         self.setScene(QPipelineScene(self))
         self.set_title('Pipeline')
         self.controller = None
@@ -3843,7 +3846,8 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
 
     def version_changed(self):
         self._view_fitted = False
-        self.scene().setupScene(self.controller.current_pipeline)
+        if self.controller is not None:
+            self.scene().setupScene(self.controller.current_pipeline)
 
     def run_control_flow_assist(self):
         currentScene = self.scene()
@@ -3874,7 +3878,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.scene().perform_configure_done_actions(mid)
 
     def paintModuleToPixmap(self, module_item):
-        m = self.matrix()
+        m = self.transform()
         return module_item.paintToPixmap(m.m11(), m.m22())
 
     def viewSelected(self):
