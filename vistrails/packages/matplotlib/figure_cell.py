@@ -147,7 +147,7 @@ class MplFigureCellWidget(QCellWidget):
         Widget special grabbing function
         
         """
-        return QtGui.QPixmap.grabWidget(self.canvas)
+        return self.canvas.grab()
 
     def dumpToFile(self, filename):
         previous_size = tuple(self.figure.get_size_inches())

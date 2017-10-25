@@ -69,10 +69,10 @@ class StandardWidgetHeaderView(QtWidgets.QHeaderView):
 
         """
         QtWidgets.QHeaderView.__init__(self, orientation, parent)
-        self.setMovable(True)
+        self.setSectionsMovable(True)
         self.setFont(QtGui.QFont("Helvetica",12,QtGui.QFont.Bold))
         self.resizeSections(QtWidgets.QHeaderView.Stretch)
-        self.setClickable(True)
+        self.setSectionsClickable(True)
         self.setHighlightSections(True)
         if orientation==QtCore.Qt.Vertical:
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter |
@@ -284,7 +284,7 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
-        self.cellActivated[int, int, bool].connect(self.selectCell)
+        self.cellActivated[int, int].connect(self.selectCell)
         self.activeCell = (-1,-1)
 
     def forceColumnMultiSelect(self, logicalIndex):
@@ -530,7 +530,7 @@ class StandardWidgetSheet(QtWidgets.QTableWidget):
         if (row, col) == self.activeCell:
             self.setActiveCell(row, col)
 
-    def selectCell(self, row, col, toggling):
+    def selectCell(self, row, col, toggling=True):
         """ selectCell(row: int, col: int, toggling: bool) -> None
         Select a cell based on its current selection
 

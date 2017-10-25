@@ -3627,7 +3627,7 @@ class QModuleStatusEvent(QtCore.QEvent):
     module updates in the scene through post-event
     
     """
-    TYPE = QtCore.QEvent.Type(QtCore.QEvent.User)
+    TYPE = QtCore.QEvent.Type(QtCore.QEvent.User+100) # don't conflict with spreadsheet
     def __init__(self, moduleId, status, toolTip, progress=0.0,
                  errorTrace=None):
         """ QModuleStatusEvent(type: int) -> None        

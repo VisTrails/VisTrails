@@ -107,7 +107,7 @@ class BaseQueryWidget(QtWidgets.QWidget, QueryWidgetMixin):
         layout.addWidget(self.contents_widget)
         self.setLayout(layout)
 
-        self.op_button.triggered[QAction].connect(self.update_action)
+        self.op_button.triggered[QtWidgets.QAction].connect(self.update_action)
 
     def contents(self):
         return self.contents_widget.contents()

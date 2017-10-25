@@ -147,7 +147,7 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
         self.menuBar().addAction(self.windowMenu.menuAction())
         self.windowMenu.addAction(self.showBuilderWindowAction())
 
-        self.modeActionGroup.triggered[QAction].connect(self.modeChanged)
+        self.modeActionGroup.triggered[QtWidgets.QAction].connect(self.modeChanged)
 
     def fitToWindowAction(self):
         """ fitToWindowAction() -> QAction
@@ -404,7 +404,7 @@ class SpreadsheetWindow(QtWidgets.QMainWindow):
                 p = p.parent()
             if p and isinstance(p, StandardWidgetSheet) and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
-                p.cellActivated.emit(p.rowAt(pos.y()), p.columnAt(pos.x()), e.modifiers()==QtCore.Qt.ControlModifier)
+                p.cellActivated.emit(p.rowAt(pos.y()), p.columnAt(pos.x()))#, e.modifiers()==QtCore.Qt.ControlModifier)
         return False
         #return QtGui.QMainWindow.eventFilter(self,q,e)
 

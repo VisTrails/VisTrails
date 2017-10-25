@@ -107,7 +107,7 @@ class QParameterEditor(QtWidgets.QWidget):
         hLayout.addWidget(self.stackedEditors)
 
         self.selector = QParameterEditorSelector(param_info, self._exploration_widgets)
-        self.selector.actionGroup.triggered[QAction].connect(self.changeInterpolator)
+        self.selector.actionGroup.triggered[QtWidgets.QAction].connect(self.changeInterpolator)
         hLayout.addWidget(self.selector)
         self.selector.initAction()
 

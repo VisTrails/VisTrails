@@ -404,7 +404,7 @@ class QPackagesWidget(QtWidgets.QWidget):
         # Selecting the package causes self._current_package to be set,
         # which reference prevents the package from being freed, so we
         # queue it to select after the event loop completes.
-        self.select_package_after_update_signal().emit(codepath)
+        self.select_package_after_update_signal.emit(codepath)
 
     def select_package_after_update_slot(self, codepath):
         inst = self._enabled_packages_list

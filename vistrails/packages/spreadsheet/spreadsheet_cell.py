@@ -223,7 +223,7 @@ class QCellWidget(QtWidgets.QWidget):
         Widget special grabbing function
 
         """
-        return QtGui.QPixmap.grabWidget(self)
+        return self.grab()
 
     def dumpToFile(self, filename):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
@@ -430,15 +430,14 @@ class QCellToolBar(QtWidgets.QToolBar):
         """
         cellWidget = self.sheet.getCell(self.row, self.col)
         for action in self.actions():
-            action.needUpdateStatus.emit((self.sheet, self.row, self.col, cellWidget))
+            # call this directly instead of via signals -- may cause issues
+            action.updateStatus((self.sheet, self.row, self.col, cellWidget))
 
     def connectAction(self, action, widget):
         """ connectAction(action: QAction, widget: QWidget) -> None
         Connect actions to special slots of a widget
 
         """
-        if hasattr(widget, 'updateStatus'):
-            action.needUpdateStatus.connect(widget.updateStatus)
         if hasattr(widget, 'triggeredSlot'):
             action.triggered.connect(widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
@@ -847,11 +846,11 @@ class QCellPresenter(QtWidgets.QLabel):
             if hasattr(cellWidget, 'grabWindowPixmap'):
                 bgPixmap = cellWidget.grabWindowPixmap()
             else:
-                bgPixmap = QtGui.QPixmap.grabWidget(cellWidget)
+                bgPixmap = cellWidget.grab()
             self.info.show()
         else:
             self.info.hide()
-            bgPixmap = QtGui.QPixmap.grabWidget(self)
+            bgPixmap = self.grab()
         self.thumbnail = QtGui.QPixmap(bgPixmap)
         painter = QtGui.QPainter(bgPixmap)
         painter.fillRect(bgPixmap.rect(),

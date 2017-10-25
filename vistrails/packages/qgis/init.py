@@ -157,7 +157,7 @@ class QGISCellWidget(QCellWidget):
         Widget special grabbing function
         
         """
-        # return QtGui.QPixmap.grabWidget(self.figManager.canvas)
+        # return self.figManager.canvas.grab()
         return None
 
     def dumpToFile(self, filename):

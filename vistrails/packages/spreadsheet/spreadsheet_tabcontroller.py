@@ -84,8 +84,8 @@ class StandardWidgetTabController(QtWidgets.QTabWidget):
         self.floatingTabWidgets = []
         self.addTabWidget(StandardWidgetSheetTab(self), 'Sheet 1')
         self.tabBar().tabMoveRequest[int, int].connect(self.moveTab)
-        self.tabBar().tabSplitRequest[int, QPoint].connect(self.splitTab)
-        self.tabBar().tabTextChanged[int, 'QString'].connect(self.changeTabText)
+        self.tabBar().tabSplitRequest[int, QtCore.QPoint].connect(self.splitTab)
+        self.tabBar().tabTextChanged[int, str].connect(self.changeTabText)
         self.addAction(self.showNextTabAction())
         self.addAction(self.showPrevTabAction())
         self.executedPipelines = [[],{},{}]

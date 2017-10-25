@@ -692,7 +692,7 @@ class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
         menu = QtWidgets.QMenu()
         self.action_group = QtWidgets.QActionGroup(menu)
         self.action_group.setExclusive(True)
-        self.action_group.triggered[QAction].connect(self.wasTriggered)
+        self.action_group.triggered[QtWidgets.QAction].connect(self.wasTriggered)
         size = menu.style().pixelMetric(QtWidgets.QStyle.PM_SmallIconSize)
         for i, color_str in enumerate(values):
             qcolor = self.colorFromString(color_str)
