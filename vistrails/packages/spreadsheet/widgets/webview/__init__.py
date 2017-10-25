@@ -47,7 +47,7 @@ def widgetName():
     Return the name of this widget plugin
     
     """
-    return 'WebKit Viewer'
+    return 'Web Viewer'
 
 def registerWidget(reg, basicModules, basicWidgets):    
     """ registerWidget(reg: module_registry,

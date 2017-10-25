@@ -39,7 +39,7 @@
 ############################################################################
 from __future__ import division
 
-from PyQt5 import (QtCore, QtGui, QtPrintSupport, QtWebKit, QtWebKitWidgets,
+from PyQt5 import (QtCore, QtGui, QtPrintSupport, QtWebEngineWidgets,
                    QtWidgets)
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
@@ -83,9 +83,7 @@ class WebViewCellWidget(QCellWidget):
         QCellWidget.__init__(self, parent)
         self.setLayout(QtWidgets.QVBoxLayout(self))
         self.toolBarType = WebViewCellToolBar
-        QtWebKit.QWebSettings.globalSettings().setAttribute(
-            QtWebKit.QWebSettings.DeveloperExtrasEnabled, True)
-        self.browser = QtWebKitWidgets.QWebView()
+        self.browser = QtWebEngineWidgets.QWebEngineView()
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.urlSrc = None
@@ -111,7 +109,9 @@ class WebViewCellWidget(QCellWidget):
     def dumpToFile(self, filename):
         if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
             with open(filename, 'wb') as fp:
-                fp.write(self.browser.page().mainFrame().toHtml())
+                def to_html_finished(data):
+                    fp.write(data)
+                self.browser.toPage().toHtml(to_html_finished)
         else:
             super(WebViewCellWidget, self).dumpToFile(filename)
 

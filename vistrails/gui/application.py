@@ -48,7 +48,7 @@ import sys
 import StringIO
 import usagestats
 
-from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets
+from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, QtWebEngineWidgets
 
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
