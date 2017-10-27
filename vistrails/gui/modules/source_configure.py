@@ -105,7 +105,7 @@ class SourceWidget(PortTableConfigurationWidget):
             self.inputPortTable.resizeColumnToContents(0)
             self.inputPortTable.resizeColumnToContents(2)
         if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            self.connectPorts()
         if has_outputs:
             self.outputPortTable.fixGeometry()
             # Resize output (because it is largest) and trigger sync
@@ -166,22 +166,22 @@ class SourceWidget(PortTableConfigurationWidget):
     def sizeHint(self):
         return QtCore.QSize(512, 512)
 
-    def performPortConnection(self, operation):
-        operation(self.inputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
-        operation(self.outputPortTable.horizontalHeader(),
-                  QtCore.SIGNAL('sectionResized(int,int,int)'),
-                  self.portTableResize)
+    def connectPorts(self):
+            self.inputPortTable.horizontalHeader().sectionResized.connect(self.portTableResize)
+            self.outputPortTable.horizontalHeader().sectionResized.connect(self.portTableResize)
+
+    def disconnectPorts(self):
+        self.inputPortTable.horizontalHeader().sectionResized.disconnect(self.portTableResize)
+        self.outputPortTable.horizontalHeader().sectionResized.disconnect(self.portTableResize)
 
     def portTableResize(self, logicalIndex, oldSize, newSize):
-        self.performPortConnection(self.disconnect)
+        self.disconnectPorts()
         if self.inputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.inputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         if self.outputPortTable.horizontalHeader().sectionSize(logicalIndex)!=newSize:
             self.outputPortTable.horizontalHeader().resizeSection(logicalIndex,newSize)
         QtWidgets.QApplication.processEvents()
-        self.performPortConnection(self.connect)
+        self.connectPorts()
 
     def activate(self):
         self.codeEditor.setFocus(QtCore.Qt.MouseFocusReason)
@@ -232,7 +232,7 @@ class SourceViewerWidget(SourceWidget):
             self.inputPortTable.resizeColumnToContents(0)
             self.inputPortTable.resizeColumnToContents(2)
         if has_inputs and has_outputs:
-            self.performPortConnection(self.connect)
+            self.connectPorts()
         if has_outputs:
             self.fixTableGeometry(self.outputPortTable)
             # Resize output (because it is largest) and trigger sync
