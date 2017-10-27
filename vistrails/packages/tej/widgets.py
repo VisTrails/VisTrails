@@ -42,7 +42,7 @@ class DirectoryConfigurationWidget(StandardModuleConfigurationWidget):
 
         self._list = QtWidgets.QListWidget()
         self._list.setSortingEnabled(True)
-        self._list.itemChanged[QListWidgetItem].connect(lambda i: self.updateState())
+        self._list.itemChanged[QtWidgets.QListWidgetItem].connect(lambda i: self.updateState())
         central_layout.addWidget(self._list)
 
         add_button = QtWidgets.QPushButton("Add a file")

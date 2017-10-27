@@ -54,7 +54,7 @@ class SourceEditor(QtWidgets.QTextEdit):
         self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)
-        self.currentCharFormatChanged[QTextCharFormat].connect(self.formatChanged)
+        self.currentCharFormatChanged[QtGui.QTextCharFormat].connect(self.formatChanged)
 
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
 

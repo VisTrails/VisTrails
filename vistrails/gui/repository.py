@@ -714,7 +714,7 @@ class QRepositoryDialog(QtWidgets.QDialog):
                                                   QtCore.Qt.Horizontal,
                                                   self)
         
-        self._button_box.clicked[QAbstractButton].connect(self.close_dialog)
+        self._button_box.clicked[QtWidgets.QAbstractButton].connect(self.close_dialog)
 
         self._logout_button.clicked.connect(self.clicked_on_logout)
 

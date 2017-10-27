@@ -66,7 +66,7 @@ class PortTable(QtWidgets.QTableWidget):
         self.delegate = PortTableItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.setFrameStyle(QtWidgets.QFrame.NoFrame)
-        self.model().dataChanged[QModelIndex, QModelIndex].connect(self.handleDataChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
         self.delegate.modelDataChanged.connect(self.contentsChanged)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setMouseTracking(True)
@@ -81,7 +81,7 @@ class PortTable(QtWidgets.QTableWidget):
         self.setFixedHeight(self.horizontalHeader().height()+
                             rect.y()+rect.height()+1)
 
-    def handleDataChanged(self, topLeft, bottomRight):
+    def handleDataChanged(self, topLeft, bottomRight, roles):
         if topLeft.column()==0:
             text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole))
             changedGeometry = False
@@ -96,7 +96,7 @@ class PortTable(QtWidgets.QTableWidget):
             self.contentsChanged.emit()
 
     def initializePorts(self, port_specs, reverse_order=False):
-        self.model().dataChanged[QModelIndex, QModelIndex].disconnect(self.handleDataChanged)
+        self.model().dataChanged.disconnect(self.handleDataChanged)
         if reverse_order:
             port_specs_iter = reversed(port_specs)
         else:
@@ -119,7 +119,7 @@ class PortTable(QtWidgets.QTableWidget):
                           p.name,
                           QtCore.Qt.DisplayRole)
             self.setRowCount(self.rowCount()+1)
-        self.model().dataChanged[QModelIndex, QModelIndex].connect(self.handleDataChanged)
+        self.model().dataChanged.connect(self.handleDataChanged)
             
     def getPorts(self):
         ports = []
@@ -319,7 +319,7 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
             self.resetButton.setEnabled(False)
             self.state_changed = False
             self.stateChanged.emit()
-            self.doneConfigure.emit(self.module.id)
+            self.doneConfigure.emit()
             
     def resetTriggered(self, checked = False):
         self.state_changed = False

@@ -78,7 +78,7 @@ class QPackageConfigurationDialog(QtWidgets.QDialog):
         self._button_box = QtWidgets.QDialogButtonBox(btns,
                                                   QtCore.Qt.Horizontal,
                                                   self)
-        self._button_box.clicked[QAbstractButton].connect(self.button_clicked)
+        self._button_box.clicked[QtWidgets.QAbstractButton].connect(self.button_clicked)
 
         self._configuration_widget._tree.treeWidget.configuration_changed.connect(self.configuration_changed)
                      
@@ -118,7 +118,7 @@ class QPackagesWidget(QtWidgets.QWidget):
 
     # Signals that a package should be selected after the event loop updates (to remove old references)
     # select_package_after_update_signal = QtCore.SIGNAL("select_package_after_update_signal")
-    select_package_after_update_signal = QtCore.pyqtSignal()
+    select_package_after_update_signal = QtCore.pyqtSignal(str)
 
     ##########################################################################
     # Initialization

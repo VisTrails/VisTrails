@@ -175,7 +175,7 @@ Would you like to create one?"
         self.connectionList.reloadConnections.connect(self.updateDBObjectsList)
         self.objectList.itemSelectionChanged.connect(self.updateButtons)
         self.saveasEdt.textChanged['QString'].connect(self.updateButtons)
-        self.objectList.itemDoubleClicked[QListWidgetItem].connect(self.accept)
+        self.objectList.itemDoubleClicked[QtWidgets.QListWidgetItem].connect(self.accept)
 
     def updateDBObjectsList(self):
         """ updateDBObjectsList() -> None

@@ -65,7 +65,7 @@ class QCollectionWidget(QtWidgets.QTreeWidget):
         self.collection = collection
         self.collection.add_listener(self)
         self.setExpandsOnDoubleClick(False)
-        self.itemDoubleClicked[QTreeWidgetItem, int].connect(self.item_selected)
+        self.itemDoubleClicked[QtWidgets.QTreeWidgetItem, int].connect(self.item_selected)
         self.setIconSize(QtCore.QSize(16,16))
 
     def setup_widget(self, workspace=None):

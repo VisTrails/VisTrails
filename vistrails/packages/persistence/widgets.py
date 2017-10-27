@@ -722,7 +722,7 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         # self.existing_group.setLayout(existing_layout)
         self.existing_group = PersistentRefViewSearch(path_type)
         self.ref_widget = self.existing_group.ref_widget
-        self.ref_widget.clicked[QModelIndex].connect(self.ref_changed)
+        self.ref_widget.clicked[QtCore.QModelIndex].connect(self.ref_changed)
         layout.addWidget(self.existing_group)
 
         self.keep_local = QtWidgets.QCheckBox("Keep Local Version")

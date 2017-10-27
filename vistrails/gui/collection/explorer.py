@@ -572,7 +572,7 @@ class WorkflowSearchWidget(QtWidgets.QSplitter):
         self.searchButton.clicked.connect(self.newQuery)
         self.prevButton.clicked.connect(self.gotoPrevious)
         self.nextButton.clicked.connect(self.gotoNext)
-        self.itemView.itemDoubleClicked[QTreeWidgetItem, int].connect(self.showItem)
+        self.itemView.itemDoubleClicked[QtWidgets.QTreeWidgetItem, int].connect(self.showItem)
 
     def newQuery(self):
         self.offset = 0

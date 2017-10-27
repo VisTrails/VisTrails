@@ -435,7 +435,7 @@ class QDefinedVariable(QtWidgets.QWidget):
         vbox.addWidget(self.varList)
 
         # Connect Signals
-        self.varList.clicked[QModelIndex].connect(self.selectVariableFromListEvent)
+        self.varList.clicked[QtCore.QModelIndex].connect(self.selectVariableFromListEvent)
         self.warningWidget.newVarID.connect(self.addVariable)
 
     def defineQuickplot(self, file, var):
@@ -1951,7 +1951,7 @@ class QSelectVarDialog(QtWidgets.QDialog):
         vbox.addLayout(hbox)
 
         # Connect Signals
-        self.varList.clicked[QModelIndex].connect(self.selectVariableFromListEvent)
+        self.varList.clicked[QtCore.QModelIndex].connect(self.selectVariableFromListEvent)
         okButton.pressed.connect(self.selectDefinedVariableEvent)
         cancelButton.pressed.connect(self.close)
 
