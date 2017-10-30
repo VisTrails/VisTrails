@@ -2,8 +2,8 @@ backports.ssl_match_hostname
 certifi
 docutils
 dulwich
+file_archive>=0.6
 IPython
-Mako
 matplotlib
 mysql-python
 numpy
@@ -11,18 +11,13 @@ paramiko
 # PyQt<5.0
 pyth
 python-dateutil
+scikit-learn
 scipy
 scp
-Sphinx
-sphinx-argparse
 SQLAlchemy
 suds
-unittest2
+tej>=0.3
+usagestats>=0.3
 VTK
 xlrd
 xlwt
-scikit-learn
-nose
-file_archive>=0.6
-tej>=0.3
-usagestats>=0.3
