@@ -28,7 +28,7 @@ requirements:
     - setuptools
     - numpy
     - scipy
-    - pyqt
+    - pyqt 4*
     - certifi
     - ssl_match_hostname
     - file_archive >=0.6
@@ -42,7 +42,7 @@ requirements:
     - python
     - numpy
     - scipy
-    - pyqt
+    - pyqt 4*
     - certifi
     - ssl_match_hostname
     - file_archive >=0.6
