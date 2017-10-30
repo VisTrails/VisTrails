@@ -29,28 +29,33 @@ requirements:
     - numpy
     - scipy
     - pyqt 4*
+    - usagestats >=0.3
+    - requests
     - certifi
     - ssl_match_hostname
+    - python-dateutil
+    - docutils
+    - ipython
     - file_archive >=0.6
-    - requests
     - xlrd
     - xlwt
-    - ipython
-    - usagestats >=0.3
 
   run:
     - python
+    - setuptools
     - numpy
     - scipy
     - pyqt 4*
+    - usagestats >=0.3
+    - requests
     - certifi
     - ssl_match_hostname
+    - python-dateutil
+    - docutils
+    - ipython
     - file_archive >=0.6
-    - requests
     - xlrd
     - xlwt
-    - ipython
-    - usagestats >=0.3
 
 test:
   # Python imports
