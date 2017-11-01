@@ -701,7 +701,12 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None,
 
 def open_workflow_from_xml(filename, do_translate=True):
     """open_workflow_from_xml(filename) -> DBWorkflow"""
-    return WorkflowXMLSerializer().load(filename)
+    s = vtbundle.get_serializer('dir_serializer')\
+        .get_serializer(DBWorkflow.vtType, get_current_version())\
+        .get_serializer(DBWorkflow.vtType)
+    wf = s.load(*os.path.split(filename))
+    # print wf.obj
+    return wf.obj
 
 def open_workflow_from_db(db_connection, id, lock=False, version=None):
     """open_workflow_from_db(db_connection, id : long: lock: bool, 

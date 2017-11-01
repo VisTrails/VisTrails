@@ -446,10 +446,10 @@ class VistrailsApplicationInterface(object):
             for connection in workflow.connection_list:
                 action_list.append(('add', connection))
             action = vistrails.core.db.action.create_action(action_list)
-            controller.add_new_action(action)
-            controller.perform_action(action)
-            controller.vistrail.set_tag(action.id, "Imported workflow")
-            controller.change_selected_version(action.id)
+            controller.vt_controller.add_new_action(action)
+            controller.vt_controller.perform_action(action)
+            controller.set_tag(action.id, "Imported workflow")
+            controller.vt_controller.change_selected_version(action.id)
         except VistrailsDBException as e:
             debug.unexpected_exception(e)
             debug.critical("Exception from the database: %s" % e,
