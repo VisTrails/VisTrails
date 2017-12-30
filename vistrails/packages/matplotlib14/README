@@ -1,0 +1,94 @@
+This version of the matplotlib package seeks to make the features much
+more accessible in VisTrails.  Previous versions required users to
+type code to generate figures, and this usually required reading
+external documentation.  Because matplotlib has no standard way to
+determine all method and parameter specification automatically.  We
+can, however, parse method declarations and the docutils documentation
+to infer many of the input types.  While this generates much of the
+package specification, there are many pieces that are unknown without
+checking the documentation and/or code manually.  To allow both
+automated generation and manual fixes to work, we use a multi-step process:
+
+(1) Automated Generation: based on documentation, method
+specifications, and heuristics, generate module and port
+specifications in XML.
+
+(2?) If a diff of previous edits exists (see step 3 & 4), apply it to
+the automated output.
+
+(3) Manual Fixes: Users then can manually edit the XML to fix and add
+extra information.  They can also specify python code in the mixins.py
+file; this is nicer for editing than doing this in XML.
+
+(4) Difference Computation: Find and store the differences in the XML
+tree between the automated specs and the manual fixes.  These
+differences are used in step (2).
+
+(5) Python Code Generation: Generate the VisTrails python wrapper code
+from the XML.
+
+This process is iterative as parsing heuristics may be updated and
+many manual fixes may be required.  The update.py script wraps this
+entire process.
+
+== Automated Generation ==
+
+The automated generation scripts consist of a few techniques.  First,
+for plotting functions, we can parse the function specification using
+python's inspect module, extracting argument names and defaults.  For
+artists (lines, patches, rectangles), the matplotlib authors have
+tried to enforce property getters and setters, and they also have
+documentation standards where developers specify an "ACCEPTS:" clause
+which specifies what type of arguments the setters take.  The
+ArtistInspector is tasked to grab this information.  Second, the
+documentation is in docutils format which means we can run it through
+the docutils parser to find tables and definition lists which can be
+translated to variables and translation dictionaries (e.g. we can show
+a user "upper center" but translate it to 9 for matplotlib).  In
+addition, we can search for certain keywords ("arguments") to find
+definition lists that likely correspond to ports.  Finally, we can
+parse the call signatures which are sometimes present in the
+documentation using python's ast module.
+
+== XML Specification ==
+
+The most important piece in updating the specs is understanding the
+XML serialization.  This serialization is a list of module specs which
+in turn have input and output port specs.  Input port specs may have
+any number of alternate specs which represent alternative types for a
+single input argument; for example, the box() method's width may be a
+single scalar or a sequence of scalars.  Output port specs are usually
+used to track internal outputs that permit customization; **they are
+not necessarily (nor often) associated with an actual output port**.
+Instead, if a boxplot command produces a dictionary of outputs (each a
+sequence of lines), the output port specs can specify how each artist
+may be customized (colors).  This is usually done with an
+MplProperties subclass; the user adds the properties module as an
+input and the automated compute() method sets those properties on the
+artist objects output.
+
+== Mixin Code ==
+
+Users may specify blocks for the init, compute_before, compute_inner,
+and compute_after methods.  This code is **copied** when the template
+is generated; mixins.py **is not imported** when the package is being
+used.
+
+== Shortcuts & Keywords ==
+
+-- When specifying alternate input port specs, users need only provide
+   the port_type field; everything else can be inferred from the
+   parent port spec.
+
+-- The output_type for a ModuleSpec should be one of "object",
+   "tuple", or "dict" if there is an output returned.  Then, the
+   property_key for each output spec should be an integer for a tuple
+   and the key value for a dictionary.
+
+-- When specifying output port specs, name and compute_name are
+   defaulted using the arg setting
+
+-- The "__property__" output_type on an output port spec specifies
+   that this port is being used to identify an output of the plotting
+   command that can be customized according to the property_type
+   field.
