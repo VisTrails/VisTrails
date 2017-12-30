@@ -39,6 +39,7 @@ from __future__ import division
 
 from vistrails.core.configuration import ConfigurationObject
 
-from identifiers import *
+from .identifiers import *
+
 
 configuration = ConfigurationObject(env=(None, str))

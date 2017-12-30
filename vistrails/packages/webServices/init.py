@@ -43,7 +43,6 @@ import urllib
 
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 import vistrails.core.system
 import enumeration_widget
@@ -73,7 +72,7 @@ class WebService(Module):
         Module.__init__(self)
 
     def compute(self):
-        raise vistrails_module.IncompleteImplementation
+        raise NotImplementedError
 
     def runMethod(self, methodName, *args):
         return getattr(self.server,methodName)(*args)
@@ -97,7 +96,7 @@ class WBModule:
 def webServiceNameClassifier():
     """  """
     def compute(self):
-        raise vistrails_module.IncompleteImplementation
+        raise NotImplementedError
 
     return { 'compute': compute}
 
@@ -105,7 +104,7 @@ def webServiceNameMethodDict():
     """ This returns the method dictionary for the web service address base
     class. """
     def compute(self):
-        raise vistrails_module.IncompleteImplementation
+        raise NotImplementedError
 
     return { 'compute': compute}
 

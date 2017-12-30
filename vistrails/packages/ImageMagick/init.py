@@ -58,7 +58,7 @@ from vistrails.core import debug
 import vistrails.core.modules.basic_modules as basic
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    new_module, IncompleteImplementation
+    new_module
 from vistrails.core.system import list2cmdline
 
 import os
@@ -72,7 +72,7 @@ class ImageMagick(Module):
     """
 
     def compute(self):
-        raise IncompleteImplementation
+        raise NotImplementedError
 
     def input_file_description(self):
         """Returns a fully described name in the ImageMagick format.
