@@ -36,8 +36,6 @@
 
 """generated automatically by auto_dao.py"""
 
-from __future__ import division
-
 import copy
 
 class DBOpmWasGeneratedBy(object):
@@ -83,16 +81,8 @@ class DBOpmWasGeneratedBy(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -313,10 +303,10 @@ class DBConfigKey(object):
 
     vtType = 'config_key'
 
-    def __init__(self, value=None, name=None):
+    def __init__(self, name=None, value=None):
+        self._db_name = name
         self.db_deleted_value = []
         self._db_value = value
-        self._db_name = name
         self.is_dirty = True
         self.is_new = True
     
@@ -327,16 +317,16 @@ class DBConfigKey(object):
         cp = DBConfigKey(name=self._db_name)
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_name)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_name)] = new_id
+            cp._db_name = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -350,6 +340,11 @@ class DBConfigKey(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
+            new_obj.db_name = old_obj.db_name
         if 'value' in class_dict:
             res = class_dict['value'](old_obj, trans_dict)
             new_obj.db_value = res
@@ -382,11 +377,6 @@ class DBConfigKey(object):
                 elif obj.vtType == 'configuration':
                     n_obj = DBConfiguration.update_version(obj, trans_dict)
                     new_obj.db_deleted_value.append(n_obj)
-        if 'name' in class_dict:
-            res = class_dict['name'](old_obj, trans_dict)
-            new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
-            new_obj.db_name = old_obj.db_name
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -411,6 +401,19 @@ class DBConfigKey(object):
         if self._db_value is not None and self._db_value.has_changes():
             return True
         return False
+    def __get_db_name(self):
+        return self._db_name
+    def __set_db_name(self, name):
+        self._db_name = name
+        self.is_dirty = True
+    db_name = property(__get_db_name, __set_db_name)
+    def db_add_name(self, name):
+        self._db_name = name
+    def db_change_name(self, name):
+        self._db_name = name
+    def db_delete_name(self, name):
+        self._db_name = None
+    
     def __get_db_value(self):
         return self._db_value
     def __set_db_value(self, value):
@@ -425,19 +428,6 @@ class DBConfigKey(object):
         if not self.is_new:
             self.db_deleted_value.append(self._db_value)
         self._db_value = None
-    
-    def __get_db_name(self):
-        return self._db_name
-    def __set_db_name(self, name):
-        self._db_name = name
-        self.is_dirty = True
-    db_name = property(__get_db_name, __set_db_name)
-    def db_add_name(self, name):
-        self._db_name = name
-    def db_change_name(self, name):
-        self._db_name = name
-    def db_delete_name(self, name):
-        self._db_name = None
     
     def getPrimaryKey(self):
         return self._db_name
@@ -462,16 +452,16 @@ class DBMashupAlias(object):
                            name=self._db_name)
         if self._db_component is not None:
             cp._db_component = self._db_component.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -645,16 +635,16 @@ class DBGroup(object):
             cp._db_controlParameters = []
         else:
             cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -1123,16 +1113,8 @@ class DBOpmWasControlledBy(object):
             cp._db_ends = []
         else:
             cp._db_ends = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_ends]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1396,14 +1378,14 @@ class DBAdd(object):
 
     vtType = 'add'
 
-    def __init__(self, data=None, id=None, what=None, objectId=None, parentObjId=None, parentObjType=None):
-        self.db_deleted_data = []
-        self._db_data = data
+    def __init__(self, id=None, what=None, objectId=None, parentObjId=None, parentObjType=None, data=None):
         self._db_id = id
         self._db_what = what
         self._db_objectId = objectId
         self._db_parentObjId = parentObjId
         self._db_parentObjType = parentObjType
+        self.db_deleted_data = []
+        self._db_data = data
         self.is_dirty = True
         self.is_new = True
     
@@ -1418,20 +1400,28 @@ class DBAdd(object):
                    parentObjType=self._db_parentObjType)
         if self._db_data is not None:
             cp._db_data = self._db_data.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
-                cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
-            if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_objectId') and (fkey_type, self._db_objectId) in id_remap:
+                cp._db_objectId = id_remap[(fkey_type, self._db_objectId)]
+            if self._db_parentObjType in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_parentObjType]
+            else:
+                fkey_type = self._db_parentObjType
+            if hasattr(self, 'db_parentObjId') and (fkey_type, self._db_parentObjId) in id_remap:
+                cp._db_parentObjId = id_remap[(fkey_type, self._db_parentObjId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1445,6 +1435,31 @@ class DBAdd(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'what' in class_dict:
+            res = class_dict['what'](old_obj, trans_dict)
+            new_obj.db_what = res
+        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
+            new_obj.db_what = old_obj.db_what
+        if 'objectId' in class_dict:
+            res = class_dict['objectId'](old_obj, trans_dict)
+            new_obj.db_objectId = res
+        elif hasattr(old_obj, 'db_objectId') and old_obj.db_objectId is not None:
+            new_obj.db_objectId = old_obj.db_objectId
+        if 'parentObjId' in class_dict:
+            res = class_dict['parentObjId'](old_obj, trans_dict)
+            new_obj.db_parentObjId = res
+        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
+            new_obj.db_parentObjId = old_obj.db_parentObjId
+        if 'parentObjType' in class_dict:
+            res = class_dict['parentObjType'](old_obj, trans_dict)
+            new_obj.db_parentObjType = res
+        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
+            new_obj.db_parentObjType = old_obj.db_parentObjType
         if 'data' in class_dict:
             res = class_dict['data'](old_obj, trans_dict)
             new_obj.db_data = res
@@ -1517,31 +1532,6 @@ class DBAdd(object):
                 elif obj.vtType == 'plugin_data':
                     n_obj = DBPluginData.update_version(obj, trans_dict)
                     new_obj.db_deleted_data.append(n_obj)
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'what' in class_dict:
-            res = class_dict['what'](old_obj, trans_dict)
-            new_obj.db_what = res
-        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
-            new_obj.db_what = old_obj.db_what
-        if 'objectId' in class_dict:
-            res = class_dict['objectId'](old_obj, trans_dict)
-            new_obj.db_objectId = res
-        elif hasattr(old_obj, 'db_objectId') and old_obj.db_objectId is not None:
-            new_obj.db_objectId = old_obj.db_objectId
-        if 'parentObjId' in class_dict:
-            res = class_dict['parentObjId'](old_obj, trans_dict)
-            new_obj.db_parentObjId = res
-        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
-            new_obj.db_parentObjId = old_obj.db_parentObjId
-        if 'parentObjType' in class_dict:
-            res = class_dict['parentObjType'](old_obj, trans_dict)
-            new_obj.db_parentObjType = res
-        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
-            new_obj.db_parentObjType = old_obj.db_parentObjType
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -1566,21 +1556,6 @@ class DBAdd(object):
         if self._db_data is not None and self._db_data.has_changes():
             return True
         return False
-    def __get_db_data(self):
-        return self._db_data
-    def __set_db_data(self, data):
-        self._db_data = data
-        self.is_dirty = True
-    db_data = property(__get_db_data, __set_db_data)
-    def db_add_data(self, data):
-        self._db_data = data
-    def db_change_data(self, data):
-        self._db_data = data
-    def db_delete_data(self, data):
-        if not self.is_new:
-            self.db_deleted_data.append(self._db_data)
-        self._db_data = None
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -1646,6 +1621,21 @@ class DBAdd(object):
     def db_delete_parentObjType(self, parentObjType):
         self._db_parentObjType = None
     
+    def __get_db_data(self):
+        return self._db_data
+    def __set_db_data(self, data):
+        self._db_data = data
+        self.is_dirty = True
+    db_data = property(__get_db_data, __set_db_data)
+    def db_add_data(self, data):
+        self._db_data = data
+    def db_change_data(self, data):
+        self._db_data = data
+    def db_delete_data(self, data):
+        if not self.is_new:
+            self.db_deleted_data.append(self._db_data)
+        self._db_data = None
+    
     def getPrimaryKey(self):
         return self._db_id
 
@@ -1671,16 +1661,8 @@ class DBProvGeneration(object):
             cp._db_prov_entity = self._db_prov_entity.do_copy(new_ids, id_scope, id_remap)
         if self._db_prov_activity is not None:
             cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -1839,16 +1821,8 @@ class DBOpmUsed(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2079,18 +2053,16 @@ class DBOpmArtifactIdCause(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmArtifactIdCause(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'opm_artifact' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_artifact']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_artifact', self._db_id)]
-        
+                fkey_type = 'opm_artifact'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2151,18 +2123,16 @@ class DBRefProvEntity(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvEntity(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'prov_entity' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_entity']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
-        
+                fkey_type = 'prov_entity'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2235,16 +2205,16 @@ class DBVtConnection(object):
                             vt_dest_port=self._db_vt_dest_port,
                             vt_source_signature=self._db_vt_source_signature,
                             vt_dest_signature=self._db_vt_dest_signature)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2416,16 +2386,16 @@ class DBOpmAccount(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAccount(id=self._db_id,
                           value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -2495,15 +2465,7 @@ class DBGroupExec(object):
 
     vtType = 'group_exec'
 
-    def __init__(self, item_execs=None, id=None, ts_start=None, ts_end=None, cached=None, module_id=None, group_name=None, group_type=None, completed=None, error=None, machine_id=None, annotations=None):
-        self.db_deleted_item_execs = []
-        self.db_item_execs_id_index = {}
-        if item_execs is None:
-            self._db_item_execs = []
-        else:
-            self._db_item_execs = item_execs
-            for v in self._db_item_execs:
-                self.db_item_execs_id_index[v.db_id] = v
+    def __init__(self, id=None, ts_start=None, ts_end=None, cached=None, module_id=None, group_name=None, group_type=None, completed=None, error=None, machine_id=None, annotations=None, item_execs=None):
         self._db_id = id
         self._db_ts_start = ts_start
         self._db_ts_end = ts_end
@@ -2522,6 +2484,14 @@ class DBGroupExec(object):
             self._db_annotations = annotations
             for v in self._db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
+        self.db_deleted_item_execs = []
+        self.db_item_execs_id_index = {}
+        if item_execs is None:
+            self._db_item_execs = []
+        else:
+            self._db_item_execs = item_execs
+            for v in self._db_item_execs:
+                self.db_item_execs_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -2539,31 +2509,39 @@ class DBGroupExec(object):
                          completed=self._db_completed,
                          error=self._db_error,
                          machine_id=self._db_machine_id)
-        if self._db_item_execs is None:
-            cp._db_item_execs = []
-        else:
-            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
-        
+        if self._db_item_execs is None:
+            cp._db_item_execs = []
+        else:
+            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
-                cp._db_module_id = id_remap[('module', self._db_module_id)]
-            if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
-                cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_module_id') and (fkey_type, self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[(fkey_type, self._db_module_id)]
+            if 'machine' in id_scope.remap:
+                fkey_type = id_scope.remap['machine']
+            else:
+                fkey_type = 'machine'
+            if hasattr(self, 'db_machine_id') and (fkey_type, self._db_machine_id) in id_remap:
+                cp._db_machine_id = id_remap[(fkey_type, self._db_machine_id)]
+
         # recreate indices and set flags
-        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -2576,29 +2554,6 @@ class DBGroupExec(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'item_execs' in class_dict:
-            res = class_dict['item_execs'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_item_exec(obj)
-        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
-            for obj in old_obj.db_item_execs:
-                if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
-            for obj in old_obj.db_deleted_item_execs:
-                if obj.vtType == 'module_exec':
-                    n_obj = DBModuleExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'group_exec':
-                    n_obj = DBGroupExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'loop_exec':
-                    n_obj = DBLoopExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -2660,6 +2615,29 @@ class DBGroupExec(object):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
                 new_obj.db_deleted_annotations.append(n_obj)
+        if 'item_execs' in class_dict:
+            res = class_dict['item_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_item_exec(obj)
+        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
+            for obj in old_obj.db_item_execs:
+                if obj.vtType == 'module_exec':
+                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'group_exec':
+                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'loop_exec':
+                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -2700,48 +2678,6 @@ class DBGroupExec(object):
             if child.has_changes():
                 return True
         return False
-    def __get_db_item_execs(self):
-        return self._db_item_execs
-    def __set_db_item_execs(self, item_execs):
-        self._db_item_execs = item_execs
-        self.is_dirty = True
-    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
-    def db_get_item_execs(self):
-        return self._db_item_execs
-    def db_add_item_exec(self, item_exec):
-        self.is_dirty = True
-        self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_change_item_exec(self, item_exec):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                self._db_item_execs[i] = item_exec
-                found = True
-                break
-        if not found:
-            self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_delete_item_exec(self, item_exec):
-        self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                if not self._db_item_execs[i].is_new:
-                    self.db_deleted_item_execs.append(self._db_item_execs[i])
-                del self._db_item_execs[i]
-                break
-        del self.db_item_execs_id_index[item_exec.db_id]
-    def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == key:
-                return self._db_item_execs[i]
-        return None
-    def db_get_item_exec_by_id(self, key):
-        return self.db_item_execs_id_index[key]
-    def db_has_item_exec_with_id(self, key):
-        return key in self.db_item_execs_id_index
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -2914,6 +2850,48 @@ class DBGroupExec(object):
     def db_has_annotation_with_id(self, key):
         return key in self.db_annotations_id_index
     
+    def __get_db_item_execs(self):
+        return self._db_item_execs
+    def __set_db_item_execs(self, item_execs):
+        self._db_item_execs = item_execs
+        self.is_dirty = True
+    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+    def db_get_item_execs(self):
+        return self._db_item_execs
+    def db_add_item_exec(self, item_exec):
+        self.is_dirty = True
+        self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_change_item_exec(self, item_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                self._db_item_execs[i] = item_exec
+                found = True
+                break
+        if not found:
+            self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_delete_item_exec(self, item_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                if not self._db_item_execs[i].is_new:
+                    self.db_deleted_item_execs.append(self._db_item_execs[i])
+                del self._db_item_execs[i]
+                break
+        del self.db_item_execs_id_index[item_exec.db_id]
+    def db_get_item_exec(self, key):
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == key:
+                return self._db_item_execs[i]
+        return None
+    def db_get_item_exec_by_id(self, key):
+        return self.db_item_execs_id_index[key]
+    def db_has_item_exec_with_id(self, key):
+        return key in self.db_item_execs_id_index
+    
     def getPrimaryKey(self):
         return self._db_id
 
@@ -2931,18 +2909,16 @@ class DBOpmAgentId(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAgentId(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'opm_agent' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_agent']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('opm_agent', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_agent', self._db_id)]
-        
+                fkey_type = 'opm_agent'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -3013,16 +2989,16 @@ class DBParameter(object):
                          type=self._db_type,
                          val=self._db_val,
                          alias=self._db_alias)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -3209,15 +3185,15 @@ class DBVistrail(object):
                 self.db_controlParameters_id_index[v.db_id] = v
                 self.db_controlParameters_name_index[v.db_name] = v
         self.db_deleted_vistrailVariables = []
-        self.db_vistrailVariables_name_index = {}
         self.db_vistrailVariables_uuid_index = {}
+        self.db_vistrailVariables_name_index = {}
         if vistrailVariables is None:
             self._db_vistrailVariables = []
         else:
             self._db_vistrailVariables = vistrailVariables
             for v in self._db_vistrailVariables:
-                self.db_vistrailVariables_name_index[v.db_name] = v
                 self.db_vistrailVariables_uuid_index[v.db_uuid] = v
+                self.db_vistrailVariables_name_index[v.db_name] = v
         self.db_deleted_parameter_explorations = []
         self.db_parameter_explorations_id_index = {}
         if parameter_explorations is None:
@@ -3278,16 +3254,16 @@ class DBVistrail(object):
             cp._db_actionAnnotations = []
         else:
             cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_tags_id_index = dict((v.db_id, v) for v in cp._db_tags)
@@ -3296,8 +3272,8 @@ class DBVistrail(object):
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
         cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
         cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
-        cp.db_vistrailVariables_name_index = dict((v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_vistrailVariables_uuid_index = dict((v.db_uuid, v) for v in cp._db_vistrailVariables)
+        cp.db_vistrailVariables_name_index = dict((v.db_name, v) for v in cp._db_vistrailVariables)
         cp.db_parameter_explorations_id_index = dict((v.db_id, v) for v in cp._db_parameter_explorations)
         cp.db_actionAnnotations_id_index = dict((v.db_id, v) for v in cp._db_actionAnnotations)
         cp.db_actionAnnotations_action_id_index = dict(((v.db_action_id,v.db_key), v) for v in cp._db_actionAnnotations)
@@ -3781,43 +3757,43 @@ class DBVistrail(object):
     def db_add_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[vistrailVariable.db_name] = vistrailVariable
         self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[vistrailVariable.db_name] = vistrailVariable
     def db_change_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         found = False
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
+            if self._db_vistrailVariables[i].db_uuid == vistrailVariable.db_uuid:
                 self._db_vistrailVariables[i] = vistrailVariable
                 found = True
                 break
         if not found:
             self._db_vistrailVariables.append(vistrailVariable)
-        self.db_vistrailVariables_name_index[vistrailVariable.db_name] = vistrailVariable
         self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid] = vistrailVariable
+        self.db_vistrailVariables_name_index[vistrailVariable.db_name] = vistrailVariable
     def db_delete_vistrailVariable(self, vistrailVariable):
         self.is_dirty = True
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == vistrailVariable.db_name:
+            if self._db_vistrailVariables[i].db_uuid == vistrailVariable.db_uuid:
                 if not self._db_vistrailVariables[i].is_new:
                     self.db_deleted_vistrailVariables.append(self._db_vistrailVariables[i])
                 del self._db_vistrailVariables[i]
                 break
-        del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
         del self.db_vistrailVariables_uuid_index[vistrailVariable.db_uuid]
+        del self.db_vistrailVariables_name_index[vistrailVariable.db_name]
     def db_get_vistrailVariable(self, key):
         for i in xrange(len(self._db_vistrailVariables)):
-            if self._db_vistrailVariables[i].db_name == key:
+            if self._db_vistrailVariables[i].db_uuid == key:
                 return self._db_vistrailVariables[i]
         return None
-    def db_get_vistrailVariable_by_name(self, key):
-        return self.db_vistrailVariables_name_index[key]
-    def db_has_vistrailVariable_with_name(self, key):
-        return key in self.db_vistrailVariables_name_index
     def db_get_vistrailVariable_by_uuid(self, key):
         return self.db_vistrailVariables_uuid_index[key]
     def db_has_vistrailVariable_with_uuid(self, key):
         return key in self.db_vistrailVariables_uuid_index
+    def db_get_vistrailVariable_by_name(self, key):
+        return self.db_vistrailVariables_name_index[key]
+    def db_has_vistrailVariable_with_name(self, key):
+        return key in self.db_vistrailVariables_name_index
     
     def __get_db_parameter_explorations(self):
         return self._db_parameter_explorations
@@ -3940,16 +3916,8 @@ class DBOpmArtifactValue(object):
         cp = DBOpmArtifactValue()
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4035,16 +4003,8 @@ class DBConfigStr(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigStr(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4117,16 +4077,8 @@ class DBStartup(object):
             cp._db_enabled_packages = self._db_enabled_packages.do_copy(new_ids, id_scope, id_remap)
         if self._db_disabled_packages is not None:
             cp._db_disabled_packages = self._db_disabled_packages.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -4357,16 +4309,16 @@ class DBModule(object):
             cp._db_portSpecs = []
         else:
             cp._db_portSpecs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -4852,18 +4804,22 @@ class DBPort(object):
                     moduleName=self._db_moduleName,
                     name=self._db_name,
                     signature=self._db_signature)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_moduleId') and ('module', self._db_moduleId) in id_remap:
-                cp._db_moduleId = id_remap[('module', self._db_moduleId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_moduleId') and (fkey_type, self._db_moduleId) in id_remap:
+                cp._db_moduleId = id_remap[(fkey_type, self._db_moduleId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -5026,16 +4982,8 @@ class DBOpmAgents(object):
             cp._db_agents = []
         else:
             cp._db_agents = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_agents]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_agents_id_index = dict((v.db_id, v) for v in cp._db_agents)
         if not new_ids:
@@ -5155,16 +5103,8 @@ class DBOpmDependencies(object):
             cp._db_dependencys = []
         else:
             cp._db_dependencys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_dependencys]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -5293,18 +5233,22 @@ class DBPEFunction(object):
             cp._db_parameters = []
         else:
             cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
-                cp._db_module_id = id_remap[('module', self._db_module_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_module_id') and (fkey_type, self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[(fkey_type, self._db_module_id)]
+
         # recreate indices and set flags
         cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
         if not new_ids:
@@ -5479,7 +5423,12 @@ class DBWorkflow(object):
 
     vtType = 'workflow'
 
-    def __init__(self, modules=None, id=None, entity_type=None, name=None, version=None, last_modified=None, connections=None, annotations=None, plugin_datas=None, others=None, vistrail_id=None):
+    def __init__(self, id=None, entity_type=None, name=None, version=None, last_modified=None, modules=None, connections=None, annotations=None, plugin_datas=None, others=None, vistrail_id=None):
+        self._db_id = id
+        self._db_entity_type = entity_type
+        self._db_name = name
+        self._db_version = version
+        self._db_last_modified = last_modified
         self.db_deleted_modules = []
         self.db_modules_id_index = {}
         if modules is None:
@@ -5488,11 +5437,6 @@ class DBWorkflow(object):
             self._db_modules = modules
             for v in self._db_modules:
                 self.db_modules_id_index[v.db_id] = v
-        self._db_id = id
-        self._db_entity_type = entity_type
-        self._db_name = name
-        self._db_version = version
-        self._db_last_modified = last_modified
         self.db_deleted_connections = []
         self.db_connections_id_index = {}
         if connections is None:
@@ -5559,18 +5503,22 @@ class DBWorkflow(object):
             cp._db_others = []
         else:
             cp._db_others = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_others]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
-                cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vistrail_id') and (fkey_type, self._db_vistrail_id) in id_remap:
+                cp._db_vistrail_id = id_remap[(fkey_type, self._db_vistrail_id)]
+
         # recreate indices and set flags
         cp.db_modules_id_index = dict((v.db_id, v) for v in cp._db_modules)
         cp.db_connections_id_index = dict((v.db_id, v) for v in cp._db_connections)
@@ -5589,29 +5537,6 @@ class DBWorkflow(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'modules' in class_dict:
-            res = class_dict['modules'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_module(obj)
-        elif hasattr(old_obj, 'db_modules') and old_obj.db_modules is not None:
-            for obj in old_obj.db_modules:
-                if obj.vtType == 'module':
-                    new_obj.db_add_module(DBModule.update_version(obj, trans_dict))
-                elif obj.vtType == 'abstraction':
-                    new_obj.db_add_module(DBAbstraction.update_version(obj, trans_dict))
-                elif obj.vtType == 'group':
-                    new_obj.db_add_module(DBGroup.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_modules') and hasattr(new_obj, 'db_deleted_modules'):
-            for obj in old_obj.db_deleted_modules:
-                if obj.vtType == 'module':
-                    n_obj = DBModule.update_version(obj, trans_dict)
-                    new_obj.db_deleted_modules.append(n_obj)
-                elif obj.vtType == 'abstraction':
-                    n_obj = DBAbstraction.update_version(obj, trans_dict)
-                    new_obj.db_deleted_modules.append(n_obj)
-                elif obj.vtType == 'group':
-                    n_obj = DBGroup.update_version(obj, trans_dict)
-                    new_obj.db_deleted_modules.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -5637,6 +5562,29 @@ class DBWorkflow(object):
             new_obj.db_last_modified = res
         elif hasattr(old_obj, 'db_last_modified') and old_obj.db_last_modified is not None:
             new_obj.db_last_modified = old_obj.db_last_modified
+        if 'modules' in class_dict:
+            res = class_dict['modules'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_module(obj)
+        elif hasattr(old_obj, 'db_modules') and old_obj.db_modules is not None:
+            for obj in old_obj.db_modules:
+                if obj.vtType == 'module':
+                    new_obj.db_add_module(DBModule.update_version(obj, trans_dict))
+                elif obj.vtType == 'abstraction':
+                    new_obj.db_add_module(DBAbstraction.update_version(obj, trans_dict))
+                elif obj.vtType == 'group':
+                    new_obj.db_add_module(DBGroup.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_modules') and hasattr(new_obj, 'db_deleted_modules'):
+            for obj in old_obj.db_deleted_modules:
+                if obj.vtType == 'module':
+                    n_obj = DBModule.update_version(obj, trans_dict)
+                    new_obj.db_deleted_modules.append(n_obj)
+                elif obj.vtType == 'abstraction':
+                    n_obj = DBAbstraction.update_version(obj, trans_dict)
+                    new_obj.db_deleted_modules.append(n_obj)
+                elif obj.vtType == 'group':
+                    n_obj = DBGroup.update_version(obj, trans_dict)
+                    new_obj.db_deleted_modules.append(n_obj)
         if 'connections' in class_dict:
             res = class_dict['connections'](old_obj, trans_dict)
             for obj in res:
@@ -5693,6 +5641,13 @@ class DBWorkflow(object):
     def db_children(self, parent=(None,None), orphan=False, for_action=False):
         children = []
         to_del = []
+        for child in self.db_modules:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_module(child)
+        to_del = []
         for child in self.db_connections:
             children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
             if orphan:
@@ -5720,32 +5675,28 @@ class DBWorkflow(object):
                 to_del.append(child)
         for child in to_del:
             self.db_delete_other(child)
-        to_del = []
-        for child in self.db_modules:
-            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
-            if orphan:
-                to_del.append(child)
-        for child in to_del:
-            self.db_delete_module(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
+        children.extend(self.db_deleted_modules)
         children.extend(self.db_deleted_connections)
         children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_plugin_datas)
         children.extend(self.db_deleted_others)
-        children.extend(self.db_deleted_modules)
         if remove:
+            self.db_deleted_modules = []
             self.db_deleted_connections = []
             self.db_deleted_annotations = []
             self.db_deleted_plugin_datas = []
             self.db_deleted_others = []
-            self.db_deleted_modules = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
+        for child in self._db_modules:
+            if child.has_changes():
+                return True
         for child in self._db_connections:
             if child.has_changes():
                 return True
@@ -5758,52 +5709,7 @@ class DBWorkflow(object):
         for child in self._db_others:
             if child.has_changes():
                 return True
-        for child in self._db_modules:
-            if child.has_changes():
-                return True
         return False
-    def __get_db_modules(self):
-        return self._db_modules
-    def __set_db_modules(self, modules):
-        self._db_modules = modules
-        self.is_dirty = True
-    db_modules = property(__get_db_modules, __set_db_modules)
-    def db_get_modules(self):
-        return self._db_modules
-    def db_add_module(self, module):
-        self.is_dirty = True
-        self._db_modules.append(module)
-        self.db_modules_id_index[module.db_id] = module
-    def db_change_module(self, module):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_modules)):
-            if self._db_modules[i].db_id == module.db_id:
-                self._db_modules[i] = module
-                found = True
-                break
-        if not found:
-            self._db_modules.append(module)
-        self.db_modules_id_index[module.db_id] = module
-    def db_delete_module(self, module):
-        self.is_dirty = True
-        for i in xrange(len(self._db_modules)):
-            if self._db_modules[i].db_id == module.db_id:
-                if not self._db_modules[i].is_new:
-                    self.db_deleted_modules.append(self._db_modules[i])
-                del self._db_modules[i]
-                break
-        del self.db_modules_id_index[module.db_id]
-    def db_get_module(self, key):
-        for i in xrange(len(self._db_modules)):
-            if self._db_modules[i].db_id == key:
-                return self._db_modules[i]
-        return None
-    def db_get_module_by_id(self, key):
-        return self.db_modules_id_index[key]
-    def db_has_module_with_id(self, key):
-        return key in self.db_modules_id_index
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -5868,6 +5774,48 @@ class DBWorkflow(object):
         self._db_last_modified = last_modified
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
+    
+    def __get_db_modules(self):
+        return self._db_modules
+    def __set_db_modules(self, modules):
+        self._db_modules = modules
+        self.is_dirty = True
+    db_modules = property(__get_db_modules, __set_db_modules)
+    def db_get_modules(self):
+        return self._db_modules
+    def db_add_module(self, module):
+        self.is_dirty = True
+        self._db_modules.append(module)
+        self.db_modules_id_index[module.db_id] = module
+    def db_change_module(self, module):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_modules)):
+            if self._db_modules[i].db_id == module.db_id:
+                self._db_modules[i] = module
+                found = True
+                break
+        if not found:
+            self._db_modules.append(module)
+        self.db_modules_id_index[module.db_id] = module
+    def db_delete_module(self, module):
+        self.is_dirty = True
+        for i in xrange(len(self._db_modules)):
+            if self._db_modules[i].db_id == module.db_id:
+                if not self._db_modules[i].is_new:
+                    self.db_deleted_modules.append(self._db_modules[i])
+                del self._db_modules[i]
+                break
+        del self.db_modules_id_index[module.db_id]
+    def db_get_module(self, key):
+        for i in xrange(len(self._db_modules)):
+            if self._db_modules[i].db_id == key:
+                return self._db_modules[i]
+        return None
+    def db_get_module_by_id(self, key):
+        return self.db_modules_id_index[key]
+    def db_has_module_with_id(self, key):
+        return key in self.db_modules_id_index
     
     def __get_db_connections(self):
         return self._db_connections
@@ -6077,18 +6025,22 @@ class DBMashupAction(object):
                             user=self._db_user)
         if self._db_mashup is not None:
             cp._db_mashup = self._db_mashup.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prevId') and ('mashup_action', self._db_prevId) in id_remap:
-                cp._db_prevId = id_remap[('mashup_action', self._db_prevId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'mashup_action' in id_scope.remap:
+                fkey_type = id_scope.remap['mashup_action']
+            else:
+                fkey_type = 'mashup_action'
+            if hasattr(self, 'db_prevId') and (fkey_type, self._db_prevId) in id_remap:
+                cp._db_prevId = id_remap[(fkey_type, self._db_prevId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -6251,16 +6203,8 @@ class DBConfiguration(object):
             cp._db_config_keys = []
         else:
             cp._db_config_keys = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_config_keys]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_config_keys_name_index = dict((v.db_name, v) for v in cp._db_config_keys)
         if not new_ids:
@@ -6362,15 +6306,15 @@ class DBChange(object):
 
     vtType = 'change'
 
-    def __init__(self, data=None, id=None, what=None, oldObjId=None, newObjId=None, parentObjId=None, parentObjType=None):
-        self.db_deleted_data = []
-        self._db_data = data
+    def __init__(self, id=None, what=None, oldObjId=None, newObjId=None, parentObjId=None, parentObjType=None, data=None):
         self._db_id = id
         self._db_what = what
         self._db_oldObjId = oldObjId
         self._db_newObjId = newObjId
         self._db_parentObjId = parentObjId
         self._db_parentObjType = parentObjType
+        self.db_deleted_data = []
+        self._db_data = data
         self.is_dirty = True
         self.is_new = True
     
@@ -6386,22 +6330,34 @@ class DBChange(object):
                       parentObjType=self._db_parentObjType)
         if self._db_data is not None:
             cp._db_data = self._db_data.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_oldObjId') and (self._db_what, self._db_oldObjId) in id_remap:
-                cp._db_oldObjId = id_remap[(self._db_what, self._db_oldObjId)]
-            if hasattr(self, 'db_newObjId') and (self._db_what, self._db_newObjId) in id_remap:
-                cp._db_newObjId = id_remap[(self._db_what, self._db_newObjId)]
-            if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_oldObjId') and (fkey_type, self._db_oldObjId) in id_remap:
+                cp._db_oldObjId = id_remap[(fkey_type, self._db_oldObjId)]
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_newObjId') and (fkey_type, self._db_newObjId) in id_remap:
+                cp._db_newObjId = id_remap[(fkey_type, self._db_newObjId)]
+            if self._db_parentObjType in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_parentObjType]
+            else:
+                fkey_type = self._db_parentObjType
+            if hasattr(self, 'db_parentObjId') and (fkey_type, self._db_parentObjId) in id_remap:
+                cp._db_parentObjId = id_remap[(fkey_type, self._db_parentObjId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -6415,6 +6371,36 @@ class DBChange(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'what' in class_dict:
+            res = class_dict['what'](old_obj, trans_dict)
+            new_obj.db_what = res
+        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
+            new_obj.db_what = old_obj.db_what
+        if 'oldObjId' in class_dict:
+            res = class_dict['oldObjId'](old_obj, trans_dict)
+            new_obj.db_oldObjId = res
+        elif hasattr(old_obj, 'db_oldObjId') and old_obj.db_oldObjId is not None:
+            new_obj.db_oldObjId = old_obj.db_oldObjId
+        if 'newObjId' in class_dict:
+            res = class_dict['newObjId'](old_obj, trans_dict)
+            new_obj.db_newObjId = res
+        elif hasattr(old_obj, 'db_newObjId') and old_obj.db_newObjId is not None:
+            new_obj.db_newObjId = old_obj.db_newObjId
+        if 'parentObjId' in class_dict:
+            res = class_dict['parentObjId'](old_obj, trans_dict)
+            new_obj.db_parentObjId = res
+        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
+            new_obj.db_parentObjId = old_obj.db_parentObjId
+        if 'parentObjType' in class_dict:
+            res = class_dict['parentObjType'](old_obj, trans_dict)
+            new_obj.db_parentObjType = res
+        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
+            new_obj.db_parentObjType = old_obj.db_parentObjType
         if 'data' in class_dict:
             res = class_dict['data'](old_obj, trans_dict)
             new_obj.db_data = res
@@ -6487,36 +6473,6 @@ class DBChange(object):
                 elif obj.vtType == 'plugin_data':
                     n_obj = DBPluginData.update_version(obj, trans_dict)
                     new_obj.db_deleted_data.append(n_obj)
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'what' in class_dict:
-            res = class_dict['what'](old_obj, trans_dict)
-            new_obj.db_what = res
-        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
-            new_obj.db_what = old_obj.db_what
-        if 'oldObjId' in class_dict:
-            res = class_dict['oldObjId'](old_obj, trans_dict)
-            new_obj.db_oldObjId = res
-        elif hasattr(old_obj, 'db_oldObjId') and old_obj.db_oldObjId is not None:
-            new_obj.db_oldObjId = old_obj.db_oldObjId
-        if 'newObjId' in class_dict:
-            res = class_dict['newObjId'](old_obj, trans_dict)
-            new_obj.db_newObjId = res
-        elif hasattr(old_obj, 'db_newObjId') and old_obj.db_newObjId is not None:
-            new_obj.db_newObjId = old_obj.db_newObjId
-        if 'parentObjId' in class_dict:
-            res = class_dict['parentObjId'](old_obj, trans_dict)
-            new_obj.db_parentObjId = res
-        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
-            new_obj.db_parentObjId = old_obj.db_parentObjId
-        if 'parentObjType' in class_dict:
-            res = class_dict['parentObjType'](old_obj, trans_dict)
-            new_obj.db_parentObjType = res
-        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
-            new_obj.db_parentObjType = old_obj.db_parentObjType
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -6541,21 +6497,6 @@ class DBChange(object):
         if self._db_data is not None and self._db_data.has_changes():
             return True
         return False
-    def __get_db_data(self):
-        return self._db_data
-    def __set_db_data(self, data):
-        self._db_data = data
-        self.is_dirty = True
-    db_data = property(__get_db_data, __set_db_data)
-    def db_add_data(self, data):
-        self._db_data = data
-    def db_change_data(self, data):
-        self._db_data = data
-    def db_delete_data(self, data):
-        if not self.is_new:
-            self.db_deleted_data.append(self._db_data)
-        self._db_data = None
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -6634,6 +6575,21 @@ class DBChange(object):
     def db_delete_parentObjType(self, parentObjType):
         self._db_parentObjType = None
     
+    def __get_db_data(self):
+        return self._db_data
+    def __set_db_data(self, data):
+        self._db_data = data
+        self.is_dirty = True
+    db_data = property(__get_db_data, __set_db_data)
+    def db_add_data(self, data):
+        self._db_data = data
+    def db_change_data(self, data):
+        self._db_data = data
+    def db_delete_data(self, data):
+        if not self.is_new:
+            self.db_deleted_data.append(self._db_data)
+        self._db_data = None
+    
     def getPrimaryKey(self):
         return self._db_id
 
@@ -6677,16 +6633,16 @@ class DBPackage(object):
             cp._db_module_descriptors = []
         else:
             cp._db_module_descriptors = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_descriptors]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_module_descriptors_id_index = dict((v.db_id, v) for v in cp._db_module_descriptors)
         cp.db_module_descriptors_name_index = dict(((v.db_name,v.db_namespace,v.db_version), v) for v in cp._db_module_descriptors)
@@ -6949,16 +6905,16 @@ class DBLoopExec(object):
             cp._db_loop_iterations = []
         else:
             cp._db_loop_iterations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_iterations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_loop_iterations_id_index = dict((v.db_id, v) for v in cp._db_loop_iterations)
         if not new_ids:
@@ -7139,16 +7095,16 @@ class DBConnection(object):
             cp._db_ports = []
         else:
             cp._db_ports = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_ports]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_ports_id_index = dict((v.db_id, v) for v in cp._db_ports)
         cp.db_ports_type_index = dict((v.db_type, v) for v in cp._db_ports)
@@ -7287,16 +7243,8 @@ class DBConfigBool(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigBool(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7347,15 +7295,7 @@ class DBAction(object):
 
     vtType = 'action'
 
-    def __init__(self, operations=None, id=None, prevId=None, date=None, session=None, user=None, annotations=None):
-        self.db_deleted_operations = []
-        self.db_operations_id_index = {}
-        if operations is None:
-            self._db_operations = []
-        else:
-            self._db_operations = operations
-            for v in self._db_operations:
-                self.db_operations_id_index[v.db_id] = v
+    def __init__(self, id=None, prevId=None, date=None, session=None, user=None, annotations=None, operations=None):
         self._db_id = id
         self._db_prevId = prevId
         self._db_date = date
@@ -7371,6 +7311,14 @@ class DBAction(object):
             for v in self._db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
                 self.db_annotations_key_index[v.db_key] = v
+        self.db_deleted_operations = []
+        self.db_operations_id_index = {}
+        if operations is None:
+            self._db_operations = []
+        else:
+            self._db_operations = operations
+            for v in self._db_operations:
+                self.db_operations_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -7383,30 +7331,34 @@ class DBAction(object):
                       date=self._db_date,
                       session=self._db_session,
                       user=self._db_user)
-        if self._db_operations is None:
-            cp._db_operations = []
-        else:
-            cp._db_operations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_operations]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
-        
+        if self._db_operations is None:
+            cp._db_operations = []
+        else:
+            cp._db_operations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_operations]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prevId') and ('action', self._db_prevId) in id_remap:
-                cp._db_prevId = id_remap[('action', self._db_prevId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_prevId') and (fkey_type, self._db_prevId) in id_remap:
+                cp._db_prevId = id_remap[(fkey_type, self._db_prevId)]
+
         # recreate indices and set flags
-        cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
+        cp.db_operations_id_index = dict((v.db_id, v) for v in cp._db_operations)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -7419,29 +7371,6 @@ class DBAction(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'operations' in class_dict:
-            res = class_dict['operations'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_operation(obj)
-        elif hasattr(old_obj, 'db_operations') and old_obj.db_operations is not None:
-            for obj in old_obj.db_operations:
-                if obj.vtType == 'add':
-                    new_obj.db_add_operation(DBAdd.update_version(obj, trans_dict))
-                elif obj.vtType == 'delete':
-                    new_obj.db_add_operation(DBDelete.update_version(obj, trans_dict))
-                elif obj.vtType == 'change':
-                    new_obj.db_add_operation(DBChange.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_operations') and hasattr(new_obj, 'db_deleted_operations'):
-            for obj in old_obj.db_deleted_operations:
-                if obj.vtType == 'add':
-                    n_obj = DBAdd.update_version(obj, trans_dict)
-                    new_obj.db_deleted_operations.append(n_obj)
-                elif obj.vtType == 'delete':
-                    n_obj = DBDelete.update_version(obj, trans_dict)
-                    new_obj.db_deleted_operations.append(n_obj)
-                elif obj.vtType == 'change':
-                    n_obj = DBChange.update_version(obj, trans_dict)
-                    new_obj.db_deleted_operations.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -7478,6 +7407,29 @@ class DBAction(object):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
                 new_obj.db_deleted_annotations.append(n_obj)
+        if 'operations' in class_dict:
+            res = class_dict['operations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_operation(obj)
+        elif hasattr(old_obj, 'db_operations') and old_obj.db_operations is not None:
+            for obj in old_obj.db_operations:
+                if obj.vtType == 'add':
+                    new_obj.db_add_operation(DBAdd.update_version(obj, trans_dict))
+                elif obj.vtType == 'delete':
+                    new_obj.db_add_operation(DBDelete.update_version(obj, trans_dict))
+                elif obj.vtType == 'change':
+                    new_obj.db_add_operation(DBChange.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_operations') and hasattr(new_obj, 'db_deleted_operations'):
+            for obj in old_obj.db_deleted_operations:
+                if obj.vtType == 'add':
+                    n_obj = DBAdd.update_version(obj, trans_dict)
+                    new_obj.db_deleted_operations.append(n_obj)
+                elif obj.vtType == 'delete':
+                    n_obj = DBDelete.update_version(obj, trans_dict)
+                    new_obj.db_deleted_operations.append(n_obj)
+                elif obj.vtType == 'change':
+                    n_obj = DBChange.update_version(obj, trans_dict)
+                    new_obj.db_deleted_operations.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -7518,48 +7470,6 @@ class DBAction(object):
             if child.has_changes():
                 return True
         return False
-    def __get_db_operations(self):
-        return self._db_operations
-    def __set_db_operations(self, operations):
-        self._db_operations = operations
-        self.is_dirty = True
-    db_operations = property(__get_db_operations, __set_db_operations)
-    def db_get_operations(self):
-        return self._db_operations
-    def db_add_operation(self, operation):
-        self.is_dirty = True
-        self._db_operations.append(operation)
-        self.db_operations_id_index[operation.db_id] = operation
-    def db_change_operation(self, operation):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_operations)):
-            if self._db_operations[i].db_id == operation.db_id:
-                self._db_operations[i] = operation
-                found = True
-                break
-        if not found:
-            self._db_operations.append(operation)
-        self.db_operations_id_index[operation.db_id] = operation
-    def db_delete_operation(self, operation):
-        self.is_dirty = True
-        for i in xrange(len(self._db_operations)):
-            if self._db_operations[i].db_id == operation.db_id:
-                if not self._db_operations[i].is_new:
-                    self.db_deleted_operations.append(self._db_operations[i])
-                del self._db_operations[i]
-                break
-        del self.db_operations_id_index[operation.db_id]
-    def db_get_operation(self, key):
-        for i in xrange(len(self._db_operations)):
-            if self._db_operations[i].db_id == key:
-                return self._db_operations[i]
-        return None
-    def db_get_operation_by_id(self, key):
-        return self.db_operations_id_index[key]
-    def db_has_operation_with_id(self, key):
-        return key in self.db_operations_id_index
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -7674,6 +7584,48 @@ class DBAction(object):
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
     
+    def __get_db_operations(self):
+        return self._db_operations
+    def __set_db_operations(self, operations):
+        self._db_operations = operations
+        self.is_dirty = True
+    db_operations = property(__get_db_operations, __set_db_operations)
+    def db_get_operations(self):
+        return self._db_operations
+    def db_add_operation(self, operation):
+        self.is_dirty = True
+        self._db_operations.append(operation)
+        self.db_operations_id_index[operation.db_id] = operation
+    def db_change_operation(self, operation):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_operations)):
+            if self._db_operations[i].db_id == operation.db_id:
+                self._db_operations[i] = operation
+                found = True
+                break
+        if not found:
+            self._db_operations.append(operation)
+        self.db_operations_id_index[operation.db_id] = operation
+    def db_delete_operation(self, operation):
+        self.is_dirty = True
+        for i in xrange(len(self._db_operations)):
+            if self._db_operations[i].db_id == operation.db_id:
+                if not self._db_operations[i].is_new:
+                    self.db_deleted_operations.append(self._db_operations[i])
+                del self._db_operations[i]
+                break
+        del self.db_operations_id_index[operation.db_id]
+    def db_get_operation(self, key):
+        for i in xrange(len(self._db_operations)):
+            if self._db_operations[i].db_id == key:
+                return self._db_operations[i]
+        return None
+    def db_get_operation_by_id(self, key):
+        return self.db_operations_id_index[key]
+    def db_has_operation_with_id(self, key):
+        return key in self.db_operations_id_index
+    
     def getPrimaryKey(self):
         return self._db_id
 
@@ -7695,16 +7647,8 @@ class DBStartupPackage(object):
         cp = DBStartupPackage(name=self._db_name)
         if self._db_configuration is not None:
             cp._db_configuration = self._db_configuration.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7801,16 +7745,8 @@ class DBConfigInt(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigInt(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7871,18 +7807,16 @@ class DBOpmProcessIdEffect(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmProcessIdEffect(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'opm_process' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_process']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_process', self._db_id)]
-        
+                fkey_type = 'opm_process'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -7943,18 +7877,16 @@ class DBRefProvPlan(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvPlan(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'prov_entity' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_entity']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_entity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_entity', self._db_prov_ref)]
-        
+                fkey_type = 'prov_entity'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8035,16 +7967,8 @@ class DBOpmAccounts(object):
             cp._db_opm_overlapss = []
         else:
             cp._db_opm_overlapss = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_overlapss]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_accounts_id_index = dict((v.db_id, v) for v in cp._db_accounts)
         if not new_ids:
@@ -8199,18 +8123,16 @@ class DBRefProvAgent(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvAgent(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'prov_agent' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_agent']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_agent', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_agent', self._db_prov_ref)]
-        
+                fkey_type = 'prov_agent'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8297,16 +8219,16 @@ class DBPortSpec(object):
             cp._db_portSpecItems = []
         else:
             cp._db_portSpecItems = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecItems]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_portSpecItems_id_index = dict((v.db_id, v) for v in cp._db_portSpecItems)
         if not new_ids:
@@ -8570,16 +8492,8 @@ class DBEnabledPackages(object):
             cp._db_packages = []
         else:
             cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_packages_name_index = dict((v.db_name, v) for v in cp._db_packages)
         if not new_ids:
@@ -8688,16 +8602,16 @@ class DBOpmArtifact(object):
             cp._db_accounts = []
         else:
             cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -8860,18 +8774,22 @@ class DBLog(object):
             cp._db_workflow_execs = []
         else:
             cp._db_workflow_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_workflow_execs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and ('vistrail', self._db_vistrail_id) in id_remap:
-                cp._db_vistrail_id = id_remap[('vistrail', self._db_vistrail_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vistrail_id') and (fkey_type, self._db_vistrail_id) in id_remap:
+                cp._db_vistrail_id = id_remap[(fkey_type, self._db_vistrail_id)]
+
         # recreate indices and set flags
         cp.db_workflow_execs_id_index = dict((v.db_id, v) for v in cp._db_workflow_execs)
         if not new_ids:
@@ -9082,7 +9000,13 @@ class DBLoopIteration(object):
 
     vtType = 'loop_iteration'
 
-    def __init__(self, item_execs=None, id=None, ts_start=None, ts_end=None, iteration=None, completed=None, error=None):
+    def __init__(self, id=None, ts_start=None, ts_end=None, iteration=None, completed=None, error=None, item_execs=None):
+        self._db_id = id
+        self._db_ts_start = ts_start
+        self._db_ts_end = ts_end
+        self._db_iteration = iteration
+        self._db_completed = completed
+        self._db_error = error
         self.db_deleted_item_execs = []
         self.db_item_execs_id_index = {}
         if item_execs is None:
@@ -9091,12 +9015,6 @@ class DBLoopIteration(object):
             self._db_item_execs = item_execs
             for v in self._db_item_execs:
                 self.db_item_execs_id_index[v.db_id] = v
-        self._db_id = id
-        self._db_ts_start = ts_start
-        self._db_ts_end = ts_end
-        self._db_iteration = iteration
-        self._db_completed = completed
-        self._db_error = error
         self.is_dirty = True
         self.is_new = True
     
@@ -9114,16 +9032,16 @@ class DBLoopIteration(object):
             cp._db_item_execs = []
         else:
             cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         if not new_ids:
@@ -9138,29 +9056,6 @@ class DBLoopIteration(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'item_execs' in class_dict:
-            res = class_dict['item_execs'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_item_exec(obj)
-        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
-            for obj in old_obj.db_item_execs:
-                if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
-            for obj in old_obj.db_deleted_item_execs:
-                if obj.vtType == 'module_exec':
-                    n_obj = DBModuleExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'group_exec':
-                    n_obj = DBGroupExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'loop_exec':
-                    n_obj = DBLoopExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -9191,6 +9086,29 @@ class DBLoopIteration(object):
             new_obj.db_error = res
         elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
             new_obj.db_error = old_obj.db_error
+        if 'item_execs' in class_dict:
+            res = class_dict['item_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_item_exec(obj)
+        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
+            for obj in old_obj.db_item_execs:
+                if obj.vtType == 'module_exec':
+                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'group_exec':
+                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'loop_exec':
+                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9219,48 +9137,6 @@ class DBLoopIteration(object):
             if child.has_changes():
                 return True
         return False
-    def __get_db_item_execs(self):
-        return self._db_item_execs
-    def __set_db_item_execs(self, item_execs):
-        self._db_item_execs = item_execs
-        self.is_dirty = True
-    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
-    def db_get_item_execs(self):
-        return self._db_item_execs
-    def db_add_item_exec(self, item_exec):
-        self.is_dirty = True
-        self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_change_item_exec(self, item_exec):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                self._db_item_execs[i] = item_exec
-                found = True
-                break
-        if not found:
-            self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_delete_item_exec(self, item_exec):
-        self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                if not self._db_item_execs[i].is_new:
-                    self.db_deleted_item_execs.append(self._db_item_execs[i])
-                del self._db_item_execs[i]
-                break
-        del self.db_item_execs_id_index[item_exec.db_id]
-    def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == key:
-                return self._db_item_execs[i]
-        return None
-    def db_get_item_exec_by_id(self, key):
-        return self.db_item_execs_id_index[key]
-    def db_has_item_exec_with_id(self, key):
-        return key in self.db_item_execs_id_index
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -9339,6 +9215,48 @@ class DBLoopIteration(object):
     def db_delete_error(self, error):
         self._db_error = None
     
+    def __get_db_item_execs(self):
+        return self._db_item_execs
+    def __set_db_item_execs(self, item_execs):
+        self._db_item_execs = item_execs
+        self.is_dirty = True
+    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+    def db_get_item_execs(self):
+        return self._db_item_execs
+    def db_add_item_exec(self, item_exec):
+        self.is_dirty = True
+        self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_change_item_exec(self, item_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                self._db_item_execs[i] = item_exec
+                found = True
+                break
+        if not found:
+            self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_delete_item_exec(self, item_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                if not self._db_item_execs[i].is_new:
+                    self.db_deleted_item_execs.append(self._db_item_execs[i])
+                del self._db_item_execs[i]
+                break
+        del self.db_item_execs_id_index[item_exec.db_id]
+    def db_get_item_exec(self, key):
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == key:
+                return self._db_item_execs[i]
+        return None
+    def db_get_item_exec_by_id(self, key):
+        return self.db_item_execs_id_index[key]
+    def db_has_item_exec_with_id(self, key):
+        return key in self.db_item_execs_id_index
+    
     def getPrimaryKey(self):
         return self._db_id
 
@@ -9356,18 +9274,16 @@ class DBOpmProcessIdCause(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmProcessIdCause(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'opm_process' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_process']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('opm_process', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_process', self._db_id)]
-        
+                fkey_type = 'opm_process'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9439,16 +9355,8 @@ class DBOpmArtifacts(object):
             cp._db_artifacts = []
         else:
             cp._db_artifacts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_artifacts]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_artifacts_id_index = dict((v.db_id, v) for v in cp._db_artifacts)
         if not new_ids:
@@ -9568,16 +9476,16 @@ class DBPEParameter(object):
                            interpolator=self._db_interpolator,
                            value=self._db_value,
                            dimension=self._db_dimension)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -9701,15 +9609,7 @@ class DBWorkflowExec(object):
 
     vtType = 'workflow_exec'
 
-    def __init__(self, item_execs=None, id=None, user=None, ip=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None, annotations=None, machines=None):
-        self.db_deleted_item_execs = []
-        self.db_item_execs_id_index = {}
-        if item_execs is None:
-            self._db_item_execs = []
-        else:
-            self._db_item_execs = item_execs
-            for v in self._db_item_execs:
-                self.db_item_execs_id_index[v.db_id] = v
+    def __init__(self, id=None, user=None, ip=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None, annotations=None, machines=None, item_execs=None):
         self._db_id = id
         self._db_user = user
         self._db_ip = ip
@@ -9738,6 +9638,14 @@ class DBWorkflowExec(object):
             self._db_machines = machines
             for v in self._db_machines:
                 self.db_machines_id_index[v.db_id] = v
+        self.db_deleted_item_execs = []
+        self.db_item_execs_id_index = {}
+        if item_execs is None:
+            self._db_item_execs = []
+        else:
+            self._db_item_execs = item_execs
+            for v in self._db_item_execs:
+                self.db_item_execs_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -9757,10 +9665,6 @@ class DBWorkflowExec(object):
                             parent_version=self._db_parent_version,
                             completed=self._db_completed,
                             name=self._db_name)
-        if self._db_item_execs is None:
-            cp._db_item_execs = []
-        else:
-            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
         if self._db_annotations is None:
             cp._db_annotations = []
         else:
@@ -9769,20 +9673,24 @@ class DBWorkflowExec(object):
             cp._db_machines = []
         else:
             cp._db_machines = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_machines]
-        
+        if self._db_item_execs is None:
+            cp._db_item_execs = []
+        else:
+            cp._db_item_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_item_execs]
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
-        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_machines_id_index = dict((v.db_id, v) for v in cp._db_machines)
+        cp.db_item_execs_id_index = dict((v.db_id, v) for v in cp._db_item_execs)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -9795,29 +9703,6 @@ class DBWorkflowExec(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'item_execs' in class_dict:
-            res = class_dict['item_execs'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_item_exec(obj)
-        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
-            for obj in old_obj.db_item_execs:
-                if obj.vtType == 'module_exec':
-                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'group_exec':
-                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
-                elif obj.vtType == 'loop_exec':
-                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
-        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
-            for obj in old_obj.db_deleted_item_execs:
-                if obj.vtType == 'module_exec':
-                    n_obj = DBModuleExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'group_exec':
-                    n_obj = DBGroupExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
-                elif obj.vtType == 'loop_exec':
-                    n_obj = DBLoopExec.update_version(obj, trans_dict)
-                    new_obj.db_deleted_item_execs.append(n_obj)
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -9900,6 +9785,29 @@ class DBWorkflowExec(object):
             for obj in old_obj.db_deleted_machines:
                 n_obj = DBMachine.update_version(obj, trans_dict)
                 new_obj.db_deleted_machines.append(n_obj)
+        if 'item_execs' in class_dict:
+            res = class_dict['item_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_item_exec(obj)
+        elif hasattr(old_obj, 'db_item_execs') and old_obj.db_item_execs is not None:
+            for obj in old_obj.db_item_execs:
+                if obj.vtType == 'module_exec':
+                    new_obj.db_add_item_exec(DBModuleExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'group_exec':
+                    new_obj.db_add_item_exec(DBGroupExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'loop_exec':
+                    new_obj.db_add_item_exec(DBLoopExec.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_item_execs') and hasattr(new_obj, 'db_deleted_item_execs'):
+            for obj in old_obj.db_deleted_item_execs:
+                if obj.vtType == 'module_exec':
+                    n_obj = DBModuleExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'group_exec':
+                    n_obj = DBGroupExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
+                elif obj.vtType == 'loop_exec':
+                    n_obj = DBLoopExec.update_version(obj, trans_dict)
+                    new_obj.db_deleted_item_execs.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -9952,48 +9860,6 @@ class DBWorkflowExec(object):
             if child.has_changes():
                 return True
         return False
-    def __get_db_item_execs(self):
-        return self._db_item_execs
-    def __set_db_item_execs(self, item_execs):
-        self._db_item_execs = item_execs
-        self.is_dirty = True
-    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
-    def db_get_item_execs(self):
-        return self._db_item_execs
-    def db_add_item_exec(self, item_exec):
-        self.is_dirty = True
-        self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_change_item_exec(self, item_exec):
-        self.is_dirty = True
-        found = False
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                self._db_item_execs[i] = item_exec
-                found = True
-                break
-        if not found:
-            self._db_item_execs.append(item_exec)
-        self.db_item_execs_id_index[item_exec.db_id] = item_exec
-    def db_delete_item_exec(self, item_exec):
-        self.is_dirty = True
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == item_exec.db_id:
-                if not self._db_item_execs[i].is_new:
-                    self.db_deleted_item_execs.append(self._db_item_execs[i])
-                del self._db_item_execs[i]
-                break
-        del self.db_item_execs_id_index[item_exec.db_id]
-    def db_get_item_exec(self, key):
-        for i in xrange(len(self._db_item_execs)):
-            if self._db_item_execs[i].db_id == key:
-                return self._db_item_execs[i]
-        return None
-    def db_get_item_exec_by_id(self, key):
-        return self.db_item_execs_id_index[key]
-    def db_has_item_exec_with_id(self, key):
-        return key in self.db_item_execs_id_index
-    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -10234,6 +10100,48 @@ class DBWorkflowExec(object):
     def db_has_machine_with_id(self, key):
         return key in self.db_machines_id_index
     
+    def __get_db_item_execs(self):
+        return self._db_item_execs
+    def __set_db_item_execs(self, item_execs):
+        self._db_item_execs = item_execs
+        self.is_dirty = True
+    db_item_execs = property(__get_db_item_execs, __set_db_item_execs)
+    def db_get_item_execs(self):
+        return self._db_item_execs
+    def db_add_item_exec(self, item_exec):
+        self.is_dirty = True
+        self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_change_item_exec(self, item_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                self._db_item_execs[i] = item_exec
+                found = True
+                break
+        if not found:
+            self._db_item_execs.append(item_exec)
+        self.db_item_execs_id_index[item_exec.db_id] = item_exec
+    def db_delete_item_exec(self, item_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == item_exec.db_id:
+                if not self._db_item_execs[i].is_new:
+                    self.db_deleted_item_execs.append(self._db_item_execs[i])
+                del self._db_item_execs[i]
+                break
+        del self.db_item_execs_id_index[item_exec.db_id]
+    def db_get_item_exec(self, key):
+        for i in xrange(len(self._db_item_execs)):
+            if self._db_item_execs[i].db_id == key:
+                return self._db_item_execs[i]
+        return None
+    def db_get_item_exec_by_id(self, key):
+        return self.db_item_execs_id_index[key]
+    def db_has_item_exec_with_id(self, key):
+        return key in self.db_item_execs_id_index
+    
     def getPrimaryKey(self):
         return self._db_id
 
@@ -10255,16 +10163,16 @@ class DBLocation(object):
         cp = DBLocation(id=self._db_id,
                         x=self._db_x,
                         y=self._db_y)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -10378,16 +10286,16 @@ class DBFunction(object):
             cp._db_parameters = []
         else:
             cp._db_parameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_parameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_parameters_id_index = dict((v.db_id, v) for v in cp._db_parameters)
         if not new_ids:
@@ -10564,18 +10472,22 @@ class DBActionAnnotation(object):
                                 action_id=self._db_action_id,
                                 date=self._db_date,
                                 user=self._db_user)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('action', self._db_action_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_action_id') and (fkey_type, self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[(fkey_type, self._db_action_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -10747,16 +10659,16 @@ class DBProvActivity(object):
                             vt_error=self._db_vt_error)
         if self._db_is_part_of is not None:
             cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11006,16 +10918,8 @@ class DBProvUsage(object):
             cp._db_prov_activity = self._db_prov_activity.do_copy(new_ids, id_scope, id_remap)
         if self._db_prov_entity is not None:
             cp._db_prov_entity = self._db_prov_entity.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11145,18 +11049,16 @@ class DBOpmArtifactIdEffect(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmArtifactIdEffect(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'opm_artifact' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_artifact']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('opm_artifact', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_artifact', self._db_id)]
-        
+                fkey_type = 'opm_artifact'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11236,16 +11138,8 @@ class DBOpmGraph(object):
             cp._db_agents = self._db_agents.do_copy(new_ids, id_scope, id_remap)
         if self._db_dependencies is not None:
             cp._db_dependencies = self._db_dependencies.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11456,16 +11350,8 @@ class DBIsPartOf(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBIsPartOf(prov_ref=self._db_prov_ref)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11555,16 +11441,8 @@ class DBOpmWasDerivedFrom(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11799,16 +11677,16 @@ class DBControlParameter(object):
         cp = DBControlParameter(id=self._db_id,
                                 name=self._db_name,
                                 value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -11908,16 +11786,16 @@ class DBPluginData(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPluginData(id=self._db_id,
                           data=self._db_data)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12005,20 +11883,28 @@ class DBDelete(object):
                       objectId=self._db_objectId,
                       parentObjId=self._db_parentObjId,
                       parentObjType=self._db_parentObjType)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_objectId') and (self._db_what, self._db_objectId) in id_remap:
-                cp._db_objectId = id_remap[(self._db_what, self._db_objectId)]
-            if hasattr(self, 'db_parentObjId') and (self._db_parentObjType, self._db_parentObjId) in id_remap:
-                cp._db_parentObjId = id_remap[(self._db_parentObjType, self._db_parentObjId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if self._db_what in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_what]
+            else:
+                fkey_type = self._db_what
+            if hasattr(self, 'db_objectId') and (fkey_type, self._db_objectId) in id_remap:
+                cp._db_objectId = id_remap[(fkey_type, self._db_objectId)]
+            if self._db_parentObjType in id_scope.remap:
+                fkey_type = id_scope.remap[self._db_parentObjType]
+            else:
+                fkey_type = self._db_parentObjType
+            if hasattr(self, 'db_parentObjId') and (fkey_type, self._db_parentObjId) in id_remap:
+                cp._db_parentObjId = id_remap[(fkey_type, self._db_parentObjId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12162,16 +12048,16 @@ class DBVistrailVariable(object):
                                 module=self._db_module,
                                 namespace=self._db_namespace,
                                 value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_uuid)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_uuid)] = new_id
+            cp._db_uuid = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12307,7 +12193,7 @@ class DBVistrailVariable(object):
         self._db_value = None
     
     def getPrimaryKey(self):
-        return self._db_name
+        return self._db_uuid
 
 class DBOpmOverlaps(object):
 
@@ -12331,16 +12217,8 @@ class DBOpmOverlaps(object):
             cp._db_opm_account_ids = []
         else:
             cp._db_opm_account_ids = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_account_ids]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12458,16 +12336,8 @@ class DBOpmWasTriggeredBy(object):
             cp._db_opm_times = []
         else:
             cp._db_opm_times = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_opm_times]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -12724,18 +12594,22 @@ class DBModuleDescriptor(object):
             cp._db_portSpecs = []
         else:
             cp._db_portSpecs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_portSpecs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_base_descriptor_id') and ('module_descriptor', self._db_base_descriptor_id) in id_remap:
-                cp._db_base_descriptor_id = id_remap[('module_descriptor', self._db_base_descriptor_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'module_descriptor' in id_scope.remap:
+                fkey_type = id_scope.remap['module_descriptor']
+            else:
+                fkey_type = 'module_descriptor'
+            if hasattr(self, 'db_base_descriptor_id') and (fkey_type, self._db_base_descriptor_id) in id_remap:
+                cp._db_base_descriptor_id = id_remap[(fkey_type, self._db_base_descriptor_id)]
+
         # recreate indices and set flags
         cp.db_portSpecs_id_index = dict((v.db_id, v) for v in cp._db_portSpecs)
         cp.db_portSpecs_name_index = dict(((v.db_name,v.db_type), v) for v in cp._db_portSpecs)
@@ -12984,18 +12858,22 @@ class DBTag(object):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBTag(id=self._db_id,
                    name=self._db_name)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('action', self._db_id) in id_remap:
-                cp._db_id = id_remap[('action', self._db_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13075,16 +12953,8 @@ class DBOpmRole(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmRole(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13219,16 +13089,8 @@ class DBProvDocument(object):
             cp._db_prov_associations = []
         else:
             cp._db_prov_associations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_prov_associations]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_prov_entitys_id_index = dict((v.db_id, v) for v in cp._db_prov_entitys)
         cp.db_prov_activitys_id_index = dict((v.db_id, v) for v in cp._db_prov_activitys)
@@ -13678,16 +13540,8 @@ class DBOpmProcesses(object):
             cp._db_processs = []
         else:
             cp._db_processs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_processs]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_processs_id_index = dict((v.db_id, v) for v in cp._db_processs)
         if not new_ids:
@@ -13799,18 +13653,16 @@ class DBOpmAccountId(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBOpmAccountId(id=self._db_id)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'opm_account' in id_scope.remap:
+                fkey_type = id_scope.remap['opm_account']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_id') and ('opm_account', self._db_id) in id_remap:
-                cp._db_id = id_remap[('opm_account', self._db_id)]
-        
+                fkey_type = 'opm_account'
+            if hasattr(self, 'db_id') and (fkey_type, self._db_id) in id_remap:
+                cp._db_id = id_remap[(fkey_type, self._db_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -13887,16 +13739,16 @@ class DBPortSpecItem(object):
                             default=self._db_default,
                             values=self._db_values,
                             entry_type=self._db_entry_type)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14134,16 +13986,16 @@ class DBMashupComponent(object):
                                widget=self._db_widget,
                                seq=self._db_seq,
                                parent=self._db_parent)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14519,18 +14371,22 @@ class DBMashup(object):
             cp._db_aliases = []
         else:
             cp._db_aliases = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_aliases]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_vtid') and ('vistrail', self._db_vtid) in id_remap:
-                cp._db_vtid = id_remap[('vistrail', self._db_vtid)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vtid') and (fkey_type, self._db_vtid) in id_remap:
+                cp._db_vtid = id_remap[(fkey_type, self._db_vtid)]
+
         # recreate indices and set flags
         cp.db_aliases_id_index = dict((v.db_id, v) for v in cp._db_aliases)
         if not new_ids:
@@ -14797,18 +14653,22 @@ class DBMachine(object):
                        architecture=self._db_architecture,
                        processor=self._db_processor,
                        ram=self._db_ram)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_vistrailId') and ('vistrail', self._db_vistrailId) in id_remap:
-                cp._db_vistrailId = id_remap[('vistrail', self._db_vistrailId)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'vistrail' in id_scope.remap:
+                fkey_type = id_scope.remap['vistrail']
+            else:
+                fkey_type = 'vistrail'
+            if hasattr(self, 'db_vistrailId') and (fkey_type, self._db_vistrailId) in id_remap:
+                cp._db_vistrailId = id_remap[(fkey_type, self._db_vistrailId)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -14960,16 +14820,8 @@ class DBConfigFloat(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConfigFloat(value=self._db_value)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15034,16 +14886,16 @@ class DBOther(object):
         cp = DBOther(id=self._db_id,
                      key=self._db_key,
                      value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15141,18 +14993,16 @@ class DBRefProvActivity(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
-        
+
         # set new ids
         if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            if 'prov_activity' in id_scope.remap:
+                fkey_type = id_scope.remap['prov_activity']
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
-        
+                fkey_type = 'prov_activity'
+            if hasattr(self, 'db_prov_ref') and (fkey_type, self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[(fkey_type, self._db_prov_ref)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15269,16 +15119,16 @@ class DBAbstraction(object):
             cp._db_controlParameters = []
         else:
             cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -15712,16 +15562,16 @@ class DBProvAgent(object):
                          vt_machine_architecture=self._db_vt_machine_architecture,
                          vt_machine_processor=self._db_vt_machine_processor,
                          vt_machine_ram=self._db_vt_machine_ram)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -15959,16 +15809,16 @@ class DBMashuptrail(object):
             cp._db_actionAnnotations = []
         else:
             cp._db_actionAnnotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_actionAnnotations]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
@@ -16354,18 +16204,22 @@ class DBRegistry(object):
             cp._db_packages = []
         else:
             cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_root_descriptor_id') and ('module_descriptor', self._db_root_descriptor_id) in id_remap:
-                cp._db_root_descriptor_id = id_remap[('module_descriptor', self._db_root_descriptor_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'module_descriptor' in id_scope.remap:
+                fkey_type = id_scope.remap['module_descriptor']
+            else:
+                fkey_type = 'module_descriptor'
+            if hasattr(self, 'db_root_descriptor_id') and (fkey_type, self._db_root_descriptor_id) in id_remap:
+                cp._db_root_descriptor_id = id_remap[(fkey_type, self._db_root_descriptor_id)]
+
         # recreate indices and set flags
         cp.db_packages_id_index = dict((v.db_id, v) for v in cp._db_packages)
         cp.db_packages_identifier_index = dict(((v.db_identifier,v.db_version), v) for v in cp._db_packages)
@@ -16605,16 +16459,16 @@ class DBOpmAgent(object):
             cp._db_accounts = []
         else:
             cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -16766,16 +16620,16 @@ class DBProvEntity(object):
                           vt_location_y=self._db_vt_location_y)
         if self._db_is_part_of is not None:
             cp._db_is_part_of = self._db_is_part_of.do_copy(new_ids, id_scope, id_remap)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17075,16 +16929,16 @@ class DBAnnotation(object):
         cp = DBAnnotation(id=self._db_id,
                           key=self._db_key,
                           value=self._db_value)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17186,16 +17040,8 @@ class DBOpmTime(object):
         cp = DBOpmTime(no_later_than=self._db_no_later_than,
                        no_earlier_than=self._db_no_earlier_than,
                        clock_id=self._db_clock_id)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17316,18 +17162,22 @@ class DBParameterExploration(object):
             cp._db_functions = []
         else:
             cp._db_functions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_functions]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_action_id') and ('action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('action', self._db_action_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'action' in id_scope.remap:
+                fkey_type = id_scope.remap['action']
+            else:
+                fkey_type = 'action'
+            if hasattr(self, 'db_action_id') and (fkey_type, self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[(fkey_type, self._db_action_id)]
+
         # recreate indices and set flags
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         if not new_ids:
@@ -17576,18 +17426,22 @@ class DBMashupActionAnnotation(object):
                                       action_id=self._db_action_id,
                                       date=self._db_date,
                                       user=self._db_user)
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_action_id') and ('mashup_action', self._db_action_id) in id_remap:
-                cp._db_action_id = id_remap[('mashup_action', self._db_action_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'mashup_action' in id_scope.remap:
+                fkey_type = id_scope.remap['mashup_action']
+            else:
+                fkey_type = 'mashup_action'
+            if hasattr(self, 'db_action_id') and (fkey_type, self._db_action_id) in id_remap:
+                cp._db_action_id = id_remap[(fkey_type, self._db_action_id)]
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17752,16 +17606,16 @@ class DBOpmProcess(object):
             cp._db_accounts = []
         else:
             cp._db_accounts = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_accounts]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -17913,16 +17767,8 @@ class DBDisabledPackages(object):
             cp._db_packages = []
         else:
             cp._db_packages = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_packages]
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         cp.db_packages_name_index = dict((v.db_name, v) for v in cp._db_packages)
         if not new_ids:
@@ -18058,20 +17904,28 @@ class DBModuleExec(object):
             cp._db_loop_execs = []
         else:
             cp._db_loop_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_execs]
-        
+
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
             if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+                id_remap[(id_scope.remap[self.vtType], self._db_id)] = new_id
             else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
-                cp._db_module_id = id_remap[('module', self._db_module_id)]
-            if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
-                cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
-        
+                id_remap[(self.vtType, self._db_id)] = new_id
+            cp._db_id = new_id
+            if 'module' in id_scope.remap:
+                fkey_type = id_scope.remap['module']
+            else:
+                fkey_type = 'module'
+            if hasattr(self, 'db_module_id') and (fkey_type, self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[(fkey_type, self._db_module_id)]
+            if 'machine' in id_scope.remap:
+                fkey_type = id_scope.remap['machine']
+            else:
+                fkey_type = 'machine'
+            if hasattr(self, 'db_machine_id') and (fkey_type, self._db_machine_id) in id_remap:
+                cp._db_machine_id = id_remap[(fkey_type, self._db_machine_id)]
+
         # recreate indices and set flags
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_loop_execs_id_index = dict((v.db_id, v) for v in cp._db_loop_execs)
@@ -18424,16 +18278,8 @@ class DBProvAssociation(object):
             cp._db_prov_agent = self._db_prov_agent.do_copy(new_ids, id_scope, id_remap)
         if self._db_prov_plan is not None:
             cp._db_prov_plan = self._db_prov_plan.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty
@@ -18599,16 +18445,8 @@ class DBOpmProcessValue(object):
         cp = DBOpmProcessValue()
         if self._db_value is not None:
             cp._db_value = self._db_value.do_copy(new_ids, id_scope, id_remap)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
+
+
         # recreate indices and set flags
         if not new_ids:
             cp.is_dirty = self.is_dirty

@@ -298,11 +298,12 @@ class Property(Field):
         return False
 
 class Object(object):
-    def __init__(self, params, properties, layouts, choices):
+    def __init__(self, params, properties, layouts, choices, fields):
         self.params = params
         self.properties = properties
         self.layouts = layouts
         self.choices = choices
+        self.fields = fields
 
     def __str__(self):
         propStr = ''
@@ -364,7 +365,8 @@ class Object(object):
         return [p for p in self.properties if p.isForeignKey()]
 
     def getReferences(self):
-        return self.getReferenceProperties() + self.getReferenceChoices()
+        # we want to retain the order these are specified in
+        return [f for f in self.fields if f.isReference()]
 
     def getNonInverseReferences(self):
         return [ref for ref in self.getReferences() if not ref.isInverse()]
@@ -388,8 +390,8 @@ class Object(object):
         return [field.getRegularName() for field in self.getPythonFields()]
 
     def getPythonFields(self):
-        return [c for c in self.choices if not c.isInverse()] + \
-            [p for p in self.properties if not p.isInverse()]
+        # we want to retain the order these are specified in
+        return [f for f in self.fields if not f.isInverse()]
 
     def getPythonPluralFields(self):
         return [f for f in self.getPythonFields() if f.isPlural()]
