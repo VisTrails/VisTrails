@@ -45,7 +45,6 @@ import os.path
 import getpass
 import sys
 import StringIO
-import usagestats
 
 from PyQt4 import QtGui, QtCore, QtNetwork
 
@@ -246,6 +245,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self._initialized = True
 
         # usage statistics
+        reportusage.setup_usage_report()
+        import usagestats
         if reportusage.usage_report.status is usagestats.Stats.UNSET:
             self.ask_enable_usage_report()
         # news

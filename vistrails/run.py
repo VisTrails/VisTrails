@@ -126,9 +126,8 @@ def main():
     from vistrails.core import debug
     debug.DebugPrint.getInstance().log_to_console()
 
-    # Setup usage reporting
+    # Import this but don't set it up until application is initialized
     from vistrails.core import reportusage
-    reportusage.setup_usage_report()
 
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
